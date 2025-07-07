@@ -1,5 +1,5 @@
 
-import { Bell, User, LogOut } from "lucide-react";
+import { Bell, User, LogOut, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -9,16 +9,38 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const Header = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isOnDashboard = location.pathname === "/";
+
+  const handleBackToDashboard = () => {
+    navigate("/");
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
-          <p className="text-sm text-gray-500">Relatórios inteligentes de atendimento</p>
+        <div className="flex items-center gap-4">
+          {!isOnDashboard && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleBackToDashboard}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Dashboard
+            </Button>
+          )}
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
+            <p className="text-sm text-gray-500">Relatórios inteligentes de atendimento</p>
+          </div>
         </div>
 
         <div className="flex items-center space-x-4">
