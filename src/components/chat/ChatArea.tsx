@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
+import { ChatSettingsModal } from "./ChatSettingsModal";
 import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Globe, Users, MessageCircle, Settings } from "lucide-react";
@@ -13,6 +14,7 @@ interface ChatAreaProps {
 
 export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
   const { markAsRead, teams, currentUser: chatCurrentUser } = useChatContext();
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,11 +90,13 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
           </div>
           
           <div className="flex items-center gap-2">
-            {currentUser?.role === 'admin' && (
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
-            )}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowSettings(true)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -110,6 +114,12 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
       <MessageInput 
         chatId={activeChat.id}
         currentUser={chatCurrentUser}
+      />
+
+      {/* Settings Modal */}
+      <ChatSettingsModal 
+        open={showSettings}
+        onOpenChange={setShowSettings}
       />
     </div>
   );
