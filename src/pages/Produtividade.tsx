@@ -6,8 +6,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Users, Clock, TrendingUp, Activity } from "lucide-react";
-import { ProductivityTimeChart } from "@/components/charts/ProductivityTimeChart";
+import { Download, TrendingUp, Activity, Award, Target } from "lucide-react";
 import { AttendanceVolumeChart } from "@/components/charts/AttendanceVolumeChart";
 import { TeamProductivityChart } from "@/components/charts/TeamProductivityChart";
 import { useActivityMonitor } from "@/hooks/useActivityMonitor";
@@ -17,53 +16,50 @@ const mockProductivityData = {
     { 
       name: "Ana Santos", 
       team: "Vendas",
-      todayLogin: "08:30", 
-      todayLogout: "17:30", 
-      todayActiveTime: "8h 45m",
-      weekActiveTime: "42h 15m",
-      monthActiveTime: "168h 30m",
       todayAttendances: 23,
+      weekAttendances: 127,
+      monthAttendances: 456,
       totalAttendances: 1247,
       dailyAverage: 18.5,
+      responseTime: "2m 15s",
+      messagesPerChat: 8.3,
       ranking: 1
-    },
-    { 
-      name: "Carlos Lima", 
-      team: "Suporte",
-      todayLogin: "09:00", 
-      todayLogout: "18:00", 
-      todayActiveTime: "8h 20m",
-      weekActiveTime: "39h 45m",
-      monthActiveTime: "158h 20m",
-      todayAttendances: 19,
-      totalAttendances: 1098,
-      dailyAverage: 16.2,
-      ranking: 3
     },
     { 
       name: "Bruna Reis", 
       team: "Comercial",
-      todayLogin: "08:45", 
-      todayLogout: "17:45", 
-      todayActiveTime: "8h 30m",
-      weekActiveTime: "41h 30m",
-      monthActiveTime: "162h 45m",
       todayAttendances: 27,
+      weekAttendances: 134,
+      monthAttendances: 487,
       totalAttendances: 1356,
       dailyAverage: 20.1,
+      responseTime: "1m 45s",
+      messagesPerChat: 7.2,
       ranking: 2
+    },
+    { 
+      name: "Carlos Lima", 
+      team: "Suporte",
+      todayAttendances: 19,
+      weekAttendances: 98,
+      monthAttendances: 398,
+      totalAttendances: 1098,
+      dailyAverage: 16.2,
+      responseTime: "3m 20s",
+      messagesPerChat: 9.1,
+      ranking: 3
     }
   ],
   teamData: [
-    { team: "Vendas", activeAgents: 5, totalAttendances: 156, avgPerAgent: 31.2, avgOnlineTime: "8h 15m" },
-    { team: "Suporte", activeAgents: 3, totalAttendances: 89, avgPerAgent: 29.7, avgOnlineTime: "8h 05m" },
-    { team: "Comercial", activeAgents: 4, totalAttendances: 78, avgPerAgent: 19.5, avgOnlineTime: "7h 45m" }
+    { team: "Vendas", totalAttendances: 156, avgPerAgent: 31.2, avgResponseTime: "2m 30s", totalAgents: 5 },
+    { team: "Comercial", totalAttendances: 78, avgPerAgent: 19.5, avgResponseTime: "2m 15s", totalAgents: 4 },
+    { team: "Suporte", totalAttendances: 89, avgPerAgent: 29.7, avgResponseTime: "3m 45s", totalAgents: 3 }
   ]
 };
 
 const Produtividade = () => {
   const { user, loading } = useAuth();
-  useActivityMonitor(); // Hook para monitorar atividade e fazer logout automático
+  useActivityMonitor();
 
   if (loading) {
     return (
@@ -88,7 +84,7 @@ const Produtividade = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Relatório de Produtividade</h1>
-                <p className="text-gray-600">Acompanhe o desempenho individual e por equipe</p>
+                <p className="text-gray-600">Desempenho e eficiência dos atendentes</p>
               </div>
               <div className="flex gap-2">
                 <Select>
@@ -112,30 +108,6 @@ const Produtividade = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Atendentes Ativos</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {mockProductivityData.teamData.reduce((acc, team) => acc + team.activeAgents, 0)}
-                  </div>
-                  <p className="text-xs text-muted-foreground">+2 desde ontem</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Tempo Médio Online</CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">8h 22m</div>
-                  <p className="text-xs text-muted-foreground">+15m desde ontem</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Atendimentos</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -155,43 +127,55 @@ const Produtividade = () => {
                   <p className="text-xs text-muted-foreground">+8% desde ontem</p>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Tempo Médio Resposta</CardTitle>
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">2m 36s</div>
+                  <p className="text-xs text-muted-foreground">-15s desde ontem</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">Bruna</div>
+                  <p className="text-xs text-muted-foreground">27 atendimentos hoje</p>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Tempo Online por Atendente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProductivityTimeChart />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Volume de Atendimentos</CardTitle>
+                  <CardTitle>Volume de Atendimentos por Dia</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <AttendanceVolumeChart />
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Team Performance */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Produtividade por Equipe</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TeamProductivityChart />
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Produtividade por Equipe</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TeamProductivityChart />
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Individual Performance Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Desempenho Individual</CardTitle>
+                <CardTitle>Ranking de Produtividade Individual</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -201,12 +185,12 @@ const Produtividade = () => {
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Ranking</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Atendente</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Equipe</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Login Hoje</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Logout Hoje</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Tempo Ativo Hoje</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Atend. Hoje</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Total Atend.</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Hoje</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Esta Semana</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Este Mês</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Total</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Média Diária</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Tempo Resposta</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -229,12 +213,12 @@ const Produtividade = () => {
                               {agent.team}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-gray-600">{agent.todayLogin}</td>
-                          <td className="py-3 px-4 text-gray-600">{agent.todayLogout}</td>
-                          <td className="py-3 px-4 font-medium text-green-600">{agent.todayActiveTime}</td>
-                          <td className="py-3 px-4 font-medium">{agent.todayAttendances}</td>
+                          <td className="py-3 px-4 font-medium text-green-600">{agent.todayAttendances}</td>
+                          <td className="py-3 px-4 text-gray-600">{agent.weekAttendances}</td>
+                          <td className="py-3 px-4 text-gray-600">{agent.monthAttendances}</td>
                           <td className="py-3 px-4 text-gray-600">{agent.totalAttendances.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-gray-600">{agent.dailyAverage}</td>
+                          <td className="py-3 px-4 text-blue-600 font-medium">{agent.dailyAverage}</td>
+                          <td className="py-3 px-4 text-purple-600 font-medium">{agent.responseTime}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -243,10 +227,10 @@ const Produtividade = () => {
               </CardContent>
             </Card>
 
-            {/* Team Summary Table */}
+            {/* Team Performance Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Resumo por Equipe</CardTitle>
+                <CardTitle>Desempenho por Equipe</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -254,20 +238,20 @@ const Produtividade = () => {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Equipe</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Atendentes Ativos</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Total Atendimentos</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Média por Atendente</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Tempo Médio Online</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Tempo Médio Resposta</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Atendentes</th>
                       </tr>
                     </thead>
                     <tbody>
                       {mockProductivityData.teamData.map((team) => (
                         <tr key={team.team} className="border-b hover:bg-gray-50">
                           <td className="py-3 px-4 font-medium">{team.team}</td>
-                          <td className="py-3 px-4">{team.activeAgents}</td>
-                          <td className="py-3 px-4 font-medium">{team.totalAttendances}</td>
-                          <td className="py-3 px-4 text-green-600 font-medium">{team.avgPerAgent}</td>
-                          <td className="py-3 px-4 text-blue-600 font-medium">{team.avgOnlineTime}</td>
+                          <td className="py-3 px-4 font-medium text-green-600">{team.totalAttendances}</td>
+                          <td className="py-3 px-4 text-blue-600 font-medium">{team.avgPerAgent}</td>
+                          <td className="py-3 px-4 text-purple-600 font-medium">{team.avgResponseTime}</td>
+                          <td className="py-3 px-4 text-gray-600">{team.totalAgents}</td>
                         </tr>
                       ))}
                     </tbody>

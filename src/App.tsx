@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Atendimentos from "./pages/Atendimentos";
 import Produtividade from "./pages/Produtividade";
+import Presenca from "./pages/Presenca";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/atendimentos" element={<Atendimentos />} />
             <Route path="/produtividade" element={<Produtividade />} />
+            <Route path="/presenca" element={<Presenca />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
