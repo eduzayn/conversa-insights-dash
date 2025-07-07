@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,11 +74,52 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
   };
 
   const playCelebrationAudio = () => {
+    // Tenta carregar o áudio personalizado primeiro
     const audio = new Audio('/sounds/comemoracao_completa_mix.mp3');
     audio.volume = 0.8;
-    audio.play().catch((e) => {
-      console.warn('Erro ao tocar som de comemoração:', e);
+    audio.play().catch(() => {
+      // Se falhar, usa o som sintético de comemoração
+      playAdvancedCelebrationSound();
     });
+  };
+
+  const playAdvancedCelebrationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Sequência de sons de comemoração mais elaborada
+      const sounds = [
+        { freq: 880, duration: 0.3, delay: 0 },
+        { freq: 1100, duration: 0.3, delay: 0.2 },
+        { freq: 1320, duration: 0.4, delay: 0.4 },
+        { freq: 1760, duration: 0.5, delay: 0.6 },
+        { freq: 2200, duration: 0.3, delay: 1.0 },
+        { freq: 1760, duration: 0.4, delay: 1.2 },
+        { freq: 1320, duration: 0.3, delay: 1.4 },
+        { freq: 880, duration: 0.5, delay: 1.6 }
+      ];
+
+      sounds.forEach(({ freq, duration, delay }) => {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + duration);
+        }, delay * 1000);
+      });
+    } catch (error) {
+      console.log('Erro ao reproduzir som avançado:', error);
+    }
   };
 
   const playSound = (periodo: string) => {
