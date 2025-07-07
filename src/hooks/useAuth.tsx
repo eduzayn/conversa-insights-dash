@@ -12,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -51,8 +52,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
     } else {
-      throw new Error("Invalid credentials");
+      // Check for registered users in localStorage
+      const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+      const foundUser = registeredUsers.find((u: any) => u.email === email && u.password === password);
+      
+      if (foundUser) {
+        const user = {
+          id: foundUser.id,
+          email: foundUser.email,
+          name: foundUser.name,
+          role: foundUser.role
+        };
+        setUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
+      } else {
+        throw new Error("Invalid credentials");
+      }
     }
+  };
+
+  const register = async (email: string, password: string, name: string) => {
+    // Check if user already exists
+    const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+    const existingUser = registeredUsers.find((u: any) => u.email === email);
+    
+    if (existingUser) {
+      throw new Error("User already exists");
+    }
+
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      password,
+      name,
+      role: "agent" as const
+    };
+
+    // Save to registered users
+    registeredUsers.push(newUser);
+    localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
+
+    // Auto login after registration
+    const user = {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role
+    };
+    setUser(user);
+    localStorage.setItem("user", JSON.stringify(user));
   };
 
   const logout = () => {
@@ -61,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
