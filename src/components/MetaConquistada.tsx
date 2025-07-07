@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,227 +74,28 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
     onClose();
   };
 
+  const playCelebrationAudio = () => {
+    const audio = new Audio('/sounds/comemoracao_completa_mix.mp3');
+    audio.volume = 0.8;
+    audio.play().catch((e) => {
+      console.warn('Erro ao tocar som de comemoração:', e);
+    });
+  };
+
   const playSound = (periodo: string) => {
     try {
-      // Criar contexto de áudio
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // Tocar gritos de comemoração e palmas em paralelo
-      playCelebrationSounds(audioContext);
-      
-      if (periodo === 'diária') {
-        // Som de palmas para metas diárias (5 segundos)
-        playClapSound(audioContext);
-      } else {
-        // Som de fogos para metas semanais/mensais (5 segundos)
-        playFireworksSound(audioContext);
-      }
+      // Reproduz o áudio de comemoração completo com fogos, palmas e gritos
+      playCelebrationAudio();
     } catch (error) {
-      console.log('Som não pôde ser reproduzido:', error);
-      // Fallback com beep simples
-      playBeepSound();
-    }
-  };
-
-  const playCelebrationSounds = (audioContext: AudioContext) => {
-    // Gritos de comemoração (durante os primeiros 4 segundos - tempo dos confetes)
-    const celebrationDuration = 4000; // 4 segundos
-    const numCheers = 8; // 8 gritos distribuídos
-    
-    for (let i = 0; i < numCheers; i++) {
-      setTimeout(() => {
-        // Criar som de grito usando osciladores
-        const oscillator1 = audioContext.createOscillator();
-        const oscillator2 = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator1.type = 'sawtooth';
-        oscillator2.type = 'triangle';
-        
-        // Frequências que simulam gritos de alegria
-        const baseFreq = 200 + (i * 50);
-        oscillator1.frequency.setValueAtTime(baseFreq, audioContext.currentTime);
-        oscillator1.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, audioContext.currentTime + 0.3);
-        
-        oscillator2.frequency.setValueAtTime(baseFreq * 1.2, audioContext.currentTime);
-        oscillator2.frequency.exponentialRampToValueAtTime(baseFreq * 0.8, audioContext.currentTime + 0.3);
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator1.connect(gainNode);
-        oscillator2.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator1.start();
-        oscillator2.start();
-        oscillator1.stop(audioContext.currentTime + 0.3);
-        oscillator2.stop(audioContext.currentTime + 0.3);
-        
-      }, (i * celebrationDuration) / numCheers);
-    }
-    
-    // Palmas de fundo (durante os 4 segundos)
-    const numBackgroundClaps = 20;
-    for (let i = 0; i < numBackgroundClaps; i++) {
-      setTimeout(() => {
-        const bufferSize = audioContext.sampleRate * 0.1;
-        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-        const output = buffer.getChannelData(0);
-        
-        // Gerar ruído branco para palmas
-        for (let j = 0; j < bufferSize; j++) {
-          output[j] = Math.random() * 2 - 1;
-        }
-        
-        // Aplicar envelope
-        for (let j = 0; j < bufferSize; j++) {
-          const envelope = Math.exp(-j / (bufferSize * 0.2));
-          output[j] *= envelope;
-        }
-        
-        const source = audioContext.createBufferSource();
-        const gainNode = audioContext.createGain();
-        const filter = audioContext.createBiquadFilter();
-        
-        filter.type = 'highpass';
-        filter.frequency.setValueAtTime(800, audioContext.currentTime);
-        
-        source.buffer = buffer;
-        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime); // Volume baixo para fundo
-        
-        source.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        source.start();
-      }, (i * celebrationDuration) / numBackgroundClaps);
-    }
-  };
-
-  const playClapSound = (audioContext: AudioContext) => {
-    // Criar som de palmas usando ruído branco filtrado (5 segundos)
-    const duration = 0.15;
-    const numClaps = 15; // Aumentado para durar 5 segundos
-    const interval = 333; // Intervalo entre palmas (333ms)
-    
-    for (let i = 0; i < numClaps; i++) {
-      setTimeout(() => {
-        const bufferSize = audioContext.sampleRate * duration;
-        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-        const output = buffer.getChannelData(0);
-        
-        // Gerar ruído branco
-        for (let j = 0; j < bufferSize; j++) {
-          output[j] = Math.random() * 2 - 1;
-        }
-        
-        // Aplicar envelope para simular palma
-        for (let j = 0; j < bufferSize; j++) {
-          const envelope = Math.exp(-j / (bufferSize * 0.1));
-          output[j] *= envelope;
-        }
-        
-        const source = audioContext.createBufferSource();
-        const gainNode = audioContext.createGain();
-        const filter = audioContext.createBiquadFilter();
-        
-        filter.type = 'highpass';
-        filter.frequency.setValueAtTime(1000, audioContext.currentTime);
-        
-        source.buffer = buffer;
-        // Diminuir volume gradualmente
-        const volume = Math.max(0.1, 0.3 - (i * 0.015));
-        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-        
-        source.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        source.start();
-      }, i * interval);
-    }
-  };
-
-  const playFireworksSound = (audioContext: AudioContext) => {
-    // Criar som de fogos com múltiplas frequências (5 segundos)
-    const numFireworks = 4; // 4 fogos em 5 segundos
-    
-    for (let f = 0; f < numFireworks; f++) {
-      setTimeout(() => {
-        // Som inicial (lançamento)
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.type = 'sawtooth';
-        oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.7);
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.7);
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.7);
-        
-        // Explosão (após 0.8 segundos)
-        setTimeout(() => {
-          const bufferSize = audioContext.sampleRate * 1.0;
-          const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-          const output = buffer.getChannelData(0);
-          
-          // Gerar ruído para explosão
-          for (let i = 0; i < bufferSize; i++) {
-            output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
-          }
-          
-          const source = audioContext.createBufferSource();
-          const explosionGain = audioContext.createGain();
-          const filter = audioContext.createBiquadFilter();
-          
-          filter.type = 'bandpass';
-          filter.frequency.setValueAtTime(2000 + (f * 300), audioContext.currentTime);
-          filter.Q.setValueAtTime(0.5, audioContext.currentTime);
-          
-          source.buffer = buffer;
-          explosionGain.gain.setValueAtTime(0.3, audioContext.currentTime);
-          
-          source.connect(filter);
-          filter.connect(explosionGain);
-          explosionGain.connect(audioContext.destination);
-          
-          source.start();
-        }, 800);
-        
-      }, f * 1200); // Espaçar fogos a cada 1.2 segundos
-    }
-  };
-
-  const playBeepSound = () => {
-    // Fallback simples usando frequências (5 segundos)
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      for (let i = 0; i < 10; i++) {
-        setTimeout(() => {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.frequency.setValueAtTime(800 + (i * 50), audioContext.currentTime);
-          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-          
-          oscillator.start();
-          oscillator.stop(audioContext.currentTime + 0.3);
-        }, i * 500);
-      }
-    } catch (error) {
-      console.log('Não foi possível reproduzir som:', error);
+      console.log('Erro ao reproduzir som:', error);
+      // Fallback simples
+      const beep = new AudioContext();
+      const oscillator = beep.createOscillator();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(440, beep.currentTime);
+      oscillator.connect(beep.destination);
+      oscillator.start();
+      oscillator.stop(beep.currentTime + 0.2);
     }
   };
 
