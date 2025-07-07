@@ -58,6 +58,12 @@ export interface ChatContextType {
   addMessage: (chatId: string, message: Omit<Message, 'id' | 'timestamp'>) => void;
   markAsRead: (chatId: string) => void;
   createPrivateChat: (userId: string) => Chat;
+  createTeam: (teamData: {
+    name: string;
+    description: string;
+    icon: string;
+    memberIds: string[];
+  }) => { team: Team; chat: Chat };
   updateUserStatus: (userId: string, isOnline: boolean) => void;
   searchChats: (query: string) => void;
   addReaction: (chatId: string, messageId: string, emoji: string, userId: string) => void;

@@ -17,7 +17,7 @@ export const useChatContext = () => {
 };
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [teams] = useState<Team[]>(mockTeams);
+  const [teams, setTeams] = useState<Team[]>(mockTeams);
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [currentUser] = useState<User | null>(mockUsers[0]); // Ana Lúcia como usuário atual
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -46,6 +46,48 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return newChat;
   }, [users, currentUser, chats, setChats]);
 
+  const createTeam = useCallback((teamData: {
+    name: string;
+    description: string;
+    icon: string;
+    memberIds: string[];
+  }): { team: Team; chat: Chat } => {
+    if (!currentUser) throw new Error('Current user not found');
+
+    // Criar nova equipe
+    const newTeam: Team = {
+      id: `team-${Date.now()}`,
+      name: teamData.name,
+      description: teamData.description,
+      icon: teamData.icon,
+      members: users.filter(user => teamData.memberIds.includes(user.id))
+    };
+
+    // Criar chat da equipe
+    const newChat: Chat = {
+      id: `team-${newTeam.id}`,
+      type: 'team',
+      name: teamData.name,
+      participants: newTeam.members,
+      messages: [{
+        id: `welcome-${Date.now()}`,
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        content: `🎉 Equipe "${teamData.name}" criada com sucesso! Bem-vindos!`,
+        timestamp: new Date(),
+        type: 'text'
+      }],
+      unreadCount: 0,
+      teamId: newTeam.id
+    };
+
+    // Adicionar equipe e chat
+    setTeams(prev => [...prev, newTeam]);
+    setChats(prev => [...prev, newChat]);
+
+    return { team: newTeam, chat: newChat };
+  }, [users, currentUser, setTeams, setChats]);
+
   const updateUserStatus = useCallback((userId: string, isOnline: boolean) => {
     setUsers(prev =>
       prev.map(user =>
@@ -65,6 +107,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       addMessage,
       markAsRead,
       createPrivateChat,
+      createTeam,
       updateUserStatus,
       searchChats,
       addReaction,
