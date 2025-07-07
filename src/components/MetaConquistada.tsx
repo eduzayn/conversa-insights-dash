@@ -41,10 +41,10 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
       // Tocar som baseado no período da meta
       playSound(conquista.periodo);
       
-      // Parar a animação de bounce após 3 pulos (aproximadamente 1.5 segundos)
+      // Parar a animação de bounce após exatamente 3 pulos (1 segundo)
       const bounceTimer = setTimeout(() => {
         setShouldBounce(false);
-      }, 1500);
+      }, 1000);
       
       // Remover confetes após 4 segundos
       const confettiTimer = setTimeout(() => {
