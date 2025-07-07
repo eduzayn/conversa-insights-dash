@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Star, Target, Coins } from "lucide-react";
+import { Trophy, Star, Target, Coins, X } from "lucide-react";
 
 interface MetaConquistadaProps {
   isVisible: boolean;
@@ -117,9 +117,18 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
       )}
       
       <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 pointer-events-none">
-        <Card className={`w-96 mx-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 shadow-2xl pointer-events-auto transition-all duration-300 ${
+        <Card className={`relative w-96 mx-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 shadow-2xl pointer-events-auto transition-all duration-300 ${
           shouldBounce ? 'animate-bounce' : ''
         }`}>
+          {/* Botão de fechar */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 z-10 p-1 rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm"
+            aria-label="Fechar notificação"
+          >
+            <X className="h-4 w-4 text-gray-500 hover:text-gray-700" />
+          </button>
+
           <CardContent className="p-6 text-center">
             <div className="flex justify-center mb-4">
               {getIcon()}
