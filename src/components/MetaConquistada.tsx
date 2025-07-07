@@ -80,10 +80,10 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       if (periodo === 'diária') {
-        // Som de palmas para metas diárias
+        // Som de palmas para metas diárias (5 segundos)
         playClapSound(audioContext);
       } else {
-        // Som de fogos para metas semanais/mensais
+        // Som de fogos para metas semanais/mensais (5 segundos)
         playFireworksSound(audioContext);
       }
     } catch (error) {
@@ -94,9 +94,10 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
   };
 
   const playClapSound = (audioContext: AudioContext) => {
-    // Criar som de palmas usando ruído branco filtrado
+    // Criar som de palmas usando ruído branco filtrado (5 segundos)
     const duration = 0.15;
-    const numClaps = 3;
+    const numClaps = 15; // Aumentado para durar 5 segundos
+    const interval = 333; // Intervalo entre palmas (333ms)
     
     for (let i = 0; i < numClaps; i++) {
       setTimeout(() => {
@@ -123,86 +124,96 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
         filter.frequency.setValueAtTime(1000, audioContext.currentTime);
         
         source.buffer = buffer;
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        // Diminuir volume gradualmente
+        const volume = Math.max(0.1, 0.3 - (i * 0.015));
+        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
         
         source.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
         source.start();
-      }, i * 200);
+      }, i * interval);
     }
   };
 
   const playFireworksSound = (audioContext: AudioContext) => {
-    // Criar som de fogos com múltiplas frequências
-    const duration = 1.5;
+    // Criar som de fogos com múltiplas frequências (5 segundos)
+    const numFireworks = 4; // 4 fogos em 5 segundos
     
-    // Som inicial (lançamento)
-    setTimeout(() => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.type = 'sawtooth';
-      oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.5);
-      
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.5);
-    }, 0);
-    
-    // Explosão (após 0.6 segundos)
-    setTimeout(() => {
-      const bufferSize = audioContext.sampleRate * 0.8;
-      const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-      const output = buffer.getChannelData(0);
-      
-      // Gerar ruído para explosão
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
-      }
-      
-      const source = audioContext.createBufferSource();
-      const gainNode = audioContext.createGain();
-      const filter = audioContext.createBiquadFilter();
-      
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(2000, audioContext.currentTime);
-      filter.Q.setValueAtTime(0.5, audioContext.currentTime);
-      
-      source.buffer = buffer;
-      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-      
-      source.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      source.start();
-    }, 600);
+    for (let f = 0; f < numFireworks; f++) {
+      setTimeout(() => {
+        // Som inicial (lançamento)
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.7);
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.7);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.7);
+        
+        // Explosão (após 0.8 segundos)
+        setTimeout(() => {
+          const bufferSize = audioContext.sampleRate * 1.0;
+          const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+          const output = buffer.getChannelData(0);
+          
+          // Gerar ruído para explosão
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+          }
+          
+          const source = audioContext.createBufferSource();
+          const explosionGain = audioContext.createGain();
+          const filter = audioContext.createBiquadFilter();
+          
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(2000 + (f * 300), audioContext.currentTime);
+          filter.Q.setValueAtTime(0.5, audioContext.currentTime);
+          
+          source.buffer = buffer;
+          explosionGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+          
+          source.connect(filter);
+          filter.connect(explosionGain);
+          explosionGain.connect(audioContext.destination);
+          
+          source.start();
+        }, 800);
+        
+      }, f * 1200); // Espaçar fogos a cada 1.2 segundos
+    }
   };
 
   const playBeepSound = () => {
-    // Fallback simples usando frequências
+    // Fallback simples usando frequências (5 segundos)
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.5);
+      for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.setValueAtTime(800 + (i * 50), audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.3);
+        }, i * 500);
+      }
     } catch (error) {
       console.log('Não foi possível reproduzir som:', error);
     }
