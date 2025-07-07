@@ -5,7 +5,6 @@ import { Video } from 'lucide-react';
 import { VideoCallModal } from './VideoCallModal';
 import { Chat, User } from '@/types/chat';
 import { useChatContext } from '@/contexts/ChatContext';
-import { generateJitsiRoomName, getConversationType, getParticipantNames } from '@/utils/jitsiUtils';
 
 interface VideoCallButtonProps {
   chat: Chat;
@@ -21,24 +20,25 @@ export const VideoCallButton: React.FC<VideoCallButtonProps> = ({
   const [showModal, setShowModal] = useState(false);
   const { addMessage } = useChatContext();
 
-  const conversationType = getConversationType(chat);
-  const participantNames = getParticipantNames(chat, currentUser);
-  
-  const roomName = (() => {
-    if (conversationType === 'geral') return 'zayn-geral';
-    if (conversationType === 'equipe' && teamName) return `zayn-equipe-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
-    if (conversationType === 'privada') {
-      const sorted = participantNames.map(p => p.toLowerCase().replace(/\s+/g, '-')).sort();
-      return `zayn-privado-${sorted.join('-')}`;
-    }
-    return 'zayn-sala';
-  })();
+  const generateJitsiUrl = () => {
+    const prefix = 'zayn';
+    let room = '';
 
-  const jitsiUrl = generateJitsiRoomName(
-    conversationType,
-    participantNames,
-    teamName
-  );
+    if (chat.type === 'general') {
+      room = `${prefix}-geral`;
+    } else if (chat.type === 'team' && teamName) {
+      const equipeName = teamName.toLowerCase().replace(/\s+/g, '-');
+      room = `${prefix}-equipe-${equipeName}`;
+    } else if (chat.type === 'private') {
+      const participantNames = chat.participants.map(p => p.name.toLowerCase().replace(/\s+/g, '-')).sort();
+      room = `${prefix}-privado-${participantNames.join('-')}`;
+    }
+
+    return `https://meet.jit.si/${room}`;
+  };
+
+  const jitsiUrl = generateJitsiUrl();
+  const roomName = jitsiUrl.split('/').pop() || 'zayn-sala';
 
   const handleStartCall = () => {
     setShowModal(true);
@@ -51,6 +51,19 @@ export const VideoCallButton: React.FC<VideoCallButtonProps> = ({
         content: `📹 ${currentUser.name} iniciou uma chamada de vídeo.`,
         type: 'text'
       });
+    }
+  };
+
+  const getConversationType = (): 'geral' | 'equipe' | 'privada' => {
+    switch (chat.type) {
+      case 'general':
+        return 'geral';
+      case 'team':
+        return 'equipe';
+      case 'private':
+        return 'privada';
+      default:
+        return 'privada';
     }
   };
 
@@ -71,7 +84,7 @@ export const VideoCallButton: React.FC<VideoCallButtonProps> = ({
         roomName={roomName}
         jitsiUrl={jitsiUrl}
         chatName={chat.name}
-        conversationType={conversationType}
+        conversationType={getConversationType()}
       />
     </>
   );
