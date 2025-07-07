@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Search, Plus, MessageCircle, Users, Globe, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -121,13 +122,9 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-2">
-          {/* General Chat */}
+          {/* General Chat - aparece diretamente na lista */}
           {generalChat && (
             <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Globe className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-green-600">Canal Geral</span>
-              </div>
               <ChatItem chat={generalChat} />
             </div>
           )}
