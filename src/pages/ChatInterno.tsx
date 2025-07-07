@@ -1,6 +1,9 @@
+
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Sidebar } from "@/components/Sidebar";
+import { Header } from "@/components/Header";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatArea } from "@/components/chat/ChatArea";
 import { ChatProvider } from "@/contexts/ChatContext";
@@ -28,17 +31,23 @@ const ChatInterno = () => {
     <ChatSettingsProvider>
       <ChatProvider>
         <div className="min-h-screen bg-gray-50 flex">
-          <ChatSidebar 
-            activeChat={activeChat}
-            onChatSelect={setActiveChat}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
+          <Sidebar />
           <div className="flex-1 flex flex-col">
-            <ChatArea 
-              activeChat={activeChat}
-              currentUser={user}
-            />
+            <Header />
+            <div className="flex-1 flex">
+              <ChatSidebar 
+                activeChat={activeChat}
+                onChatSelect={setActiveChat}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+              <div className="flex-1 flex flex-col">
+                <ChatArea 
+                  activeChat={activeChat}
+                  currentUser={user}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </ChatProvider>
