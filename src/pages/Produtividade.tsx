@@ -87,22 +87,60 @@ const Produtividade = () => {
                 <p className="text-gray-600">Desempenho e eficiência dos atendentes</p>
               </div>
               <div className="flex gap-2">
-                <Select>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Período" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hoje">Hoje</SelectItem>
-                    <SelectItem value="semana">Esta Semana</SelectItem>
-                    <SelectItem value="mes">Este Mês</SelectItem>
-                  </SelectContent>
-                </Select>
                 <Button className="bg-green-600 hover:bg-green-700">
                   <Download className="h-4 w-4 mr-2" />
                   Exportar Relatório
                 </Button>
               </div>
             </div>
+
+            {/* Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hoje">Hoje</SelectItem>
+                      <SelectItem value="ontem">Ontem</SelectItem>
+                      <SelectItem value="esta-semana">Esta Semana</SelectItem>
+                      <SelectItem value="semana-passada">Semana Passada</SelectItem>
+                      <SelectItem value="este-mes">Este Mês</SelectItem>
+                      <SelectItem value="mes-passado">Mês Passado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Atendente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="ana-santos">Ana Santos</SelectItem>
+                      <SelectItem value="bruna-reis">Bruna Reis</SelectItem>
+                      <SelectItem value="carlos-lima">Carlos Lima</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Equipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas</SelectItem>
+                      <SelectItem value="vendas">Vendas</SelectItem>
+                      <SelectItem value="comercial">Comercial</SelectItem>
+                      <SelectItem value="suporte">Suporte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
