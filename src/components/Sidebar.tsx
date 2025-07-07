@@ -9,7 +9,8 @@ import {
   MessageCircle, 
   ExternalLink,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: Users, label: "Atendimentos", path: "/atendimentos" },
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
+  { icon: Target, label: "Metas & Engajamento", path: "/metas" },
   { icon: MessageCircle, label: "Chat ao Vivo", path: "/chat" },
 ];
 
