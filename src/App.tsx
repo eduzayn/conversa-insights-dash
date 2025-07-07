@@ -11,6 +11,7 @@ import Atendimentos from "./pages/Atendimentos";
 import Produtividade from "./pages/Produtividade";
 import Presenca from "./pages/Presenca";
 import Chat from "./pages/Chat";
+import ChatInterno from "./pages/ChatInterno";
 import Metas from "./pages/Metas";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/produtividade" element={<Produtividade />} />
             <Route path="/presenca" element={<Presenca />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/chat-interno" element={<ChatInterno />} />
             <Route path="/metas" element={<Metas />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

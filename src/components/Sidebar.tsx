@@ -10,7 +10,8 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Target
+  Target,
+  MessagesSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
   { icon: MessageCircle, label: "Chat ao Vivo", path: "/chat" },
+  { icon: MessagesSquare, label: "Chat Interno", path: "/chat-interno" },
 ];
 
 export const Sidebar = () => {
