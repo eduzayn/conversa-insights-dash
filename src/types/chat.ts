@@ -30,6 +30,11 @@ export interface Message {
   mentions?: string[];
   reactions?: { [emoji: string]: string[] };
   edited?: boolean;
+  replyTo?: {
+    messageId: string;
+    senderName: string;
+    content: string;
+  };
 }
 
 export interface Chat {
@@ -49,6 +54,7 @@ export interface ChatContextType {
   users: User[];
   currentUser: User | null;
   filteredChats: Chat[];
+  replyingTo: Message | null;
   addMessage: (chatId: string, message: Omit<Message, 'id' | 'timestamp'>) => void;
   markAsRead: (chatId: string) => void;
   createPrivateChat: (userId: string) => Chat;
@@ -56,4 +62,5 @@ export interface ChatContextType {
   searchChats: (query: string) => void;
   addReaction: (chatId: string, messageId: string, emoji: string, userId: string) => void;
   playNotificationSound: () => void;
+  setReplyingTo: (message: Message | null) => void;
 }

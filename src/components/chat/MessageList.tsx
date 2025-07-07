@@ -3,7 +3,7 @@ import { Message, User } from "@/types/chat";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { FileText, Image, Mic, Download, Smile } from "lucide-react";
+import { FileText, Image, Mic, Download, Smile, Reply } from "lucide-react";
 import { useChatContext } from "@/contexts/ChatContext";
 
 interface MessageListProps {
@@ -14,7 +14,7 @@ interface MessageListProps {
 const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 
 export const MessageList = ({ messages, currentUser }: MessageListProps) => {
-  const { addReaction } = useChatContext();
+  const { addReaction, setReplyingTo } = useChatContext();
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
 
   const formatMessageTime = (timestamp: Date) => {
@@ -37,6 +37,10 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
     
     addReaction(chatId, messageId, emoji, currentUser.id);
     setShowReactionPicker(null);
+  };
+
+  const handleReplyClick = (message: Message) => {
+    setReplyingTo(message);
   };
 
   if (messages.length === 0) {
@@ -98,6 +102,27 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
                     ? "bg-blue-600 text-white" 
                     : "bg-white border border-gray-200"
                 )}>
+                  {/* Mostrar mensagem sendo respondida */}
+                  {message.replyTo && (
+                    <div className={cn(
+                      "mb-2 p-2 rounded border-l-2",
+                      isOwn ? "bg-blue-700 border-blue-300" : "bg-gray-50 border-gray-300"
+                    )}>
+                      <p className={cn(
+                        "text-xs font-medium",
+                        isOwn ? "text-blue-200" : "text-gray-600"
+                      )}>
+                        {message.replyTo.senderName}
+                      </p>
+                      <p className={cn(
+                        "text-sm truncate",
+                        isOwn ? "text-blue-100" : "text-gray-700"
+                      )}>
+                        {message.replyTo.content}
+                      </p>
+                    </div>
+                  )}
+
                   {renderMessageContent(message)}
                   
                   {message.edited && (
@@ -109,16 +134,30 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
                     </p>
                   )}
 
-                  {/* Botão de reação - aparece no hover */}
-                  <button
-                    onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
-                    className={cn(
-                      "absolute -top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity",
-                      showReactionPicker === message.id && "opacity-100"
-                    )}
-                  >
-                    <Smile className="h-4 w-4 text-gray-600" />
-                  </button>
+                  {/* Botões de ação - aparecem no hover */}
+                  <div className={cn(
+                    "absolute -top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
+                    isOwn ? "left-2" : "right-2"
+                  )}>
+                    <button
+                      onClick={() => handleReplyClick(message)}
+                      className="bg-gray-200 hover:bg-gray-300 rounded-full p-1"
+                      title="Responder"
+                    >
+                      <Reply className="h-4 w-4 text-gray-600" />
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
+                      className={cn(
+                        "bg-gray-200 hover:bg-gray-300 rounded-full p-1",
+                        showReactionPicker === message.id && "bg-gray-300"
+                      )}
+                      title="Reagir"
+                    >
+                      <Smile className="h-4 w-4 text-gray-600" />
+                    </button>
+                  </div>
 
                   {/* Picker de reações */}
                   {showReactionPicker === message.id && (

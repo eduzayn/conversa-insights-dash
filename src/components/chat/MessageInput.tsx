@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { User } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { MentionSuggestions } from "./MentionSuggestions";
+import { ReplyPreview } from "./ReplyPreview";
 
 interface MessageInputProps {
   chatId: string;
@@ -17,7 +18,7 @@ const WORK_EMOJIS = [
 ];
 
 export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
-  const { addMessage, users, chats } = useChatContext();
+  const { addMessage, users, chats, replyingTo, setReplyingTo } = useChatContext();
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -53,7 +54,6 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
     }
   }, [message]);
 
-  // Lidar com mudanças no texto para detectar menções
   const handleMessageChange = (value: string) => {
     setMessage(value);
     
@@ -94,38 +94,6 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
     setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !currentUser) {
-      console.log('Mensagem vazia ou usuário não encontrado');
-      return;
-    }
-
-    console.log('Enviando mensagem:', {
-      chatId,
-      message: message.trim(),
-      currentUser: currentUser.name
-    });
-
-    const messageToSend = {
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      content: message.trim(),
-      type: 'text' as const,
-      mentions: extractMentions(message)
-    };
-
-    console.log('Dados da mensagem a enviar:', messageToSend);
-
-    addMessage(chatId, messageToSend);
-    setMessage("");
-    
-    // Garantir que o textarea seja limpo
-    if (textareaRef.current) {
-      textareaRef.current.value = '';
-      textareaRef.current.style.height = 'auto';
-    }
-  };
-
   const extractMentions = (text: string): string[] => {
     const mentionRegex = /@(\w+\s?\w*)/g;
     const mentions: string[] = [];
@@ -141,6 +109,45 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
     }
     
     return mentions;
+  };
+
+  const handleSendMessage = () => {
+    if (!message.trim() || !currentUser) {
+      console.log('Mensagem vazia ou usuário não encontrado');
+      return;
+    }
+
+    console.log('Enviando mensagem:', {
+      chatId,
+      message: message.trim(),
+      currentUser: currentUser.name,
+      replyingTo: replyingTo?.id
+    });
+
+    const messageToSend = {
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      content: message.trim(),
+      type: 'text' as const,
+      mentions: extractMentions(message),
+      replyTo: replyingTo ? {
+        messageId: replyingTo.id,
+        senderName: replyingTo.senderName,
+        content: replyingTo.content
+      } : undefined
+    };
+
+    console.log('Dados da mensagem a enviar:', messageToSend);
+
+    addMessage(chatId, messageToSend);
+    setMessage("");
+    setReplyingTo(null);
+    
+    // Garantir que o textarea seja limpo
+    if (textareaRef.current) {
+      textareaRef.current.value = '';
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -303,105 +310,115 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
   }
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4 relative">
-      {/* Sugestões de menção */}
-      <MentionSuggestions
-        users={filteredMentionUsers}
-        isVisible={showMentions}
-        selectedIndex={selectedMentionIndex}
-        onSelect={insertMention}
-        position={mentionPosition}
-      />
-
-      {/* Emoji Picker */}
-      {showEmojiPicker && (
-        <div className="mb-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
-          <div className="grid grid-cols-8 gap-2">
-            {WORK_EMOJIS.map(emoji => (
-              <button
-                key={emoji}
-                onClick={() => insertEmoji(emoji)}
-                className="text-lg hover:bg-gray-200 rounded p-1 transition-colors"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="bg-white border-t border-gray-200 relative">
+      {/* Preview da mensagem sendo respondida */}
+      {replyingTo && (
+        <ReplyPreview 
+          message={replyingTo} 
+          onCancel={() => setReplyingTo(null)} 
+        />
       )}
 
-      <div className="flex items-end gap-3">
-        <div className="flex-1">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => handleMessageChange(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Digite uma mensagem... (use @ para mencionar alguém)"
-            className="min-h-[44px] max-h-[120px] resize-none"
-            rows={1}
-          />
+      <div className="p-4">
+        {/* Sugestões de menção */}
+        <MentionSuggestions
+          users={filteredMentionUsers}
+          isVisible={showMentions}
+          selectedIndex={selectedMentionIndex}
+          onSelect={insertMention}
+          position={mentionPosition}
+        />
+
+        {/* Emoji Picker */}
+        {showEmojiPicker && (
+          <div className="mb-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="grid grid-cols-8 gap-2">
+              {WORK_EMOJIS.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => insertEmoji(emoji)}
+                  className="text-lg hover:bg-gray-200 rounded p-1 transition-colors"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => handleMessageChange(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder={replyingTo ? `Respondendo a ${replyingTo.senderName}...` : "Digite uma mensagem... (use @ para mencionar alguém)"}
+              className="min-h-[44px] max-h-[120px] resize-none"
+              rows={1}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Emoji Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <Smile className="h-5 w-5" />
+            </Button>
+
+            {/* File Upload */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+
+            {/* Audio Recording */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onMouseLeave={stopRecording}
+              className={`text-gray-500 hover:text-gray-700 ${isRecording ? 'bg-red-100 text-red-600' : ''}`}
+            >
+              {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </Button>
+
+            {isRecording && (
+              <span className="text-sm text-red-600 font-mono">
+                {formatTime(recordingTime)}
+              </span>
+            )}
+
+            {/* Send Button */}
+            <Button 
+              onClick={handleSendMessage}
+              disabled={!message.trim()}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Emoji Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <Smile className="h-5 w-5" />
-          </Button>
-
-          {/* File Upload */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-
-          {/* Audio Recording */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onMouseLeave={stopRecording}
-            className={`text-gray-500 hover:text-gray-700 ${isRecording ? 'bg-red-100 text-red-600' : ''}`}
-          >
-            {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </Button>
-
-          {isRecording && (
-            <span className="text-sm text-red-600 font-mono">
-              {formatTime(recordingTime)}
-            </span>
-          )}
-
-          {/* Send Button */}
-          <Button 
-            onClick={handleSendMessage}
-            disabled={!message.trim()}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,.pdf,.doc,.docx"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,.pdf,.doc,.docx"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
     </div>
   );
 };

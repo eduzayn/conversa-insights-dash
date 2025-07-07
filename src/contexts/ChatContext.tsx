@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { ChatContextType, User, Team, Chat } from '@/types/chat';
+import { ChatContextType, User, Team, Chat, Message } from '@/types/chat';
 import { mockUsers, mockTeams, mockChats } from '@/data/mockChatData';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useChatSearch } from '@/hooks/useChatSearch';
@@ -20,11 +20,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [teams] = useState<Team[]>(mockTeams);
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [currentUser] = useState<User | null>(mockUsers[0]); // Ana Lúcia como usuário atual
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const { chats, setChats, addMessage: addMessageHook, markAsRead, addReaction } = useChatMessages(mockChats, currentUser);
   const { filteredChats, searchChats } = useChatSearch(chats);
 
-  const addMessage = useCallback((chatId: string, messageData: Omit<import('@/types/chat').Message, 'id' | 'timestamp'>) => {
+  const addMessage = useCallback((chatId: string, messageData: Omit<Message, 'id' | 'timestamp'>) => {
     addMessageHook(chatId, messageData);
 
     // Tocar som de notificação se não for do usuário atual
@@ -60,13 +61,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       teams,
       users,
       currentUser,
+      replyingTo,
       addMessage,
       markAsRead,
       createPrivateChat,
       updateUserStatus,
       searchChats,
       addReaction,
-      playNotificationSound
+      playNotificationSound,
+      setReplyingTo
     }}>
       {children}
     </ChatContext.Provider>
