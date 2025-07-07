@@ -113,24 +113,34 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser] = useState<User | null>(mockUsers[0]); // Ana Lúcia como usuário atual
 
   const addMessage = (chatId: string, messageData: Omit<Message, 'id' | 'timestamp'>) => {
+    console.log('Adicionando mensagem:', { chatId, messageData });
+    
     const newMessage: Message = {
       ...messageData,
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date()
     };
 
-    setChats(prevChats =>
-      prevChats.map(chat =>
-        chat.id === chatId
-          ? {
-              ...chat,
-              messages: [...chat.messages, newMessage],
-              lastMessage: newMessage,
-              unreadCount: messageData.senderId !== currentUser?.id ? chat.unreadCount + 1 : chat.unreadCount
-            }
-          : chat
-      )
-    );
+    console.log('Nova mensagem criada:', newMessage);
+
+    setChats(prevChats => {
+      const updatedChats = prevChats.map(chat => {
+        if (chat.id === chatId) {
+          const updatedChat = {
+            ...chat,
+            messages: [...chat.messages, newMessage],
+            lastMessage: newMessage,
+            unreadCount: messageData.senderId !== currentUser?.id ? chat.unreadCount + 1 : chat.unreadCount
+          };
+          console.log('Chat atualizado:', updatedChat);
+          return updatedChat;
+        }
+        return chat;
+      });
+      
+      console.log('Todos os chats após atualização:', updatedChats);
+      return updatedChats;
+    });
 
     // Tocar som de notificação se não for do usuário atual
     if (messageData.senderId !== currentUser?.id) {
@@ -231,27 +241,31 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const playNotificationSound = () => {
-    // Criar um som sintético de notificação
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-    
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
 
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Erro ao reproduzir som de notificação:', error);
+    }
   };
 
   // Atualizar filteredChats quando chats mudar
   useEffect(() => {
+    console.log('Chats atualizados, sincronizando filteredChats:', chats);
     setFilteredChats(chats);
   }, [chats]);
 

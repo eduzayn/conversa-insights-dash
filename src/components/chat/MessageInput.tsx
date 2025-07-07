@@ -95,17 +95,35 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
   };
 
   const handleSendMessage = () => {
-    if (!message.trim() || !currentUser) return;
+    if (!message.trim() || !currentUser) {
+      console.log('Mensagem vazia ou usuário não encontrado');
+      return;
+    }
 
-    addMessage(chatId, {
+    console.log('Enviando mensagem:', {
+      chatId,
+      message: message.trim(),
+      currentUser: currentUser.name
+    });
+
+    const messageToSend = {
       senderId: currentUser.id,
       senderName: currentUser.name,
       content: message.trim(),
-      type: 'text',
+      type: 'text' as const,
       mentions: extractMentions(message)
-    });
+    };
 
+    console.log('Dados da mensagem a enviar:', messageToSend);
+
+    addMessage(chatId, messageToSend);
     setMessage("");
+    
+    // Garantir que o textarea seja limpo
+    if (textareaRef.current) {
+      textareaRef.current.value = '';
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const extractMentions = (text: string): string[] => {
@@ -369,7 +387,7 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
             onClick={handleSendMessage}
             disabled={!message.trim()}
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
           </Button>
