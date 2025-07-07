@@ -11,9 +11,8 @@ const Chat = () => {
   const { user, loading } = useAuth();
   const [iframeError, setIframeError] = useState(false);
 
-  // URL do iframe do BotConversa - pode ser configurada via variável de ambiente
-  const botconversaIframeUrl = process.env.REACT_APP_BOTCONVERSA_CHAT_URL || 
-    "https://chat.botconversa.com.br/widget?id=DEMO_CHAT";
+  // URL do iframe do BotConversa - configuração padrão para desenvolvimento
+  const botconversaIframeUrl = "https://chat.botconversa.com.br/widget?id=DEMO_CHAT";
 
   if (loading) {
     return (
