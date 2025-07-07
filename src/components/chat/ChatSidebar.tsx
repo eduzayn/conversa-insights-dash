@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, Plus, MessageCircle, Users, Globe, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { cn } from "@/lib/utils";
+import { NewChatModal } from "./NewChatModal";
 
 interface ChatSidebarProps {
   activeChat: Chat | null;
@@ -19,6 +19,7 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
   const { filteredChats, teams, users, currentUser, createPrivateChat, searchChats } = useChatContext();
   const [showPrivateChats, setShowPrivateChats] = useState(true);
   const [showTeamChats, setShowTeamChats] = useState(true);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
 
   const generalChat = filteredChats.find(chat => chat.type === 'general');
   const teamChats = filteredChats.filter(chat => chat.type === 'team');
@@ -102,7 +103,12 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-gray-900">Chat Interno</h1>
-          <Button size="sm" className="bg-green-600 hover:bg-green-700">
+          <Button 
+            size="sm" 
+            className="bg-green-600 hover:bg-green-700"
+            onClick={() => setShowNewChatModal(true)}
+            title="Nova Conversa"
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -213,6 +219,12 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
           </div>
         </div>
       </div>
+
+      {/* New Chat Modal */}
+      <NewChatModal 
+        open={showNewChatModal}
+        onOpenChange={setShowNewChatModal}
+      />
     </div>
   );
 };
