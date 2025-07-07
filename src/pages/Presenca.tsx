@@ -98,6 +98,7 @@ const Presenca = () => {
                     <SelectItem value="hoje">Hoje</SelectItem>
                     <SelectItem value="semana">Esta Semana</SelectItem>
                     <SelectItem value="mes">Este Mês</SelectItem>
+                    <SelectItem value="mes-passado">Mês Passado</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button className="bg-green-600 hover:bg-green-700">
