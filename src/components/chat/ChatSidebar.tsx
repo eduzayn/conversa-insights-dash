@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Search, Plus, MessageCircle, Users, Globe, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Chat, ChatType } from "@/pages/ChatInterno";
+import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { cn } from "@/lib/utils";
 

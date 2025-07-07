@@ -1,8 +1,7 @@
-
 import { useEffect, useRef } from "react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
-import { Chat } from "@/pages/ChatInterno";
+import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Globe, Users, MessageCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,54 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatArea } from "@/components/chat/ChatArea";
 import { ChatProvider } from "@/contexts/ChatContext";
-
-export type ChatType = 'general' | 'team' | 'private';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'leader' | 'user';
-  avatar?: string;
-  isOnline: boolean;
-}
-
-export interface Team {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  members: User[];
-}
-
-export interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  content: string;
-  timestamp: Date;
-  type: 'text' | 'audio' | 'file' | 'image';
-  fileUrl?: string;
-  fileName?: string;
-  mentions?: string[];
-  reactions?: { [emoji: string]: string[] };
-  edited?: boolean;
-}
-
-export interface Chat {
-  id: string;
-  type: ChatType;
-  name: string;
-  participants: User[];
-  messages: Message[];
-  unreadCount: number;
-  lastMessage?: Message;
-  teamId?: string;
-}
+import { Chat } from "@/types/chat";
 
 const ChatInterno = () => {
   const { user, loading } = useAuth();

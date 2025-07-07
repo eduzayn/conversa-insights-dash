@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Mic, Smile, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { User } from "@/pages/ChatInterno";
+import { User } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { MentionSuggestions } from "./MentionSuggestions";
 
