@@ -16,18 +16,23 @@ interface ChatSidebarProps {
 }
 
 export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchChange }: ChatSidebarProps) => {
-  const { chats, teams, users, currentUser, createPrivateChat } = useChatContext();
+  const { filteredChats, teams, users, currentUser, createPrivateChat, searchChats } = useChatContext();
   const [showPrivateChats, setShowPrivateChats] = useState(true);
   const [showTeamChats, setShowTeamChats] = useState(true);
 
-  const generalChat = chats.find(chat => chat.type === 'general');
-  const teamChats = chats.filter(chat => chat.type === 'team');
-  const privateChats = chats.filter(chat => chat.type === 'private');
+  const generalChat = filteredChats.find(chat => chat.type === 'general');
+  const teamChats = filteredChats.filter(chat => chat.type === 'team');
+  const privateChats = filteredChats.filter(chat => chat.type === 'private');
 
   const filteredUsers = users.filter(user => 
     user.id !== currentUser?.id && 
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleSearchChange = (query: string) => {
+    onSearchChange(query);
+    searchChats(query);
+  };
 
   const handleUserClick = (userId: string) => {
     const privateChat = createPrivateChat(userId);
@@ -61,7 +66,7 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
         )}
       >
         <div className="relative">
-          {chat.type === 'general' && <Globe className="h-5 w-5" />}
+          {chat.type === 'general' && <Globe className="h-5 w-5 text-green-600" />}
           {chat.type === 'team' && team && <span className="text-lg">{team.icon}</span>}
           {chat.type === 'private' && <MessageCircle className="h-5 w-5" />}
         </div>
@@ -108,7 +113,7 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
           <Input
             placeholder="Buscar conversas..."
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -189,6 +194,14 @@ export const ChatSidebar = ({ activeChat, onChatSelect, searchQuery, onSearchCha
               </div>
             )}
           </div>
+
+          {/* Resultado da busca vazio */}
+          {searchQuery && filteredChats.length === 0 && filteredUsers.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Nenhum resultado encontrado</p>
+              <p className="text-sm text-gray-400">Tente buscar por outro termo</p>
+            </div>
+          )}
         </div>
       </div>
 

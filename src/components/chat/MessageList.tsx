@@ -1,16 +1,23 @@
 
+import { useState } from "react";
 import { Message, User } from "@/pages/ChatInterno";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { FileText, Image, Mic, Download } from "lucide-react";
+import { FileText, Image, Mic, Download, Smile } from "lucide-react";
+import { useChatContext } from "@/contexts/ChatContext";
 
 interface MessageListProps {
   messages: Message[];
   currentUser: User | null;
 }
 
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
 export const MessageList = ({ messages, currentUser }: MessageListProps) => {
+  const { addReaction } = useChatContext();
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+
   const formatMessageTime = (timestamp: Date) => {
     return formatDistanceToNow(timestamp, { 
       addSuffix: true, 
@@ -18,10 +25,30 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
     });
   };
 
+  const handleReactionClick = (messageId: string, emoji: string) => {
+    if (!currentUser) return;
+    
+    const chat = messages.find(m => m.id === messageId);
+    if (!chat) return;
+
+    // Encontrar o chat que contém esta mensagem
+    // Para este exemplo, vamos usar o ID da mensagem para deduzir o chat
+    const chatId = messageId.includes('general') ? 'general' : 
+                  messageId.includes('team') ? 'team-comercial' : 'general';
+    
+    addReaction(chatId, messageId, emoji, currentUser.id);
+    setShowReactionPicker(null);
+  };
+
   const renderMessageContent = (message: Message) => {
     switch (message.type) {
       case 'text':
-        return <p className="text-gray-900">{message.content}</p>;
+        // Processar menções
+        let content = message.content;
+        const mentionRegex = /@(\w+\s?\w*)/g;
+        content = content.replace(mentionRegex, '<span class="bg-blue-100 text-blue-800 px-1 rounded font-medium">@$1</span>');
+        
+        return <div className="text-gray-900" dangerouslySetInnerHTML={{ __html: content }} />;
       
       case 'image':
         return (
@@ -103,7 +130,7 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
             )}
             
             <div className={cn(
-              "flex gap-3",
+              "flex gap-3 group relative",
               isOwn ? "justify-end" : "justify-start"
             )}>
               {!isOwn && showSender && (
@@ -117,7 +144,7 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
               )}
 
               <div className={cn(
-                "max-w-lg",
+                "max-w-lg relative",
                 isOwn ? "order-first" : ""
               )}>
                 {!isOwn && showSender && (
@@ -127,7 +154,7 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
                 )}
                 
                 <div className={cn(
-                  "rounded-lg px-4 py-2",
+                  "rounded-lg px-4 py-2 relative",
                   isOwn 
                     ? "bg-blue-600 text-white" 
                     : "bg-white border border-gray-200"
@@ -142,17 +169,49 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
                       editado
                     </p>
                   )}
+
+                  {/* Botão de reação - aparece no hover */}
+                  <button
+                    onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
+                    className={cn(
+                      "absolute -top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity",
+                      showReactionPicker === message.id && "opacity-100"
+                    )}
+                  >
+                    <Smile className="h-4 w-4 text-gray-600" />
+                  </button>
+
+                  {/* Picker de reações */}
+                  {showReactionPicker === message.id && (
+                    <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex gap-1 z-10">
+                      {REACTION_EMOJIS.map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReactionClick(message.id, emoji)}
+                          className="hover:bg-gray-100 rounded p-1 text-lg"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {message.reactions && Object.keys(message.reactions).length > 0 && (
-                  <div className="flex gap-1 mt-1">
+                  <div className="flex gap-1 mt-1 flex-wrap">
                     {Object.entries(message.reactions).map(([emoji, users]) => (
-                      <span 
-                        key={emoji}
-                        className="text-xs bg-gray-100 rounded-full px-2 py-1 flex items-center gap-1"
-                      >
-                        {emoji} {users.length}
-                      </span>
+                      users.length > 0 && (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReactionClick(message.id, emoji)}
+                          className={cn(
+                            "text-xs bg-gray-100 hover:bg-gray-200 rounded-full px-2 py-1 flex items-center gap-1 transition-colors",
+                            users.includes(currentUser?.id || '') && "bg-blue-100 text-blue-700"
+                          )}
+                        >
+                          {emoji} {users.length}
+                        </button>
+                      )
                     ))}
                   </div>
                 )}

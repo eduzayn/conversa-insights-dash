@@ -1,10 +1,10 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Mic, Smile, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { User } from "@/pages/ChatInterno";
 import { useChatContext } from "@/contexts/ChatContext";
+import { MentionSuggestions } from "./MentionSuggestions";
 
 interface MessageInputProps {
   chatId: string;
@@ -17,7 +17,7 @@ const WORK_EMOJIS = [
 ];
 
 export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
-  const { addMessage } = useChatContext();
+  const { addMessage, users, chats } = useChatContext();
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -25,9 +25,26 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   
+  // Estados para menções
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionStartPos, setMentionStartPos] = useState(0);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Filtrar usuários para menções baseado na conversa atual
+  const currentChat = chats.find(c => c.id === chatId);
+  const availableUsers = currentChat ? 
+    currentChat.participants.filter(u => u.id !== currentUser?.id) : 
+    users.filter(u => u.id !== currentUser?.id);
+
+  const filteredMentionUsers = availableUsers.filter(user =>
+    user.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  );
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -36,6 +53,47 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
     }
   }, [message]);
 
+  // Lidar com mudanças no texto para detectar menções
+  const handleMessageChange = (value: string) => {
+    setMessage(value);
+    
+    const cursorPos = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+    
+    if (mentionMatch) {
+      setMentionQuery(mentionMatch[1]);
+      setMentionStartPos(cursorPos - mentionMatch[0].length);
+      setShowMentions(true);
+      setSelectedMentionIndex(0);
+      
+      // Calcular posição das sugestões
+      if (textareaRef.current) {
+        const rect = textareaRef.current.getBoundingClientRect();
+        setMentionPosition({
+          top: rect.top - 200,
+          left: rect.left
+        });
+      }
+    } else {
+      setShowMentions(false);
+      setMentionQuery("");
+    }
+  };
+
+  const insertMention = (user: User) => {
+    const beforeMention = message.substring(0, mentionStartPos);
+    const afterMention = message.substring(textareaRef.current?.selectionStart || 0);
+    const newMessage = `${beforeMention}@${user.name} ${afterMention}`;
+    
+    setMessage(newMessage);
+    setShowMentions(false);
+    setMentionQuery("");
+    
+    // Focar no textarea após inserir menção
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
   const handleSendMessage = () => {
     if (!message.trim() || !currentUser) return;
 
@@ -43,13 +101,60 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
       senderId: currentUser.id,
       senderName: currentUser.name,
       content: message.trim(),
-      type: 'text'
+      type: 'text',
+      mentions: extractMentions(message)
     });
 
     setMessage("");
   };
 
+  const extractMentions = (text: string): string[] => {
+    const mentionRegex = /@(\w+\s?\w*)/g;
+    const mentions: string[] = [];
+    let match;
+    
+    while ((match = mentionRegex.exec(text)) !== null) {
+      const mentionedUser = availableUsers.find(u => 
+        u.name.toLowerCase() === match[1].toLowerCase()
+      );
+      if (mentionedUser) {
+        mentions.push(mentionedUser.id);
+      }
+    }
+    
+    return mentions;
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (showMentions) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => 
+          Math.min(prev + 1, filteredMentionUsers.length - 1)
+        );
+        return;
+      }
+      
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+      
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filteredMentionUsers[selectedMentionIndex]) {
+          insertMention(filteredMentionUsers[selectedMentionIndex]);
+        }
+        return;
+      }
+      
+      if (e.key === 'Escape') {
+        setShowMentions(false);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -60,7 +165,6 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
     const file = e.target.files?.[0];
     if (!file || !currentUser) return;
 
-    // Simular upload - em uma implementação real, você faria upload para um servidor
     const fileUrl = URL.createObjectURL(file);
     const isImage = file.type.startsWith('image/');
 
@@ -73,7 +177,6 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
       fileName: file.name
     });
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -99,7 +202,6 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
       setMediaRecorder(recorder);
       setIsRecording(true);
 
-      // Start timer
       recordingIntervalRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -183,7 +285,16 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
   }
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4">
+    <div className="bg-white border-t border-gray-200 p-4 relative">
+      {/* Sugestões de menção */}
+      <MentionSuggestions
+        users={filteredMentionUsers}
+        isVisible={showMentions}
+        selectedIndex={selectedMentionIndex}
+        onSelect={insertMention}
+        position={mentionPosition}
+      />
+
       {/* Emoji Picker */}
       {showEmojiPicker && (
         <div className="mb-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
@@ -206,9 +317,9 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
           <Textarea
             ref={textareaRef}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => handleMessageChange(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Digite uma mensagem..."
+            placeholder="Digite uma mensagem... (use @ para mencionar alguém)"
             className="min-h-[44px] max-h-[120px] resize-none"
             rows={1}
           />

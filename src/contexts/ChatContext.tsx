@@ -7,10 +7,14 @@ interface ChatContextType {
   teams: Team[];
   users: User[];
   currentUser: User | null;
+  filteredChats: Chat[];
   addMessage: (chatId: string, message: Omit<Message, 'id' | 'timestamp'>) => void;
   markAsRead: (chatId: string) => void;
   createPrivateChat: (userId: string) => Chat;
   updateUserStatus: (userId: string, isOnline: boolean) => void;
+  searchChats: (query: string) => void;
+  addReaction: (chatId: string, messageId: string, emoji: string, userId: string) => void;
+  playNotificationSound: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -103,6 +107,7 @@ const mockChats: Chat[] = [
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [chats, setChats] = useState<Chat[]>(mockChats);
+  const [filteredChats, setFilteredChats] = useState<Chat[]>(mockChats);
   const [teams] = useState<Team[]>(mockTeams);
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [currentUser] = useState<User | null>(mockUsers[0]); // Ana Lúcia como usuário atual
@@ -126,6 +131,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           : chat
       )
     );
+
+    // Tocar som de notificação se não for do usuário atual
+    if (messageData.senderId !== currentUser?.id) {
+      playNotificationSound();
+    }
   };
 
   const markAsRead = (chatId: string) => {
@@ -169,16 +179,96 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const searchChats = (query: string) => {
+    if (!query.trim()) {
+      setFilteredChats(chats);
+      return;
+    }
+
+    const filtered = chats.filter(chat => {
+      // Buscar no nome do chat
+      if (chat.name.toLowerCase().includes(query.toLowerCase())) {
+        return true;
+      }
+
+      // Buscar nas mensagens
+      const hasMatchingMessage = chat.messages.some(message => 
+        message.content.toLowerCase().includes(query.toLowerCase()) ||
+        message.senderName.toLowerCase().includes(query.toLowerCase())
+      );
+
+      return hasMatchingMessage;
+    });
+
+    setFilteredChats(filtered);
+  };
+
+  const addReaction = (chatId: string, messageId: string, emoji: string, userId: string) => {
+    setChats(prevChats =>
+      prevChats.map(chat =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              messages: chat.messages.map(message =>
+                message.id === messageId
+                  ? {
+                      ...message,
+                      reactions: {
+                        ...message.reactions,
+                        [emoji]: message.reactions?.[emoji] 
+                          ? message.reactions[emoji].includes(userId)
+                            ? message.reactions[emoji].filter(id => id !== userId)
+                            : [...message.reactions[emoji], userId]
+                          : [userId]
+                      }
+                    }
+                  : message
+              )
+            }
+          : chat
+      )
+    );
+  };
+
+  const playNotificationSound = () => {
+    // Criar um som sintético de notificação
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  };
+
+  // Atualizar filteredChats quando chats mudar
+  useEffect(() => {
+    setFilteredChats(chats);
+  }, [chats]);
+
   return (
     <ChatContext.Provider value={{
       chats,
+      filteredChats,
       teams,
       users,
       currentUser,
       addMessage,
       markAsRead,
       createPrivateChat,
-      updateUserStatus
+      updateUserStatus,
+      searchChats,
+      addReaction,
+      playNotificationSound
     }}>
       {children}
     </ChatContext.Provider>
