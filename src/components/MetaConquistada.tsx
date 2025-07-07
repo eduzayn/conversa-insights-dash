@@ -21,6 +21,7 @@ interface MetaConquistadaProps {
 export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquistadaProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [shouldBounce, setShouldBounce] = useState(false);
 
   useEffect(() => {
     const updateWindowSize = () => {
@@ -35,21 +36,28 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
   useEffect(() => {
     if (isVisible) {
       setShowConfetti(true);
+      setShouldBounce(true);
       
       // Tocar som baseado no período da meta
       playSound(conquista.periodo);
+      
+      // Parar a animação de bounce após 3 pulos (aproximadamente 1.5 segundos)
+      const bounceTimer = setTimeout(() => {
+        setShouldBounce(false);
+      }, 1500);
       
       // Remover confetes após 4 segundos
       const confettiTimer = setTimeout(() => {
         setShowConfetti(false);
       }, 4000);
 
-      // Fechar notificação após 6 segundos
+      // Fechar notificação após 8 segundos (3 pulos + 4 segundos parado + 0.5s de margem)
       const closeTimer = setTimeout(() => {
         onClose();
-      }, 6000);
+      }, 8000);
 
       return () => {
+        clearTimeout(bounceTimer);
         clearTimeout(confettiTimer);
         clearTimeout(closeTimer);
       };
@@ -109,7 +117,9 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
       )}
       
       <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 pointer-events-none">
-        <Card className="w-96 mx-4 animate-bounce bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 shadow-2xl pointer-events-auto">
+        <Card className={`w-96 mx-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 shadow-2xl pointer-events-auto transition-all duration-300 ${
+          shouldBounce ? 'animate-bounce' : ''
+        }`}>
           <CardContent className="p-6 text-center">
             <div className="flex justify-center mb-4">
               {getIcon()}
