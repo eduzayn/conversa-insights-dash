@@ -51,21 +51,71 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
   };
 
   const getIndicadoresPorEquipe = (equipeSelecionada: string) => {
+    const indicadoresComerciais = [
+      { value: "vendas-realizadas", label: "📈 Total de vendas realizadas" },
+      { value: "faturamento", label: "💰 Faturamento gerado (R$)" },
+      { value: "leads-atendidos", label: "📞 Leads atendidos" },
+      { value: "taxa-conversao", label: "📊 Taxa de conversão (%)" },
+      { value: "tempo-conversao", label: "⏱️ Tempo médio até a conversão (dias)" },
+      { value: "vendas-recorrentes", label: "🧩 Vendas recorrentes (clientes antigos)" }
+    ];
+
+    const indicadoresSuporte = [
+      { value: "atendimentos-concluidos", label: "🎧 Atendimentos concluídos" },
+      { value: "problemas-resolvidos", label: "🧹 Problemas resolvidos" },
+      { value: "problemas-evitados", label: "🚫 Problemas evitados (ações preventivas)" },
+      { value: "tempo-resolucao", label: "⏳ Tempo médio de resolução" },
+      { value: "satisfacao", label: "👍 Índice de satisfação do atendimento (%)" },
+      { value: "sla-cumprido", label: "📅 SLA cumprido (atendimentos no prazo)" }
+    ];
+
+    const indicadoresAdministrativos = [
+      { value: "processos-finalizados", label: "🧮 Processos finalizados" },
+      { value: "valor-servicos", label: "💵 Valor gerado por serviços administrativos" },
+      { value: "documentacoes", label: "📑 Documentações processadas" },
+      { value: "solicitacoes", label: "📬 Solicitações atendidas" },
+      { value: "tempo-processo", label: "🕓 Tempo médio por processo" }
+    ];
+
+    const indicadoresTransversais = [
+      { value: "horas-atividade", label: "🕒 Horas de atividade efetiva na plataforma" },
+      { value: "dias-presenca", label: "🔓 Dias com presença registrada" },
+      { value: "moedas-acumuladas", label: "🪙 Moedas Zaynianas acumuladas" },
+      { value: "metas-batidas", label: "🎯 Metas anteriores batidas" },
+      { value: "engajamento", label: "🚀 Engajamento (% de dias com login e atividade)" }
+    ];
+
     switch (equipeSelecionada) {
       case "comercial":
         return [
-          { value: "vendas", label: "Quantidade de vendas" },
-          { value: "faturamento", label: "Faturamento em R$" }
+          ...indicadoresComerciais,
+          { value: "separator-1", label: "--- Indicadores Gerais ---", disabled: true },
+          ...indicadoresTransversais
         ];
       case "suporte":
+        return [
+          ...indicadoresSuporte,
+          { value: "separator-1", label: "--- Indicadores Gerais ---", disabled: true },
+          ...indicadoresTransversais
+        ];
       case "administrativo":
         return [
-          { value: "atendimentos", label: "Número de atendimentos concluídos" },
-          { value: "problemas", label: "Quantidade de problemas resolvidos" },
-          { value: "valor-indireto", label: "Valor indireto gerado" }
+          ...indicadoresAdministrativos,
+          { value: "separator-1", label: "--- Indicadores Gerais ---", disabled: true },
+          ...indicadoresTransversais
         ];
       default:
-        return [];
+        // Caso não tenha equipe selecionada, mostrar todos os indicadores organizados
+        return [
+          { value: "separator-comercial", label: "--- Comerciais ---", disabled: true },
+          ...indicadoresComerciais,
+          { value: "separator-suporte", label: "--- Suporte ---", disabled: true },
+          ...indicadoresSuporte,
+          { value: "separator-admin", label: "--- Administrativos ---", disabled: true },
+          ...indicadoresAdministrativos,
+          { value: "separator-gerais", label: "--- Gerais ---", disabled: true },
+          ...indicadoresTransversais
+        ];
     }
   };
 
@@ -169,7 +219,12 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
                       </SelectTrigger>
                       <SelectContent>
                         {getIndicadoresPorEquipe(equipe).map((ind) => (
-                          <SelectItem key={ind.value} value={ind.value}>
+                          <SelectItem 
+                            key={ind.value} 
+                            value={ind.value}
+                            disabled={ind.disabled}
+                            className={ind.disabled ? "font-semibold text-gray-500 bg-gray-50" : ""}
+                          >
                             {ind.label}
                           </SelectItem>
                         ))}
