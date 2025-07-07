@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Settings, Bell, Volume, User, Mail, X, Play, RotateCcw } from "lucide-react";
+import { Settings, Bell, Volume, User, Mail, X, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useChatSettings } from "@/contexts/ChatSettingsContext";
-import { soundStyles } from "@/types/chatSettings";
+import { NotificationSoundSelect } from "./NotificationSoundSelect";
 
 interface ChatSettingsModalProps {
   open: boolean;
@@ -24,11 +23,6 @@ interface ChatSettingsModalProps {
 export const ChatSettingsModal = ({ open, onOpenChange }: ChatSettingsModalProps) => {
   const { settings, updateSettings, resetToDefaults } = useChatSettings();
   const [activeTab, setActiveTab] = useState("visual");
-
-  const playSoundPreview = (soundStyle: string) => {
-    // Aqui você pode implementar a reprodução dos sons
-    console.log(`Playing preview for: ${soundStyle}`);
-  };
 
   const SettingRow = ({ 
     label, 
@@ -194,30 +188,11 @@ export const ChatSettingsModal = ({ open, onOpenChange }: ChatSettingsModalProps
                 </SettingRow>
 
                 <SettingRow label="Escolher estilo de som">
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={settings.soundStyle}
-                      onValueChange={(value) => updateSettings({ soundStyle: value as any })}
-                    >
-                      <SelectTrigger className="w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {soundStyles.map((style) => (
-                          <SelectItem key={style.value} value={style.value}>
-                            {style.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => playSoundPreview(settings.soundStyle)}
-                    >
-                      <Play className="h-3 w-3" />
-                    </Button>
-                  </div>
+                  <NotificationSoundSelect
+                    value={settings.soundStyle}
+                    onValueChange={(value) => updateSettings({ soundStyle: value as any })}
+                    volume={settings.notificationVolume}
+                  />
                 </SettingRow>
               </div>
             </TabsContent>
