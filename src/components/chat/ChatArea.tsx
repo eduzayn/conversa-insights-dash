@@ -2,18 +2,18 @@
 import { useEffect, useRef } from "react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
-import { Chat, User } from "@/pages/ChatInterno";
+import { Chat } from "@/pages/ChatInterno";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Globe, Users, MessageCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ChatAreaProps {
   activeChat: Chat | null;
-  currentUser: User | null;
+  currentUser: any; // Using any to avoid type conflicts between auth user and chat user
 }
 
 export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
-  const { markAsRead, teams } = useChatContext();
+  const { markAsRead, teams, currentUser: chatCurrentUser } = useChatContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
       case 'team':
         return team ? `${team.description} • ${activeChat.participants.length} membros` : 'Equipe';
       case 'private':
-        const otherParticipant = activeChat.participants.find(p => p.id !== currentUser?.id);
+        const otherParticipant = activeChat.participants.find(p => p.id !== chatCurrentUser?.id);
         return otherParticipant?.isOnline ? 'Online' : 'Offline';
       default:
         return '';
@@ -102,7 +102,7 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
       <div className="flex-1 overflow-hidden">
         <MessageList 
           messages={activeChat.messages}
-          currentUser={currentUser}
+          currentUser={chatCurrentUser}
         />
         <div ref={messagesEndRef} />
       </div>
@@ -110,7 +110,7 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
       {/* Input */}
       <MessageInput 
         chatId={activeChat.id}
-        currentUser={currentUser}
+        currentUser={chatCurrentUser}
       />
     </div>
   );
