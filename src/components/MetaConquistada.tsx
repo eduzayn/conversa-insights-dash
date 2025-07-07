@@ -51,10 +51,10 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
         setShowConfetti(false);
       }, 4000);
 
-      // Fechar notificação após 8 segundos (3 pulos + 4 segundos parado + 0.5s de margem)
+      // Fechar notificação após 10 segundos (3 pulos + 6 segundos parado + 0.5s de margem)
       const closeTimer = setTimeout(() => {
         onClose();
-      }, 8000);
+      }, 10000);
 
       return () => {
         clearTimeout(bounceTimer);
