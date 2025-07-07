@@ -25,6 +25,12 @@ interface ConfigurarMetasModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface IndicadorOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
 export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModalProps) => {
   const [tipoMeta, setTipoMeta] = useState("mensal");
   const [aplicacao, setAplicacao] = useState("equipe");
@@ -50,8 +56,8 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
     onOpenChange(false);
   };
 
-  const getIndicadoresPorEquipe = (equipeSelecionada: string) => {
-    const indicadoresComerciais = [
+  const getIndicadoresPorEquipe = (equipeSelecionada: string): IndicadorOption[] => {
+    const indicadoresComerciais: IndicadorOption[] = [
       { value: "vendas-realizadas", label: "📈 Total de vendas realizadas" },
       { value: "faturamento", label: "💰 Faturamento gerado (R$)" },
       { value: "leads-atendidos", label: "📞 Leads atendidos" },
@@ -60,7 +66,7 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
       { value: "vendas-recorrentes", label: "🧩 Vendas recorrentes (clientes antigos)" }
     ];
 
-    const indicadoresSuporte = [
+    const indicadoresSuporte: IndicadorOption[] = [
       { value: "atendimentos-concluidos", label: "🎧 Atendimentos concluídos" },
       { value: "problemas-resolvidos", label: "🧹 Problemas resolvidos" },
       { value: "problemas-evitados", label: "🚫 Problemas evitados (ações preventivas)" },
@@ -69,7 +75,7 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
       { value: "sla-cumprido", label: "📅 SLA cumprido (atendimentos no prazo)" }
     ];
 
-    const indicadoresAdministrativos = [
+    const indicadoresAdministrativos: IndicadorOption[] = [
       { value: "processos-finalizados", label: "🧮 Processos finalizados" },
       { value: "valor-servicos", label: "💵 Valor gerado por serviços administrativos" },
       { value: "documentacoes", label: "📑 Documentações processadas" },
@@ -77,7 +83,7 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
       { value: "tempo-processo", label: "🕓 Tempo médio por processo" }
     ];
 
-    const indicadoresTransversais = [
+    const indicadoresTransversais: IndicadorOption[] = [
       { value: "horas-atividade", label: "🕒 Horas de atividade efetiva na plataforma" },
       { value: "dias-presenca", label: "🔓 Dias com presença registrada" },
       { value: "moedas-acumuladas", label: "🪙 Moedas Zaynianas acumuladas" },
