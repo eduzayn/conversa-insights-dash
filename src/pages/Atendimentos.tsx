@@ -55,11 +55,24 @@ const Atendimentos = () => {
                 <CardTitle>Filtros</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input placeholder="Buscar por nome..." className="pl-9" />
                   </div>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hoje">Hoje</SelectItem>
+                      <SelectItem value="ontem">Ontem</SelectItem>
+                      <SelectItem value="esta-semana">Esta Semana</SelectItem>
+                      <SelectItem value="semana-passada">Semana Passada</SelectItem>
+                      <SelectItem value="este-mes">Este Mês</SelectItem>
+                      <SelectItem value="mes-passado">Mês Passado</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="Atendente" />
