@@ -14,21 +14,31 @@ const Chat = () => {
   const [selectedChat, setSelectedChat] = useState<'comercial' | 'suporte' | null>(null);
   const [iframeError, setIframeError] = useState(false);
 
-  // IDs dos chatbots do BotConversa
+  // Diferentes formatos de URL para testar
   const chatbots = {
     comercial: {
       id: "182301",
       name: "Chat Comercial",
       description: "Vendas e informações comerciais",
       icon: ShoppingCart,
-      url: `https://widget.botconversa.com.br/webchat/chatbot/${182301}/`
+      urls: [
+        `https://widget.botconversa.com.br/webchat/chatbot/182301/`,
+        `https://app.botconversa.com.br/webchat/182301/`,
+        `https://botconversa.com.br/widget/182301/`,
+        `https://widget.botconversa.com.br/182301/`
+      ]
     },
     suporte: {
       id: "182331", 
       name: "Chat Suporte",
       description: "Suporte técnico e atendimento",
       icon: Headphones,
-      url: `https://widget.botconversa.com.br/webchat/chatbot/${182331}/`
+      urls: [
+        `https://widget.botconversa.com.br/webchat/chatbot/182331/`,
+        `https://app.botconversa.com.br/webchat/182331/`,
+        `https://botconversa.com.br/widget/182331/`,
+        `https://widget.botconversa.com.br/182331/`
+      ]
     }
   };
 
@@ -55,6 +65,7 @@ const Chat = () => {
   };
 
   const handleIframeError = () => {
+    console.log("Iframe error detected");
     setIframeError(true);
   };
 
@@ -86,33 +97,34 @@ const Chat = () => {
                 </Button>
               </div>
 
-              {iframeError && (
-                <Alert className="mb-6">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="flex flex-col gap-3">
-                      <p>Não foi possível carregar o chat. Verifique sua conexão ou tente novamente.</p>
-                      <div className="flex gap-2">
+              <Alert className="mb-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="flex flex-col gap-3">
+                    <p>Se o chat não carregar abaixo, você pode acessar diretamente o BotConversa ou usar uma das URLs alternativas:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        onClick={handleOpenBotConversa}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        size="sm"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Acessar BotConversa
+                      </Button>
+                      {chat.urls.map((url, index) => (
                         <Button 
-                          onClick={() => {setIframeError(false); window.location.reload()}}
+                          key={index}
+                          onClick={() => window.open(url, "_blank")}
                           variant="outline"
                           size="sm"
                         >
-                          Tentar Novamente
+                          URL {index + 1}
                         </Button>
-                        <Button 
-                          onClick={handleOpenBotConversa}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          size="sm"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Acessar BotConversa
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  </AlertDescription>
-                </Alert>
-              )}
+                  </div>
+                </AlertDescription>
+              </Alert>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -126,15 +138,36 @@ const Chat = () => {
                 
                 <div className="relative">
                   <iframe
-                    src={chat.url}
+                    src={chat.urls[0]}
                     width="100%"
                     height="600"
                     style={{ border: 'none' }}
-                    allow="microphone; camera"
+                    allow="microphone; camera; clipboard-read; clipboard-write"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                     onError={handleIframeError}
                     title={`${chat.name} Widget`}
                   />
                 </div>
+              </div>
+
+              <div className="mt-4">
+                <Alert>
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p className="text-sm"><strong>URLs testadas:</strong></p>
+                      <ul className="text-xs space-y-1">
+                        {chat.urls.map((url, index) => (
+                          <li key={index} className="font-mono text-gray-600">
+                            {index + 1}. {url}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-sm text-gray-600 mt-3">
+                        Se nenhuma das URLs funcionar no iframe, clique nos botões acima para abrir em nova aba.
+                      </p>
+                    </div>
+                  </AlertDescription>
+                </Alert>
               </div>
 
               <div className="mt-4 text-center">
@@ -204,7 +237,7 @@ const Chat = () => {
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <div className="flex flex-col gap-3">
-                  <p>Os chats estão configurados com os IDs do BotConversa. Caso tenha problemas, verifique as configurações no painel.</p>
+                  <p>Os chats estão configurados com os IDs do BotConversa. Se houver problemas de carregamento, use os botões de acesso direto.</p>
                   <div className="flex gap-2">
                     <Button 
                       onClick={handleOpenBotConversa}
