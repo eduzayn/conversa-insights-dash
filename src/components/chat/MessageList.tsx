@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Message, User } from "@/pages/ChatInterno";
+import { Message, User } from "@/types/chat";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -38,66 +37,6 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
     
     addReaction(chatId, messageId, emoji, currentUser.id);
     setShowReactionPicker(null);
-  };
-
-  const renderMessageContent = (message: Message) => {
-    switch (message.type) {
-      case 'text':
-        // Processar menções
-        let content = message.content;
-        const mentionRegex = /@(\w+\s?\w*)/g;
-        content = content.replace(mentionRegex, '<span class="bg-blue-100 text-blue-800 px-1 rounded font-medium">@$1</span>');
-        
-        return <div className="text-gray-900" dangerouslySetInnerHTML={{ __html: content }} />;
-      
-      case 'image':
-        return (
-          <div className="space-y-2">
-            {message.content && <p className="text-gray-900">{message.content}</p>}
-            <img 
-              src={message.fileUrl} 
-              alt={message.fileName}
-              className="max-w-sm rounded-lg shadow-sm"
-            />
-          </div>
-        );
-      
-      case 'file':
-        return (
-          <div className="space-y-2">
-            {message.content && <p className="text-gray-900">{message.content}</p>}
-            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 max-w-sm">
-              <FileText className="h-8 w-8 text-blue-600" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {message.fileName}
-                </p>
-                <p className="text-xs text-gray-500">Documento</p>
-              </div>
-              <Download className="h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-600" />
-            </div>
-          </div>
-        );
-      
-      case 'audio':
-        return (
-          <div className="space-y-2">
-            {message.content && <p className="text-gray-900">{message.content}</p>}
-            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 max-w-sm">
-              <Mic className="h-6 w-6 text-green-600" />
-              <div className="flex-1">
-                <audio controls className="w-full">
-                  <source src={message.fileUrl} type="audio/mpeg" />
-                  Seu navegador não suporta áudio.
-                </audio>
-              </div>
-            </div>
-          </div>
-        );
-      
-      default:
-        return <p className="text-gray-900">{message.content}</p>;
-    }
   };
 
   if (messages.length === 0) {
@@ -200,7 +139,7 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
                 {message.reactions && Object.keys(message.reactions).length > 0 && (
                   <div className="flex gap-1 mt-1 flex-wrap">
                     {Object.entries(message.reactions).map(([emoji, users]) => (
-                      users.length > 0 && (
+                      Array.isArray(users) && users.length > 0 && (
                         <button
                           key={emoji}
                           onClick={() => handleReactionClick(message.id, emoji)}
@@ -232,4 +171,64 @@ export const MessageList = ({ messages, currentUser }: MessageListProps) => {
       })}
     </div>
   );
+
+  function renderMessageContent(message: Message) {
+    switch (message.type) {
+      case 'text':
+        // Processar menções
+        let content = message.content;
+        const mentionRegex = /@(\w+\s?\w*)/g;
+        content = content.replace(mentionRegex, '<span class="bg-blue-100 text-blue-800 px-1 rounded font-medium">@$1</span>');
+        
+        return <div className="text-gray-900" dangerouslySetInnerHTML={{ __html: content }} />;
+      
+      case 'image':
+        return (
+          <div className="space-y-2">
+            {message.content && <p className="text-gray-900">{message.content}</p>}
+            <img 
+              src={message.fileUrl} 
+              alt={message.fileName}
+              className="max-w-sm rounded-lg shadow-sm"
+            />
+          </div>
+        );
+      
+      case 'file':
+        return (
+          <div className="space-y-2">
+            {message.content && <p className="text-gray-900">{message.content}</p>}
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 max-w-sm">
+              <FileText className="h-8 w-8 text-blue-600" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {message.fileName}
+                </p>
+                <p className="text-xs text-gray-500">Documento</p>
+              </div>
+              <Download className="h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-600" />
+            </div>
+          </div>
+        );
+      
+      case 'audio':
+        return (
+          <div className="space-y-2">
+            {message.content && <p className="text-gray-900">{message.content}</p>}
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 max-w-sm">
+              <Mic className="h-6 w-6 text-green-600" />
+              <div className="flex-1">
+                <audio controls className="w-full">
+                  <source src={message.fileUrl} type="audio/mpeg" />
+                  Seu navegador não suporta áudio.
+                </audio>
+              </div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return <p className="text-gray-900">{message.content}</p>;
+    }
+  }
 };
