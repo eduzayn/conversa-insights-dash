@@ -4,15 +4,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MessageCircle, AlertTriangle } from "lucide-react";
+import { MessageCircle, AlertTriangle, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const Chat = () => {
   const { user, loading } = useAuth();
   const [iframeError, setIframeError] = useState(false);
 
-  // URL do iframe do BotConversa - configuração padrão para desenvolvimento
-  const botconversaIframeUrl = "https://chat.botconversa.com.br/widget?id=DEMO_CHAT";
+  // URL do iframe do BotConversa - usando uma URL de exemplo mais realista
+  const botconversaIframeUrl = "https://widget.botconversa.com.br/webchat/chatbot/";
 
   if (loading) {
     return (
@@ -28,6 +29,10 @@ const Chat = () => {
 
   const handleIframeError = () => {
     setIframeError(true);
+  };
+
+  const handleOpenBotConversa = () => {
+    window.open("https://app.botconversa.com.br/login/", "_blank");
   };
 
   return (
@@ -47,43 +52,55 @@ const Chat = () => {
               </p>
             </div>
 
-            {iframeError ? (
-              <Alert className="mb-6">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Não foi possível carregar o chat ao vivo. Verifique sua conexão ou fale com o suporte.
-                  <br />
-                  <button 
-                    onClick={() => setIframeError(false)}
-                    className="mt-2 text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Tentar novamente
-                  </button>
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-gray-700">Chat Online</span>
+            <Alert className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="flex flex-col gap-3">
+                  <p>O chat widget do BotConversa requer configuração específica com seu ID de chatbot.</p>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleOpenBotConversa}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      size="sm"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Acessar BotConversa
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="relative">
-                  <iframe
-                    src={botconversaIframeUrl}
-                    width="100%"
-                    height="600"
-                    style={{ border: 'none' }}
-                    allow="microphone; camera"
-                    title="Chat ao Vivo BotConversa"
-                    onError={handleIframeError}
-                    className="w-full"
-                  />
+              </AlertDescription>
+            </Alert>
+
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-gray-700">Aguardando Configuração</span>
                 </div>
               </div>
-            )}
+              
+              <div className="relative h-96 flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                  <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chat Widget em Desenvolvimento</h3>
+                  <p className="text-gray-600 mb-4">
+                    Para integrar o chat do BotConversa, você precisa:
+                  </p>
+                  <ul className="text-left text-sm text-gray-600 space-y-1 mb-4">
+                    <li>• Obter o ID do seu chatbot no BotConversa</li>
+                    <li>• Configurar a URL do widget</li>
+                    <li>• Definir as permissões necessárias</li>
+                  </ul>
+                  <Button 
+                    onClick={handleOpenBotConversa}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Configurar no BotConversa
+                  </Button>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-500">
