@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +21,7 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [shouldBounce, setShouldBounce] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
 
   useEffect(() => {
     const updateWindowSize = () => {
@@ -34,7 +34,7 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
   }, []);
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && !isClosed) {
       setShowConfetti(true);
       setShouldBounce(true);
       
@@ -51,9 +51,11 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
         setShowConfetti(false);
       }, 4000);
 
-      // Fechar notificação após 10 segundos (3 pulos + 6 segundos parado + 0.5s de margem)
+      // Fechar notificação após 10 segundos se não foi fechada manualmente
       const closeTimer = setTimeout(() => {
-        onClose();
+        if (!isClosed) {
+          handleClose();
+        }
       }, 10000);
 
       return () => {
@@ -62,7 +64,14 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
         clearTimeout(closeTimer);
       };
     }
-  }, [isVisible, conquista.periodo, onClose]);
+  }, [isVisible, conquista.periodo, isClosed]);
+
+  const handleClose = () => {
+    setIsClosed(true);
+    setShowConfetti(false);
+    setShouldBounce(false);
+    onClose();
+  };
 
   const playSound = (periodo: string) => {
     try {
@@ -101,7 +110,7 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
     }
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isClosed) return null;
 
   return (
     <>
@@ -122,7 +131,7 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
         }`}>
           {/* Botão de fechar */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-3 right-3 z-10 p-1 rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm"
             aria-label="Fechar notificação"
           >
