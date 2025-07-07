@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
@@ -14,15 +13,24 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Target, Trophy, Coins, Gift, Plus, Medal } from "lucide-react";
+import { Target, Trophy, Coins, Gift, Plus, Medal, Bell } from "lucide-react";
 import { ConfigurarMetasModal } from "@/components/ConfigurarMetasModal";
 import { RecompensasModal } from "@/components/RecompensasModal";
+import { MetaConquistada } from "@/components/MetaConquistada";
+import { useMetaNotificacoes } from "@/hooks/useMetaNotificacoes";
+import { toast } from "sonner";
 
 const Metas = () => {
   const [isMetasModalOpen, setIsMetasModalOpen] = useState(false);
   const [isRecompensasModalOpen, setIsRecompensasModalOpen] = useState(false);
+  
+  const { 
+    conquistaAtual, 
+    isVisible, 
+    fecharNotificacao, 
+    simularConquista 
+  } = useMetaNotificacoes();
 
-  // Mock data - em produção viria do backend
   const equipesData = [
     {
       equipe: "Comercial",
@@ -75,6 +83,13 @@ const Metas = () => {
     }
   };
 
+  const handleSimularConquista = (tipo: 'individual' | 'equipe') => {
+    simularConquista(tipo);
+    toast.success(`Simulando conquista ${tipo}!`, {
+      description: "Aguarde a notificação aparecer..."
+    });
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
@@ -88,13 +103,31 @@ const Metas = () => {
                 <h1 className="text-3xl font-bold text-gray-900">Metas & Engajamento</h1>
                 <p className="text-gray-600">Sistema de gamificação e acompanhamento de metas</p>
               </div>
-              <Button 
-                onClick={() => setIsMetasModalOpen(true)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Configurar Metas
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleSimularConquista('individual')}
+                  variant="outline"
+                  className="bg-blue-50 hover:bg-blue-100"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  Simular Individual
+                </Button>
+                <Button 
+                  onClick={() => handleSimularConquista('equipe')}
+                  variant="outline"
+                  className="bg-purple-50 hover:bg-purple-100"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  Simular Equipe
+                </Button>
+                <Button 
+                  onClick={() => setIsMetasModalOpen(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Configurar Metas
+                </Button>
+              </div>
             </div>
 
             {/* Cards de Resumo */}
@@ -244,6 +277,15 @@ const Metas = () => {
         open={isRecompensasModalOpen} 
         onOpenChange={setIsRecompensasModalOpen} 
       />
+      
+      {/* Notificação de Meta Conquistada */}
+      {conquistaAtual && (
+        <MetaConquistada
+          isVisible={isVisible}
+          onClose={fecharNotificacao}
+          conquista={conquistaAtual}
+        />
+      )}
     </div>
   );
 };
