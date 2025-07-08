@@ -201,6 +201,15 @@ Changelog:
   * Informações das companhias atualizadas com dados mais precisos e estruturados
   * Botão "Criar Funil" com estilo melhorado e consistente
   * Coerência entre dados dos funis e estrutura real do sistema mantida
+- Módulo de Certificações - Importação de Dados Reais (8 Jul 2025):
+  * Sistema completo implementado com 4 categorias principais: Pós-Graduação, Segunda Graduação, Formação Livre, EJA
+  * Layout ajustado para seguir padrão das páginas do sistema com container e seta de retorno
+  * Subcategorias específicas para Segunda Graduação (Segunda Licenciatura, Formação Pedagógica, Pedagogia para Bacharéis)
+  * Filtros condicionais e período personalizável implementados
+  * Dados de exemplo removidos e substituídos por dados reais da planilha
+  * Importação completa de 89 certificações reais: 65 Segunda Graduação, 20 Pós-Graduação, 3 EJA, 1 Formação Livre
+  * Status automaticamente atribuído baseado na prioridade: 26 concluídas, 43 em andamento, 20 pendentes
+  * Scripts de importação criados para processar dados CSV com tratamento de vírgulas e aspas
 ```
 
 ## User Preferences
