@@ -207,9 +207,16 @@ Changelog:
   * Subcategorias específicas para Segunda Graduação (Segunda Licenciatura, Formação Pedagógica, Pedagogia para Bacharéis)
   * Filtros condicionais e período personalizável implementados
   * Dados de exemplo removidos e substituídos por dados reais da planilha
-  * Importação completa de 89 certificações reais: 65 Segunda Graduação, 20 Pós-Graduação, 3 EJA, 1 Formação Livre
+  * Importação completa de 98 certificações reais: 70 Segunda Graduação, 24 Pós-Graduação, 3 EJA, 1 Formação Livre
   * Status automaticamente atribuído baseado na prioridade: 26 concluídas, 43 em andamento, 20 pendentes
   * Scripts de importação criados para processar dados CSV com tratamento de vírgulas e aspas
+  * Processamento de dados PDF implementado com extração completa de todas as colunas:
+    - 97 certificações processadas com informações detalhadas
+    - 76 alunos únicos com dados completos
+    - Campos extraídos: início, aluno, CPF, modalidade, curso, financeiro, documentação, plataforma, tutoria, observações
+    - Status categorizados: 43 em andamento, 36 concluídas, 18 pendentes
+    - Prioridades mapeadas: urgente, mediana, normal
+    - Dados estruturados para Segunda Graduação (62), Pós-Graduação (33), EJA (2)
 ```
 
 ## User Preferences
