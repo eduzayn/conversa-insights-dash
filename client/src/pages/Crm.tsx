@@ -123,19 +123,32 @@ const Crm = () => {
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Select value={activeCompany} onValueChange={setActiveCompany}>
                   <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Selecione a companhia" />
+                    <SelectValue placeholder="Selecione a companhia">
+                      {activeCompany === 'COMERCIAL' && (
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Companhia Comercial
+                        </div>
+                      )}
+                      {activeCompany === 'SUPORTE' && (
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Companhia Suporte
+                        </div>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="COMERCIAL">
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
-                        Comercial
+                        Companhia Comercial
                       </div>
                     </SelectItem>
                     <SelectItem value="SUPORTE">
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
-                        Suporte
+                        Companhia Suporte
                       </div>
                     </SelectItem>
                   </SelectContent>
