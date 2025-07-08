@@ -112,12 +112,16 @@ export const CrmSettingsModal = ({
                           <Badge variant="default" className="bg-green-100 text-green-800">Ativa</Badge>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Funis:</span>
-                          <span className="text-sm">1 funil configurado</span>
+                          <span className="text-sm font-medium">Funil:</span>
+                          <span className="text-sm">Comercial</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Leads:</span>
-                          <span className="text-sm">4 leads ativos</span>
+                          <span className="text-sm">8 leads ativos</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Colunas:</span>
+                          <span className="text-sm">5 status</span>
                         </div>
                       </div>
                     </CardContent>
@@ -136,12 +140,16 @@ export const CrmSettingsModal = ({
                           <Badge variant="default" className="bg-green-100 text-green-800">Ativa</Badge>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Departamentos:</span>
-                          <span className="text-sm">9 departamentos</span>
+                          <span className="text-sm font-medium">Funil:</span>
+                          <span className="text-sm">Comercial</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Leads:</span>
                           <span className="text-sm">12 leads ativos</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Departamentos:</span>
+                          <span className="text-sm">9 departamentos</span>
                         </div>
                       </div>
                     </CardContent>
@@ -222,7 +230,7 @@ export const CrmSettingsModal = ({
                     />
                   </div>
                 </div>
-                <Button onClick={handleCreateTeam} className="w-full">
+                <Button onClick={handleCreateTeam} className="w-full bg-slate-800 hover:bg-slate-900">
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Funil
                 </Button>
@@ -239,40 +247,49 @@ export const CrmSettingsModal = ({
               <CardContent>
                 <div className="space-y-3">
                   {teams.map((team) => (
-                    <div key={team.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{team.name}</h4>
-                          <Badge variant={team.isActive ? 'default' : 'secondary'}>
-                            {team.isActive ? 'Ativo' : 'Inativo'}
-                          </Badge>
+                    <Card key={team.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-lg">{team.name}</h4>
+                              <Badge variant={team.isActive ? 'default' : 'secondary'} className="bg-green-100 text-green-800">
+                                {team.isActive ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                            </div>
+                            {team.description && (
+                              <p className="text-sm text-gray-600 mb-2">{team.description}</p>
+                            )}
+                            <div className="flex gap-4 text-sm text-gray-500">
+                              <span>• 5 colunas de status</span>
+                              <span>• {team.id === 'comercial' ? '8' : '12'} leads ativos</span>
+                              <span>• Integração BotConversa</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingTeam(team)}
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteTeam(team.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                        {team.description && (
-                          <p className="text-sm text-gray-600 mt-1">{team.description}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingTeam(team)}
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteTeam(team.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                   {teams.length === 0 && (
                     <p className="text-center text-gray-500 py-8">
-                      Nenhuma equipe criada ainda
+                      Nenhum funil criado ainda
                     </p>
                   )}
                 </div>

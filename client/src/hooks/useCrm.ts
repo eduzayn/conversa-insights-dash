@@ -23,7 +23,7 @@ const mockTeams: CrmTeam[] = [
 const mockFunnelsComercial: CrmFunnel[] = [
   {
     id: 'comercial',
-    name: 'Funil Comercial',
+    name: 'Comercial',
     team: 'comercial',
     isActive: true,
     columns: [

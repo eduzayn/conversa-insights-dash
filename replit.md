@@ -194,6 +194,13 @@ Changelog:
   * Fluxos perfeitamente sincronizados com sistema CRM e operacionais
   * Identificadas oportunidades de melhoria: balanceamento de carga e expansão de menu no Suporte
   * Documentação completa gerada: analise_fluxo_suporte.md, analise_fluxo_comercial.md, comparativo_fluxos_completo.md
+- Melhorias nas Configurações do CRM (8 Jul 2025):
+  * Interface de configurações redesenhada com layout mais profissional
+  * Funis existentes agora mostram informações detalhadas (colunas, leads ativos, integração)
+  * Cards de funis com border destacado e badges de status aprimorados
+  * Informações das companhias atualizadas com dados mais precisos e estruturados
+  * Botão "Criar Funil" com estilo melhorado e consistente
+  * Coerência entre dados dos funis e estrutura real do sistema mantida
 ```
 
 ## User Preferences
