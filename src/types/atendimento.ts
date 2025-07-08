@@ -14,6 +14,9 @@ export interface AtendimentosFilters {
   endDate?: string;
   status?: string;
   equipe?: string;
+  search?: string;
+  periodo?: string;
+  atendente?: string;
 }
 
 export interface AtendimentoData {

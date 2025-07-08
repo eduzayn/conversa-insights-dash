@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,7 +18,15 @@ const AtendimentoAluno = () => {
     atendente: ''
   });
 
-  const { conversations, isLoading, sendMessage, updateStatus } = useAtendimentoAluno(filters);
+  const { 
+    conversations, 
+    availableAttendants,
+    isLoading, 
+    sendMessage, 
+    updateStatus,
+    transferConversation,
+    saveInternalNote
+  } = useAtendimentoAluno(filters);
 
   if (loading) {
     return (
@@ -58,8 +65,11 @@ const AtendimentoAluno = () => {
               <ChatArea 
                 conversation={activeConversation}
                 currentUser={user}
+                availableAttendants={availableAttendants}
                 onSendMessage={sendMessage}
                 onUpdateStatus={updateStatus}
+                onTransferConversation={transferConversation}
+                onSaveInternalNote={saveInternalNote}
               />
             </div>
           </div>

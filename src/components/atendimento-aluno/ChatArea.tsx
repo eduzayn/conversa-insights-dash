@@ -5,24 +5,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Conversation } from "@/types/atendimento-aluno";
+import { Conversation, Attendant } from "@/types/atendimento-aluno";
+import { TransferModal } from "./TransferModal";
+import { InternalNotes } from "./InternalNotes";
+import { NotificationSettings } from "./NotificationSettings";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Send, Paperclip, Smile, MessageCircle, User } from "lucide-react";
+import { Send, Paperclip, Smile, MessageCircle, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatAreaProps {
   conversation: Conversation | null;
   currentUser: any;
+  availableAttendants: Attendant[];
   onSendMessage: (conversationId: string, content: string, currentUser: any) => void;
   onUpdateStatus: (conversationId: string, status: Conversation['status']) => void;
+  onTransferConversation: (conversationId: string, fromAttendantId: string, toAttendantId: string, reason?: string) => void;
+  onSaveInternalNote: (conversationId: string, content: string, currentUser: any) => void;
 }
 
 export const ChatArea = ({ 
   conversation, 
   currentUser, 
+  availableAttendants,
   onSendMessage, 
-  onUpdateStatus 
+  onUpdateStatus,
+  onTransferConversation,
+  onSaveInternalNote
 }: ChatAreaProps) => {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -76,7 +85,7 @@ export const ChatArea = ({
     <div className="bg-white border border-gray-200 rounded-lg h-full flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarFallback className="bg-blue-100 text-blue-600">
@@ -84,8 +93,11 @@ export const ChatArea = ({
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold text-gray-900">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 {conversation.student.name}
+                {conversation.hasNewMessage && (
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                )}
               </h2>
               <p className="text-sm text-gray-600">
                 {conversation.student.course} • {conversation.student.email}
@@ -93,24 +105,42 @@ export const ChatArea = ({
             </div>
           </div>
           
+          <div className="flex items-center gap-2">
+            <NotificationSettings />
+            <TransferModal 
+              conversation={conversation}
+              currentUser={currentUser}
+              availableAttendants={availableAttendants}
+              onTransfer={onTransferConversation}
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {getStatusBadge(conversation.status)}
-            <Select
-              value={conversation.status}
-              onValueChange={(value: Conversation['status']) => 
-                onUpdateStatus(conversation.id, value)
-              }
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="novo">Novo</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="finalizado">Finalizado</SelectItem>
-              </SelectContent>
-            </Select>
+            {conversation.attendant && (
+              <span className="text-sm text-gray-600">
+                Atendente: {conversation.attendant.name}
+              </span>
+            )}
           </div>
+          
+          <Select
+            value={conversation.status}
+            onValueChange={(value: Conversation['status']) => 
+              onUpdateStatus(conversation.id, value)
+            }
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="novo">Novo</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento</SelectItem>
+              <SelectItem value="finalizado">Finalizado</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -118,6 +148,17 @@ export const ChatArea = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {conversation.messages.map((msg) => {
           const isFromStudent = msg.senderType === 'student';
+          const isSystemMessage = msg.senderType === 'system';
+          
+          if (isSystemMessage) {
+            return (
+              <div key={msg.id} className="flex justify-center">
+                <div className="bg-gray-100 text-gray-600 text-sm px-3 py-2 rounded-full">
+                  {msg.content}
+                </div>
+              </div>
+            );
+          }
           
           return (
             <div
@@ -219,6 +260,15 @@ export const ChatArea = ({
           </p>
         </div>
       )}
+
+      {/* Notas Internas */}
+      <div className="p-4 border-t border-gray-200">
+        <InternalNotes 
+          notes={conversation.internalNotes}
+          onSaveNote={(content) => onSaveInternalNote(conversation.id, content, currentUser)}
+          currentUser={currentUser}
+        />
+      </div>
     </div>
   );
 };

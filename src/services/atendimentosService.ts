@@ -74,7 +74,7 @@ export const atendimentosService = {
     }
   },
 
-  async updateStatus(id: string, status: Atendimento['status']): Promise<Atendimento> {
+  async updateStatus(id: string | number, status: Atendimento['status']): Promise<Atendimento> {
     try {
       const response = await fetch(`${API_URL}/atendimentos/${id}/status`, {
         method: 'PATCH',

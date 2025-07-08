@@ -1,8 +1,16 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Conversation, AtendimentoFilters, AtendimentoMessage } from '@/types/atendimento-aluno';
+import { Conversation, AtendimentoFilters, AtendimentoMessage, Attendant, InternalNote } from '@/types/atendimento-aluno';
+import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
+
+// Mock data para desenvolvimento - agora com atendentes disponíveis
+const mockAttendants: Attendant[] = [
+  { id: 'att1', name: 'Ana Santos', isOnline: true, role: 'atendente' },
+  { id: 'att2', name: 'Carlos Lima', isOnline: true, role: 'supervisor' },
+  { id: 'att3', name: 'Bruna Reis', isOnline: false, role: 'atendente' },
+  { id: 'att4', name: 'Pedro Silva', isOnline: true, role: 'admin' }
+];
 
 // Mock data para desenvolvimento
 const mockConversations: Conversation[] = [
@@ -29,7 +37,9 @@ const mockConversations: Conversation[] = [
     ],
     unreadCount: 1,
     createdAt: new Date('2024-01-08T14:30:00'),
-    updatedAt: new Date('2024-01-08T14:30:00')
+    updatedAt: new Date('2024-01-08T14:30:00'),
+    internalNotes: [],
+    hasNewMessage: true
   },
   {
     id: '2',
@@ -39,10 +49,7 @@ const mockConversations: Conversation[] = [
       email: 'maria@email.com',
       course: 'Biologia'
     },
-    attendant: {
-      id: 'att1',
-      name: 'Ana Santos'
-    },
+    attendant: mockAttendants[0],
     status: 'em_andamento',
     messages: [
       {
@@ -68,7 +75,16 @@ const mockConversations: Conversation[] = [
     ],
     unreadCount: 0,
     createdAt: new Date('2024-01-08T13:15:00'),
-    updatedAt: new Date('2024-01-08T13:20:00')
+    updatedAt: new Date('2024-01-08T13:20:00'),
+    internalNotes: [
+      {
+        id: 'note1',
+        content: 'Aluna relatou problema recorrente com acesso. Verificar credenciais.',
+        authorId: 'att1',
+        authorName: 'Ana Santos',
+        timestamp: new Date('2024-01-08T13:25:00')
+      }
+    ]
   },
   {
     id: '3',
@@ -78,10 +94,7 @@ const mockConversations: Conversation[] = [
       email: 'pedro@email.com',
       course: 'História'
     },
-    attendant: {
-      id: 'att2',
-      name: 'Carlos Lima'
-    },
+    attendant: mockAttendants[1],
     status: 'finalizado',
     messages: [
       {
@@ -97,13 +110,34 @@ const mockConversations: Conversation[] = [
     ],
     unreadCount: 0,
     createdAt: new Date('2024-01-08T10:00:00'),
-    updatedAt: new Date('2024-01-08T12:00:00')
+    updatedAt: new Date('2024-01-08T12:00:00'),
+    internalNotes: []
   }
 ];
 
 export const useAtendimentoAluno = (filters: AtendimentoFilters) => {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const { notifyNewMessage } = useNotifications();
   const queryClient = useQueryClient();
+
+  // Simular chegada de novas mensagens para demonstrar notificações
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Simular nova mensagem ocasionalmente (apenas para demo)
+      if (Math.random() > 0.95) {
+        const randomConvId = Math.random() > 0.5 ? '1' : '2';
+        const studentName = randomConvId === '1' ? 'João Silva' : 'Maria Souza';
+        
+        notifyNewMessage(
+          studentName,
+          'Nova mensagem de teste recebida',
+          () => window.focus()
+        );
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [notifyNewMessage]);
 
   // Filtrar conversas baseado nos filtros
   const filteredConversations = conversations.filter(conv => {
@@ -133,7 +167,8 @@ export const useAtendimentoAluno = (filters: AtendimentoFilters) => {
           lastMessage: newMessage,
           status: conv.status === 'novo' ? 'em_andamento' : conv.status,
           attendant: conv.attendant || { id: currentUser.id, name: currentUser.name },
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          hasNewMessage: false
         };
       }
       return conv;
@@ -157,10 +192,75 @@ export const useAtendimentoAluno = (filters: AtendimentoFilters) => {
     toast.success('Status atualizado com sucesso!');
   }, []);
 
+  const transferConversation = useCallback(async (
+    conversationId: string, 
+    fromAttendantId: string, 
+    toAttendantId: string, 
+    reason?: string
+  ) => {
+    const toAttendant = mockAttendants.find(att => att.id === toAttendantId);
+    const fromAttendant = mockAttendants.find(att => att.id === fromAttendantId);
+    
+    if (!toAttendant || !fromAttendant) return;
+
+    // Criar mensagem do sistema
+    const systemMessage: AtendimentoMessage = {
+      id: `sys-${Date.now()}`,
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderType: 'system',
+      content: `🔄 Atendimento transferido de ${fromAttendant.name} para ${toAttendant.name}${reason ? ` - Motivo: ${reason}` : ''}`,
+      timestamp: new Date(),
+      type: 'system',
+      read: true
+    };
+
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          attendant: toAttendant,
+          messages: [...conv.messages, systemMessage],
+          lastMessage: systemMessage,
+          updatedAt: new Date()
+        };
+      }
+      return conv;
+    }));
+
+    toast.success(`Atendimento transferido para ${toAttendant.name}`);
+  }, []);
+
+  const saveInternalNote = useCallback(async (conversationId: string, content: string, currentUser: any) => {
+    const newNote: InternalNote = {
+      id: `note-${Date.now()}`,
+      content,
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      timestamp: new Date()
+    };
+
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          internalNotes: [...conv.internalNotes, newNote],
+          updatedAt: new Date()
+        };
+      }
+      return conv;
+    }));
+
+    toast.success('Nota interna salva com sucesso!');
+  }, []);
+
   return {
     conversations: filteredConversations,
+    availableAttendants: mockAttendants,
     isLoading: false,
     sendMessage,
-    updateStatus
+    updateStatus,
+    transferConversation,
+    saveInternalNote
   };
 };
