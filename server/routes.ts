@@ -41,6 +41,9 @@ const loginSchema = z.object({
 // Schema para registro
 const registerSchema = insertUserSchema.extend({
   token: z.string().min(1, "Token de registro é obrigatório"),
+}).partial({
+  companyAccount: true,
+  department: true,
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -86,7 +89,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          companyAccount: user.companyAccount,
+          department: user.department
         }
       });
     } catch (error) {
@@ -101,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registro
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { username, password, email, name, role, token } = registerSchema.parse(req.body);
+      const { username, password, email, name, role, token, companyAccount, department } = registerSchema.parse(req.body);
       
       // Verificar token de registro
       const regToken = await storage.getRegistrationToken(token);
@@ -129,7 +134,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
         email,
         name,
-        role: role || "agent"
+        role: role || "agent",
+        companyAccount,
+        department
       });
 
       // Marcar token como usado
@@ -149,7 +156,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: newUser.username,
           email: newUser.email,
           name: newUser.name,
-          role: newUser.role
+          role: newUser.role,
+          companyAccount: newUser.companyAccount,
+          department: newUser.department
         }
       });
     } catch (error) {
@@ -169,7 +178,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: req.user.username,
         email: req.user.email,
         name: req.user.name,
-        role: req.user.role
+        role: req.user.role,
+        companyAccount: req.user.companyAccount,
+        department: req.user.department
       }
     });
   });

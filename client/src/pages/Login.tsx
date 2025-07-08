@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { BarChart3, Eye, EyeOff } from "lucide-react";
+import { BarChart3, Eye, EyeOff, Users, Building } from "lucide-react";
+import { COMPANIES, getDepartmentsByCompany } from "../../../shared/company-config";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -16,6 +18,8 @@ const Login = () => {
   const [name, setName] = useState("");
   const [token, setToken] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [companyAccount, setCompanyAccount] = useState("");
+  const [department, setDepartment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -60,9 +64,21 @@ const Login = () => {
       setLoading(false);
       return;
     }
+
+    if (!companyAccount) {
+      toast.error("Por favor, selecione uma companhia.");
+      setLoading(false);
+      return;
+    }
+
+    if (!department) {
+      toast.error("Por favor, selecione um departamento.");
+      setLoading(false);
+      return;
+    }
     
     try {
-      await register(username, email, password, name, token);
+      await register(username, email, password, name, token, companyAccount, department);
       toast.success("Cadastro realizado com sucesso!");
     } catch (error: any) {
       toast.error(error.message || "Erro ao realizar cadastro. Tente novamente.");
@@ -226,6 +242,78 @@ const Login = () => {
                     </button>
                   </div>
                 </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="company-account">Companhia *</Label>
+                  <Select value={companyAccount} onValueChange={(value) => {
+                    setCompanyAccount(value);
+                    setDepartment(""); // Reset department when company changes
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma companhia">
+                        {companyAccount && (
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4" />
+                            {COMPANIES.find(c => c.id === companyAccount)?.name}
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMPANIES.map(company => (
+                        <SelectItem key={company.id} value={company.id}>
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4" />
+                            {company.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    Selecione a companhia onde irá trabalhar
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="department">Departamento / Funil *</Label>
+                  <Select 
+                    value={department} 
+                    onValueChange={setDepartment}
+                    disabled={!companyAccount}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={
+                        !companyAccount 
+                          ? "Selecione primeiro uma companhia" 
+                          : getDepartmentsByCompany(companyAccount).length === 0
+                            ? "Nenhum departamento disponível para esta companhia. Contate o administrador."
+                            : "Selecione um departamento"
+                      }>
+                        {department && (
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {getDepartmentsByCompany(companyAccount).find(d => d.id === department)?.name}
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getDepartmentsByCompany(companyAccount).map(dept => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {dept.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    Selecione o departamento/funil onde irá atuar
+                  </p>
+                </div>
+
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" 

@@ -7,13 +7,15 @@ interface User {
   name: string;
   role: "admin" | "agent";
   username?: string;
+  companyAccount?: string;
+  department?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string, name: string, token: string) => Promise<void>;
+  register: (username: string, email: string, password: string, name: string, token: string, companyAccount?: string, department?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -39,7 +41,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               email: data.user.email,
               name: data.user.name,
               role: data.user.role,
-              username: data.user.username
+              username: data.user.username,
+              companyAccount: data.user.companyAccount,
+              department: data.user.department
             });
           } else {
             localStorage.removeItem("token");
@@ -85,7 +89,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: data.user.email,
         name: data.user.name,
         role: data.user.role,
-        username: data.user.username
+        username: data.user.username,
+        companyAccount: data.user.companyAccount,
+        department: data.user.department
       });
     } catch (error) {
       console.error("Erro no login:", error);
@@ -93,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (username: string, email: string, password: string, name: string, token: string) => {
+  const register = async (username: string, email: string, password: string, name: string, token: string, companyAccount?: string, department?: string) => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -105,7 +111,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email,
           password,
           name,
-          token
+          token,
+          companyAccount,
+          department
         }),
       });
 
@@ -125,7 +133,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: data.user.email,
         name: data.user.name,
         role: data.user.role,
-        username: data.user.username
+        username: data.user.username,
+        companyAccount: data.user.companyAccount,
+        department: data.user.department
       });
     } catch (error) {
       console.error("Erro no registro:", error);

@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   role: text("role").notNull().default("agent"), // admin, agent
+  companyAccount: text("company_account"), // COMERCIAL, SUPORTE
+  department: text("department"), // Comercial, Cobrança, Suporte, etc.
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -236,6 +238,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
   role: true,
+  companyAccount: true,
+  department: true,
 });
 
 export const insertRegistrationTokenSchema = createInsertSchema(registrationTokens).pick({
