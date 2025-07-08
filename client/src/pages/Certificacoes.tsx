@@ -11,8 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2, FileText } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Search, Edit, Trash2, FileText, Calendar } from 'lucide-react';
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Certification } from '@shared/schema';
 
@@ -31,10 +31,13 @@ const STATUS_LABELS = {
 };
 
 export default function Certificacoes() {
-  const [activeTab, setActiveTab] = useState('analises');
+  const [activeTab, setActiveTab] = useState('pos');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterModalidade, setFilterModalidade] = useState('');
+  const [filterPeriodo, setFilterPeriodo] = useState('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
   const queryClient = useQueryClient();
@@ -54,21 +57,69 @@ export default function Certificacoes() {
     dataEntrega: '',
     diploma: '',
     status: 'pendente',
-    categoria: activeTab === 'analises' ? 'geral' : 
-               activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
+    categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
   });
 
+  // Função para calcular datas baseadas no período selecionado
+  const getDateRange = () => {
+    const hoje = new Date();
+    switch (filterPeriodo) {
+      case 'hoje':
+        return {
+          inicio: format(startOfDay(hoje), 'yyyy-MM-dd'),
+          fim: format(endOfDay(hoje), 'yyyy-MM-dd')
+        };
+      case 'semana':
+        return {
+          inicio: format(startOfWeek(hoje, { locale: ptBR }), 'yyyy-MM-dd'),
+          fim: format(endOfWeek(hoje, { locale: ptBR }), 'yyyy-MM-dd')
+        };
+      case 'mes':
+        return {
+          inicio: format(startOfMonth(hoje), 'yyyy-MM-dd'),
+          fim: format(endOfMonth(hoje), 'yyyy-MM-dd')
+        };
+      case 'mes_passado':
+        const mesPassado = subMonths(hoje, 1);
+        return {
+          inicio: format(startOfMonth(mesPassado), 'yyyy-MM-dd'),
+          fim: format(endOfMonth(mesPassado), 'yyyy-MM-dd')
+        };
+      case 'personalizado':
+        return {
+          inicio: dataInicio,
+          fim: dataFim
+        };
+      default:
+        return null;
+    }
+  };
+
   const { data: certifications = [], isLoading } = useQuery({
-    queryKey: ['/api/certificacoes', { categoria: activeTab === 'analises' ? 'geral' : 
-                                                   activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao' }],
+    queryKey: ['/api/certificacoes', { 
+      categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao',
+      status: filterStatus,
+      modalidade: filterModalidade,
+      periodo: filterPeriodo,
+      dataInicio,
+      dataFim
+    }],
     queryFn: async () => {
       const params = new URLSearchParams({
-        categoria: activeTab === 'analises' ? 'geral' : 
-                   activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
+        categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
       });
       
-      if (filterStatus) params.append('status', filterStatus);
-      if (filterModalidade) params.append('modalidade', filterModalidade);
+      if (filterStatus && filterStatus !== 'todos') params.append('status', filterStatus);
+      if (filterModalidade && filterModalidade !== 'todas') params.append('modalidade', filterModalidade);
+      
+      // Adicionar filtros de período
+      if (filterPeriodo && filterPeriodo !== 'todos') {
+        const dateRange = getDateRange();
+        if (dateRange) {
+          if (dateRange.inicio) params.append('dataInicio', dateRange.inicio);
+          if (dateRange.fim) params.append('dataFim', dateRange.fim);
+        }
+      }
       
       const response = await apiRequest(`/api/certificacoes?${params}`);
       return response;
@@ -101,8 +152,7 @@ export default function Certificacoes() {
         dataEntrega: '',
         diploma: '',
         status: 'pendente',
-        categoria: activeTab === 'analises' ? 'geral' : 
-                   activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
+        categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
       });
     },
     onError: (error) => {
@@ -289,8 +339,7 @@ export default function Certificacoes() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="analises">Análises do Mês</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="pos">Certificação Pós</TabsTrigger>
           <TabsTrigger value="graduacao">2ª Graduação</TabsTrigger>
         </TabsList>
@@ -301,7 +350,7 @@ export default function Certificacoes() {
               <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="search">Buscar</Label>
                   <div className="relative">
@@ -322,7 +371,7 @@ export default function Certificacoes() {
                       <SelectValue placeholder="Todos os status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="pendente">Pendente</SelectItem>
                       <SelectItem value="em_andamento">Em Andamento</SelectItem>
                       <SelectItem value="concluido">Concluído</SelectItem>
@@ -337,14 +386,52 @@ export default function Certificacoes() {
                       <SelectValue placeholder="Todas as modalidades" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="todas">Todas</SelectItem>
                       <SelectItem value="EAD">EAD</SelectItem>
                       <SelectItem value="Presencial">Presencial</SelectItem>
                       <SelectItem value="Semipresencial">Semipresencial</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="filter-periodo">Período</Label>
+                  <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os períodos</SelectItem>
+                      <SelectItem value="hoje">Hoje</SelectItem>
+                      <SelectItem value="semana">Esta Semana</SelectItem>
+                      <SelectItem value="mes">Este Mês</SelectItem>
+                      <SelectItem value="mes_passado">Mês Passado</SelectItem>
+                      <SelectItem value="personalizado">Período Personalizado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {filterPeriodo === 'personalizado' && (
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="dataInicio">Data Início</Label>
+                    <Input
+                      id="dataInicio"
+                      type="date"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dataFim">Data Fim</Label>
+                    <Input
+                      id="dataFim"
+                      type="date"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
