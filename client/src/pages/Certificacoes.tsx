@@ -60,6 +60,7 @@ export default function Certificacoes() {
       case 'pos': return 'pos_graduacao';
       case 'segunda': return 'segunda_graduacao';
       case 'formacao_livre': return 'formacao_livre';
+      case 'diplomacao': return 'diplomacao_competencia';
       case 'eja': return 'eja';
       default: return 'pos_graduacao';
     }
@@ -413,10 +414,11 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="pos">Certificação Pós</TabsTrigger>
                 <TabsTrigger value="segunda">2ª Graduação</TabsTrigger>
                 <TabsTrigger value="formacao_livre">Formação Livre</TabsTrigger>
+                <TabsTrigger value="diplomacao">Diplomação por Competência</TabsTrigger>
                 <TabsTrigger value="eja">EJA</TabsTrigger>
               </TabsList>
 
