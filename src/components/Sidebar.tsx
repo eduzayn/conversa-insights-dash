@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { 
@@ -6,7 +5,6 @@ import {
   Users, 
   TrendingUp, 
   Clock, 
-  MessageCircle, 
   ExternalLink,
   ChevronLeft,
   ChevronRight,
@@ -22,7 +20,6 @@ const menuItems = [
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
-  { icon: MessageCircle, label: "Chat ao Vivo", path: "/chat" },
   { icon: MessagesSquare, label: "Chat Interno", path: "/chat-interno" },
 ];
 
