@@ -55,7 +55,7 @@ export class BotConversaService {
   async getSubscriberByPhone(phone: string, account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber | null> {
     try {
       const formattedPhone = formatPhoneForBotConversa(phone);
-      const data = await this.makeRequest(`/subscriber/get_by_phone/${formattedPhone}`, account);
+      const data = await this.makeRequest(`/subscriber/phone/${formattedPhone}`, account, { method: 'GET' });
       return data || null;
     } catch (error) {
       console.error('Erro ao buscar subscriber:', error);
