@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { 
@@ -13,7 +12,8 @@ import {
   MessagesSquare,
   UserCheck,
   Menu,
-  X
+  X,
+  Kanban
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ const menuItems = [
   { icon: UserCheck, label: "Atendimento ao Aluno", path: "/atendimento-aluno" },
   { icon: MessagesSquare, label: "Chat Interno", path: "/chat-interno" },
   { icon: Users, label: "Atendimentos", path: "/atendimentos" },
+  { icon: Kanban, label: "CRM", path: "/crm" },
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },

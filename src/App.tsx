@@ -14,6 +14,7 @@ import Produtividade from "./pages/Produtividade";
 import Presenca from "./pages/Presenca";
 import ChatInterno from "./pages/ChatInterno";
 import Metas from "./pages/Metas";
+import Crm from "./pages/Crm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/presenca" element={<Presenca />} />
             <Route path="/chat-interno" element={<ChatInterno />} />
             <Route path="/metas" element={<Metas />} />
+            <Route path="/crm" element={<Crm />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />
