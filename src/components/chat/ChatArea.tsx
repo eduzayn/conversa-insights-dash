@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { ChatSettingsModal } from "./ChatSettingsModal";
+import { VideoCallButton } from "./VideoCallButton";
+import { VideoCallModal } from "./VideoCallModal";
 import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Globe, Users, MessageCircle, Settings } from "lucide-react";
@@ -16,6 +18,7 @@ interface ChatAreaProps {
 export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
   const { markAsRead, teams, currentUser: chatCurrentUser } = useChatContext();
   const [showSettings, setShowSettings] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,6 +94,11 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
           </div>
           
           <div className="flex items-center gap-2">
+            <VideoCallButton 
+              chat={activeChat}
+              currentUser={chatCurrentUser}
+              onStartCall={() => setShowVideoCall(true)}
+            />
             <Button 
               variant="ghost" 
               size="sm"
@@ -121,6 +129,14 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
       <ChatSettingsModal 
         open={showSettings}
         onOpenChange={setShowSettings}
+      />
+
+      {/* Video Call Modal */}
+      <VideoCallModal 
+        open={showVideoCall}
+        onOpenChange={setShowVideoCall}
+        chat={activeChat}
+        currentUser={chatCurrentUser}
       />
     </div>
   );
