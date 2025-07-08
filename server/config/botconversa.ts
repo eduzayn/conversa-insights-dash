@@ -41,6 +41,45 @@ export const BOTCONVERSA_CONFIG = {
 
   // Configurações da Conta Comercial
   COMERCIAL: {
+    DEPARTMENTS: {
+      'COMERCIAL': { 
+        members: 11, 
+        emails: [
+          'amanda.silva@hotmail.com',
+          'tamires.kele@gmail.com',
+          'elaine.barros@gmail.com',
+          'yasmin.vitorino@gmail.com',
+          'brunaalvesreis89@gmail.com',
+          'miguel.moura@gmail.com',
+          'camila.aparecida@gmail.com',
+          'julia.oliveira@gmail.com',
+          'carla.araujo@gmail.com',
+          'alana.matos@universidadebrasil.edu.br',
+          'kamilla.videla@gmail.com'
+        ]
+      },
+      'COBRANÇA': { members: 1, emails: ['rhonda.pimentel@gmail.com'] },
+      'SUPORTE': { members: 1, emails: ['erick.moreira@gmail.com'] },
+      'TUTORIA': { members: 2, emails: ['daniela.torres@gmail.com', 'ronan.cleomenti@gmail.com'] },
+      'SECRETARIA PÓS': { members: 2, emails: ['tamires.kele@gmail.com', 'elaine.barros@gmail.com'] },
+      'SECRETARIA SEGUNDA GRADUAÇÃO': { members: 2, emails: ['yasmin.vitorino@gmail.com', 'brunaalvesreis89@gmail.com'] },
+      'SUPORTE UNICV': { members: 1, emails: ['alana.matos@universidadebrasil.edu.br'] },
+      'FINANCEIRO': { members: 1, emails: ['kamilla.videla@gmail.com'] },
+      'DOCUMENTAÇÃO': { members: 1, emails: ['ronan.cleomenti@gmail.com'] }
+    },
+    
+    ROUTING_RULES: {
+      'Comercial': 'COMERCIAL',
+      'Muito Interesse': 'COMERCIAL',
+      'Matriculado': 'COMERCIAL',
+      'Aguardando pagamento': 'COBRANÇA',
+      'Pós-Graduação': 'SECRETARIA PÓS',
+      'Segunda Graduação': 'SECRETARIA SEGUNDA GRADUAÇÃO',
+      'Música': 'TUTORIA',
+      'Pedagogia': 'TUTORIA',
+      'Suporte': 'SUPORTE'
+    },
+
     CUSTOM_FIELDS: {
       // Campos Numéricos
       'AtendimentoOFF': { type: 'number', description: 'Nº de verificações quando atendimento está offline' },

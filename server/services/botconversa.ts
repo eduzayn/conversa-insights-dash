@@ -1,5 +1,6 @@
 import { BOTCONVERSA_CONFIG, getAuthHeaders, formatPhoneForBotConversa, validatePhone } from '../config/botconversa';
 import { storage } from '../storage';
+import { routingService } from './routing';
 import type { Lead, InsertLead, Conversation, InsertConversation, AttendanceMessage, InsertAttendanceMessage } from '@shared/schema';
 
 export interface BotConversaSubscriber {
@@ -218,19 +219,39 @@ export class BotConversaService {
   private async processSubscriberCreated(webhookData: BotConversaWebhookData, account: 'SUPORTE' | 'COMERCIAL'): Promise<void> {
     const subscriber = webhookData.subscriber;
     
+    // Determinar departamento baseado no roteamento
+    const department = await routingService.routeSubscriber(subscriber, account);
+    const assignedUser = await routingService.findBestAttendant(department, account);
+    
+    // Mapear status baseado nas tags
+    const statusMapping = account === 'COMERCIAL' 
+      ? BOTCONVERSA_CONFIG.COMERCIAL.TAG_TO_STATUS_MAPPING 
+      : {};
+    
+    let status = 'new';
+    if (subscriber.tags) {
+      for (const tag of subscriber.tags) {
+        if (statusMapping[tag]) {
+          status = statusMapping[tag];
+          break;
+        }
+      }
+    }
+    
     // Criar lead no CRM
     const lead: InsertLead = {
       name: subscriber.name || 'Contato sem nome',
       phone: subscriber.phone,
       email: subscriber.email || null,
-      source: `BotConversa ${account}`,
-      status: 'new',
+      source: `BotConversa ${account} - ${department}`,
+      status,
       teamId: account === 'COMERCIAL' ? 2 : 1, // Vendas para comercial, Atendimento para suporte
-      assignedTo: null,
+      assignedTo: assignedUser,
       customFields: subscriber.custom_fields || {}
     };
     
     await storage.createLead(lead);
+    console.log(`Lead criado no CRM - Departamento: ${department}, Atendente: ${assignedUser}`);
   }
   
   // Processar subscriber atualizado

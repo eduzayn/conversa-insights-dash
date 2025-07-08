@@ -174,6 +174,17 @@ Changelog:
   * RESOLVIDO: Problema de autenticação solucionado - API usa header 'api-key' em vez de 'Authorization'
   * Chaves API ativadas pelo suporte BotConversa (8 Jul 2025)
   * Integração funcionando para ambas as contas: 182301/Comercial e 182331/Suporte
+- Fase 2 - Configuração de Negócio implementada:
+  * Mapeamento completo de departamentos para ambas as contas
+  * Comercial: 16 membros em 9 departamentos com emails mapeados
+  * Suporte: 13 membros em 9 departamentos com emails mapeados
+  * Sistema de roteamento automático implementado baseado em tags
+  * Regras de negócio configuradas para classificação automática de leads
+  * Página de gerenciamento de roteamento criada (/gerenciamento-roteamento)
+  * Endpoint de teste de roteamento funcional (/api/routing/test)
+  * Integração webhooks com roteamento automático por departamento
+  * Mapeamento de status CRM baseado em tags do BotConversa
+  * Sistema pronto para operação em produção
 ```
 
 ## User Preferences

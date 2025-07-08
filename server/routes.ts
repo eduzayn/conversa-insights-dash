@@ -882,5 +882,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para testar roteamento automático
+  app.post("/api/routing/test", authenticateToken, async (req: any, res) => {
+    try {
+      const { account, tags, phone } = req.body;
+      
+      if (!account) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Parâmetro obrigatório: account" 
+        });
+      }
+
+      // Criar subscriber fictício para teste
+      const mockSubscriber = {
+        id: 'test-123',
+        phone: phone || '5531971761350',
+        name: 'Teste Roteamento',
+        tags: tags || ['Comercial', 'Muito Interesse'],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Testar roteamento
+      const { routingService } = await import('./services/routing.js');
+      const department = await routingService.routeSubscriber(mockSubscriber, account);
+      const assignedUser = await routingService.findBestAttendant(department, account);
+      const emails = routingService.getDepartmentEmails(department, account);
+      
+      return res.json({
+        success: true,
+        message: `Roteamento testado com sucesso para conta ${account}`,
+        routing: {
+          department,
+          assignedUser,
+          emails,
+          tags: mockSubscriber.tags
+        },
+        subscriber: mockSubscriber,
+        account
+      });
+    } catch (error) {
+      console.error("Erro ao testar roteamento:", error);
+      return res.status(500).json({ 
+        success: false, 
+        error: "Erro interno do servidor",
+        message: "Erro ao processar teste de roteamento",
+        details: error.message
+      });
+    }
+  });
+
   return httpServer;
 }

@@ -16,6 +16,7 @@ import ChatInterno from "./pages/ChatInterno";
 import Metas from "./pages/Metas";
 import Crm from "./pages/Crm";
 import IntegracaoBotConversa from "./pages/IntegracaoBotConversa";
+import GerenciamentoRoteamento from "./pages/GerenciamentoRoteamento";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/metas" element={<Metas />} />
             <Route path="/crm" element={<Crm />} />
             <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
+            <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />
