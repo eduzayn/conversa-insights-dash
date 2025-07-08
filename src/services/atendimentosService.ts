@@ -72,5 +72,30 @@ export const atendimentosService = {
       console.error('Erro ao atualizar atendimento:', error);
       throw error;
     }
+  },
+
+  async updateStatus(id: string, status: Atendimento['status']): Promise<Atendimento> {
+    try {
+      const response = await fetch(`${API_URL}/atendimentos/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar status');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      throw error;
+    }
   }
 };
+
+// Export types for use in other files
+export type { Atendimento as AtendimentoData } from '@/types/atendimento';
+export type { AtendimentosFilters } from '@/types/atendimento';

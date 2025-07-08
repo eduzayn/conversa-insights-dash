@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { atendimentosService, AtendimentoData, AtendimentosFilters } from '@/services/atendimentosService';
+import { atendimentosService } from '@/services/atendimentosService';
+import { AtendimentoData, AtendimentosFilters } from '@/types/atendimento';
 import { toast } from 'sonner';
 
 export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
