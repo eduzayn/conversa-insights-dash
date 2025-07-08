@@ -18,7 +18,7 @@ interface TestResult {
 
 export default function IntegracaoBotConversa() {
   const [testAccount, setTestAccount] = useState<'SUPORTE' | 'COMERCIAL'>('COMERCIAL');
-  const [testPhone, setTestPhone] = useState('5511999887766');
+  const [testPhone, setTestPhone] = useState('5511987654321');
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [webhookData, setWebhookData] = useState('');
@@ -227,6 +227,22 @@ export default function IntegracaoBotConversa() {
             </div>
             
             <Separator />
+
+            <div>
+              <Label className="text-sm font-medium">Número do Bot Conectado</Label>
+              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-green-600" />
+                  <span className="font-mono text-sm">+55 31 97176-1350</span>
+                  <Badge variant="outline" className="bg-green-100">Comercial</Badge>
+                </div>
+                <p className="text-xs text-green-700 mt-1">
+                  Este é o número do bot - não use para testes de subscriber
+                </p>
+              </div>
+            </div>
+            
+            <Separator />
             
             <div>
               <Label className="text-sm font-medium">URLs dos Webhooks</Label>
@@ -262,6 +278,14 @@ export default function IntegracaoBotConversa() {
       <Card>
         <CardHeader>
           <CardTitle>Testes de Integração</CardTitle>
+          <div className="text-sm text-gray-600 mt-2">
+            <p>💡 Para testar corretamente:</p>
+            <ul className="list-disc list-inside mt-1 space-y-1">
+              <li>Use um número de cliente real que tenha interagido com o bot</li>
+              <li>Não use o número do bot (+5531971761350) - ele não será encontrado como subscriber</li>
+              <li>Formato esperado: 5511987654321 (com DDI 55 + DDD + número)</li>
+            </ul>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
@@ -279,13 +303,16 @@ export default function IntegracaoBotConversa() {
             </div>
             
             <div>
-              <Label htmlFor="phone">Telefone</Label>
+              <Label htmlFor="phone">Telefone do Cliente (para teste)</Label>
               <Input 
                 id="phone"
-                placeholder="5511999887766"
+                placeholder="5511987654321"
                 value={testPhone}
                 onChange={(e) => setTestPhone(e.target.value)}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                ⚠️ Não use o número do bot (+5531971761350) - use um número de cliente real
+              </p>
             </div>
             
             <div className="flex items-end">

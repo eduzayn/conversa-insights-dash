@@ -164,6 +164,13 @@ Changelog:
   * Notas internas para conversas
   * Progresso das metas e atividades de usuário
 - Sistema pronto para demonstração e uso
+- Integração BotConversa implementada:
+  * Configurações mapeadas para conta comercial (27 campos personalizados, 22 tags)
+  * Serviços de API configurados com tratamento de erros robusto
+  * Página de administração completa (/integracao-botconversa)
+  * Webhooks configurados para ambas as contas (suporte e comercial)
+  * Identificado número do bot comercial: +55 31 97176-1350
+  * Sistema de testes implementado com orientações claras para uso
 ```
 
 ## User Preferences
