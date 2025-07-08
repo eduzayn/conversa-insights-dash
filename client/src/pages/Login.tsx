@@ -10,9 +10,11 @@ import { toast } from "sonner";
 import { BarChart3, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [token, setToken] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -28,10 +30,10 @@ const Login = () => {
     setLoading(true);
     
     try {
-      await login(email, password);
+      await login(username, password);
       toast.success("Login realizado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao fazer login. Verifique suas credenciais.");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao fazer login. Verifique suas credenciais.");
     } finally {
       setLoading(false);
     }
@@ -52,12 +54,18 @@ const Login = () => {
       setLoading(false);
       return;
     }
+
+    if (!token) {
+      toast.error("Token de registro é obrigatório.");
+      setLoading(false);
+      return;
+    }
     
     try {
-      await register(email, password, name);
+      await register(username, email, password, name, token);
       toast.success("Cadastro realizado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao realizar cadastro. Tente novamente.");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao realizar cadastro. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -87,15 +95,16 @@ const Login = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-username">Username</Label>
                   <Input
-                    id="login-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu.email@empresa.com"
+                    id="login-username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="seu.username"
                     required
                   />
+                  <p className="text-xs text-gray-500">Use: admin / password</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Senha</Label>
@@ -131,6 +140,17 @@ const Login = () => {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="register-username">Username</Label>
+                  <Input
+                    id="register-username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="seu.username"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="register-name">Nome Completo</Label>
                   <Input
                     id="register-name"
@@ -151,6 +171,18 @@ const Login = () => {
                     placeholder="seu.email@empresa.com"
                     required
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-token">Token de Registro</Label>
+                  <Input
+                    id="register-token"
+                    type="text"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder="demo-register-token-2025"
+                    required
+                  />
+                  <p className="text-xs text-gray-500">Use: demo-register-token-2025</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Senha</Label>
