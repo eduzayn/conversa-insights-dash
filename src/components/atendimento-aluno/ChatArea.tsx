@@ -4,7 +4,6 @@ import { Conversation, Attendant } from "@/types/atendimento-aluno";
 import { ChatHeader } from "./ChatHeader";
 import { MessageArea } from "./MessageArea";
 import { ChatInput } from "./ChatInput";
-import { InternalNotes } from "./InternalNotes";
 
 interface ChatAreaProps {
   conversation: Conversation | null;
@@ -57,15 +56,8 @@ export const ChatArea = ({
         conversation={conversation}
         currentUser={currentUser}
         onSendMessage={onSendMessage}
+        onSaveInternalNote={onSaveInternalNote}
       />
-
-      <div className="p-4 border-t border-gray-200">
-        <InternalNotes 
-          notes={conversation.internalNotes}
-          onSaveNote={(content) => onSaveInternalNote(conversation.id, content, currentUser)}
-          currentUser={currentUser}
-        />
-      </div>
     </div>
   );
 };
