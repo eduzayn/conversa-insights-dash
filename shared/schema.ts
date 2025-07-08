@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, uuid, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, uuid, varchar, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -199,8 +199,40 @@ export const certifications = pgTable("certifications", {
   diploma: text("diploma"),
   status: text("status").notNull().default("pendente"), // pendente, em_analise, concluida, entregue
   categoria: text("categoria").notNull().default("geral"), // geral, pos_graduacao, segunda_graduacao
+  prioridade: text("prioridade").default("mediana"), // urgente, mediana, normal
+  situacaoAnalise: text("situacao_analise"), // Status da análise completa
+  dataInicio: date("data_inicio"),
+  dataExpiracao: date("data_expiracao"),
+  extensaoContratada: boolean("extensao_contratada").default(false),
+  extensaoData: date("extensao_data"),
+  disciplinasRestantes: integer("disciplinas_restantes"),
+  telefone: text("telefone"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para histórico de alterações
+export const certificationHistory = pgTable("certification_history", {
+  id: serial("id").primaryKey(),
+  certificationId: integer("certification_id").references(() => certifications.id).notNull(),
+  campo: text("campo").notNull(),
+  valorAnterior: text("valor_anterior"),
+  valorNovo: text("valor_novo"),
+  usuarioId: integer("usuario_id").references(() => users.id),
+  alteradoEm: timestamp("alterado_em").defaultNow(),
+});
+
+// Tabela para documentos relacionados
+export const certificationDocuments = pgTable("certification_documents", {
+  id: serial("id").primaryKey(),
+  certificationId: integer("certification_id").references(() => certifications.id).notNull(),
+  tipoDocumento: text("tipo_documento").notNull(),
+  nomeArquivo: text("nome_arquivo"),
+  status: text("status").default("pendente"), // pendente, enviado, aprovado, rejeitado
+  dataEnvio: timestamp("data_envio"),
+  dataAprovacao: timestamp("data_aprovacao"),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relações
@@ -369,6 +401,32 @@ export const insertCertificationSchema = createInsertSchema(certifications).pick
   diploma: true,
   status: true,
   categoria: true,
+  prioridade: true,
+  situacaoAnalise: true,
+  dataInicio: true,
+  dataExpiracao: true,
+  extensaoContratada: true,
+  extensaoData: true,
+  disciplinasRestantes: true,
+  telefone: true,
+});
+
+export const insertCertificationHistorySchema = createInsertSchema(certificationHistory).pick({
+  certificationId: true,
+  campo: true,
+  valorAnterior: true,
+  valorNovo: true,
+  usuarioId: true,
+});
+
+export const insertCertificationDocumentSchema = createInsertSchema(certificationDocuments).pick({
+  certificationId: true,
+  tipoDocumento: true,
+  nomeArquivo: true,
+  status: true,
+  dataEnvio: true,
+  dataAprovacao: true,
+  observacoes: true,
 });
 
 // Tipos
@@ -407,3 +465,9 @@ export type UserActivity = typeof userActivity.$inferSelect;
 
 export type InsertCertification = z.infer<typeof insertCertificationSchema>;
 export type Certification = typeof certifications.$inferSelect;
+
+export type InsertCertificationHistory = z.infer<typeof insertCertificationHistorySchema>;
+export type CertificationHistory = typeof certificationHistory.$inferSelect;
+
+export type InsertCertificationDocument = z.infer<typeof insertCertificationDocumentSchema>;
+export type CertificationDocument = typeof certificationDocuments.$inferSelect;

@@ -553,11 +553,7 @@ export class DatabaseStorage implements IStorage {
   async createCertification(certification: InsertCertification): Promise<Certification> {
     const [newCertification] = await db
       .insert(certifications)
-      .values({
-        ...certification,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(certification)
       .returning();
     return newCertification;
   }
