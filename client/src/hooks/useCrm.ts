@@ -165,17 +165,31 @@ const mockFunnelsSuporte: CrmFunnel[] = [
         leads: [
           {
             id: 'sup-1',
-            name: 'Lailson Martins',
+            name: 'Cliente Comercial 1',
             phone: '(11) 91111-1111',
-            email: 'lailson@email.com',
+            email: 'cliente1@email.com',
             course: 'Consulta Comercial',
             status: 'novo-contato',
-            assignedTo: 'user1',
-            assignedToName: 'Lailson Martins',
+            assignedTo: 'erick',
+            assignedToName: 'Erick Moreira',
             companyAccount: 'SUPORTE',
             createdAt: new Date('2024-01-15'),
             updatedAt: new Date('2024-01-15'),
             lastInteraction: new Date('2024-01-15')
+          },
+          {
+            id: 'sup-1b',
+            name: 'Cliente Comercial 2',
+            phone: '(11) 91122-1122',
+            email: 'cliente2@email.com',
+            course: 'Consulta Comercial',
+            status: 'novo-contato',
+            assignedTo: 'amanda',
+            assignedToName: 'Amanda Monique',
+            companyAccount: 'SUPORTE',
+            createdAt: new Date('2024-01-14'),
+            updatedAt: new Date('2024-01-14'),
+            lastInteraction: new Date('2024-01-14')
           }
         ]
       },
@@ -184,7 +198,22 @@ const mockFunnelsSuporte: CrmFunnel[] = [
         title: 'Em Atendimento',
         color: 'bg-blue-100 border-blue-300',
         order: 2,
-        leads: []
+        leads: [
+          {
+            id: 'sup-1c',
+            name: 'Cliente Comercial 3',
+            phone: '(11) 91133-1133',
+            email: 'cliente3@email.com',
+            course: 'Consulta Comercial',
+            status: 'em-atendimento',
+            assignedTo: 'rian',
+            assignedToName: 'Rian Moreira',
+            companyAccount: 'SUPORTE',
+            createdAt: new Date('2024-01-13'),
+            updatedAt: new Date('2024-01-16'),
+            lastInteraction: new Date('2024-01-16')
+          }
+        ]
       },
       {
         id: 'resolvido',
