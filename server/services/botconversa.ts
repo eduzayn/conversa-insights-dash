@@ -45,7 +45,8 @@ export class BotConversaService {
     });
     
     if (!response.ok) {
-      throw new Error(`BotConversa API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`BotConversa API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
     return response.json();
@@ -58,8 +59,17 @@ export class BotConversaService {
       const data = await this.makeRequest(`/subscriber/phone/${formattedPhone}`, account, { method: 'GET' });
       return data || null;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      // Se é 404, significa que o subscriber não foi encontrado (comportamento esperado)
+      if (errorMessage.includes('404')) {
+        console.log(`Subscriber não encontrado para o telefone: ${phone}`);
+        return null;
+      }
+      
+      // Para outros erros, log detalhado
       console.error('Erro ao buscar subscriber:', error);
-      return null;
+      throw error; // Re-throw para que o erro seja tratado no endpoint
     }
   }
   

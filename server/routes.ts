@@ -732,25 +732,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (subscriber) {
         res.json({
           success: true,
-          message: "Subscriber encontrado",
+          message: `Subscriber encontrado na conta ${account}`,
           account,
-          subscriber
+          phone,
+          subscriber: {
+            id: subscriber.id,
+            phone: subscriber.phone,
+            name: subscriber.name || 'Não informado',
+            email: subscriber.email || 'Não informado',
+            tags: subscriber.tags || [],
+            created_at: subscriber.created_at,
+            updated_at: subscriber.updated_at
+          }
         });
       } else {
         res.json({
           success: false,
-          message: "Subscriber não encontrado",
+          message: `Subscriber não encontrado na conta ${account}. Isso é normal para testes - o telefone ${phone} não existe na base do BotConversa.`,
           account,
-          phone
+          phone,
+          suggestion: "Teste com um telefone real que existe na sua conta BotConversa ou use a funcionalidade de criar subscriber."
         });
       }
       
     } catch (error) {
       console.error("Erro ao testar integração:", error);
-      res.status(500).json({ 
-        error: "Erro ao conectar com BotConversa",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      
+      // Analisar tipo de erro para resposta mais útil
+      if (errorMessage.includes('403')) {
+        res.status(403).json({ 
+          success: false,
+          error: "Erro de autenticação",
+          message: "Chave de API inválida ou sem permissão. Verifique se a chave está correta.",
+          details: errorMessage
+        });
+      } else if (errorMessage.includes('404')) {
+        res.json({ 
+          success: false,
+          message: "Subscriber não encontrado - comportamento normal para testes",
+          error: "Recurso não encontrado",
+          details: errorMessage
+        });
+      } else {
+        res.status(500).json({ 
+          success: false,
+          error: "Erro interno do servidor",
+          message: errorMessage,
+          suggestion: "Verifique a conectividade com a API BotConversa"
+        });
+      }
     }
   });
   
