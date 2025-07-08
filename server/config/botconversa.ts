@@ -6,7 +6,7 @@ export const BOTCONVERSA_CONFIG = {
   // Chaves de API
   API_KEYS: {
     SUPORTE: process.env.BOTCONVERSA_SUPORTE_KEY || 'e267dba7-1022-4f9f-a36b-b4be4b9a046e',
-    COMERCIAL: process.env.BOTCONVERSA_COMERCIAL_KEY || '148ba571-dc78-4013-86c4-4e99acfa3769'
+    COMERCIAL: process.env.BOTCONVERSA_COMERCIAL_KEY || '904496b2-f880-477d-af09-27586d35bcb8'
   },
   
   // Limites de Rate
