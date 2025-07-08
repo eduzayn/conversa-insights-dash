@@ -69,6 +69,11 @@ export const BOTCONVERSA_CONFIG = {
     },
     
     ROUTING_RULES: {
+      // Tags de novo contato
+      'Novo Contato': 'COMERCIAL',
+      'Primeira Interação': 'COMERCIAL',
+      
+      // Tags existentes
       'Comercial': 'COMERCIAL',
       'Muito Interesse': 'COMERCIAL',
       'Matriculado': 'COMERCIAL',
@@ -77,7 +82,20 @@ export const BOTCONVERSA_CONFIG = {
       'Segunda Graduação': 'SECRETARIA SEGUNDA GRADUAÇÃO',
       'Música': 'TUTORIA',
       'Pedagogia': 'TUTORIA',
-      'Suporte': 'SUPORTE'
+      'Suporte': 'SUPORTE',
+      
+      // Tags baseadas no fluxo visualizado
+      'Suporte Plataforma': 'SUPORTE',
+      'Secretaria Pós': 'SECRETARIA PÓS',
+      'Secretaria Segunda Graduação': 'SECRETARIA SEGUNDA GRADUAÇÃO',
+      'Financeiro': 'FINANCEIRO',
+      'Cobrança': 'COBRANÇA',
+      'Tutoria': 'TUTORIA',
+      
+      // Tags de comportamento
+      'Resposta Rápida': 'SUPORTE',
+      'Dúvida Recorrente': 'SUPORTE',
+      'Problema Resolvido': 'SUPORTE'
     },
 
     CUSTOM_FIELDS: {
