@@ -109,7 +109,7 @@ export const BOTCONVERSA_HEADERS = {
 // Função para obter headers com autenticação
 export const getAuthHeaders = (account: 'SUPORTE' | 'COMERCIAL') => ({
   ...BOTCONVERSA_HEADERS,
-  'x-api-key': BOTCONVERSA_CONFIG.API_KEYS[account]
+  'api-key': BOTCONVERSA_CONFIG.API_KEYS[account]
 });
 
 // Função para validar telefone no formato BotConversa

@@ -44,7 +44,7 @@ export class BotConversaService {
     const headers = {
       'Content-Type': 'application/json',
       'User-Agent': 'BotConversa-Analytics/1.0',
-      'Authorization': apiKey,
+      'api-key': apiKey,
       ...options.headers
     };
     
