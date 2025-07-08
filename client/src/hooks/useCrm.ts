@@ -238,17 +238,31 @@ const mockFunnelsSuporte: CrmFunnel[] = [
         leads: [
           {
             id: 'sup-2',
-            name: 'Letícia Malf',
+            name: 'Cliente Cobrança 1',
             phone: '(11) 92222-2222',
-            email: 'leticia@email.com',
+            email: 'cliente.cobranca1@email.com',
             course: 'Cobrança',
             status: 'novo-contato',
-            assignedTo: 'user2',
-            assignedToName: 'Letícia Malf',
+            assignedTo: 'camila',
+            assignedToName: 'Camila Aparecida',
             companyAccount: 'SUPORTE',
             createdAt: new Date('2024-01-14'),
             updatedAt: new Date('2024-01-14'),
             lastInteraction: new Date('2024-01-14')
+          },
+          {
+            id: 'sup-2b',
+            name: 'Cliente Cobrança 2',
+            phone: '(11) 92233-2233',
+            email: 'cliente.cobranca2@email.com',
+            course: 'Cobrança',
+            status: 'novo-contato',
+            assignedTo: 'tamires',
+            assignedToName: 'Tamires Kele',
+            companyAccount: 'SUPORTE',
+            createdAt: new Date('2024-01-13'),
+            updatedAt: new Date('2024-01-13'),
+            lastInteraction: new Date('2024-01-13')
           }
         ]
       },

@@ -161,7 +161,7 @@ export const CrmSettingsModal = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {[
                         { name: 'Comercial', members: 3, leads: 3 },
-                        { name: 'Cobrança', members: 1, leads: 1 },
+                        { name: 'Cobrança', members: 2, leads: 2 },
                         { name: 'Suporte', members: 1, leads: 1 },
                         { name: 'Tutoria', members: 2, leads: 2 },
                         { name: 'Secretaria Pós', members: 2, leads: 2 },
