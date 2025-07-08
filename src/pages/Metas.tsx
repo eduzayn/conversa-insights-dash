@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
@@ -18,6 +19,7 @@ import { ConfigurarMetasModal } from "@/components/ConfigurarMetasModal";
 import { RecompensasModal } from "@/components/RecompensasModal";
 import { MetaConquistada } from "@/components/MetaConquistada";
 import { useMetaNotificacoes } from "@/hooks/useMetaNotificacoes";
+import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { toast } from "sonner";
 
 const Metas = () => {
@@ -286,6 +288,9 @@ const Metas = () => {
           conquista={conquistaAtual}
         />
       )}
+      
+      {/* Chat de Suporte Flutuante */}
+      <SupportChatButton />
     </div>
   );
 };
