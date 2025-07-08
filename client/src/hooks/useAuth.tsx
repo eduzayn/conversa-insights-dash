@@ -6,13 +6,14 @@ interface User {
   email: string;
   name: string;
   role: "admin" | "agent";
+  username?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  login: (usernameOrEmail: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, name: string, token: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -24,89 +25,117 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Check for existing session
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Verificar se o token é válido
+      fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.user) {
+            setUser({
+              id: data.user.id.toString(),
+              email: data.user.email,
+              name: data.user.name,
+              role: data.user.role,
+              username: data.user.username
+            });
+          } else {
+            localStorage.removeItem("token");
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem("token");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    // Mock authentication - replace with real API call
-    if (email === "admin@educhat.com" && password === "admin123") {
-      const user = {
-        id: "1",
-        email: "admin@educhat.com",
-        name: "Administrador",
-        role: "admin" as const
-      };
-      setUser(user);
-      localStorage.setItem("user", JSON.stringify(user));
-    } else if (email === "atendente@educhat.com" && password === "agent123") {
-      const user = {
-        id: "2",
-        email: "atendente@educhat.com",
-        name: "João Silva",
-        role: "agent" as const
-      };
-      setUser(user);
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      // Check for registered users in localStorage
-      const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-      const foundUser = registeredUsers.find((u: any) => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        const user = {
-          id: foundUser.id,
-          email: foundUser.email,
-          name: foundUser.name,
-          role: foundUser.role
-        };
-        setUser(user);
-        localStorage.setItem("user", JSON.stringify(user));
-      } else {
-        throw new Error("Invalid credentials");
+  const login = async (usernameOrEmail: string, password: string) => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          username: usernameOrEmail, 
+          password 
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro no login");
       }
+
+      const data = await response.json();
+      
+      // Salvar token JWT
+      localStorage.setItem("token", data.token);
+      
+      // Definir usuário no estado
+      setUser({
+        id: data.user.id.toString(),
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role,
+        username: data.user.username
+      });
+    } catch (error) {
+      console.error("Erro no login:", error);
+      throw error;
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    // Check if user already exists
-    const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-    const existingUser = registeredUsers.find((u: any) => u.email === email);
-    
-    if (existingUser) {
-      throw new Error("User already exists");
+  const register = async (username: string, email: string, password: string, name: string, token: string) => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          name,
+          token
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro no registro");
+      }
+
+      const data = await response.json();
+      
+      // Salvar token JWT
+      localStorage.setItem("token", data.token);
+      
+      // Definir usuário no estado
+      setUser({
+        id: data.user.id.toString(),
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role,
+        username: data.user.username
+      });
+    } catch (error) {
+      console.error("Erro no registro:", error);
+      throw error;
     }
-
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      password,
-      name,
-      role: "agent" as const
-    };
-
-    // Save to registered users
-    registeredUsers.push(newUser);
-    localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
-
-    // Auto login after registration
-    const user = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: newUser.role
-    };
-    setUser(user);
-    localStorage.setItem("user", JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    localStorage.removeItem("token");
   };
 
   return (

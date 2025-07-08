@@ -145,6 +145,10 @@ This is a full-stack web application built with React, Express, and TypeScript t
 ```
 Changelog:
 - July 08, 2025. Initial setup
+- Migração do Lovable para Replit concluída
+- Banco de dados PostgreSQL configurado e migrado com sucesso
+- Schema completo implementado com todas as tabelas necessárias
+- Storage layer (DatabaseStorage) implementado para todas as operações CRUD
 ```
 
 ## User Preferences
