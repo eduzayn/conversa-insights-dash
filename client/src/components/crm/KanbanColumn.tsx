@@ -5,6 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
 
+// Suprimir warning específico do react-beautiful-dnd sobre defaultProps
+const originalError = console.error;
+console.error = (...args) => {
+  if (args[0]?.includes?.('Support for defaultProps will be removed from memo components') && 
+      args[0]?.includes?.('Connect(Droppable)')) {
+    return;
+  }
+  originalError.apply(console, args);
+};
+
 interface KanbanColumnProps {
   column: Column;
   index: number;
