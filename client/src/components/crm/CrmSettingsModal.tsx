@@ -84,7 +84,7 @@ export const CrmSettingsModal = ({
         <Tabs defaultValue="companies" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="companies">Companhias</TabsTrigger>
-            <TabsTrigger value="teams">Equipes</TabsTrigger>
+            <TabsTrigger value="teams">Funis</TabsTrigger>
             <TabsTrigger value="general">Geral</TabsTrigger>
           </TabsList>
 
@@ -198,13 +198,13 @@ export const CrmSettingsModal = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
-                  Nova Equipe
+                  Novo Funil
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="team-name">Nome da Equipe</Label>
+                    <Label htmlFor="team-name">Nome do Funil</Label>
                     <Input
                       id="team-name"
                       value={newTeam.name}
@@ -224,7 +224,7 @@ export const CrmSettingsModal = ({
                 </div>
                 <Button onClick={handleCreateTeam} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
-                  Criar Equipe
+                  Criar Funil
                 </Button>
               </CardContent>
             </Card>
@@ -233,7 +233,7 @@ export const CrmSettingsModal = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Equipes Existentes ({teams.length})
+                  Funis Existentes ({teams.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
