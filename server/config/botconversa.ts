@@ -15,6 +15,30 @@ export const BOTCONVERSA_CONFIG = {
     WEBHOOK_MONTHLY_LIMIT: 10000
   },
   
+  // Configurações da Conta Suporte
+  SUPORTE: {
+    DEPARTMENTS: {
+      'COMERCIAL': { members: 11, emails: ['lailsonmartins22@gmail.com'] },
+      'COBRANÇA': { members: 1, emails: ['leticiamalfarmacia@gmail.com'] },
+      'SUPORTE': { members: 1, emails: ['joilsonferreira@gmail.com'] },
+      'TUTORIA': { members: 2, emails: ['miguelmauraferreira@gmail.com', 'leticiamalfarmacia24@gmail.com'] },
+      'SECRETARIA PÓS': { members: 2, emails: ['erikabrasilsouza@gmail.com', 'erikabrasilsouza68@gmail.com'] },
+      'SECRETARIA SEGUNDA GRADUAÇÃO': { members: 2, emails: ['daniselenitorres@gmail.com', 'cristinarafael@gmail.com'] },
+      'SUPORTE UNICV': { members: 1, emails: ['aiaramattos@universidadebusf.edu.br'] },
+      'FINANCEIRO': { members: 1, emails: ['kamillabellara@gmail.com'] },
+      'DOCUMENTAÇÃO': { members: 1, emails: ['wendellacarioca@gmail.com'] }
+    },
+    
+    ROUTING_RULES: {
+      'Suporte Plataforma': 'SUPORTE',
+      'Tutoria': 'TUTORIA', 
+      'Financeiro': 'FINANCEIRO',
+      'Secretaria Pós': 'SECRETARIA PÓS',
+      'Secretaria Segunda': 'SECRETARIA SEGUNDA GRADUAÇÃO',
+      'Documentação': 'DOCUMENTAÇÃO'
+    }
+  },
+
   // Configurações da Conta Comercial
   COMERCIAL: {
     CUSTOM_FIELDS: {
