@@ -4,7 +4,9 @@ import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { ChatSettingsModal } from "./ChatSettingsModal";
 import { VideoCallButton } from "./VideoCallButton";
+import { AudioCallButton } from "./AudioCallButton";
 import { VideoCallModal } from "./VideoCallModal";
+import { AudioCallModal } from "./AudioCallModal";
 import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Globe, Users, MessageCircle, Settings } from "lucide-react";
@@ -19,6 +21,7 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
   const { markAsRead, teams, currentUser: chatCurrentUser } = useChatContext();
   const [showSettings, setShowSettings] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [showAudioCall, setShowAudioCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,6 +97,11 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
           </div>
           
           <div className="flex items-center gap-2">
+            <AudioCallButton 
+              chat={activeChat}
+              currentUser={chatCurrentUser}
+              onStartCall={() => setShowAudioCall(true)}
+            />
             <VideoCallButton 
               chat={activeChat}
               currentUser={chatCurrentUser}
@@ -129,6 +137,14 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
       <ChatSettingsModal 
         open={showSettings}
         onOpenChange={setShowSettings}
+      />
+
+      {/* Audio Call Modal */}
+      <AudioCallModal 
+        open={showAudioCall}
+        onOpenChange={setShowAudioCall}
+        chat={activeChat}
+        currentUser={chatCurrentUser}
       />
 
       {/* Video Call Modal */}
