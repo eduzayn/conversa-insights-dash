@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { 
@@ -22,8 +23,8 @@ const menuItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
   { icon: UserCheck, label: "Atendimento ao Aluno", path: "/atendimento-aluno" },
   { icon: MessagesSquare, label: "Chat Interno", path: "/chat-interno" },
-  { icon: Users, label: "Atendimentos", path: "/atendimentos" },
   { icon: Kanban, label: "CRM", path: "/crm" },
+  { icon: Users, label: "Atendimentos", path: "/atendimentos" },
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
