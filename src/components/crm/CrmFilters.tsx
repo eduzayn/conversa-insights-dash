@@ -1,5 +1,5 @@
 
-import { CrmFilters } from '@/types/crm';
+import { type CrmFilters as CrmFiltersType } from '@/types/crm';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Filter, X } from 'lucide-react';
 
 interface CrmFiltersProps {
-  filters: CrmFilters;
-  onFiltersChange: (filters: CrmFilters) => void;
+  filters: CrmFiltersType;
+  onFiltersChange: (filters: CrmFiltersType) => void;
   availableTeams: string[];
   availableAttendants: string[];
   availableCourses: string[];
@@ -21,7 +21,7 @@ export const CrmFilters = ({
   availableAttendants,
   availableCourses
 }: CrmFiltersProps) => {
-  const handleFilterChange = (key: keyof CrmFilters, value: string) => {
+  const handleFilterChange = (key: keyof CrmFiltersType, value: string) => {
     onFiltersChange({
       ...filters,
       [key]: value || undefined
@@ -66,7 +66,7 @@ export const CrmFilters = ({
                 <SelectValue placeholder="Todas as equipes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as equipes</SelectItem>
+                <SelectItem value="all">Todas as equipes</SelectItem>
                 {availableTeams.map(team => (
                   <SelectItem key={team} value={team}>
                     {team.charAt(0).toUpperCase() + team.slice(1)}
@@ -88,7 +88,7 @@ export const CrmFilters = ({
                 <SelectValue placeholder="Todos os responsáveis" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os responsáveis</SelectItem>
+                <SelectItem value="all">Todos os responsáveis</SelectItem>
                 {availableAttendants.map(attendant => (
                   <SelectItem key={attendant} value={attendant}>
                     {attendant}
@@ -110,7 +110,7 @@ export const CrmFilters = ({
                 <SelectValue placeholder="Todos os cursos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os cursos</SelectItem>
+                <SelectItem value="all">Todos os cursos</SelectItem>
                 {availableCourses.map(course => (
                   <SelectItem key={course} value={course}>
                     {course}
