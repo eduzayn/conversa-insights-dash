@@ -56,7 +56,7 @@ export class BotConversaService {
   async getSubscriberByPhone(phone: string, account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber | null> {
     try {
       const formattedPhone = formatPhoneForBotConversa(phone);
-      const data = await this.makeRequest(`/subscriber/phone/${formattedPhone}`, account, { method: 'GET' });
+      const data = await this.makeRequest(`/subscriber/get_by_phone/${formattedPhone}/`, account, { method: 'GET' });
       return data || null;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';

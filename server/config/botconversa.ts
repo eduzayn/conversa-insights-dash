@@ -1,7 +1,7 @@
 // Configurações do BotConversa
 export const BOTCONVERSA_CONFIG = {
   // URLs Base
-  API_BASE_URL: 'https://backend.botconversa.com.br/api/v1',
+  API_BASE_URL: 'https://backend.botconversa.com.br/api/v1/webhook',
   
   // Chaves de API
   API_KEYS: {
@@ -109,7 +109,7 @@ export const BOTCONVERSA_HEADERS = {
 // Função para obter headers com autenticação
 export const getAuthHeaders = (account: 'SUPORTE' | 'COMERCIAL') => ({
   ...BOTCONVERSA_HEADERS,
-  'API-KEY': BOTCONVERSA_CONFIG.API_KEYS[account]
+  'Authorization': `Bearer ${BOTCONVERSA_CONFIG.API_KEYS[account]}`
 });
 
 // Função para validar telefone no formato BotConversa
