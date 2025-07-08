@@ -43,10 +43,12 @@ export const atendimentosService = {
       if (filters?.status) params.append('status', filters.status);
       if (filters?.equipe) params.append('equipe', filters.equipe);
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/atendimentos?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -64,10 +66,12 @@ export const atendimentosService = {
 
   async updateAtendimento(id: number, data: Partial<Atendimento>): Promise<Atendimento> {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/atendimentos/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -87,10 +91,12 @@ export const atendimentosService = {
 
   async updateStatus(id: string | number, status: Atendimento['status']): Promise<Atendimento> {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/atendimentos/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ status }),
       });
