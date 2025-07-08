@@ -14,7 +14,8 @@ import {
   UserCheck,
   Menu,
   X,
-  Kanban
+  Kanban,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ const menuItems = [
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
+  { icon: Settings, label: "Integração BotConversa", path: "/integracao-botconversa" },
 ];
 
 export const Sidebar = () => {

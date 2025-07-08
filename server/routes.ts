@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { insertUserSchema, insertRegistrationTokenSchema } from "@shared/schema";
 import { z } from "zod";
+import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
@@ -624,6 +625,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
     socket.on('disconnect', () => {
       console.log('Usuário desconectado:', socket.id);
     });
+  });
+
+  // ===== WEBHOOKS BOTCONVERSA =====
+  
+  // Webhook para conta de SUPORTE
+  app.post("/webhook/botconversa/suporte", async (req, res) => {
+    try {
+      console.log('Webhook Suporte recebido:', req.body);
+      
+      const webhookData: BotConversaWebhookData = req.body;
+      
+      // Validar dados básicos do webhook
+      if (!webhookData.subscriber || !webhookData.event_type) {
+        return res.status(400).json({ 
+          error: "Dados do webhook inválidos - subscriber e event_type são obrigatórios" 
+        });
+      }
+      
+      // Processar webhook
+      await botConversaService.processWebhook(webhookData, 'SUPORTE');
+      
+      // Emitir evento via WebSocket para atualizações em tempo real
+      io.emit('botconversa_webhook', {
+        account: 'SUPORTE',
+        event_type: webhookData.event_type,
+        subscriber: webhookData.subscriber
+      });
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Webhook processado com sucesso",
+        account: "SUPORTE",
+        event_type: webhookData.event_type
+      });
+      
+    } catch (error) {
+      console.error("Erro ao processar webhook Suporte:", error);
+      res.status(500).json({ 
+        error: "Erro interno do servidor",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+  
+  // Webhook para conta COMERCIAL
+  app.post("/webhook/botconversa/comercial", async (req, res) => {
+    try {
+      console.log('Webhook Comercial recebido:', req.body);
+      
+      const webhookData: BotConversaWebhookData = req.body;
+      
+      // Validar dados básicos do webhook
+      if (!webhookData.subscriber || !webhookData.event_type) {
+        return res.status(400).json({ 
+          error: "Dados do webhook inválidos - subscriber e event_type são obrigatórios" 
+        });
+      }
+      
+      // Processar webhook
+      await botConversaService.processWebhook(webhookData, 'COMERCIAL');
+      
+      // Emitir evento via WebSocket para atualizações em tempo real
+      io.emit('botconversa_webhook', {
+        account: 'COMERCIAL', 
+        event_type: webhookData.event_type,
+        subscriber: webhookData.subscriber
+      });
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Webhook processado com sucesso",
+        account: "COMERCIAL",
+        event_type: webhookData.event_type
+      });
+      
+    } catch (error) {
+      console.error("Erro ao processar webhook Comercial:", error);
+      res.status(500).json({ 
+        error: "Erro interno do servidor",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+  
+  // Endpoint para testar integração BotConversa
+  app.post("/api/botconversa/test", authenticateToken, async (req: any, res) => {
+    try {
+      const { account, phone } = req.body;
+      
+      if (!account || !phone) {
+        return res.status(400).json({ 
+          error: "Parâmetros obrigatórios: account ('SUPORTE' ou 'COMERCIAL') e phone" 
+        });
+      }
+      
+      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
+        return res.status(400).json({ 
+          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
+        });
+      }
+      
+      // Buscar subscriber no BotConversa
+      const subscriber = await botConversaService.getSubscriberByPhone(phone, account);
+      
+      if (subscriber) {
+        res.json({
+          success: true,
+          message: "Subscriber encontrado",
+          account,
+          subscriber
+        });
+      } else {
+        res.json({
+          success: false,
+          message: "Subscriber não encontrado",
+          account,
+          phone
+        });
+      }
+      
+    } catch (error) {
+      console.error("Erro ao testar integração:", error);
+      res.status(500).json({ 
+        error: "Erro ao conectar com BotConversa",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+  
+  // Endpoint para sincronizar dados do BotConversa
+  app.post("/api/botconversa/sync", authenticateToken, async (req: any, res) => {
+    try {
+      const { account } = req.body;
+      
+      if (!account) {
+        return res.status(400).json({ 
+          error: "Parâmetro obrigatório: account ('SUPORTE' ou 'COMERCIAL')" 
+        });
+      }
+      
+      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
+        return res.status(400).json({ 
+          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
+        });
+      }
+      
+      // Executar sincronização
+      await botConversaService.syncWithCRM(account);
+      
+      res.json({
+        success: true,
+        message: `Sincronização com conta ${account} concluída`
+      });
+      
+    } catch (error) {
+      console.error("Erro na sincronização:", error);
+      res.status(500).json({ 
+        error: "Erro na sincronização",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
   });
 
   return httpServer;
