@@ -11,9 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2, FileText, Calendar } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft } from 'lucide-react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import type { Certification } from '@shared/schema';
 
 const STATUS_COLORS = {
@@ -48,6 +49,11 @@ export default function Certificacoes() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const handleBackToDashboard = () => {
+    navigate('/');
+  };
 
   const getCategoriaFromTab = (tab: string) => {
     switch(tab) {
@@ -93,30 +99,30 @@ export default function Certificacoes() {
     }));
   }, [activeTab]);
 
-  // Função para calcular datas baseadas no período selecionado
   const getDateRange = () => {
-    const hoje = new Date();
-    switch (filterPeriodo) {
+    const today = new Date();
+    
+    switch(filterPeriodo) {
       case 'hoje':
         return {
-          inicio: format(startOfDay(hoje), 'yyyy-MM-dd'),
-          fim: format(endOfDay(hoje), 'yyyy-MM-dd')
+          inicio: format(startOfDay(today), 'yyyy-MM-dd'),
+          fim: format(endOfDay(today), 'yyyy-MM-dd')
         };
       case 'semana':
         return {
-          inicio: format(startOfWeek(hoje, { locale: ptBR }), 'yyyy-MM-dd'),
-          fim: format(endOfWeek(hoje, { locale: ptBR }), 'yyyy-MM-dd')
+          inicio: format(startOfWeek(today), 'yyyy-MM-dd'),
+          fim: format(endOfWeek(today), 'yyyy-MM-dd')
         };
       case 'mes':
         return {
-          inicio: format(startOfMonth(hoje), 'yyyy-MM-dd'),
-          fim: format(endOfMonth(hoje), 'yyyy-MM-dd')
+          inicio: format(startOfMonth(today), 'yyyy-MM-dd'),
+          fim: format(endOfMonth(today), 'yyyy-MM-dd')
         };
       case 'mes_passado':
-        const mesPassado = subMonths(hoje, 1);
+        const lastMonth = subMonths(today, 1);
         return {
-          inicio: format(startOfMonth(mesPassado), 'yyyy-MM-dd'),
-          fim: format(endOfMonth(mesPassado), 'yyyy-MM-dd')
+          inicio: format(startOfMonth(lastMonth), 'yyyy-MM-dd'),
+          fim: format(endOfMonth(lastMonth), 'yyyy-MM-dd')
         };
       case 'personalizado':
         return {
@@ -198,8 +204,8 @@ export default function Certificacoes() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return await apiRequest(`/api/certificacoes/${id}`, {
+    mutationFn: async (data: any) => {
+      return await apiRequest(`/api/certificacoes/${data.id}`, {
         method: 'PUT',
         body: JSON.stringify(data)
       });
@@ -232,18 +238,19 @@ export default function Certificacoes() {
   });
 
   const handleCreateCertification = () => {
+    if (!newCertification.aluno || !newCertification.cpf || !newCertification.curso) {
+      toast.error('Por favor, preencha os campos obrigatórios');
+      return;
+    }
     createMutation.mutate(newCertification);
   };
 
   const handleUpdateCertification = (certification: Certification) => {
-    updateMutation.mutate({ 
-      id: certification.id, 
-      data: certification 
-    });
+    updateMutation.mutate(certification);
   };
 
   const handleDeleteCertification = (id: number) => {
-    if (confirm('Tem certeza que deseja excluir esta certificação?')) {
+    if (window.confirm('Tem certeza que deseja excluir esta certificação?')) {
       deleteMutation.mutate(id);
     }
   };
@@ -270,320 +277,339 @@ export default function Certificacoes() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Certificações</h1>
-          <p className="text-gray-600">Gerencie certificações e processos de documentação</p>
-        </div>
-        
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Certificação
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Nova Certificação</DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="aluno">Aluno *</Label>
-                <Input
-                  id="aluno"
-                  value={newCertification.aluno}
-                  onChange={(e) => setNewCertification({ ...newCertification, aluno: e.target.value })}
-                  placeholder="Nome do aluno"
-                />
-              </div>
-              <div>
-                <Label htmlFor="cpf">CPF *</Label>
-                <Input
-                  id="cpf"
-                  value={newCertification.cpf}
-                  onChange={(e) => setNewCertification({ ...newCertification, cpf: e.target.value })}
-                  placeholder="000.000.000-00"
-                />
-              </div>
-              <div>
-                <Label htmlFor="modalidade">Modalidade</Label>
-                <Select value={newCertification.modalidade} onValueChange={(value) => setNewCertification({ ...newCertification, modalidade: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a modalidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="EAD">EAD</SelectItem>
-                    <SelectItem value="Presencial">Presencial</SelectItem>
-                    <SelectItem value="Semipresencial">Semipresencial</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="curso">Curso *</Label>
-                <Input
-                  id="curso"
-                  value={newCertification.curso}
-                  onChange={(e) => setNewCertification({ ...newCertification, curso: e.target.value })}
-                  placeholder="Nome do curso"
-                />
-              </div>
-              {activeTab === 'segunda' && (
+    <div className="min-h-screen bg-gray-50 flex">
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 p-4 md:p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header com seta de retorno */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToDashboard}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
                 <div>
-                  <Label htmlFor="subcategoria">Subcategoria</Label>
-                  <Select value={newCertification.subcategoria} onValueChange={(value) => setNewCertification({ ...newCertification, subcategoria: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a subcategoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
-                      <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
-                      <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <h1 className="text-2xl font-bold">Certificações</h1>
+                  <p className="text-gray-600">Gerencie certificações e processos de documentação</p>
                 </div>
-              )}
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select value={newCertification.status} onValueChange={(value) => setNewCertification({ ...newCertification, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
-              <div>
-                <Label htmlFor="dataPrevista">Data Prevista</Label>
-                <Input
-                  id="dataPrevista"
-                  type="date"
-                  value={newCertification.dataPrevista}
-                  onChange={(e) => setNewCertification({ ...newCertification, dataPrevista: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="observacao">Observação</Label>
-                <Textarea
-                  id="observacao"
-                  value={newCertification.observacao}
-                  onChange={(e) => setNewCertification({ ...newCertification, observacao: e.target.value })}
-                  placeholder="Observações adicionais"
-                />
-              </div>
+              
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Certificação
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Nova Certificação</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="aluno">Aluno *</Label>
+                      <Input
+                        id="aluno"
+                        value={newCertification.aluno}
+                        onChange={(e) => setNewCertification({ ...newCertification, aluno: e.target.value })}
+                        placeholder="Nome do aluno"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cpf">CPF *</Label>
+                      <Input
+                        id="cpf"
+                        value={newCertification.cpf}
+                        onChange={(e) => setNewCertification({ ...newCertification, cpf: e.target.value })}
+                        placeholder="000.000.000-00"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="modalidade">Modalidade</Label>
+                      <Select value={newCertification.modalidade} onValueChange={(value) => setNewCertification({ ...newCertification, modalidade: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a modalidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="EAD">EAD</SelectItem>
+                          <SelectItem value="Presencial">Presencial</SelectItem>
+                          <SelectItem value="Semipresencial">Semipresencial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="curso">Curso *</Label>
+                      <Input
+                        id="curso"
+                        value={newCertification.curso}
+                        onChange={(e) => setNewCertification({ ...newCertification, curso: e.target.value })}
+                        placeholder="Nome do curso"
+                      />
+                    </div>
+                    {activeTab === 'segunda' && (
+                      <div>
+                        <Label htmlFor="subcategoria">Subcategoria</Label>
+                        <Select value={newCertification.subcategoria} onValueChange={(value) => setNewCertification({ ...newCertification, subcategoria: value })}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a subcategoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                            <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                            <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <div>
+                      <Label htmlFor="status">Status</Label>
+                      <Select value={newCertification.status} onValueChange={(value) => setNewCertification({ ...newCertification, status: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                          <SelectItem value="concluido">Concluído</SelectItem>
+                          <SelectItem value="cancelado">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="dataPrevista">Data Prevista</Label>
+                      <Input
+                        id="dataPrevista"
+                        type="date"
+                        value={newCertification.dataPrevista}
+                        onChange={(e) => setNewCertification({ ...newCertification, dataPrevista: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="observacao">Observação</Label>
+                      <Textarea
+                        id="observacao"
+                        value={newCertification.observacao}
+                        onChange={(e) => setNewCertification({ ...newCertification, observacao: e.target.value })}
+                        placeholder="Observações adicionais"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleCreateCertification} disabled={createMutation.isPending}>
+                      {createMutation.isPending ? 'Criando...' : 'Criar'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleCreateCertification} disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Criando...' : 'Criar'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="pos">Certificação Pós</TabsTrigger>
-          <TabsTrigger value="segunda">2ª Graduação</TabsTrigger>
-          <TabsTrigger value="formacao_livre">Formação Livre</TabsTrigger>
-          <TabsTrigger value="eja">EJA</TabsTrigger>
-        </TabsList>
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="pos">Certificação Pós</TabsTrigger>
+                <TabsTrigger value="segunda">2ª Graduação</TabsTrigger>
+                <TabsTrigger value="formacao_livre">Formação Livre</TabsTrigger>
+                <TabsTrigger value="eja">EJA</TabsTrigger>
+              </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Filtros</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`grid grid-cols-1 gap-4 ${activeTab === 'segunda' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
-                <div>
-                  <Label htmlFor="search">Buscar</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="search"
-                      placeholder="Nome, CPF ou curso..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="filter-status">Status</Label>
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos os status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="pendente">Pendente</SelectItem>
-                      <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                      <SelectItem value="concluido">Concluído</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="filter-modalidade">Modalidade</Label>
-                  <Select value={filterModalidade} onValueChange={setFilterModalidade}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas as modalidades" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todas">Todas</SelectItem>
-                      <SelectItem value="EAD">EAD</SelectItem>
-                      <SelectItem value="Presencial">Presencial</SelectItem>
-                      <SelectItem value="Semipresencial">Semipresencial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {activeTab === 'segunda' && (
-                  <div>
-                    <Label htmlFor="filter-subcategoria">Subcategoria</Label>
-                    <Select value={filterSubcategoria} onValueChange={setFilterSubcategoria}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todas as subcategorias" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todas">Todas</SelectItem>
-                        <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
-                        <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
-                        <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div>
-                  <Label htmlFor="filter-periodo">Período</Label>
-                  <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar período" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos os períodos</SelectItem>
-                      <SelectItem value="hoje">Hoje</SelectItem>
-                      <SelectItem value="semana">Esta Semana</SelectItem>
-                      <SelectItem value="mes">Este Mês</SelectItem>
-                      <SelectItem value="mes_passado">Mês Passado</SelectItem>
-                      <SelectItem value="personalizado">Período Personalizado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {filterPeriodo === 'personalizado' && (
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label htmlFor="dataInicio">Data Início</Label>
-                    <Input
-                      id="dataInicio"
-                      type="date"
-                      value={dataInicio}
-                      onChange={(e) => setDataInicio(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dataFim">Data Fim</Label>
-                    <Input
-                      id="dataFim"
-                      type="date"
-                      value={dataFim}
-                      onChange={(e) => setDataFim(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {isLoading ? (
-            <div className="flex justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredCertifications.map((certification: Certification) => (
-                <Card key={certification.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1">
-                        <div>
-                          <div className="font-semibold text-lg">{certification.aluno}</div>
-                          <div className="text-sm text-gray-600">CPF: {certification.cpf}</div>
-                          <div className="text-sm text-gray-600">Curso: {certification.curso}</div>
-                          {activeTab === 'segunda' && certification.subcategoria && (
-                            <div className="text-xs text-blue-600 mt-1">
-                              {SUBCATEGORIA_LABELS[certification.subcategoria as keyof typeof SUBCATEGORIA_LABELS]}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-700">Modalidade</div>
-                          <div className="text-sm">{certification.modalidade}</div>
-                          <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
-                          <div className="text-sm">{certification.financeiro}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-700">Data Prevista</div>
-                          <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
-                          <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega</div>
-                          <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
-                        </div>
-                        <div>
-                          <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
-                            {STATUS_LABELS[certification.status as keyof typeof STATUS_LABELS]}
-                          </Badge>
-                          {certification.observacao && (
-                            <div className="text-sm text-gray-600 mt-2">
-                              <strong>Obs:</strong> {certification.observacao}
-                            </div>
-                          )}
+              <TabsContent value={activeTab} className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Filtros</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`grid grid-cols-1 gap-4 ${activeTab === 'segunda' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+                      <div>
+                        <Label htmlFor="search">Buscar</Label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="search"
+                            placeholder="Nome, CPF ou curso..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                          />
                         </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedCertification(certification)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteCertification(certification.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div>
+                        <Label htmlFor="filter-status">Status</Label>
+                        <Select value={filterStatus} onValueChange={setFilterStatus}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos os status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todos">Todos</SelectItem>
+                            <SelectItem value="pendente">Pendente</SelectItem>
+                            <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                            <SelectItem value="concluido">Concluído</SelectItem>
+                            <SelectItem value="cancelado">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="filter-modalidade">Modalidade</Label>
+                        <Select value={filterModalidade} onValueChange={setFilterModalidade}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todas as modalidades" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todas">Todas</SelectItem>
+                            <SelectItem value="EAD">EAD</SelectItem>
+                            <SelectItem value="Presencial">Presencial</SelectItem>
+                            <SelectItem value="Semipresencial">Semipresencial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {activeTab === 'segunda' && (
+                        <div>
+                          <Label htmlFor="filter-subcategoria">Subcategoria</Label>
+                          <Select value={filterSubcategoria} onValueChange={setFilterSubcategoria}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Todas as subcategorias" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="todas">Todas</SelectItem>
+                              <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                              <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                              <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      <div>
+                        <Label htmlFor="filter-periodo">Período</Label>
+                        <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar período" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todos">Todos os períodos</SelectItem>
+                            <SelectItem value="hoje">Hoje</SelectItem>
+                            <SelectItem value="semana">Esta Semana</SelectItem>
+                            <SelectItem value="mes">Este Mês</SelectItem>
+                            <SelectItem value="mes_passado">Mês Passado</SelectItem>
+                            <SelectItem value="personalizado">Período Personalizado</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
+                    {filterPeriodo === 'personalizado' && (
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <Label htmlFor="dataInicio">Data Início</Label>
+                          <Input
+                            id="dataInicio"
+                            type="date"
+                            value={dataInicio}
+                            onChange={(e) => setDataInicio(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="dataFim">Data Fim</Label>
+                          <Input
+                            id="dataFim"
+                            type="date"
+                            value={dataFim}
+                            onChange={(e) => setDataFim(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
-              
-              {filteredCertifications.length === 0 && (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <div className="text-lg font-medium text-gray-900">Nenhuma certificação encontrada</div>
-                    <div className="text-gray-600">Crie uma nova certificação para começar</div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
 
-      {/* Dialog para edição */}
+                {isLoading ? (
+                  <div className="flex justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredCertifications.map((certification: Certification) => (
+                      <Card key={certification.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1">
+                              <div>
+                                <div className="font-semibold text-lg">{certification.aluno}</div>
+                                <div className="text-sm text-gray-600">CPF: {certification.cpf}</div>
+                                <div className="text-sm text-gray-600">Curso: {certification.curso}</div>
+                                {activeTab === 'segunda' && certification.subcategoria && (
+                                  <div className="text-xs text-blue-600 mt-1">
+                                    {SUBCATEGORIA_LABELS[certification.subcategoria as keyof typeof SUBCATEGORIA_LABELS]}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-700">Modalidade</div>
+                                <div className="text-sm">{certification.modalidade}</div>
+                                <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
+                                <div className="text-sm">{certification.financeiro}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-700">Data Prevista</div>
+                                <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
+                                <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega</div>
+                                <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
+                              </div>
+                              <div>
+                                <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
+                                  {STATUS_LABELS[certification.status as keyof typeof STATUS_LABELS]}
+                                </Badge>
+                                {certification.observacao && (
+                                  <div className="text-sm text-gray-600 mt-2">
+                                    <strong>Obs:</strong> {certification.observacao}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedCertification(certification)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteCertification(certification.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    {filteredCertifications.length === 0 && (
+                      <Card>
+                        <CardContent className="p-8 text-center">
+                          <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                          <div className="text-lg font-medium text-gray-900">Nenhuma certificação encontrada</div>
+                          <div className="text-gray-600">Crie uma nova certificação para começar</div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+
+      {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
