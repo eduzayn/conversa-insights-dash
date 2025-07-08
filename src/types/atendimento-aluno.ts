@@ -24,6 +24,7 @@ export interface AtendimentoMessage {
   type: 'text' | 'file' | 'audio' | 'system';
   fileUrl?: string;
   fileName?: string;
+  audioDuration?: number;
   read: boolean;
 }
 
