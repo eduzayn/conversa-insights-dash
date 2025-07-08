@@ -1012,5 +1012,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar informações do fluxo de boas vindas
+  app.get("/api/botconversa/flows/:account", authenticateToken, async (req: any, res) => {
+    try {
+      const { account } = req.params;
+      
+      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
+        return res.status(400).json({ 
+          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
+        });
+      }
+      
+      // Buscar informações do fluxo de boas vindas
+      const flowInfo = await botConversaService.getWelcomeFlowInfo(account);
+      
+      res.json({ 
+        success: true,
+        account,
+        flow: flowInfo
+      });
+      
+    } catch (error) {
+      console.error("Erro ao buscar fluxos:", error);
+      res.status(500).json({ 
+        error: "Erro interno do servidor",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Endpoint para análise comparativa do fluxo com CRM
+  app.get("/api/botconversa/flows/:account/analysis", authenticateToken, async (req: any, res) => {
+    try {
+      const { account } = req.params;
+      
+      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
+        return res.status(400).json({ 
+          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
+        });
+      }
+      
+      // Buscar informações do fluxo
+      const flowInfo = await botConversaService.getWelcomeFlowInfo(account);
+      
+      // Buscar dados do CRM para comparação
+      const teams = await storage.getTeams();
+      const leads = await storage.getLeads();
+      const conversations = await storage.getConversations();
+      
+      // Análise comparativa
+      const analysis = {
+        flowInfo,
+        crmData: {
+          totalTeams: teams.length,
+          totalLeads: leads.length,
+          totalConversations: conversations.length,
+          leadsByStatus: leads.reduce((acc: any, lead) => {
+            acc[lead.status] = (acc[lead.status] || 0) + 1;
+            return acc;
+          }, {}),
+          conversationsByStatus: conversations.reduce((acc: any, conv) => {
+            acc[conv.status] = (acc[conv.status] || 0) + 1;
+            return acc;
+          }, {})
+        },
+        integration: {
+          webhookStatus: "active",
+          autoRouting: true,
+          departmentCoverage: Object.keys(flowInfo.departments).length,
+          routingRules: Object.keys(flowInfo.routingRules).length
+        },
+        recommendations: [
+          {
+            type: "improvement",
+            priority: "high",
+            description: "Expandir menu para incluir todos os 9 departamentos",
+            currentCoverage: Object.keys(flowInfo.routingRules).length,
+            targetCoverage: Object.keys(flowInfo.departments).length
+          },
+          {
+            type: "performance",
+            priority: "medium",
+            description: "Implementar balanceamento de carga para departamentos com poucos membros",
+            affectedDepartments: Object.entries(flowInfo.departments)
+              .filter(([, dept]: [string, any]) => dept.members < 2)
+              .map(([name]) => name)
+          }
+        ]
+      };
+      
+      res.json({ 
+        success: true,
+        account,
+        analysis
+      });
+      
+    } catch (error) {
+      console.error("Erro ao analisar fluxo:", error);
+      res.status(500).json({ 
+        error: "Erro interno do servidor",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
   return httpServer;
 }

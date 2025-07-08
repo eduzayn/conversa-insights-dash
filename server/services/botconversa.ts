@@ -348,6 +348,84 @@ export class BotConversaService {
       throw error;
     }
   }
+
+  // Buscar informações do fluxo de boas vindas
+  async getWelcomeFlowInfo(account: 'SUPORTE' | 'COMERCIAL') {
+    try {
+      // Mapear as configurações do fluxo baseado na conta
+      const flowConfig = {
+        SUPORTE: {
+          name: "Fluxo de Boas Vindas - Suporte",
+          description: "Fluxo para direcionamento de estudantes aos departamentos corretos",
+          departments: BOTCONVERSA_CONFIG.SUPORTE.DEPARTMENTS,
+          routingRules: BOTCONVERSA_CONFIG.SUPORTE.ROUTING_RULES,
+          steps: [
+            {
+              id: "welcome",
+              name: "Boas Vindas",
+              description: "Mensagem inicial de boas vindas",
+              type: "message"
+            },
+            {
+              id: "menu",
+              name: "Menu de Opções",
+              description: "Apresenta opções de atendimento",
+              type: "menu",
+              options: Object.keys(BOTCONVERSA_CONFIG.SUPORTE.ROUTING_RULES)
+            },
+            {
+              id: "routing",
+              name: "Roteamento",
+              description: "Direciona para o departamento correto",
+              type: "routing"
+            }
+          ],
+          integration: {
+            webhookUrl: "/webhook/botconversa/suporte",
+            crmStatus: "active",
+            autoRouting: true
+          }
+        },
+        COMERCIAL: {
+          name: "Fluxo de Boas Vindas - Comercial",
+          description: "Fluxo para captação e qualificação de leads",
+          departments: BOTCONVERSA_CONFIG.COMERCIAL.DEPARTMENTS,
+          routingRules: BOTCONVERSA_CONFIG.COMERCIAL.ROUTING_RULES,
+          steps: [
+            {
+              id: "welcome",
+              name: "Boas Vindas",
+              description: "Mensagem inicial de boas vindas",
+              type: "message"
+            },
+            {
+              id: "qualification",
+              name: "Qualificação",
+              description: "Coleta informações do lead",
+              type: "form"
+            },
+            {
+              id: "routing",
+              name: "Roteamento",
+              description: "Direciona para o departamento correto",
+              type: "routing"
+            }
+          ],
+          integration: {
+            webhookUrl: "/webhook/botconversa/comercial",
+            crmStatus: "active",
+            autoRouting: true,
+            statusMapping: BOTCONVERSA_CONFIG.COMERCIAL.TAG_TO_STATUS_MAPPING
+          }
+        }
+      };
+
+      return flowConfig[account];
+    } catch (error) {
+      console.error(`Erro ao buscar informações do fluxo - Conta: ${account}:`, error);
+      throw error;
+    }
+  }
 }
 
 export const botConversaService = new BotConversaService();
