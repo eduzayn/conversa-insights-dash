@@ -180,6 +180,29 @@ export const userActivity = pgTable("user_activity", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Certificações
+export const certifications = pgTable("certifications", {
+  id: serial("id").primaryKey(),
+  inicio: text("inicio"), // Coluna Início (prioridade)
+  aluno: text("aluno").notNull(),
+  cpf: text("cpf"),
+  modalidade: text("modalidade"), // Segunda Licenciatura, Pós-Graduação, etc.
+  curso: text("curso"),
+  financeiro: text("financeiro"),
+  documentacao: text("documentacao"),
+  plataforma: text("plataforma"),
+  tutoria: text("tutoria"),
+  observacao: text("observacao"),
+  inicioCertificacao: text("inicio_certificacao"),
+  dataPrevista: text("data_prevista"),
+  dataEntrega: text("data_entrega"),
+  diploma: text("diploma"),
+  status: text("status").notNull().default("pendente"), // pendente, em_analise, concluida, entregue
+  categoria: text("categoria").notNull().default("geral"), // geral, pos_graduacao, segunda_graduacao
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relações
 export const usersRelations = relations(users, ({ many, one }) => ({
   teamMemberships: many(teamMembers),
@@ -329,6 +352,25 @@ export const insertUserActivitySchema = createInsertSchema(userActivity).pick({
   date: true,
 });
 
+export const insertCertificationSchema = createInsertSchema(certifications).pick({
+  inicio: true,
+  aluno: true,
+  cpf: true,
+  modalidade: true,
+  curso: true,
+  financeiro: true,
+  documentacao: true,
+  plataforma: true,
+  tutoria: true,
+  observacao: true,
+  inicioCertificacao: true,
+  dataPrevista: true,
+  dataEntrega: true,
+  diploma: true,
+  status: true,
+  categoria: true,
+});
+
 // Tipos
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -362,3 +404,6 @@ export type Goal = typeof goals.$inferSelect;
 
 export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
 export type UserActivity = typeof userActivity.$inferSelect;
+
+export type InsertCertification = z.infer<typeof insertCertificationSchema>;
+export type Certification = typeof certifications.$inferSelect;

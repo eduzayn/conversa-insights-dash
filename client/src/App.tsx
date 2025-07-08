@@ -15,6 +15,7 @@ import Presenca from "./pages/Presenca";
 import ChatInterno from "./pages/ChatInterno";
 import Metas from "./pages/Metas";
 import Crm from "./pages/Crm";
+import Certificacoes from "./pages/Certificacoes";
 import IntegracaoBotConversa from "./pages/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/GerenciamentoRoteamento";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/chat-interno" element={<ChatInterno />} />
             <Route path="/metas" element={<Metas />} />
             <Route path="/crm" element={<Crm />} />
+            <Route path="/certificacoes" element={<Certificacoes />} />
             <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
             <Route path="*" element={<NotFound />} />

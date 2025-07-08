@@ -13,6 +13,7 @@ import {
   goals,
   goalProgress,
   userActivity,
+  certifications,
   type User, 
   type InsertUser,
   type RegistrationToken,
@@ -34,7 +35,9 @@ import {
   type Goal,
   type InsertGoal,
   type UserActivity,
-  type InsertUserActivity
+  type InsertUserActivity,
+  type Certification,
+  type InsertCertification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count } from "drizzle-orm";
@@ -97,6 +100,13 @@ export interface IStorage {
   getUserActivity(userId: number, date?: string): Promise<UserActivity[]>;
   createUserActivity(activity: InsertUserActivity): Promise<UserActivity>;
   updateUserActivity(id: number, activity: Partial<UserActivity>): Promise<UserActivity | undefined>;
+  
+  // Certifications
+  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string }): Promise<Certification[]>;
+  createCertification(certification: InsertCertification): Promise<Certification>;
+  updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
+  deleteCertification(id: number): Promise<void>;
+  getCertificationById(id: number): Promise<Certification | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -189,13 +199,15 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: users.id,
         username: users.username,
+        password: users.password,
         email: users.email,
         name: users.name,
         role: users.role,
+        companyAccount: users.companyAccount,
+        department: users.department,
         isActive: users.isActive,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
-        password: users.password,
       })
       .from(teamMembers)
       .innerJoin(users, eq(teamMembers.userId, users.id))
@@ -503,6 +515,75 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userActivity.id, id))
       .returning();
     return updatedActivity || undefined;
+  }
+
+  // Certificações
+  async getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string }): Promise<Certification[]> {
+    let conditions = [];
+    
+    if (filters) {
+      if (filters.modalidade) {
+        conditions.push(eq(certifications.modalidade, filters.modalidade));
+      }
+      if (filters.curso) {
+        conditions.push(like(certifications.curso, `%${filters.curso}%`));
+      }
+      if (filters.status) {
+        conditions.push(eq(certifications.status, filters.status));
+      }
+      if (filters.categoria) {
+        conditions.push(eq(certifications.categoria, filters.categoria));
+      }
+    }
+    
+    if (conditions.length > 0) {
+      return await db
+        .select()
+        .from(certifications)
+        .where(and(...conditions))
+        .orderBy(desc(certifications.createdAt));
+    } else {
+      return await db
+        .select()
+        .from(certifications)
+        .orderBy(desc(certifications.createdAt));
+    }
+  }
+
+  async createCertification(certification: InsertCertification): Promise<Certification> {
+    const [newCertification] = await db
+      .insert(certifications)
+      .values({
+        ...certification,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newCertification;
+  }
+
+  async updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined> {
+    const [updatedCertification] = await db
+      .update(certifications)
+      .set({
+        ...certification,
+        updatedAt: new Date(),
+      })
+      .where(eq(certifications.id, id))
+      .returning();
+    return updatedCertification || undefined;
+  }
+
+  async deleteCertification(id: number): Promise<void> {
+    await db.delete(certifications).where(eq(certifications.id, id));
+  }
+
+  async getCertificationById(id: number): Promise<Certification | undefined> {
+    const [certification] = await db
+      .select()
+      .from(certifications)
+      .where(eq(certifications.id, id));
+    return certification || undefined;
   }
 }
 

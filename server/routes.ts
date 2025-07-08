@@ -4,7 +4,7 @@ import { Server as SocketServer } from "socket.io";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
-import { insertUserSchema, insertRegistrationTokenSchema } from "@shared/schema";
+import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
 
@@ -1113,6 +1113,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: "Erro interno do servidor",
         message: error instanceof Error ? error.message : "Erro desconhecido"
       });
+    }
+  });
+
+  // Rotas para Certificações
+  app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const { modalidade, curso, status, categoria } = req.query;
+      
+      const certifications = await storage.getCertifications({
+        modalidade,
+        curso,
+        status,
+        categoria
+      });
+      
+      res.json(certifications);
+    } catch (error) {
+      console.error("Erro ao buscar certificações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/certificacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const validatedData = insertCertificationSchema.parse(req.body);
+      
+      const certification = await storage.createCertification(validatedData);
+      
+      res.status(201).json(certification);
+    } catch (error) {
+      console.error("Erro ao criar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertCertificationSchema.partial().parse(req.body);
+      
+      const certification = await storage.updateCertification(id, validatedData);
+      
+      if (!certification) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      res.json(certification);
+    } catch (error) {
+      console.error("Erro ao atualizar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.delete("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const certification = await storage.getCertificationById(id);
+      if (!certification) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      await storage.deleteCertification(id);
+      
+      res.json({ message: "Certificação excluída com sucesso" });
+    } catch (error) {
+      console.error("Erro ao excluir certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const certification = await storage.getCertificationById(id);
+      
+      if (!certification) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      res.json(certification);
+    } catch (error) {
+      console.error("Erro ao buscar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
