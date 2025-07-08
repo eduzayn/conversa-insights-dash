@@ -9,20 +9,26 @@ interface ChatAreaProps {
   conversation: Conversation | null;
   currentUser: any;
   availableAttendants: Attendant[];
+  hasMoreMessages: boolean;
+  isLoadingMessages: boolean;
   onSendMessage: (conversationId: string, content: string, currentUser: any) => void;
   onUpdateStatus: (conversationId: string, status: Conversation['status']) => void;
   onTransferConversation: (conversationId: string, fromAttendantId: string, toAttendantId: string, reason?: string) => void;
   onSaveInternalNote: (conversationId: string, content: string, currentUser: any) => void;
+  onLoadMoreMessages: () => void;
 }
 
 export const ChatArea = ({ 
   conversation, 
   currentUser, 
   availableAttendants,
+  hasMoreMessages,
+  isLoadingMessages,
   onSendMessage, 
   onUpdateStatus,
   onTransferConversation,
-  onSaveInternalNote
+  onSaveInternalNote,
+  onLoadMoreMessages
 }: ChatAreaProps) => {
   if (!conversation) {
     return (
@@ -50,7 +56,12 @@ export const ChatArea = ({
         onTransferConversation={onTransferConversation}
       />
 
-      <MessageArea conversation={conversation} />
+      <MessageArea 
+        conversation={conversation}
+        hasMoreMessages={hasMoreMessages}
+        isLoadingMessages={isLoadingMessages}
+        onLoadMoreMessages={onLoadMoreMessages}
+      />
 
       <ChatInput 
         conversation={conversation}

@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/Sidebar";
@@ -21,12 +22,32 @@ const AtendimentoAluno = () => {
   const { 
     conversations, 
     availableAttendants,
-    isLoading, 
+    isLoading,
+    hasMoreConversations,
+    isLoadingConversations,
+    loadMoreConversations,
+    hasMoreMessages,
+    isLoadingMessages,
+    loadMoreMessages,
+    initializeConversationPagination,
     sendMessage, 
     updateStatus,
     transferConversation,
     saveInternalNote
   } = useAtendimentoAluno(filters);
+
+  // Inicializar paginação de mensagens quando uma conversa é selecionada
+  useEffect(() => {
+    if (activeConversation) {
+      initializeConversationPagination(activeConversation.id);
+    }
+  }, [activeConversation, initializeConversationPagination]);
+
+  const handleLoadMoreMessages = () => {
+    if (activeConversation) {
+      loadMoreMessages(activeConversation.id);
+    }
+  };
 
   if (loading) {
     return (
@@ -58,6 +79,9 @@ const AtendimentoAluno = () => {
                 activeConversation={activeConversation}
                 onConversationSelect={setActiveConversation}
                 isLoading={isLoading}
+                hasMoreConversations={hasMoreConversations}
+                isLoadingConversations={isLoadingConversations}
+                onLoadMore={loadMoreConversations}
               />
             </div>
             
@@ -66,10 +90,13 @@ const AtendimentoAluno = () => {
                 conversation={activeConversation}
                 currentUser={user}
                 availableAttendants={availableAttendants}
+                hasMoreMessages={activeConversation ? hasMoreMessages[activeConversation.id] || false : false}
+                isLoadingMessages={activeConversation ? isLoadingMessages[activeConversation.id] || false : false}
                 onSendMessage={sendMessage}
                 onUpdateStatus={updateStatus}
                 onTransferConversation={transferConversation}
                 onSaveInternalNote={saveInternalNote}
+                onLoadMoreMessages={handleLoadMoreMessages}
               />
             </div>
           </div>

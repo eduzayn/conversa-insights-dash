@@ -117,6 +117,15 @@ const mockConversations: Conversation[] = [
 
 export const useAtendimentoAluno = (filters: AtendimentoFilters) => {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const [conversationPage, setConversationPage] = useState(1);
+  const [hasMoreConversations, setHasMoreConversations] = useState(true);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  
+  // Estados para mensagens
+  const [messagePages, setMessagePages] = useState<{ [conversationId: string]: number }>({});
+  const [hasMoreMessages, setHasMoreMessages] = useState<{ [conversationId: string]: boolean }>({});
+  const [isLoadingMessages, setIsLoadingMessages] = useState<{ [conversationId: string]: boolean }>({});
+  
   const { notifyNewMessage } = useNotifications();
   const queryClient = useQueryClient();
 
@@ -146,6 +155,47 @@ export const useAtendimentoAluno = (filters: AtendimentoFilters) => {
     if (filters.atendente && conv.attendant?.name !== filters.atendente) return false;
     return true;
   });
+
+  // Carregar mais conversas
+  const loadMoreConversations = useCallback(async () => {
+    if (isLoadingConversations || !hasMoreConversations) return;
+    
+    setIsLoadingConversations(true);
+    
+    // Simular delay de rede
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Em uma implementação real, aqui faria a chamada para a API
+    // Por agora, vamos simular que não há mais conversas após a primeira página
+    setHasMoreConversations(false);
+    setConversationPage(prev => prev + 1);
+    setIsLoadingConversations(false);
+  }, [isLoadingConversations, hasMoreConversations]);
+
+  // Carregar mais mensagens de uma conversa específica
+  const loadMoreMessages = useCallback(async (conversationId: string) => {
+    if (isLoadingMessages[conversationId] || !hasMoreMessages[conversationId]) return;
+    
+    setIsLoadingMessages(prev => ({ ...prev, [conversationId]: true }));
+    
+    // Simular delay de rede
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Em uma implementação real, aqui faria a chamada para a API para carregar mensagens mais antigas
+    // Por agora, vamos simular que não há mais mensagens
+    setHasMoreMessages(prev => ({ ...prev, [conversationId]: false }));
+    setMessagePages(prev => ({ ...prev, [conversationId]: (prev[conversationId] || 1) + 1 }));
+    setIsLoadingMessages(prev => ({ ...prev, [conversationId]: false }));
+  }, [isLoadingMessages, hasMoreMessages]);
+
+  // Inicializar estados para novas conversas
+  const initializeConversationPagination = useCallback((conversationId: string) => {
+    if (!messagePages[conversationId]) {
+      setMessagePages(prev => ({ ...prev, [conversationId]: 1 }));
+      setHasMoreMessages(prev => ({ ...prev, [conversationId]: true }));
+      setIsLoadingMessages(prev => ({ ...prev, [conversationId]: false }));
+    }
+  }, [messagePages]);
 
   const sendMessage = useCallback(async (conversationId: string, content: string, currentUser: any) => {
     const newMessage: AtendimentoMessage = {
@@ -258,6 +308,19 @@ export const useAtendimentoAluno = (filters: AtendimentoFilters) => {
     conversations: filteredConversations,
     availableAttendants: mockAttendants,
     isLoading: false,
+    
+    // Paginação de conversas
+    hasMoreConversations,
+    isLoadingConversations,
+    loadMoreConversations,
+    
+    // Paginação de mensagens
+    hasMoreMessages,
+    isLoadingMessages,
+    loadMoreMessages,
+    initializeConversationPagination,
+    
+    // Funções existentes
     sendMessage,
     updateStatus,
     transferConversation,

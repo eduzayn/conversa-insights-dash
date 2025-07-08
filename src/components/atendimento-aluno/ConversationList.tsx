@@ -5,21 +5,34 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Conversation } from "@/types/atendimento-aluno";
 import { cn } from "@/lib/utils";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Loader2 } from "lucide-react";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 interface ConversationListProps {
   conversations: Conversation[];
   activeConversation: Conversation | null;
   onConversationSelect: (conversation: Conversation) => void;
   isLoading: boolean;
+  hasMoreConversations: boolean;
+  isLoadingConversations: boolean;
+  onLoadMore: () => void;
 }
 
 export const ConversationList = ({ 
   conversations, 
   activeConversation, 
   onConversationSelect,
-  isLoading
+  isLoading,
+  hasMoreConversations,
+  isLoadingConversations,
+  onLoadMore
 }: ConversationListProps) => {
+  const { containerRef } = useInfiniteScroll(onLoadMore, {
+    hasNextPage: hasMoreConversations,
+    isLoading: isLoadingConversations,
+    threshold: 200
+  });
+
   const getStatusBadge = (status: Conversation['status']) => {
     switch (status) {
       case 'novo':
@@ -61,7 +74,10 @@ export const ConversationList = ({
         </h2>
       </div>
       
-      <div className="flex-1 overflow-y-auto">
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-y-auto"
+      >
         {conversations.map((conversation) => (
           <div
             key={conversation.id}
@@ -120,6 +136,20 @@ export const ConversationList = ({
             </div>
           </div>
         ))}
+        
+        {/* Loading indicator para scroll infinito */}
+        {isLoadingConversations && (
+          <div className="p-4 flex items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600 mr-2" />
+            <span className="text-sm text-gray-600">Carregando mais conversas...</span>
+          </div>
+        )}
+        
+        {!hasMoreConversations && conversations.length > 0 && (
+          <div className="p-4 text-center">
+            <span className="text-xs text-gray-400">Todas as conversas foram carregadas</span>
+          </div>
+        )}
       </div>
     </div>
   );
