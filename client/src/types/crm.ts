@@ -8,6 +8,7 @@ export interface Lead {
   status: string;
   assignedTo?: string;
   assignedToName?: string;
+  companyAccount?: 'COMERCIAL' | 'SUPORTE';
   createdAt: Date;
   updatedAt: Date;
   lastInteraction?: Date;
@@ -39,6 +40,7 @@ export interface CrmFilters {
   dateFrom?: string;
   dateTo?: string;
   status?: string;
+  companyAccount?: 'COMERCIAL' | 'SUPORTE';
 }
 
 export interface MoveLeadData {

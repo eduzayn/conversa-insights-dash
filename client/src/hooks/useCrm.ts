@@ -19,11 +19,11 @@ const mockTeams: CrmTeam[] = [
   }
 ];
 
-// Mock data para demonstração
-const mockFunnels: CrmFunnel[] = [
+// Mock data para demonstração - Funis da Companhia COMERCIAL
+const mockFunnelsComercial: CrmFunnel[] = [
   {
     id: 'comercial',
-    name: 'Comercial',
+    name: 'Funil Comercial',
     team: 'comercial',
     isActive: true,
     columns: [
@@ -42,6 +42,7 @@ const mockFunnels: CrmFunnel[] = [
             status: 'novo-contato',
             assignedTo: 'user1',
             assignedToName: 'Ana Costa',
+            companyAccount: 'COMERCIAL',
             createdAt: new Date('2024-01-15'),
             updatedAt: new Date('2024-01-15'),
             lastInteraction: new Date('2024-01-15'),
@@ -53,6 +54,7 @@ const mockFunnels: CrmFunnel[] = [
             phone: '(11) 88888-8888',
             course: 'Administração',
             status: 'novo-contato',
+            companyAccount: 'COMERCIAL',
             createdAt: new Date('2024-01-14'),
             updatedAt: new Date('2024-01-14'),
             lastInteraction: new Date('2024-01-14')
@@ -147,6 +149,84 @@ const mockFunnels: CrmFunnel[] = [
   }
 ];
 
+// Mock data para demonstração - Funis da Companhia SUPORTE
+const mockFunnelsSuporte: CrmFunnel[] = [
+  {
+    id: 'suporte',
+    name: 'Funil Suporte',
+    team: 'suporte',
+    isActive: true,
+    columns: [
+      {
+        id: 'novo-contato',
+        title: 'Novo Contato',
+        color: 'bg-blue-100 border-blue-300',
+        order: 1,
+        leads: [
+          {
+            id: '5',
+            name: 'Carlos Mendes',
+            phone: '(11) 55555-5555',
+            email: 'carlos@email.com',
+            course: 'Pós-Graduação',
+            status: 'novo-contato',
+            assignedTo: 'user1',
+            assignedToName: 'Miguel Ferreira',
+            companyAccount: 'SUPORTE',
+            createdAt: new Date('2024-01-15'),
+            updatedAt: new Date('2024-01-15'),
+            lastInteraction: new Date('2024-01-15'),
+            conversationId: 'conv5'
+          }
+        ]
+      },
+      {
+        id: 'em-atendimento',
+        title: 'Em Atendimento',
+        color: 'bg-green-100 border-green-300',
+        order: 2,
+        leads: [
+          {
+            id: '6',
+            name: 'Ana Beatriz',
+            phone: '(11) 44444-4444',
+            course: 'Tutoria',
+            status: 'em-atendimento',
+            assignedTo: 'user2',
+            assignedToName: 'Letícia Malf',
+            companyAccount: 'SUPORTE',
+            createdAt: new Date('2024-01-13'),
+            updatedAt: new Date('2024-01-16'),
+            lastInteraction: new Date('2024-01-16'),
+            conversationId: 'conv6'
+          }
+        ]
+      },
+      {
+        id: 'resolvido',
+        title: 'Resolvido',
+        color: 'bg-purple-100 border-purple-300',
+        order: 3,
+        leads: [
+          {
+            id: '7',
+            name: 'Pedro Costa',
+            phone: '(11) 33333-3333',
+            course: 'Documentação',
+            status: 'resolvido',
+            assignedTo: 'user3',
+            assignedToName: 'Wendell Carioca',
+            companyAccount: 'SUPORTE',
+            createdAt: new Date('2024-01-10'),
+            updatedAt: new Date('2024-01-17'),
+            lastInteraction: new Date('2024-01-17')
+          }
+        ]
+      }
+    ]
+  }
+];
+
 export const useCrm = (filters: CrmFilters = {}) => {
   const [funnels, setFunnels] = useState<CrmFunnel[]>([]);
   const [teams, setTeams] = useState<CrmTeam[]>([]);
@@ -155,13 +235,14 @@ export const useCrm = (filters: CrmFilters = {}) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular carregamento de dados
+    // Simular carregamento de dados baseado na companhia
     setTimeout(() => {
-      setFunnels(mockFunnels);
+      const selectedFunnels = filters.companyAccount === 'SUPORTE' ? mockFunnelsSuporte : mockFunnelsComercial;
+      setFunnels(selectedFunnels);
       setTeams(mockTeams);
       setIsLoading(false);
     }, 1000);
-  }, []);
+  }, [filters.companyAccount]);
 
   const getFilteredFunnels = () => {
     if (!filters.team) return funnels;

@@ -20,6 +20,7 @@ const Crm = () => {
   const [filters, setFilters] = useState<CrmFiltersType>({});
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [activeCompany, setActiveCompany] = useState<'COMERCIAL' | 'SUPORTE'>('COMERCIAL');
   
   const { 
     funnels, 
@@ -36,7 +37,7 @@ const Crm = () => {
     createTeam,
     updateTeam,
     deleteTeam
-  } = useCrm(filters);
+  } = useCrm({ ...filters, companyAccount: activeCompany });
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -120,6 +121,26 @@ const Crm = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Select value={activeCompany} onValueChange={setActiveCompany}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Selecione a companhia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="COMERCIAL">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Comercial
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="SUPORTE">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Suporte
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                
                 <Select value={activeFunnel} onValueChange={setActiveFunnel}>
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Selecione o funil" />

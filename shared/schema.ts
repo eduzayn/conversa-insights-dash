@@ -95,6 +95,7 @@ export const leads = pgTable("leads", {
   status: text("status").notNull().default("novo"),
   assignedTo: integer("assigned_to").references(() => users.id),
   teamId: integer("team_id").references(() => teams.id),
+  companyAccount: text("company_account").notNull().default("COMERCIAL"), // COMERCIAL ou SUPORTE
   notes: text("notes"),
   lastInteraction: timestamp("last_interaction"),
   createdAt: timestamp("created_at").defaultNow(),

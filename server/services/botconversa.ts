@@ -245,9 +245,9 @@ export class BotConversaService {
       email: subscriber.email || null,
       source: `BotConversa ${account} - ${department}`,
       status,
+      companyAccount: account, // Adicionar companyAccount
       teamId: account === 'COMERCIAL' ? 2 : 1, // Vendas para comercial, Atendimento para suporte
-      assignedTo: assignedUser,
-      customFields: subscriber.custom_fields || {}
+      assignedTo: assignedUser
     };
     
     await storage.createLead(lead);
