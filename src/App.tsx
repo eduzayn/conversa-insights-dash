@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Atendimentos from "./pages/Atendimentos";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/metas" element={<Metas />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SupportChatButton />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

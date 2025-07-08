@@ -6,7 +6,6 @@ import { ConfigurarMetasModal } from "@/components/ConfigurarMetasModal";
 import { RecompensasModal } from "@/components/RecompensasModal";
 import { MetaConquistada } from "@/components/MetaConquistada";
 import { useMetaNotificacoes } from "@/hooks/useMetaNotificacoes";
-import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { MetasHeader } from "@/components/metas/MetasHeader";
 import { MetasSummaryCards } from "@/components/metas/MetasSummaryCards";
 import { EquipesSummaryTable } from "@/components/metas/EquipesSummaryTable";
@@ -62,8 +61,6 @@ const Metas = () => {
           conquista={conquistaAtual}
         />
       )}
-      
-      <SupportChatButton />
     </div>
   );
 };
