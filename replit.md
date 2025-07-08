@@ -202,21 +202,21 @@ Changelog:
   * Botão "Criar Funil" com estilo melhorado e consistente
   * Coerência entre dados dos funis e estrutura real do sistema mantida
 - Módulo de Certificações - Importação de Dados Reais (8 Jul 2025):
-  * Sistema completo implementado com 4 categorias principais: Pós-Graduação, Segunda Graduação, Formação Livre, EJA
-  * Layout ajustado para seguir padrão das páginas do sistema com container e seta de retorno
-  * Subcategorias específicas para Segunda Graduação (Segunda Licenciatura, Formação Pedagógica, Pedagogia para Bacharéis)
-  * Filtros condicionais e período personalizável implementados
-  * Dados de exemplo removidos e substituídos por dados reais da planilha
-  * Importação completa de 98 certificações reais: 70 Segunda Graduação, 24 Pós-Graduação, 3 EJA, 1 Formação Livre
-  * Status automaticamente atribuído baseado na prioridade: 26 concluídas, 43 em andamento, 20 pendentes
-  * Scripts de importação criados para processar dados CSV com tratamento de vírgulas e aspas
-  * Processamento de dados PDF implementado com extração completa de todas as colunas:
-    - 97 certificações processadas com informações detalhadas
-    - 76 alunos únicos com dados completos
-    - Campos extraídos: início, aluno, CPF, modalidade, curso, financeiro, documentação, plataforma, tutoria, observações
-    - Status categorizados: 43 em andamento, 36 concluídas, 18 pendentes
-    - Prioridades mapeadas: urgente, mediana, normal
-    - Dados estruturados para Segunda Graduação (62), Pós-Graduação (33), EJA (2)
+  * Sistema expandido para 5 categorias: Pós-Graduação, Segunda Graduação, Formação Livre, Diplomação por Competência, EJA
+  * Layout ajustado para usar toda a largura da tela (removido container restritivo)
+  * Nova aba "Diplomação por Competência" implementada com dados específicos
+  * Importação completa de dados de julho 2025: 97 certificações processadas
+  * Importação adicional de dados de junho 2025: 26 certificações novas
+  * Total atual no sistema: 124 certificações distribuídas:
+    - Pós-Graduação: 41 certificações (33 alunos únicos)
+    - Segunda Graduação: 73 certificações (63 alunos únicos)
+    - Formação Livre: 5 certificações (5 alunos únicos)
+    - Diplomação por Competência: 4 certificações (4 alunos únicos)
+    - EJA: 1 certificação (1 aluno único)
+  * Scripts de importação automatizados para processar dados PDF e CSV
+  * Campos preservados fielmente da planilha original: início, aluno, CPF, modalidade, curso, financeiro, documentação, plataforma, tutoria, observações
+  * Status automaticamente categorizados: concluído, em andamento, pendente, cancelado
+  * Sistema pronto para uso com dados reais de certificações educacionais
 ```
 
 ## User Preferences
