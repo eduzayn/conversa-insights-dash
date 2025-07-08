@@ -136,7 +136,8 @@ async function processPDFData() {
           subcategoria = 'formacao_pedagogica';
           break;
         case 'Diplomação por Competência':
-          categoria = 'eja';
+          categoria = 'formacao_livre';
+          subcategoria = 'diplomacao_competencia';
           break;
         case 'Formação Livre':
           categoria = 'formacao_livre';

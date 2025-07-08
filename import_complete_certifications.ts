@@ -113,7 +113,8 @@ async function importCompleteCertifications() {
             categoria = 'formacao_livre';
             break;
           case 'Diplomação por Competência':
-            categoria = 'eja';
+            categoria = 'formacao_livre';
+            subcategoria = 'diplomacao_competencia';
             break;
           default:
             console.log(`Modalidade não reconhecida: ${modalidadeOriginal}, usando padrão`);
