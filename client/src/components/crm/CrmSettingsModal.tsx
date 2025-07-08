@@ -81,11 +81,117 @@ export const CrmSettingsModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="teams" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="companies" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="companies">Companhias</TabsTrigger>
             <TabsTrigger value="teams">Equipes</TabsTrigger>
             <TabsTrigger value="general">Geral</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="companies" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Companhias Configuradas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Companhia Comercial */}
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-blue-800">Companhia Comercial</CardTitle>
+                      <p className="text-sm text-blue-600">Instância BotConversa para vendas</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Status:</span>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Ativa</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Funis:</span>
+                          <span className="text-sm">1 funil configurado</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Leads:</span>
+                          <span className="text-sm">4 leads ativos</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Companhia Suporte */}
+                  <Card className="border-purple-200 bg-purple-50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-purple-800">Companhia Suporte</CardTitle>
+                      <p className="text-sm text-purple-600">Instância BotConversa para suporte</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Status:</span>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Ativa</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Departamentos:</span>
+                          <span className="text-sm">9 departamentos</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Leads:</span>
+                          <span className="text-sm">12 leads ativos</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+
+                {/* Departamentos da Companhia Suporte */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Departamentos - Companhia Suporte
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {[
+                        { name: 'Comercial', members: 3, leads: 3 },
+                        { name: 'Cobrança', members: 1, leads: 1 },
+                        { name: 'Suporte', members: 1, leads: 1 },
+                        { name: 'Tutoria', members: 2, leads: 2 },
+                        { name: 'Secretaria Pós', members: 2, leads: 2 },
+                        { name: 'Secretaria Segunda Graduação', members: 2, leads: 2 },
+                        { name: 'Suporte UNICV', members: 1, leads: 1 },
+                        { name: 'Financeiro', members: 1, leads: 1 },
+                        { name: 'Documentação', members: 1, leads: 1 }
+                      ].map((dept) => (
+                        <Card key={dept.name} className="border-gray-200">
+                          <CardContent className="p-3">
+                            <h4 className="font-medium text-sm mb-2">{dept.name}</h4>
+                            <div className="space-y-1 text-xs text-gray-600">
+                              <div className="flex justify-between">
+                                <span>Membros:</span>
+                                <span>{dept.members}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Leads:</span>
+                                <span>{dept.leads}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="teams" className="space-y-4">
             <Card>
