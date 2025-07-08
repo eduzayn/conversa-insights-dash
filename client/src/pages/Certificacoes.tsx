@@ -54,17 +54,17 @@ export default function Certificacoes() {
     dataEntrega: '',
     diploma: '',
     status: 'pendente',
-    categoria: activeTab === 'analises' ? 'Análises do Mês' : 
-               activeTab === 'pos' ? 'Certificação Pós' : '2ª Graduação'
+    categoria: activeTab === 'analises' ? 'geral' : 
+               activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
   });
 
   const { data: certifications = [], isLoading } = useQuery({
-    queryKey: ['/api/certificacoes', { categoria: activeTab === 'analises' ? 'Análises do Mês' : 
-                                                   activeTab === 'pos' ? 'Certificação Pós' : '2ª Graduação' }],
+    queryKey: ['/api/certificacoes', { categoria: activeTab === 'analises' ? 'geral' : 
+                                                   activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao' }],
     queryFn: async () => {
       const params = new URLSearchParams({
-        categoria: activeTab === 'analises' ? 'Análises do Mês' : 
-                   activeTab === 'pos' ? 'Certificação Pós' : '2ª Graduação'
+        categoria: activeTab === 'analises' ? 'geral' : 
+                   activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
       });
       
       if (filterStatus) params.append('status', filterStatus);
@@ -101,8 +101,8 @@ export default function Certificacoes() {
         dataEntrega: '',
         diploma: '',
         status: 'pendente',
-        categoria: activeTab === 'analises' ? 'Análises do Mês' : 
-                   activeTab === 'pos' ? 'Certificação Pós' : '2ª Graduação'
+        categoria: activeTab === 'analises' ? 'geral' : 
+                   activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
       });
     },
     onError: (error) => {
