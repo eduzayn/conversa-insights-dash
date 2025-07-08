@@ -258,9 +258,9 @@ export default function Certificacoes() {
 
   const filteredCertifications = certifications.filter((cert: Certification) => {
     const matchesSearch = 
-      cert.aluno.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cert.cpf.includes(searchTerm) ||
-      cert.curso.toLowerCase().includes(searchTerm.toLowerCase());
+      (cert.aluno && cert.aluno.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (cert.cpf && cert.cpf.includes(searchTerm)) ||
+      (cert.curso && cert.curso.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = !filterStatus || filterStatus === 'all' || cert.status === filterStatus;
     const matchesModalidade = !filterModalidade || filterModalidade === 'all' || cert.modalidade === filterModalidade;
