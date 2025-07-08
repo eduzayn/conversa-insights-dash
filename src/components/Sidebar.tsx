@@ -18,8 +18,8 @@ import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
-  { icon: Users, label: "Atendimentos", path: "/atendimentos" },
   { icon: UserCheck, label: "Atendimento ao Aluno", path: "/atendimento-aluno" },
+  { icon: Users, label: "Atendimentos", path: "/atendimentos" },
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
