@@ -129,9 +129,24 @@ export const formatPhoneForBotConversa = (phone: string, ddd: string = '11'): st
     return cleanPhone;
   }
   
+  // Se tem 12 dígitos e começa com 55 (formato sem o 9), adiciona o 9
+  if (cleanPhone.length === 12 && cleanPhone.startsWith('55')) {
+    const ddi = cleanPhone.substring(0, 2); // 55
+    const dddPhone = cleanPhone.substring(2, 4); // DDD
+    const number = cleanPhone.substring(4); // telefone
+    return `${ddi}${dddPhone}9${number}`;
+  }
+  
   // Se tem 11 dígitos (DDD + 9 + telefone), adiciona 55
   if (cleanPhone.length === 11) {
     return `55${cleanPhone}`;
+  }
+  
+  // Se tem 10 dígitos (DDD + telefone sem 9), adiciona 55 e 9
+  if (cleanPhone.length === 10) {
+    const dddPhone = cleanPhone.substring(0, 2); // DDD
+    const number = cleanPhone.substring(2); // telefone
+    return `55${dddPhone}9${number}`;
   }
   
   // Se tem 9 dígitos (apenas telefone), adiciona 55 + DDD
@@ -139,7 +154,12 @@ export const formatPhoneForBotConversa = (phone: string, ddd: string = '11'): st
     return `55${ddd}${cleanPhone}`;
   }
   
-  throw new Error(`Formato de telefone inválido: ${phone}`);
+  // Se tem 8 dígitos (telefone sem 9), adiciona 55 + DDD + 9
+  if (cleanPhone.length === 8) {
+    return `55${ddd}9${cleanPhone}`;
+  }
+  
+  throw new Error(`Formato de telefone inválido: ${phone}. Formatos aceitos: 8, 9, 10, 11, 12 ou 13 dígitos`);
 };
 
 export default BOTCONVERSA_CONFIG;
