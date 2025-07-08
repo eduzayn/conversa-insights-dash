@@ -20,6 +20,8 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
     queryFn: () => atendimentosService.getAtendimentos(filters),
     refetchInterval: 30000, // Atualiza a cada 30 segundos
     staleTime: 10000, // Considera dados frescos por 10 segundos
+    retry: 1, // Only retry once to avoid excessive requests
+    retryDelay: 1000, // Wait 1 second before retry
   });
 
   // Mutation para atualizar status
@@ -72,14 +74,14 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
   // Auto-refresh quando a aba fica visível novamente
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && !isLoading) {
         refetch();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [refetch]);
+  }, [refetch, isLoading]);
 
   return {
     atendimentos,

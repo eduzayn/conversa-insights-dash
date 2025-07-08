@@ -16,7 +16,7 @@ export const AtendimentoFilters = ({ filters, onFiltersChange }: AtendimentoFilt
   const handleFilterChange = (key: string, value: string) => {
     onFiltersChange({
       ...filters,
-      [key]: value
+      [key]: value === 'all' ? '' : value
     });
   };
 
@@ -34,12 +34,12 @@ export const AtendimentoFilters = ({ filters, onFiltersChange }: AtendimentoFilt
         <span className="text-sm font-medium text-gray-700">Filtrar por:</span>
       </div>
       
-      <Select value={filters.curso} onValueChange={(value) => handleFilterChange('curso', value)}>
+      <Select value={filters.curso || 'all'} onValueChange={(value) => handleFilterChange('curso', value)}>
         <SelectTrigger className="w-48">
           <SelectValue placeholder="Curso" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos os Cursos</SelectItem>
+          <SelectItem value="all">Todos os Cursos</SelectItem>
           <SelectItem value="Matemática">Matemática</SelectItem>
           <SelectItem value="Biologia">Biologia</SelectItem>
           <SelectItem value="História">História</SelectItem>
@@ -48,24 +48,24 @@ export const AtendimentoFilters = ({ filters, onFiltersChange }: AtendimentoFilt
         </SelectContent>
       </Select>
 
-      <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+      <Select value={filters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value)}>
         <SelectTrigger className="w-48">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos os Status</SelectItem>
+          <SelectItem value="all">Todos os Status</SelectItem>
           <SelectItem value="novo">Novo</SelectItem>
           <SelectItem value="em_andamento">Em Andamento</SelectItem>
           <SelectItem value="finalizado">Finalizado</SelectItem>
         </SelectContent>
       </Select>
 
-      <Select value={filters.atendente} onValueChange={(value) => handleFilterChange('atendente', value)}>
+      <Select value={filters.atendente || 'all'} onValueChange={(value) => handleFilterChange('atendente', value)}>
         <SelectTrigger className="w-48">
           <SelectValue placeholder="Atendente" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos os Atendentes</SelectItem>
+          <SelectItem value="all">Todos os Atendentes</SelectItem>
           <SelectItem value="Ana Santos">Ana Santos</SelectItem>
           <SelectItem value="Carlos Lima">Carlos Lima</SelectItem>
           <SelectItem value="Bruna Reis">Bruna Reis</SelectItem>
