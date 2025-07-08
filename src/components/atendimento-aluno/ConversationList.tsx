@@ -56,10 +56,10 @@ export const ConversationList = ({
 
   if (conversations.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg h-full flex flex-col items-center justify-center p-6">
-        <MessageCircle className="h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-gray-500 text-center">Nenhuma conversa encontrada</p>
-        <p className="text-sm text-gray-400 text-center mt-1">
+      <div className="bg-white border border-gray-200 rounded-lg h-full flex flex-col items-center justify-center p-4 md:p-6">
+        <MessageCircle className="h-10 md:h-12 w-10 md:w-12 text-gray-400 mb-4" />
+        <p className="text-sm md:text-base text-gray-500 text-center">Nenhuma conversa encontrada</p>
+        <p className="text-xs md:text-sm text-gray-400 text-center mt-1">
           Ajuste os filtros para ver outras conversas
         </p>
       </div>
@@ -68,8 +68,8 @@ export const ConversationList = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="font-semibold text-gray-900">
+      <div className="p-3 md:p-4 border-b border-gray-200">
+        <h2 className="text-sm md:text-base font-semibold text-gray-900">
           Conversas ({conversations.length})
         </h2>
       </div>
@@ -83,36 +83,36 @@ export const ConversationList = ({
             key={conversation.id}
             onClick={() => onConversationSelect(conversation)}
             className={cn(
-              "p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors",
+              "p-3 md:p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors min-h-[80px] active:bg-gray-100",
               activeConversation?.id === conversation.id && "bg-blue-50 border-blue-200"
             )}
           >
             <div className="flex items-start gap-3">
               <Avatar className="h-10 w-10 flex-shrink-0">
-                <AvatarFallback className="bg-blue-100 text-blue-600">
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium">
                   {conversation.student.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-medium text-gray-900 truncate">
+                  <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">
                     {conversation.student.name}
                   </h3>
                   {conversation.unreadCount > 0 && (
-                    <Badge variant="destructive" className="h-5 w-5 p-0 text-xs flex items-center justify-center">
-                      {conversation.unreadCount}
+                    <Badge variant="destructive" className="h-5 w-5 p-0 text-xs flex items-center justify-center flex-shrink-0 ml-2">
+                      {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                     </Badge>
                   )}
                 </div>
                 
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-xs md:text-sm text-gray-600 mb-2 truncate">
                   {conversation.student.course}
                 </p>
                 
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-2">
                   {getStatusBadge(conversation.status)}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 flex-shrink-0">
                     {formatDistanceToNow(conversation.updatedAt, { 
                       addSuffix: true, 
                       locale: ptBR 
@@ -121,14 +121,14 @@ export const ConversationList = ({
                 </div>
                 
                 {conversation.lastMessage && (
-                  <p className="text-sm text-gray-500 truncate">
+                  <p className="text-xs md:text-sm text-gray-500 truncate">
                     {conversation.lastMessage.senderType === 'student' ? '👤 ' : '🎧 '}
                     {conversation.lastMessage.content}
                   </p>
                 )}
                 
                 {conversation.attendant && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 mt-1 truncate">
                     Atendente: {conversation.attendant.name}
                   </p>
                 )}
