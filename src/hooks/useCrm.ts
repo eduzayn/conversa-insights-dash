@@ -1,6 +1,23 @@
-
 import { useState, useEffect } from 'react';
-import { CrmFunnel, Lead, CrmFilters, MoveLeadData } from '@/types/crm';
+import { CrmFunnel, Lead, CrmFilters, MoveLeadData, CrmTeam, CrmViewMode } from '@/types/crm';
+
+// Mock data para demonstração
+const mockTeams: CrmTeam[] = [
+  {
+    id: 'comercial',
+    name: 'Comercial',
+    description: 'Equipe responsável por vendas e captação de leads',
+    isActive: true,
+    createdAt: new Date('2024-01-01')
+  },
+  {
+    id: 'suporte',
+    name: 'Suporte', 
+    description: 'Equipe de atendimento e suporte técnico',
+    isActive: true,
+    createdAt: new Date('2024-01-01')
+  }
+];
 
 // Mock data para demonstração
 const mockFunnels: CrmFunnel[] = [
@@ -132,13 +149,16 @@ const mockFunnels: CrmFunnel[] = [
 
 export const useCrm = (filters: CrmFilters = {}) => {
   const [funnels, setFunnels] = useState<CrmFunnel[]>([]);
+  const [teams, setTeams] = useState<CrmTeam[]>([]);
   const [activeFunnel, setActiveFunnel] = useState<string>('comercial');
+  const [viewMode, setViewMode] = useState<CrmViewMode>('kanban');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Simular carregamento de dados
     setTimeout(() => {
       setFunnels(mockFunnels);
+      setTeams(mockTeams);
       setIsLoading(false);
     }, 1000);
   }, []);
@@ -150,6 +170,36 @@ export const useCrm = (filters: CrmFilters = {}) => {
 
   const getActiveFunnelData = () => {
     return funnels.find(funnel => funnel.id === activeFunnel) || null;
+  };
+
+  const getAllLeads = () => {
+    const activeFunnelData = getActiveFunnelData();
+    if (!activeFunnelData) return [];
+    
+    return activeFunnelData.columns.flatMap(column => column.leads);
+  };
+
+  const createTeam = (teamData: Omit<CrmTeam, 'id' | 'createdAt'>) => {
+    const newTeam: CrmTeam = {
+      ...teamData,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    };
+
+    setTeams(prevTeams => [...prevTeams, newTeam]);
+    return newTeam;
+  };
+
+  const updateTeam = (id: string, teamData: Partial<CrmTeam>) => {
+    setTeams(prevTeams => 
+      prevTeams.map(team => 
+        team.id === id ? { ...team, ...teamData } : team
+      )
+    );
+  };
+
+  const deleteTeam = (id: string) => {
+    setTeams(prevTeams => prevTeams.filter(team => team.id !== id));
   };
 
   const moveLead = (moveData: MoveLeadData) => {
@@ -234,11 +284,18 @@ export const useCrm = (filters: CrmFilters = {}) => {
 
   return {
     funnels: getFilteredFunnels(),
+    teams,
     activeFunnel,
     setActiveFunnel,
     activeFunnelData: getActiveFunnelData(),
+    viewMode,
+    setViewMode,
+    allLeads: getAllLeads(),
     isLoading,
     moveLead,
-    createLead
+    createLead,
+    createTeam,
+    updateTeam,
+    deleteTeam
   };
 };

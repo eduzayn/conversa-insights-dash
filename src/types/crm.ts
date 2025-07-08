@@ -47,3 +47,13 @@ export interface MoveLeadData {
   toColumnId: string;
   newIndex: number;
 }
+
+export interface CrmTeam {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export type CrmViewMode = 'kanban' | 'list';

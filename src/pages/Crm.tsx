@@ -5,26 +5,37 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { KanbanColumn } from '@/components/crm/KanbanColumn';
 import { CrmFilters } from '@/components/crm/CrmFilters';
+import { CrmListView } from '@/components/crm/CrmListView';
 import { CreateLeadModal } from '@/components/crm/CreateLeadModal';
+import { CrmSettingsModal } from '@/components/crm/CrmSettingsModal';
 import { useCrm } from '@/hooks/useCrm';
 import { CrmFilters as CrmFiltersType } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Users, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Users, BarChart3, Settings, Kanban, List } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Crm = () => {
   const [filters, setFilters] = useState<CrmFiltersType>({});
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   
   const { 
     funnels, 
+    teams,
     activeFunnel, 
     setActiveFunnel, 
-    activeFunnelData, 
+    activeFunnelData,
+    viewMode,
+    setViewMode,
+    allLeads,
     isLoading, 
     moveLead, 
-    createLead 
+    createLead,
+    createTeam,
+    updateTeam,
+    deleteTeam
   } = useCrm(filters);
 
   const handleDragEnd = (result: DropResult) => {
@@ -50,7 +61,7 @@ const Crm = () => {
   };
 
   const getAvailableData = () => {
-    const teams = [...new Set(funnels.map(f => f.team))];
+    const teamNames = [...new Set(funnels.map(f => f.team))];
     const attendants = [...new Set(
       funnels.flatMap(f => 
         f.columns.flatMap(c => 
@@ -66,10 +77,10 @@ const Crm = () => {
       )
     )];
 
-    return { teams, attendants, courses };
+    return { teams: teamNames, attendants, courses };
   };
 
-  const { teams, attendants, courses } = getAvailableData();
+  const { teams: teamNames, attendants, courses } = getAvailableData();
 
   const getTotalLeads = () => {
     if (!activeFunnelData) return 0;
@@ -125,6 +136,15 @@ const Crm = () => {
                   </SelectContent>
                 </Select>
                 
+                <Button 
+                  onClick={() => setIsSettingsModalOpen(true)} 
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configurações
+                </Button>
+                
                 <Button onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Lead
@@ -165,29 +185,48 @@ const Crm = () => {
             <CrmFilters
               filters={filters}
               onFiltersChange={setFilters}
-              availableTeams={teams}
+              availableTeams={teamNames}
               availableAttendants={attendants}
               availableCourses={courses}
             />
 
-            {/* Kanban Board */}
-            {activeFunnelData && (
-              <div className="bg-white p-4 rounded-lg border">
-                <DragDropContext onDragEnd={handleDragEnd}>
-                  <div className="flex gap-4 overflow-x-auto pb-4">
-                    {activeFunnelData.columns
-                      .sort((a, b) => a.order - b.order)
-                      .map((column, index) => (
-                        <KanbanColumn
-                          key={column.id}
-                          column={column}
-                          index={index}
-                        />
-                      ))}
+            {/* Tabs para alternar entre Kanban e Lista */}
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'kanban' | 'list')}>
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="kanban" className="flex items-center gap-2">
+                  <Kanban className="h-4 w-4" />
+                  Kanban
+                </TabsTrigger>
+                <TabsTrigger value="list" className="flex items-center gap-2">
+                  <List className="h-4 w-4" />
+                  Lista
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="kanban" className="mt-4">
+                {activeFunnelData && (
+                  <div className="bg-white p-4 rounded-lg border">
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                      <div className="flex gap-4 overflow-x-auto pb-4">
+                        {activeFunnelData.columns
+                          .sort((a, b) => a.order - b.order)
+                          .map((column, index) => (
+                            <KanbanColumn
+                              key={column.id}
+                              column={column}
+                              index={index}
+                            />
+                          ))}
+                      </div>
+                    </DragDropContext>
                   </div>
-                </DragDropContext>
-              </div>
-            )}
+                )}
+              </TabsContent>
+
+              <TabsContent value="list" className="mt-4">
+                <CrmListView leads={allLeads} />
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
@@ -196,6 +235,15 @@ const Crm = () => {
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         onCreateLead={createLead}
+      />
+
+      <CrmSettingsModal
+        open={isSettingsModalOpen}
+        onOpenChange={setIsSettingsModalOpen}
+        teams={teams}
+        onCreateTeam={createTeam}
+        onUpdateTeam={updateTeam}
+        onDeleteTeam={deleteTeam}
       />
     </div>
   );
