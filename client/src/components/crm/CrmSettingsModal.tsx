@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, Edit2, Users, Settings } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CrmTeam } from '@/types/crm';
 import { toast } from 'sonner';
 
@@ -29,12 +30,16 @@ export const CrmSettingsModal = ({
   onUpdateTeam,
   onDeleteTeam
 }: CrmSettingsModalProps) => {
-  const [newTeam, setNewTeam] = useState({ name: '', description: '' });
+  const [newTeam, setNewTeam] = useState({ name: '', description: '', company: '' });
   const [editingTeam, setEditingTeam] = useState<CrmTeam | null>(null);
 
   const handleCreateTeam = () => {
     if (!newTeam.name.trim()) {
       toast.error('Nome da equipe é obrigatório');
+      return;
+    }
+    if (!newTeam.company.trim()) {
+      toast.error('Selecione uma companhia');
       return;
     }
 
@@ -44,7 +49,7 @@ export const CrmSettingsModal = ({
       isActive: true
     });
 
-    setNewTeam({ name: '', description: '' });
+    setNewTeam({ name: '', description: '', company: '' });
     toast.success('Equipe criada com sucesso!');
   };
 
@@ -217,18 +222,30 @@ export const CrmSettingsModal = ({
                       id="team-name"
                       value={newTeam.name}
                       onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
-                      placeholder="Ex: Comercial, Suporte..."
+                      placeholder="Ex: Vendas, Atendimento..."
                     />
                   </div>
                   <div>
-                    <Label htmlFor="team-description">Descrição</Label>
-                    <Input
-                      id="team-description"
-                      value={newTeam.description}
-                      onChange={(e) => setNewTeam({ ...newTeam, description: e.target.value })}
-                      placeholder="Descrição opcional"
-                    />
+                    <Label htmlFor="team-company">Companhia</Label>
+                    <Select value={newTeam.company || ''} onValueChange={(value) => setNewTeam({ ...newTeam, company: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a companhia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="COMERCIAL">Comercial</SelectItem>
+                        <SelectItem value="SUPORTE">Suporte</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="team-description">Descrição</Label>
+                  <Input
+                    id="team-description"
+                    value={newTeam.description}
+                    onChange={(e) => setNewTeam({ ...newTeam, description: e.target.value })}
+                    placeholder="Descrição opcional"
+                  />
                 </div>
                 <Button onClick={handleCreateTeam} className="w-full bg-slate-800 hover:bg-slate-900">
                   <Plus className="h-4 w-4 mr-2" />
@@ -256,6 +273,11 @@ export const CrmSettingsModal = ({
                               <Badge variant={team.isActive ? 'default' : 'secondary'} className="bg-green-100 text-green-800">
                                 {team.isActive ? 'Ativo' : 'Inativo'}
                               </Badge>
+                              {team.company && (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {team.company}
+                                </Badge>
+                              )}
                             </div>
                             {team.description && (
                               <p className="text-sm text-gray-600 mb-2">{team.description}</p>

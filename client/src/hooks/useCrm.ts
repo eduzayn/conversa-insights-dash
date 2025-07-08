@@ -7,6 +7,7 @@ const mockTeams: CrmTeam[] = [
     id: 'comercial',
     name: 'Comercial',
     description: 'Equipe responsável por vendas e captação de leads',
+    company: 'COMERCIAL',
     isActive: true,
     createdAt: new Date('2024-01-01')
   },
@@ -14,6 +15,7 @@ const mockTeams: CrmTeam[] = [
     id: 'suporte',
     name: 'Suporte', 
     description: 'Equipe de atendimento e suporte técnico',
+    company: 'SUPORTE',
     isActive: true,
     createdAt: new Date('2024-01-01')
   }

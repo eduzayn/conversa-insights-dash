@@ -54,6 +54,7 @@ export interface CrmTeam {
   id: string;
   name: string;
   description?: string;
+  company?: 'COMERCIAL' | 'SUPORTE';
   isActive: boolean;
   createdAt: Date;
 }
