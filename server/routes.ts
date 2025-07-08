@@ -274,6 +274,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Atendimentos
+  app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
+    try {
+      const { startDate, endDate, status, equipe } = req.query;
+      
+      // Buscar conversas baseadas nos filtros
+      const conversations = await storage.getConversations();
+      
+      // Transformar conversas em formato de atendimentos
+      const atendimentos = conversations.map((conv, index) => ({
+        id: conv.id,
+        lead: conv.customerName || `Cliente ${conv.id}`,
+        hora: new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }),
+        atendente: conv.attendantId ? `Atendente ${conv.attendantId}` : 'Não atribuído',
+        equipe: conv.attendantId ? 'Atendimento' : 'Não atribuído',
+        duracao: conv.status === 'closed' ? '15m' : 'Em andamento',
+        status: conv.status === 'active' ? 'Em andamento' : 
+               conv.status === 'closed' ? 'Concluído' : 'Pendente'
+      }));
+      
+      res.json(atendimentos);
+    } catch (error) {
+      console.error("Erro ao buscar atendimentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.patch("/api/atendimentos/:id/status", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // Mapear status para formato do banco
+      const dbStatus = status === 'Em andamento' ? 'active' : 
+                      status === 'Concluído' ? 'closed' : 'pending';
+      
+      const updatedConversation = await storage.updateConversation(parseInt(id), { 
+        status: dbStatus 
+      });
+      
+      if (updatedConversation) {
+        const atendimento = {
+          id: updatedConversation.id,
+          lead: updatedConversation.customerName || `Cliente ${updatedConversation.id}`,
+          hora: new Date(updatedConversation.createdAt).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          atendente: updatedConversation.attendantId ? `Atendente ${updatedConversation.attendantId}` : 'Não atribuído',
+          equipe: updatedConversation.attendantId ? 'Atendimento' : 'Não atribuído',
+          duracao: updatedConversation.status === 'closed' ? '15m' : 'Em andamento',
+          status: updatedConversation.status === 'active' ? 'Em andamento' : 
+                 updatedConversation.status === 'closed' ? 'Concluído' : 'Pendente'
+        };
+        
+        res.json(atendimento);
+      } else {
+        res.status(404).json({ message: "Atendimento não encontrado" });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Chat interno
   app.get("/api/chats", authenticateToken, async (req: any, res) => {
     try {
