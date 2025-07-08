@@ -1119,13 +1119,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas para Certificações
   app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {
     try {
-      const { modalidade, curso, status, categoria } = req.query;
+      const { modalidade, curso, status, categoria, subcategoria } = req.query;
       
       const certifications = await storage.getCertifications({
         modalidade,
         curso,
         status,
-        categoria
+        categoria,
+        subcategoria
       });
       
       res.json(certifications);

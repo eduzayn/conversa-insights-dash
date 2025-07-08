@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from 'sonner';
@@ -30,17 +30,34 @@ const STATUS_LABELS = {
   'cancelado': 'Cancelado'
 };
 
+const SUBCATEGORIA_LABELS = {
+  'segunda_licenciatura': 'Segunda Licenciatura',
+  'formacao_pedagogica': 'Formação Pedagógica',
+  'pedagogia_bachareis': 'Pedagogia para Bacharéis e Tecnólogos'
+};
+
 export default function Certificacoes() {
   const [activeTab, setActiveTab] = useState('pos');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterModalidade, setFilterModalidade] = useState('');
+  const [filterSubcategoria, setFilterSubcategoria] = useState('');
   const [filterPeriodo, setFilterPeriodo] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
   const queryClient = useQueryClient();
+
+  const getCategoriaFromTab = (tab: string) => {
+    switch(tab) {
+      case 'pos': return 'pos_graduacao';
+      case 'segunda': return 'segunda_graduacao';
+      case 'formacao_livre': return 'formacao_livre';
+      case 'eja': return 'eja';
+      default: return 'pos_graduacao';
+    }
+  };
 
   const [newCertification, setNewCertification] = useState({
     aluno: '',
@@ -57,8 +74,24 @@ export default function Certificacoes() {
     dataEntrega: '',
     diploma: '',
     status: 'pendente',
-    categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
+    categoria: getCategoriaFromTab(activeTab),
+    subcategoria: ''
   });
+
+  // Limpar filtros quando a aba muda
+  useEffect(() => {
+    setFilterStatus('');
+    setFilterModalidade('');
+    setFilterSubcategoria('');
+    setFilterPeriodo('');
+    setDataInicio('');
+    setDataFim('');
+    setSearchTerm('');
+    setNewCertification(prev => ({
+      ...prev,
+      categoria: getCategoriaFromTab(activeTab)
+    }));
+  }, [activeTab]);
 
   // Função para calcular datas baseadas no período selecionado
   const getDateRange = () => {
@@ -97,20 +130,22 @@ export default function Certificacoes() {
 
   const { data: certifications = [], isLoading } = useQuery({
     queryKey: ['/api/certificacoes', { 
-      categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao',
+      categoria: getCategoriaFromTab(activeTab),
       status: filterStatus,
       modalidade: filterModalidade,
+      subcategoria: filterSubcategoria,
       periodo: filterPeriodo,
       dataInicio,
       dataFim
     }],
     queryFn: async () => {
       const params = new URLSearchParams({
-        categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
+        categoria: getCategoriaFromTab(activeTab)
       });
       
       if (filterStatus && filterStatus !== 'todos') params.append('status', filterStatus);
       if (filterModalidade && filterModalidade !== 'todas') params.append('modalidade', filterModalidade);
+      if (filterSubcategoria && filterSubcategoria !== 'todas') params.append('subcategoria', filterSubcategoria);
       
       // Adicionar filtros de período
       if (filterPeriodo && filterPeriodo !== 'todos') {
@@ -152,7 +187,8 @@ export default function Certificacoes() {
         dataEntrega: '',
         diploma: '',
         status: 'pendente',
-        categoria: activeTab === 'pos' ? 'pos_graduacao' : 'segunda_graduacao'
+        categoria: getCategoriaFromTab(activeTab),
+        subcategoria: ''
       });
     },
     onError: (error) => {
@@ -293,6 +329,21 @@ export default function Certificacoes() {
                   placeholder="Nome do curso"
                 />
               </div>
+              {activeTab === 'segunda' && (
+                <div>
+                  <Label htmlFor="subcategoria">Subcategoria</Label>
+                  <Select value={newCertification.subcategoria} onValueChange={(value) => setNewCertification({ ...newCertification, subcategoria: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a subcategoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                      <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                      <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="status">Status</Label>
                 <Select value={newCertification.status} onValueChange={(value) => setNewCertification({ ...newCertification, status: value })}>
@@ -339,9 +390,11 @@ export default function Certificacoes() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pos">Certificação Pós</TabsTrigger>
-          <TabsTrigger value="graduacao">2ª Graduação</TabsTrigger>
+          <TabsTrigger value="segunda">2ª Graduação</TabsTrigger>
+          <TabsTrigger value="formacao_livre">Formação Livre</TabsTrigger>
+          <TabsTrigger value="eja">EJA</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-4">
@@ -350,7 +403,7 @@ export default function Certificacoes() {
               <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className={`grid grid-cols-1 gap-4 ${activeTab === 'segunda' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
                 <div>
                   <Label htmlFor="search">Buscar</Label>
                   <div className="relative">
@@ -393,6 +446,22 @@ export default function Certificacoes() {
                     </SelectContent>
                   </Select>
                 </div>
+                {activeTab === 'segunda' && (
+                  <div>
+                    <Label htmlFor="filter-subcategoria">Subcategoria</Label>
+                    <Select value={filterSubcategoria} onValueChange={setFilterSubcategoria}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas as subcategorias" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todas">Todas</SelectItem>
+                        <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                        <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                        <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="filter-periodo">Período</Label>
                   <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
@@ -450,6 +519,11 @@ export default function Certificacoes() {
                           <div className="font-semibold text-lg">{certification.aluno}</div>
                           <div className="text-sm text-gray-600">CPF: {certification.cpf}</div>
                           <div className="text-sm text-gray-600">Curso: {certification.curso}</div>
+                          {activeTab === 'segunda' && certification.subcategoria && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              {SUBCATEGORIA_LABELS[certification.subcategoria as keyof typeof SUBCATEGORIA_LABELS]}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <div className="text-sm font-medium text-gray-700">Modalidade</div>
@@ -554,6 +628,21 @@ export default function Certificacoes() {
                   onChange={(e) => setSelectedCertification({ ...selectedCertification, curso: e.target.value })}
                 />
               </div>
+              {activeTab === 'segunda' && (
+                <div>
+                  <Label htmlFor="edit-subcategoria">Subcategoria</Label>
+                  <Select value={selectedCertification.subcategoria || ''} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, subcategoria: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                      <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                      <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="edit-status">Status</Label>
                 <Select value={selectedCertification.status} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, status: value })}>

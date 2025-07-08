@@ -102,7 +102,7 @@ export interface IStorage {
   updateUserActivity(id: number, activity: Partial<UserActivity>): Promise<UserActivity | undefined>;
   
   // Certifications
-  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string }): Promise<Certification[]>;
+  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; subcategoria?: string }): Promise<Certification[]>;
   createCertification(certification: InsertCertification): Promise<Certification>;
   updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
   deleteCertification(id: number): Promise<void>;
@@ -518,7 +518,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Certificações
-  async getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string }): Promise<Certification[]> {
+  async getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; subcategoria?: string }): Promise<Certification[]> {
     let conditions = [];
     
     if (filters) {
@@ -533,6 +533,9 @@ export class DatabaseStorage implements IStorage {
       }
       if (filters.categoria) {
         conditions.push(eq(certifications.categoria, filters.categoria));
+      }
+      if (filters.subcategoria) {
+        conditions.push(eq(certifications.subcategoria, filters.subcategoria));
       }
     }
     
