@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, XCircle, Settings, Phone, Mail, User } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, Phone, Mail, User, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface TestResult {
   success: boolean;
@@ -24,6 +25,11 @@ export default function IntegracaoBotConversa() {
   const [webhookData, setWebhookData] = useState('');
   
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleBackToDashboard = () => {
+    navigate('/');
+  };
 
   // Configurações da conta comercial extraídas das imagens
   const comercialConfig = {
@@ -197,6 +203,15 @@ export default function IntegracaoBotConversa() {
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex items-center gap-2 mb-6">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleBackToDashboard}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 min-h-[44px] px-2 md:px-3"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Dashboard</span>
+        </Button>
         <Settings className="h-6 w-6" />
         <h1 className="text-2xl font-bold">Integração BotConversa</h1>
       </div>
