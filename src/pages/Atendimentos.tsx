@@ -1,4 +1,3 @@
-
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAtendimentos } from "@/hooks/useAtendimentos";
@@ -39,8 +38,9 @@ const Atendimentos = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const handleStatusChange = (id: string, newStatus: string) => {
-    updateStatus(id, newStatus as any);
+  const handleStatusChange = (id: string | number, newStatus: string) => {
+    // Convert id to string to match the expected type
+    updateStatus(String(id), newStatus as any);
   };
 
   const getStatusBadge = (status: string) => {
@@ -124,7 +124,7 @@ const Atendimentos = () => {
                       <SelectValue placeholder="Período" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="hoje">Hoje</SelectItem>
                       <SelectItem value="ontem">Ontem</SelectItem>
                       <SelectItem value="esta-semana">Esta Semana</SelectItem>
@@ -138,7 +138,7 @@ const Atendimentos = () => {
                       <SelectValue placeholder="Atendente" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="ana">Ana Santos</SelectItem>
                       <SelectItem value="carlos">Carlos Lima</SelectItem>
                       <SelectItem value="bruna">Bruna Reis</SelectItem>
@@ -150,7 +150,7 @@ const Atendimentos = () => {
                       <SelectValue placeholder="Equipe" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="todas">Todas</SelectItem>
                       <SelectItem value="vendas">Vendas</SelectItem>
                       <SelectItem value="suporte">Suporte</SelectItem>
                       <SelectItem value="comercial">Comercial</SelectItem>
@@ -161,7 +161,7 @@ const Atendimentos = () => {
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="concluido">Concluído</SelectItem>
                       <SelectItem value="andamento">Em andamento</SelectItem>
                       <SelectItem value="pendente">Pendente</SelectItem>
