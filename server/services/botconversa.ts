@@ -34,18 +34,38 @@ export class BotConversaService {
   // Fazer requisição para API do BotConversa
   private async makeRequest(endpoint: string, account: 'SUPORTE' | 'COMERCIAL', options: RequestInit = {}) {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers = getAuthHeaders(account);
+    const apiKey = BOTCONVERSA_CONFIG.API_KEYS[account];
+    
+    // Verifica se a chave API está configurada
+    if (!apiKey) {
+      throw new Error(`Chave API não configurada para a conta ${account}`);
+    }
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'BotConversa-Analytics/1.0',
+      'Authorization': apiKey,
+      ...options.headers
+    };
     
     const response = await fetch(url, {
       ...options,
-      headers: {
-        ...headers,
-        ...options.headers
-      }
+      headers
     });
     
     if (!response.ok) {
       const errorText = await response.text();
+      
+      // Log detalhado para debug
+      console.error(`Erro BotConversa API:`, {
+        account,
+        endpoint,
+        status: response.status,
+        statusText: response.statusText,
+        response: errorText,
+        headers: Object.keys(headers)
+      });
+      
       throw new Error(`BotConversa API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     

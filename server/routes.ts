@@ -818,6 +818,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Endpoint para diagnóstico da API BotConversa
+  app.post("/api/botconversa/diagnose", authenticateToken, async (req: any, res) => {
+    try {
+      const { account = 'COMERCIAL' } = req.body;
+      const apiKey = account === 'SUPORTE' ? 
+        process.env.BOTCONVERSA_SUPORTE_KEY : 
+        process.env.BOTCONVERSA_COMERCIAL_KEY;
+      
+      const baseUrl = 'https://backend.botconversa.com.br/api/v1/webhook';
+      const results = [];
+      
+      // Testa diferentes formatos de autenticação
+      const testConfigs = [
+        { name: 'x-api-key', headers: { 'x-api-key': apiKey } },
+        { name: 'Authorization Bearer', headers: { 'Authorization': `Bearer ${apiKey}` } },
+        { name: 'Authorization Direct', headers: { 'Authorization': apiKey } },
+        { name: 'api-key', headers: { 'api-key': apiKey } }
+      ];
+      
+      for (const config of testConfigs) {
+        try {
+          const response = await fetch(`${baseUrl}/tags/`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'BotConversa-Analytics/1.0',
+              ...config.headers
+            }
+          });
+          
+          const responseText = await response.text();
+          results.push({
+            config: config.name,
+            status: response.status,
+            success: response.ok,
+            response: responseText.substring(0, 200) + (responseText.length > 200 ? '...' : '')
+          });
+          
+        } catch (error) {
+          results.push({
+            config: config.name,
+            status: 'ERROR',
+            success: false,
+            error: error.message
+          });
+        }
+      }
+      
+      res.json({
+        account,
+        apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'NÃO CONFIGURADA',
+        results
+      });
+      
+    } catch (error) {
+      console.error("Erro no diagnóstico:", error);
+      res.status(500).json({ 
+        error: "Erro no diagnóstico",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
 
   return httpServer;
 }
