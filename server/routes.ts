@@ -401,6 +401,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/users/:userId/activity", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Usuários só podem registrar sua própria atividade
+      if (req.user.id !== parseInt(userId)) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const activityData = req.body;
+      const activity = await storage.createUserActivity({
+        ...activityData,
+        userId: parseInt(userId)
+      });
+      
+      res.status(201).json(activity);
+    } catch (error) {
+      console.error("Erro ao criar atividade:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Rotas para atendimento ao aluno
+  app.post("/api/conversations", authenticateToken, async (req: any, res) => {
+    try {
+      const conversationData = req.body;
+      const conversation = await storage.createConversation({
+        ...conversationData,
+        attendantId: conversationData.attendantId || req.user.id
+      });
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error("Erro ao criar conversa:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/conversations/:conversationId/messages", authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+      
+      const messages = await storage.getConversationMessages(
+        parseInt(conversationId), 
+        parseInt(limit as string), 
+        parseInt(offset as string)
+      );
+      
+      res.json(messages);
+    } catch (error) {
+      console.error("Erro ao buscar mensagens da conversa:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/conversations/:conversationId/messages", authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const { content, type = "text", isFromStudent = false } = req.body;
+      
+      const message = await storage.createAttendanceMessage({
+        conversationId: parseInt(conversationId),
+        senderId: req.user.id,
+        content,
+        type,
+        isFromStudent
+      });
+
+      // Emit via WebSocket para atualização em tempo real
+      io.to(`conversation_${conversationId}`).emit('new_attendance_message', message);
+      
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Erro ao criar mensagem de atendimento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/conversations/:conversationId/notes", authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const notes = await storage.getConversationNotes(parseInt(conversationId));
+      res.json(notes);
+    } catch (error) {
+      console.error("Erro ao buscar notas da conversa:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/conversations/:conversationId/notes", authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const { content } = req.body;
+      
+      const note = await storage.createInternalNote({
+        conversationId: parseInt(conversationId),
+        authorId: req.user.id,
+        content
+      });
+      
+      res.status(201).json(note);
+    } catch (error) {
+      console.error("Erro ao criar nota interna:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Rotas para relatórios e dashboards
+  app.get("/api/dashboard/stats", authenticateToken, async (req: any, res) => {
+    try {
+      // Estatísticas básicas do dashboard
+      const stats = {
+        totalConversations: 0,
+        activeAgents: 0,
+        avgResponseTime: 0,
+        todayConversations: 0
+      };
+
+      // Você pode implementar queries específicas aqui
+      res.json(stats);
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Rotas para produtividade
+  app.get("/api/productivity/metrics", authenticateToken, async (req: any, res) => {
+    try {
+      const { startDate, endDate, userId, teamId } = req.query;
+      
+      // Implementar métricas de produtividade
+      const metrics = {
+        conversationsHandled: 0,
+        avgResolutionTime: 0,
+        customerSatisfaction: 0,
+        activityScore: 0
+      };
+
+      res.json(metrics);
+    } catch (error) {
+      console.error("Erro ao buscar métricas de produtividade:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // WebSocket para tempo real
   io.on('connection', (socket) => {
     console.log('Usuário conectado:', socket.id);
@@ -408,14 +554,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Join chat rooms
     socket.on('join_chat', (chatId) => {
       socket.join(`chat_${chatId}`);
+      console.log(`Usuário ${socket.id} entrou no chat ${chatId}`);
     });
 
     // Leave chat rooms
     socket.on('leave_chat', (chatId) => {
       socket.leave(`chat_${chatId}`);
+      console.log(`Usuário ${socket.id} saiu do chat ${chatId}`);
     });
 
-    // Typing indicators
+    // Join conversation rooms (atendimento ao aluno)
+    socket.on('join_conversation', (conversationId) => {
+      socket.join(`conversation_${conversationId}`);
+      console.log(`Usuário ${socket.id} entrou na conversa ${conversationId}`);
+    });
+
+    // Leave conversation rooms
+    socket.on('leave_conversation', (conversationId) => {
+      socket.leave(`conversation_${conversationId}`);
+      console.log(`Usuário ${socket.id} saiu da conversa ${conversationId}`);
+    });
+
+    // Typing indicators para chats internos
     socket.on('typing', (data) => {
       socket.to(`chat_${data.chatId}`).emit('user_typing', {
         userId: data.userId,
@@ -427,6 +587,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       socket.to(`chat_${data.chatId}`).emit('user_stop_typing', {
         userId: data.userId
       });
+    });
+
+    // Typing indicators para conversas de atendimento
+    socket.on('conversation_typing', (data) => {
+      socket.to(`conversation_${data.conversationId}`).emit('attendant_typing', {
+        userId: data.userId,
+        username: data.username
+      });
+    });
+
+    socket.on('conversation_stop_typing', (data) => {
+      socket.to(`conversation_${data.conversationId}`).emit('attendant_stop_typing', {
+        userId: data.userId
+      });
+    });
+
+    // Notificações de status de presença
+    socket.on('update_presence', (data) => {
+      socket.broadcast.emit('user_presence_update', {
+        userId: data.userId,
+        status: data.status // online, busy, away, offline
+      });
+    });
+
+    // Notificações de metas alcançadas
+    socket.on('goal_achieved', (data) => {
+      // Notificar todos os usuários da team sobre meta alcançada
+      if (data.teamId) {
+        io.emit('team_goal_achieved', data);
+      } else {
+        io.emit('individual_goal_achieved', data);
+      }
     });
 
     socket.on('disconnect', () => {

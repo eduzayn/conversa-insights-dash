@@ -312,12 +312,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(leads.status, filters.status));
     }
     
-    let query = db.select().from(leads);
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db.select().from(leads).where(and(...conditions)).orderBy(desc(leads.createdAt));
     }
     
-    return await query.orderBy(desc(leads.createdAt));
+    return await db.select().from(leads).orderBy(desc(leads.createdAt));
   }
 
   async createLead(lead: InsertLead): Promise<Lead> {
@@ -352,12 +351,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(conversations.status, filters.status));
     }
     
-    let query = db.select().from(conversations);
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db.select().from(conversations).where(and(...conditions)).orderBy(desc(conversations.lastMessageAt));
     }
     
-    return await query.orderBy(desc(conversations.lastMessageAt));
+    return await db.select().from(conversations).orderBy(desc(conversations.lastMessageAt));
   }
 
   async createConversation(conversation: InsertConversation): Promise<Conversation> {
