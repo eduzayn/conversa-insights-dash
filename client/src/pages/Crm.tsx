@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
@@ -21,6 +21,7 @@ const Crm = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [activeCompany, setActiveCompany] = useState<'COMERCIAL' | 'SUPORTE'>('COMERCIAL');
+  const [activeAttendant, setActiveAttendant] = useState<string>('todos');
   
   const { 
     funnels, 
@@ -38,6 +39,11 @@ const Crm = () => {
     updateTeam,
     deleteTeam
   } = useCrm({ ...filters, companyAccount: activeCompany });
+
+  // Resetar filtro de atendente quando funil ou companhia muda
+  useEffect(() => {
+    setActiveAttendant('todos');
+  }, [activeFunnel, activeCompany]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -170,6 +176,31 @@ const Crm = () => {
                   </SelectContent>
                 </Select>
                 
+                <Select value={activeAttendant} onValueChange={setActiveAttendant}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Selecione o atendente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Todos os atendentes
+                      </div>
+                    </SelectItem>
+                    {activeFunnelData?.columns?.flatMap(column => 
+                      column.leads?.map(lead => lead.assignedToName).filter(Boolean) || []
+                    ).filter((name, index, array) => array.indexOf(name) === index)
+                    .map(attendantName => (
+                      <SelectItem key={attendantName} value={attendantName}>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {attendantName}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
                 <Button 
                   onClick={() => setIsSettingsModalOpen(true)} 
                   variant="outline"
@@ -244,13 +275,20 @@ const Crm = () => {
                       <div className="flex gap-4 overflow-x-auto pb-4">
                         {activeFunnelData.columns
                           .sort((a, b) => a.order - b.order)
-                          .map((column, index) => (
-                            <KanbanColumn
-                              key={column.id}
-                              column={column}
-                              index={index}
-                            />
-                          ))}
+                          .map((column, index) => {
+                            // Filtrar leads por atendente se não for "todos"
+                            const filteredLeads = activeAttendant === 'todos' 
+                              ? column.leads 
+                              : column.leads?.filter(lead => lead.assignedToName === activeAttendant) || [];
+                            
+                            return (
+                              <KanbanColumn
+                                key={column.id}
+                                column={{ ...column, leads: filteredLeads }}
+                                index={index}
+                              />
+                            );
+                          })}
                       </div>
                     </DragDropContext>
                   </div>
