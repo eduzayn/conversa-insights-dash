@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { ChatSettingsModal } from "./ChatSettingsModal";
-import { VideoCallButton } from "./VideoCallButton";
 import { Chat } from "@/types/chat";
 import { useChatContext } from "@/contexts/ChatContext";
 import { Globe, Users, MessageCircle, Settings } from "lucide-react";
@@ -92,11 +91,6 @@ export const ChatArea = ({ activeChat, currentUser }: ChatAreaProps) => {
           </div>
           
           <div className="flex items-center gap-2">
-            <VideoCallButton 
-              chat={activeChat}
-              currentUser={chatCurrentUser}
-              teamName={team?.name}
-            />
             <Button 
               variant="ghost" 
               size="sm"
