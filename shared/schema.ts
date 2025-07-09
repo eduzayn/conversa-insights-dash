@@ -209,6 +209,9 @@ export const certifications = pgTable("certifications", {
   disciplinasRestantes: integer("disciplinas_restantes"),
   telefone: text("telefone"),
   cargaHoraria: integer("carga_horaria"), // Campo para carga horária do curso
+  tcc: text("tcc").default("nao_possui"), // nao_possui, aprovado, reprovado, em_correcao
+  praticasPedagogicas: text("praticas_pedagogicas").default("nao_possui"), // nao_possui, aprovado, reprovado, em_correcao
+  estagio: text("estagio").default("nao_possui"), // nao_possui, aprovado, reprovado, em_correcao
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

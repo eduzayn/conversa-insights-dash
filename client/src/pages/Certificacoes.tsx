@@ -40,6 +40,20 @@ const SUBCATEGORIA_LABELS = {
   'pedagogia_bachareis': 'Pedagogia para Bacharéis e Tecnólogos'
 };
 
+const ACADEMIC_STATUS_LABELS = {
+  'nao_possui': 'Não Possui',
+  'aprovado': 'Aprovado',
+  'reprovado': 'Reprovado',
+  'em_correcao': 'Em Correção'
+};
+
+const ACADEMIC_STATUS_COLORS = {
+  'nao_possui': 'bg-gray-100 text-gray-800',
+  'aprovado': 'bg-green-100 text-green-800',
+  'reprovado': 'bg-red-100 text-red-800',
+  'em_correcao': 'bg-yellow-100 text-yellow-800'
+};
+
 export default function Certificacoes() {
   const [activeTab, setActiveTab] = useState('pos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,7 +105,10 @@ export default function Certificacoes() {
     diploma: '',
     status: 'pendente',
     categoria: getCategoriaFromTab(activeTab),
-    subcategoria: ''
+    subcategoria: '',
+    tcc: 'nao_possui',
+    praticasPedagogicas: 'nao_possui',
+    estagio: 'nao_possui'
   });
 
   // Limpar filtros quando a aba muda
@@ -202,6 +219,7 @@ export default function Certificacoes() {
         cpf: '',
         modalidade: '',
         curso: '',
+        cargaHoraria: '',
         financeiro: '',
         documentacao: '',
         plataforma: '',
@@ -213,7 +231,10 @@ export default function Certificacoes() {
         diploma: '',
         status: 'pendente',
         categoria: getCategoriaFromTab(activeTab),
-        subcategoria: ''
+        subcategoria: '',
+        tcc: 'nao_possui',
+        praticasPedagogicas: 'nao_possui',
+        estagio: 'nao_possui'
       });
     },
     onError: (error) => {
@@ -325,11 +346,11 @@ export default function Certificacoes() {
                     Nova Certificação
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Nova Certificação</DialogTitle>
                   </DialogHeader>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="aluno">Aluno *</Label>
                       <Input
@@ -465,7 +486,54 @@ export default function Certificacoes() {
                         onChange={(e) => setNewCertification({ ...newCertification, dataPrevista: e.target.value })}
                       />
                     </div>
-                    <div className="col-span-2">
+
+                    {/* Novos campos adicionais */}
+                    <div>
+                      <Label htmlFor="tcc">TCC</Label>
+                      <Select value={newCertification.tcc} onValueChange={(value) => setNewCertification({ ...newCertification, tcc: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status do TCC" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="nao_possui">Não Possui</SelectItem>
+                          <SelectItem value="aprovado">Aprovado</SelectItem>
+                          <SelectItem value="reprovado">Reprovado</SelectItem>
+                          <SelectItem value="em_correcao">Em Correção</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="praticasPedagogicas">Práticas Pedagógicas</Label>
+                      <Select value={newCertification.praticasPedagogicas} onValueChange={(value) => setNewCertification({ ...newCertification, praticasPedagogicas: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status das Práticas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="nao_possui">Não Possui</SelectItem>
+                          <SelectItem value="aprovado">Aprovado</SelectItem>
+                          <SelectItem value="reprovado">Reprovado</SelectItem>
+                          <SelectItem value="em_correcao">Em Correção</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="estagio">Estágio</Label>
+                      <Select value={newCertification.estagio} onValueChange={(value) => setNewCertification({ ...newCertification, estagio: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status do Estágio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="nao_possui">Não Possui</SelectItem>
+                          <SelectItem value="aprovado">Aprovado</SelectItem>
+                          <SelectItem value="reprovado">Reprovado</SelectItem>
+                          <SelectItem value="em_correcao">Em Correção</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="col-span-3">
                       <Label htmlFor="observacao">Observação</Label>
                       <Textarea
                         id="observacao"
@@ -653,6 +721,37 @@ export default function Certificacoes() {
                                 <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
                                   {STATUS_LABELS[certification.status as keyof typeof STATUS_LABELS]}
                                 </Badge>
+                                
+                                {/* Novos campos acadêmicos */}
+                                <div className="mt-2 space-y-1">
+                                  {certification.tcc && certification.tcc !== 'nao_possui' && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium">TCC:</span>
+                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.tcc as keyof typeof ACADEMIC_STATUS_COLORS]}`}>
+                                        {ACADEMIC_STATUS_LABELS[certification.tcc as keyof typeof ACADEMIC_STATUS_LABELS]}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  
+                                  {certification.praticasPedagogicas && certification.praticasPedagogicas !== 'nao_possui' && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium">Práticas:</span>
+                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.praticasPedagogicas as keyof typeof ACADEMIC_STATUS_COLORS]}`}>
+                                        {ACADEMIC_STATUS_LABELS[certification.praticasPedagogicas as keyof typeof ACADEMIC_STATUS_LABELS]}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  
+                                  {certification.estagio && certification.estagio !== 'nao_possui' && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium">Estágio:</span>
+                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.estagio as keyof typeof ACADEMIC_STATUS_COLORS]}`}>
+                                        {ACADEMIC_STATUS_LABELS[certification.estagio as keyof typeof ACADEMIC_STATUS_LABELS]}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
+                                
                                 {certification.observacao && (
                                   <div className="text-sm text-gray-600 mt-2">
                                     <strong>Obs:</strong> {certification.observacao}
@@ -700,12 +799,12 @@ export default function Certificacoes() {
 
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Editar Certificação</DialogTitle>
           </DialogHeader>
           {selectedCertification && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="edit-aluno">Aluno</Label>
                 <Input
@@ -838,7 +937,54 @@ export default function Certificacoes() {
                   onChange={(e) => setSelectedCertification({ ...selectedCertification, dataPrevista: e.target.value })}
                 />
               </div>
-              <div className="col-span-2">
+
+              {/* Novos campos no modal de edição */}
+              <div>
+                <Label htmlFor="edit-tcc">TCC</Label>
+                <Select value={selectedCertification.tcc || 'nao_possui'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, tcc: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_possui">Não Possui</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="reprovado">Reprovado</SelectItem>
+                    <SelectItem value="em_correcao">Em Correção</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-praticasPedagogicas">Práticas Pedagógicas</Label>
+                <Select value={selectedCertification.praticasPedagogicas || 'nao_possui'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, praticasPedagogicas: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_possui">Não Possui</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="reprovado">Reprovado</SelectItem>
+                    <SelectItem value="em_correcao">Em Correção</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-estagio">Estágio</Label>
+                <Select value={selectedCertification.estagio || 'nao_possui'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, estagio: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_possui">Não Possui</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="reprovado">Reprovado</SelectItem>
+                    <SelectItem value="em_correcao">Em Correção</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="col-span-3">
                 <Label htmlFor="edit-observacao">Observação</Label>
                 <Textarea
                   id="edit-observacao"
