@@ -46,6 +46,20 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
     },
   });
 
+  // Mutation para atualizar resultado CRM
+  const updateResultadoMutation = useMutation({
+    mutationFn: ({ id, resultado }: { id: string; resultado: Atendimento['resultado'] }) =>
+      atendimentosService.updateResultado(id, resultado),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['atendimentos'] });
+      toast.success('Resultado atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar resultado:', error);
+      toast.error('Erro ao atualizar resultado. Tente novamente.');
+    },
+  });
+
   // Funções de controle
   const updateFilters = useCallback((newFilters: Partial<AtendimentosFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -58,6 +72,10 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
   const updateStatus = useCallback((id: string, status: AtendimentoData['status']) => {
     updateStatusMutation.mutate({ id, status });
   }, [updateStatusMutation]);
+
+  const updateResultado = useCallback((id: string, resultado: Atendimento['resultado']) => {
+    updateResultadoMutation.mutate({ id, resultado });
+  }, [updateResultadoMutation]);
 
   const exportToCSV = useCallback(() => {
     const headers = ['Nome do Lead', 'Hora', 'Atendente', 'Equipe', 'Duração', 'Status'];
@@ -99,6 +117,7 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
     updateFilters,
     clearFilters,
     updateStatus,
+    updateResultado,
     isUpdatingStatus: updateStatusMutation.isPending,
     refetch,
     exportToCSV,

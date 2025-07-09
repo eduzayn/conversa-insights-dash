@@ -79,6 +79,24 @@ export const atendimentosService = {
     return await response.json();
   },
 
+  async updateResultado(id: string | number, resultado: Atendimento['resultado']): Promise<Atendimento> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/atendimentos/${id}/resultado`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ resultado }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao atualizar resultado: ${response.status}`);
+    }
+    
+    return await response.json();
+  },
+
   async syncConversations(): Promise<void> {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/atendimentos/sync`, {

@@ -393,7 +393,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           equipe: equipe,
           duracao: duracao,
           status: conv.status === 'active' ? 'Em andamento' : 
-                 conv.status === 'closed' ? 'Concluído' : 'Pendente'
+                 conv.status === 'closed' ? 'Concluído' : 'Pendente',
+          resultado: conv.resultado || null
         };
       }));
       
@@ -602,6 +603,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para atualizar resultado/classificação CRM
+  app.patch("/api/atendimentos/:id/resultado", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { resultado } = req.body;
+      
+      // Validar o resultado
+      const validResultados = ['venda_ganha', 'venda_perdida', 'aluno_satisfeito', 'sem_solucao'];
+      if (!validResultados.includes(resultado)) {
+        return res.status(400).json({ message: "Resultado inválido" });
+      }
+      
+      // Atualizar no banco de dados
+      const updatedConversation = await storage.updateConversation(parseInt(id), { resultado });
+      
+      if (updatedConversation) {
+        const atendimento = {
+          id: updatedConversation.id,
+          lead: updatedConversation.customerName || `Cliente ${updatedConversation.id}`,
+          hora: new Date(updatedConversation.createdAt).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          atendente: updatedConversation.attendantId ? `Atendente ${updatedConversation.attendantId}` : 'Não atribuído',
+          equipe: updatedConversation.attendantId ? 'Atendimento' : 'Não atribuído',
+          duracao: updatedConversation.status === 'closed' ? '15m' : 'Em andamento',
+          status: updatedConversation.status === 'active' ? 'Em andamento' : 
+                 updatedConversation.status === 'closed' ? 'Concluído' : 'Pendente',
+          resultado: updatedConversation.resultado
+        };
+        
+        res.json(atendimento);
+      } else {
+        res.status(404).json({ message: "Atendimento não encontrado" });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar resultado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

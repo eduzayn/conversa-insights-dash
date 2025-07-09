@@ -18,6 +18,7 @@ const Atendimentos = () => {
     updateFilters,
     clearFilters,
     updateStatus,
+    updateResultado,
     isUpdatingStatus,
     refetch,
     exportToCSV,
@@ -41,6 +42,10 @@ const Atendimentos = () => {
 
   const handleStatusChange = (id: string, newStatus: string) => {
     updateStatus(id, newStatus as any);
+  };
+
+  const handleResultadoChange = (id: string, newResultado: string) => {
+    updateResultado(id, newResultado as any);
   };
 
   return (
@@ -69,6 +74,7 @@ const Atendimentos = () => {
               isLoading={isLoading}
               isUpdatingStatus={isUpdatingStatus}
               onStatusChange={handleStatusChange}
+              onResultadoChange={handleResultadoChange}
               filters={filters}
               // Scroll infinito
               fetchNextPage={fetchNextPage}

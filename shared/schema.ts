@@ -110,6 +110,8 @@ export const conversations = pgTable("conversations", {
   leadId: integer("lead_id").notNull().references(() => leads.id),
   attendantId: integer("attendant_id").references(() => users.id),
   status: text("status").notNull().default("novo"), // novo, em_andamento, finalizado
+  // Classificação CRM do resultado
+  resultado: text("resultado"), // venda_ganha, venda_perdida, aluno_satisfeito, sem_solucao
   customerName: text("customer_name"), // Nome do cliente
   customerPhone: text("customer_phone"), // Telefone do cliente
   // Informações do atendente BotConversa

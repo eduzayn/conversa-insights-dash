@@ -11,6 +11,7 @@ interface AtendimentosTableProps {
   isLoading: boolean;
   isUpdatingStatus: boolean;
   onStatusChange: (id: string, newStatus: string) => void;
+  onResultadoChange: (id: string, newResultado: string) => void;
   filters: any;
   // Scroll infinito
   fetchNextPage?: () => void;
@@ -23,6 +24,7 @@ export const AtendimentosTable = ({
   isLoading, 
   isUpdatingStatus, 
   onStatusChange, 
+  onResultadoChange,
   filters,
   // Scroll infinito
   fetchNextPage,
@@ -38,6 +40,26 @@ export const AtendimentosTable = ({
       'Pendente': 'bg-gray-100 text-gray-800'
     };
     return variants[status as keyof typeof variants] || variants['Pendente'];
+  };
+
+  const getResultadoBadge = (resultado: string) => {
+    const variants = {
+      'venda_ganha': 'bg-green-100 text-green-800',
+      'venda_perdida': 'bg-red-100 text-red-800',
+      'aluno_satisfeito': 'bg-blue-100 text-blue-800',
+      'sem_solucao': 'bg-orange-100 text-orange-800'
+    };
+    return variants[resultado as keyof typeof variants] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getResultadoLabel = (resultado: string) => {
+    const labels = {
+      'venda_ganha': 'Venda Ganha',
+      'venda_perdida': 'Venda Perdida',
+      'aluno_satisfeito': 'Aluno Satisfeito',
+      'sem_solucao': 'Sem Solução'
+    };
+    return labels[resultado as keyof typeof labels] || 'Não classificado';
   };
 
   // Intersection Observer para detectar quando o usuário chegou ao final da lista
@@ -89,6 +111,7 @@ export const AtendimentosTable = ({
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Equipe</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Duração</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Resultado CRM</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Ações</th>
                 </tr>
               </thead>
@@ -110,20 +133,47 @@ export const AtendimentosTable = ({
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
-                      <Select
-                        value={item.status}
-                        onValueChange={(value) => onStatusChange(String(item.id), value)}
-                        disabled={isUpdatingStatus}
-                      >
-                        <SelectTrigger className="w-32 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Pendente">Pendente</SelectItem>
-                          <SelectItem value="Em andamento">Em andamento</SelectItem>
-                          <SelectItem value="Concluído">Concluído</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {item.resultado ? (
+                        <Badge className={getResultadoBadge(item.resultado)}>
+                          {getResultadoLabel(item.resultado)}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400 text-sm">Não classificado</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2">
+                        <Select
+                          value={item.status}
+                          onValueChange={(value) => onStatusChange(String(item.id), value)}
+                          disabled={isUpdatingStatus}
+                        >
+                          <SelectTrigger className="w-32 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Pendente">Pendente</SelectItem>
+                            <SelectItem value="Em andamento">Em andamento</SelectItem>
+                            <SelectItem value="Concluído">Concluído</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Select
+                          value={item.resultado || ""}
+                          onValueChange={(value) => onResultadoChange(String(item.id), value)}
+                          disabled={isUpdatingStatus}
+                        >
+                          <SelectTrigger className="w-40 h-8">
+                            <SelectValue placeholder="Classificar..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="venda_ganha">Venda Ganha</SelectItem>
+                            <SelectItem value="venda_perdida">Venda Perdida</SelectItem>
+                            <SelectItem value="aluno_satisfeito">Aluno Satisfeito</SelectItem>
+                            <SelectItem value="sem_solucao">Sem Solução</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </td>
                   </tr>
                 ))}
