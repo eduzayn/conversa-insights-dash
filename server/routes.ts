@@ -199,20 +199,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/student-login", async (req, res) => {
     try {
       const { cpf, dataNascimento } = studentLoginSchema.parse(req.body);
+      console.log("🔍 Tentativa de login:", { cpf, dataNascimento });
       
       // Buscar aluno por CPF
       const student = await storage.getUserByCpf(cpf);
+      console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, is_active: student.is_active, matricula_ativa: student.matricula_ativa, data_nascimento: student.data_nascimento } : "não encontrado");
+      
       if (!student || student.role !== 'aluno') {
+        console.log("❌ Falha: aluno não encontrado ou não é aluno");
         return res.status(401).json({ message: "Credenciais inválidas ou aluno não encontrado" });
       }
 
       // Validar data de nascimento (comparar como string no formato YYYY-MM-DD)
       const studentBirthDate = student.data_nascimento?.toISOString().split('T')[0];
+      console.log("📅 Comparação de datas:", { enviada: dataNascimento, banco: studentBirthDate });
+      
       if (studentBirthDate !== dataNascimento) {
+        console.log("❌ Falha: datas não coincidem");
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
       if (!student.is_active || !student.matricula_ativa) {
+        console.log("❌ Falha: conta inativa ou matrícula inativa");
         return res.status(401).json({ message: "Matrícula inativa ou conta desativada" });
       }
 
@@ -221,6 +229,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
+
+      console.log("✅ Login bem-sucedido para:", student.name);
 
       res.json({
         token,
