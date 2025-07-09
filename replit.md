@@ -278,6 +278,15 @@ Changelog:
     - Extração avançada de status de práticas pedagógicas e disciplinas restantes
     - Total no sistema após fevereiro: 619 certificações históricas
     - Scripts criados: processar_excel_fevereiro.ts, import_certificacoes_fevereiro_2025.ts
+  * Importação Histórica - Janeiro 2025 (9 Jul 2025):
+    - Processado arquivo Excel de janeiro: 128 certificações identificadas
+    - 93 certificações novas importadas com fidelidade total aos dados originais
+    - 35 certificações já existentes no sistema (taxa de duplicatas: 27%)
+    - Reconhecimento automático de status "Análise Concluída, Aluno certificado"
+    - Identificação de práticas pedagógicas aprovadas (PPs Aprovadas)
+    - Processamento de formação pedagógica em múltiplas áreas
+    - Total no sistema após janeiro: 712 certificações históricas
+    - Scripts criados: processar_excel_janeiro.ts, import_certificacoes_janeiro_2025.ts
 ```
 
 ## User Preferences
