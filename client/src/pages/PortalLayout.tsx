@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { StudentLayout } from "@/components/portal/StudentLayout";
+import { ModernStudentLayout } from "@/components/portal/ModernStudentLayout";
+import { StudentDashboard } from "@/components/portal/StudentDashboard";
 import MeusCursos from "./portal/MeusCursos";
 import MinhasDisciplinas from "./portal/MinhasDisciplinas";
 import MinhasAvaliacoes from "./portal/MinhasAvaliacoes";
@@ -9,7 +10,7 @@ import SuporteChat from "./portal/SuporteChat";
 import Pagamentos from "./portal/Pagamentos";
 import Documentos from "./portal/Documentos";
 import PerfilAluno from "./portal/PerfilAluno";
-import Carteirinha from "./portal/Carteirinha";
+import { ModernCarteirinha } from "@/components/portal/ModernCarteirinha";
 import NotFound from "./NotFound";
 
 interface StudentData {
@@ -51,8 +52,9 @@ export default function PortalLayout() {
   }
 
   return (
-    <StudentLayout studentData={studentData}>
+    <ModernStudentLayout studentData={studentData}>
       <Routes>
+        <Route index element={<StudentDashboard studentData={studentData} />} />
         <Route path="cursos" element={<MeusCursos />} />
         <Route path="disciplinas" element={<MinhasDisciplinas />} />
         <Route path="avaliacoes" element={<MinhasAvaliacoes />} />
@@ -61,9 +63,9 @@ export default function PortalLayout() {
         <Route path="pagamentos" element={<Pagamentos />} />
         <Route path="documentos" element={<Documentos />} />
         <Route path="perfil" element={<PerfilAluno />} />
-        <Route path="carteirinha" element={<Carteirinha />} />
+        <Route path="carteirinha" element={<ModernCarteirinha studentData={studentData} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </StudentLayout>
+    </ModernStudentLayout>
   );
 }
