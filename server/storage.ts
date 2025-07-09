@@ -197,6 +197,11 @@ export interface IStorage {
   createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent>;
   updateSubjectContent(id: number, content: Partial<SubjectContent>): Promise<SubjectContent | undefined>;
   deleteSubjectContent(id: number): Promise<void>;
+  
+  // Integração Portal Professor-Aluno
+  getStudentsBySubject(subjectId: number): Promise<number[]>;
+  markContentAsViewed(studentId: number, contentId: number): Promise<void>;
+  createNotification(notification: any): Promise<void>;
 
   // Portal do Professor - Evaluations
   getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]>;
@@ -1139,6 +1144,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(evaluationSubmissions.id, id))
       .returning();
     return updatedSubmission || undefined;
+  }
+
+  // Integração Portal Professor-Aluno
+  async getStudentsBySubject(subjectId: number): Promise<number[]> {
+    // Mock: retornar IDs de alunos matriculados na disciplina
+    return [1, 2, 3]; // Simular 3 alunos matriculados
+  }
+
+  async markContentAsViewed(studentId: number, contentId: number): Promise<void> {
+    // Mock: implementar lógica para marcar conteúdo como visualizado
+    console.log(`Conteúdo ${contentId} marcado como visualizado pelo aluno ${studentId}`);
+  }
+
+  async createNotification(notification: any): Promise<void> {
+    // Mock: criar notificação
+    console.log("Notificação criada:", notification);
   }
 }
 

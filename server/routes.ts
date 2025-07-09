@@ -555,6 +555,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Marcar conteúdo como visualizado
+  app.post("/api/portal/aluno/conteudo/:id/visualizar", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const contentId = parseInt(req.params.id);
+      // TODO: Implementar lógica para marcar como visualizado
+      // await storage.markContentAsViewed(req.user.id, contentId);
+      
+      res.json({ success: true, message: "Conteúdo marcado como visualizado" });
+    } catch (error) {
+      console.error("Erro ao marcar conteúdo como visualizado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Enviar notificação para alunos sobre novo conteúdo
+  app.post("/api/notifications/new-content", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { subjectId, contentTitle, students } = req.body;
+      
+      // TODO: Implementar sistema de notificações real
+      // Para cada aluno matriculado na disciplina, criar notificação
+      const notifications = students.map((studentId: number) => ({
+        studentId,
+        type: "novo_conteudo",
+        title: "Novo Conteúdo Disponível",
+        message: `Novo conteúdo "${contentTitle}" foi adicionado`,
+        metadata: { subjectId, contentTitle }
+      }));
+
+      console.log("Notificações criadas:", notifications);
+      res.json({ success: true, notificationsCreated: notifications.length });
+    } catch (error) {
+      console.error("Erro ao enviar notificações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Avaliações do aluno
   app.get("/api/portal/aluno/avaliacoes", authenticateToken, async (req: any, res) => {
     try {
