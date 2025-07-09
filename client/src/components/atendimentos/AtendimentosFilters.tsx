@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { AtendimentosFilters as FiltersType } from "@/types/atendimento";
+import { useFiltersData } from "@/hooks/useFiltersData";
 
 interface AtendimentosFiltersProps {
   filters: FiltersType;
@@ -13,6 +14,7 @@ interface AtendimentosFiltersProps {
 }
 
 export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }: AtendimentosFiltersProps) => {
+  const { data: filtersData, isLoading: isLoadingFilters } = useFiltersData();
   return (
     <Card>
       <CardHeader>
@@ -54,10 +56,15 @@ export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="ana">Ana Santos</SelectItem>
-              <SelectItem value="carlos">Carlos Lima</SelectItem>
-              <SelectItem value="bruna">Bruna Reis</SelectItem>
-              <SelectItem value="diego">Diego Alves</SelectItem>
+              {isLoadingFilters ? (
+                <SelectItem value="loading" disabled>Carregando...</SelectItem>
+              ) : (
+                filtersData?.atendentes?.filter(Boolean).map((atendente) => (
+                  <SelectItem key={atendente} value={atendente}>
+                    {atendente}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
           <Select value={filters.equipe || ''} onValueChange={(value) => onUpdateFilters({ equipe: value })}>
@@ -66,9 +73,15 @@ export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas</SelectItem>
-              <SelectItem value="vendas">Vendas</SelectItem>
-              <SelectItem value="suporte">Suporte</SelectItem>
-              <SelectItem value="comercial">Comercial</SelectItem>
+              {isLoadingFilters ? (
+                <SelectItem value="loading" disabled>Carregando...</SelectItem>
+              ) : (
+                filtersData?.equipes?.filter(Boolean).map((equipe) => (
+                  <SelectItem key={equipe} value={equipe}>
+                    {equipe}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
           <Select value={filters.status || ''} onValueChange={(value) => onUpdateFilters({ status: value })}>
@@ -77,9 +90,15 @@ export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="concluido">Concluído</SelectItem>
-              <SelectItem value="andamento">Em andamento</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
+              {isLoadingFilters ? (
+                <SelectItem value="loading" disabled>Carregando...</SelectItem>
+              ) : (
+                filtersData?.status?.filter(Boolean).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
