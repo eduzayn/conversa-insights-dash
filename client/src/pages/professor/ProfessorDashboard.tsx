@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -14,24 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 
 export default function ProfessorDashboard() {
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ["/api/professor/dashboard"],
-  });
-
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-64"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-200 rounded"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const stats = dashboardData?.stats || {
+  const stats = {
     totalDisciplinas: 3,
     totalConteudos: 24,
     totalAvaliacoes: 8,
@@ -40,7 +22,7 @@ export default function ProfessorDashboard() {
     interacoesRecentes: 23,
   };
 
-  const recentActivities = dashboardData?.recentActivities || [
+  const recentActivities = [
     {
       id: 1,
       type: "avaliacao",
