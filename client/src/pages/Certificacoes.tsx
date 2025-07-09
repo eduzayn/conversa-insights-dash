@@ -161,13 +161,39 @@ export default function Certificacoes() {
     }
   };
 
-  // Query para buscar cursos pré-cadastrados
+  // Query para buscar cursos pré-cadastrados para criação
   const { data: preRegisteredCourses = [] } = useQuery({
-    queryKey: ['/api/cursos-pre-cadastrados', { categoria: getCategoriaFromTab(activeTab) }],
+    queryKey: ['/api/cursos-pre-cadastrados', { categoria: getCategoriaFromTab(activeTab), modalidade: newCertification.modalidade }],
     queryFn: async () => {
-      const response = await apiRequest(`/api/cursos-pre-cadastrados?categoria=${getCategoriaFromTab(activeTab)}`);
+      const params = new URLSearchParams({
+        categoria: getCategoriaFromTab(activeTab)
+      });
+      
+      if (newCertification.modalidade) {
+        params.append('modalidade', newCertification.modalidade);
+      }
+      
+      const response = await apiRequest(`/api/cursos-pre-cadastrados?${params}`);
       return response;
     }
+  });
+
+  // Query para buscar cursos pré-cadastrados para edição
+  const { data: editPreRegisteredCourses = [] } = useQuery({
+    queryKey: ['/api/cursos-pre-cadastrados-edit', { categoria: getCategoriaFromTab(activeTab), modalidade: selectedCertification?.modalidade }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        categoria: getCategoriaFromTab(activeTab)
+      });
+      
+      if (selectedCertification?.modalidade) {
+        params.append('modalidade', selectedCertification.modalidade);
+      }
+      
+      const response = await apiRequest(`/api/cursos-pre-cadastrados?${params}`);
+      return response;
+    },
+    enabled: !!selectedCertification
   });
 
   const { data: certifications = [], isLoading } = useQuery({
@@ -932,12 +958,12 @@ export default function Certificacoes() {
                       <CommandList className="max-h-60">
                         <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
                         <CommandGroup>
-                          {preRegisteredCourses.map((course) => (
+                          {editPreRegisteredCourses.map((course) => (
                             <CommandItem
                               key={course.id}
                               value={course.nome}
                               onSelect={(currentValue) => {
-                                const selectedCourse = preRegisteredCourses.find(c => c.nome === currentValue);
+                                const selectedCourse = editPreRegisteredCourses.find(c => c.nome === currentValue);
                                 setSelectedCertification({ 
                                   ...selectedCertification, 
                                   curso: currentValue,
