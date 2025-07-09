@@ -25,7 +25,8 @@ const menuItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
   { icon: UserCheck, label: "Atendimento ao Aluno", path: "/atendimento-aluno" },
   { icon: MessagesSquare, label: "Chat Interno", path: "/chat-interno" },
-  { icon: Kanban, label: "CRM", path: "/crm" },
+  // TEMPORARIAMENTE DESABILITADO: CRM será reativado em breve após ajustes de performance
+  // { icon: Kanban, label: "CRM", path: "/crm" },
   { icon: Award, label: "Certificações", path: "/certificacoes" },
   { icon: Users, label: "Atendimentos", path: "/atendimentos" },
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
