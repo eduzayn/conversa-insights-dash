@@ -14,7 +14,7 @@ interface StudentData {
 }
 
 export default function StudentPortal() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
 
   useEffect(() => {
@@ -28,7 +28,10 @@ export default function StudentPortal() {
     }
 
     try {
-      setStudentData(JSON.parse(data));
+      const parsedData = JSON.parse(data);
+      setStudentData(parsedData);
+      // Redirecionar para /portal para usar o layout correto
+      setLocation('/portal');
     } catch (error) {
       console.error('Erro ao carregar dados do aluno:', error);
       setLocation('/portal-aluno/login');
@@ -45,13 +48,6 @@ export default function StudentPortal() {
       </div>
     );
   }
-
-  useEffect(() => {
-    // Redirecionar para /portal para usar o layout correto
-    if (studentData) {
-      setLocation('/portal');
-    }
-  }, [studentData, setLocation]);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
