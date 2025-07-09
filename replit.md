@@ -237,14 +237,12 @@ Changelog:
     - Scroll vertical implementado para modais com muito conteúdo
     - Campo de Status movido para o topo do modal com destaque visual (fundo azul)
     - Indicadores visuais com bolinhas coloridas para cada status nos dropdowns
-  * Importação Complementar de Dados - Junho 2025 (9 Jul 2025):
-    - Análise do arquivo PDF de junho identificou 28 certificações
-    - 20 certificações já estavam no sistema (71% de cobertura)
-    - 8 certificações restantes foram importadas com sucesso
-    - Total no sistema agora: 129 certificações
-    - Modalidades importadas: Segunda Licenciatura, Formação Pedagógica, Pós-Graduação, Diplomação por Competência
-    - Casos especiais tratados: CPFs duplicados com cursos diferentes, status variados (concluído, em andamento, cancelado, pendente)
-    - Scripts de análise e importação automatizados criados (analise_dados_junho.ts, import_certificacoes_junho_restantes.ts)
+  * Correção e Expansão - Junho 2025 (9 Jul 2025):
+    - CORREÇÃO: Arquivo completo de junho processado com 124 certificações (não apenas 8)
+    - 94 certificações novas importadas do arquivo Excel completo
+    - 30 certificações já existentes no sistema (taxa de duplicatas: 24%)
+    - Processamento completo de modalidades: Segunda Licenciatura, Pós-Graduação, Formação Pedagógica, Formação Livre
+    - Scripts criados: processar_excel_junho_completo.ts, import_certificacoes_junho_2025_completo.ts
   * Importação Histórica Completa - Maio 2025 (9 Jul 2025):
     - Processado arquivo Excel completo de maio: 173 certificações identificadas
     - 170 certificações novas importadas com sucesso (98.3% de taxa de sucesso)
@@ -287,6 +285,13 @@ Changelog:
     - Processamento de formação pedagógica em múltiplas áreas
     - Total no sistema após janeiro: 712 certificações históricas
     - Scripts criados: processar_excel_janeiro.ts, import_certificacoes_janeiro_2025.ts
+  * Cursos de Segunda Licenciatura Adicionados (9 Jul 2025):
+    - 17 cursos de Segunda Licenciatura cadastrados no sistema
+    - Modalidades: Educação Especial, Educação Física, Ciências da Religião, Filosofia, Geografia, Letras, Matemática, Sociologia, Artes Visuais, História, Ciências Biológicas, Artes, Física, Química, Música
+    - Carga horária padronizada: 1320 horas para todos os cursos
+    - Áreas organizadas: Educação, Educação Física, Ciências Humanas, Letras, Ciências Exatas, Artes, Ciências Biológicas
+    - Total de cursos pré-cadastrados: 88 cursos ativos no sistema
+    - Total final de certificações históricas: 806 certificações (janeiro a julho 2025)
 ```
 
 ## User Preferences
