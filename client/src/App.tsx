@@ -20,6 +20,7 @@ import Certificacoes from "./pages/admin/Certificacoes";
 import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
 import StudentLogin from "./pages/portal/StudentLogin";
+import LoginRouter from "./components/LoginRouter";
 
 import PortalLayout from "./pages/portal/PortalLayout";
 import ProfessorLogin from "./pages/professor/ProfessorLogin";
@@ -36,7 +37,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<LoginRouter />} />
+            <Route path="/admin/login" element={<Login />} />
             <Route path="/" element={<Index />} />
             <Route path="/atendimentos" element={<Atendimentos />} />
             <Route path="/atendimento-aluno" element={<AtendimentoAluno />} />
