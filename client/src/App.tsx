@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Router } from "wouter";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import Index from "./pages/admin/Index";
@@ -51,8 +52,11 @@ const App = () => (
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
-            <Route path="/portal-aluno" element={<StudentPortal />} />
-            <Route path="/portal/*" element={<PortalLayout />} />
+            <Route path="/portal/*" element={
+              <Router>
+                <PortalLayout />
+              </Router>
+            } />
             {/* Portal do Professor */}
             <Route path="/professor-login" element={<ProfessorLogin />} />
             <Route path="/professor/login" element={<ProfessorLogin />} />
