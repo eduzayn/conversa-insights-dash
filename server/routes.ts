@@ -199,10 +199,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/student-login", async (req, res) => {
     try {
       const { cpf, dataNascimento } = studentLoginSchema.parse(req.body);
-      console.log("🔍 Tentativa de login:", { cpf, dataNascimento });
+      
+      // Limpar CPF removendo formatação
+      const cleanCpf = cpf.replace(/\D/g, '');
+      console.log("🔍 Tentativa de login:", { cpf: cleanCpf, dataNascimento });
       
       // Buscar aluno por CPF
-      const student = await storage.getUserByCpf(cpf);
+      const student = await storage.getUserByCpf(cleanCpf);
       console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, is_active: student.is_active, matricula_ativa: student.matricula_ativa, data_nascimento: student.data_nascimento } : "não encontrado");
       
       if (!student || student.role !== 'aluno') {

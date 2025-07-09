@@ -60,7 +60,12 @@ export default function StudentLogin() {
 
   const onSubmit = (data: StudentLoginForm) => {
     setError("");
-    loginMutation.mutate(data);
+    // Remover formatação do CPF antes de enviar
+    const cleanData = {
+      ...data,
+      cpf: data.cpf.replace(/\D/g, '') // Remove pontos e traços
+    };
+    loginMutation.mutate(cleanData);
   };
 
   const formatCPF = (value: string) => {
