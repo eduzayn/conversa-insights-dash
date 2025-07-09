@@ -12,6 +12,7 @@ import { FileText, Clock, Users, Plus, Settings, BarChart3, Edit, Trash2, CheckC
 
 export default function Avaliacoes() {
   const [currentQuestion, setCurrentQuestion] = useState(1);
+  const [activeTab, setActiveTab] = useState("listar");
   const [questions, setQuestions] = useState([
     {
       id: 1,
@@ -74,7 +75,7 @@ export default function Avaliacoes() {
           <h1 className="text-3xl font-bold text-gray-900">Avaliações e Simulados</h1>
           <p className="text-gray-600 mt-2">Crie e gerencie provas, simulados e exercícios</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setActiveTab("criar")}>
           <Plus className="h-4 w-4" />
           Nova Avaliação
         </Button>
@@ -124,7 +125,7 @@ export default function Avaliacoes() {
         </Card>
       </div>
 
-      <Tabs defaultValue="listar" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="listar">Minhas Avaliações</TabsTrigger>
           <TabsTrigger value="criar">Criar Avaliação</TabsTrigger>
