@@ -51,7 +51,7 @@ export default function Conteudos() {
     }
   ];
 
-  const filteredContents = selectedSubject 
+  const filteredContents = selectedSubject && selectedSubject !== "all"
     ? contents.filter(content => content.subjectId === parseInt(selectedSubject))
     : contents;
 
@@ -161,7 +161,7 @@ export default function Conteudos() {
                   <SelectValue placeholder="Todas as disciplinas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as disciplinas</SelectItem>
+                  <SelectItem value="all">Todas as disciplinas</SelectItem>
                   {subjects.map(subject => (
                     <SelectItem key={subject.id} value={subject.id.toString()}>
                       {subject.codigo} - {subject.nome}
