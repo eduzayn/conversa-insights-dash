@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { BarChart3, Eye, EyeOff, Users, Building } from "lucide-react";
-import { COMPANIES, getDepartmentsByCompany } from "../../../shared/company-config";
+import { COMPANIES, getDepartmentsByCompany } from "@shared/company-config";
 
 const Login = () => {
   const [username, setUsername] = useState("");
