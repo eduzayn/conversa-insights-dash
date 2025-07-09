@@ -3,6 +3,26 @@ import { storage } from '../storage';
 import { routingService } from './routing';
 import type { Lead, InsertLead, Conversation, InsertConversation, AttendanceMessage, InsertAttendanceMessage } from '@shared/schema';
 
+export interface BotConversaManager {
+  id: number;
+  email: string;
+  full_name: string;
+  dashboard: boolean;
+  campaigns: boolean;
+  audience: boolean;
+  assign_chat: number;
+  automation: boolean;
+  flows: boolean;
+  settings: boolean;
+  live_chat: boolean;
+  live_chat_all: boolean;
+  live_chat_my_busy: boolean;
+  live_chat_all_busy: boolean;
+  broadcasts: boolean;
+  adding_new_managers: boolean;
+  online_status: number;
+}
+
 export interface BotConversaSubscriber {
   id: string;
   phone: string;
@@ -23,6 +43,9 @@ export interface BotConversaSubscriber {
   campaigns?: any[];
   variables?: Record<string, any>;
   sequences?: any[];
+  // Campos para atribuição de atendente
+  assigned_manager?: BotConversaManager;
+  assigned_manager_id?: number;
 }
 
 export interface BotConversaWebhookData {
@@ -42,6 +65,7 @@ export interface BotConversaWebhookData {
 
 export class BotConversaService {
   private baseUrl = BOTCONVERSA_CONFIG.API_BASE_URL;
+  private managersCache: Map<string, BotConversaManager[]> = new Map(); // Cache para managers por conta
   
   // Fazer requisição para API do BotConversa
   private async makeRequest(endpoint: string, account: 'SUPORTE' | 'COMERCIAL', options: RequestInit = {}) {
@@ -84,6 +108,119 @@ export class BotConversaService {
     return response.json();
   }
   
+  // Buscar managers de uma conta
+  async getManagers(account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaManager[]> {
+    try {
+      // Verifica cache primeiro
+      const cached = this.managersCache.get(account);
+      if (cached) {
+        return cached;
+      }
+
+      const data = await this.makeRequest('/managers/', account, { method: 'GET' });
+      const managers = data || [];
+      
+      // Salva no cache
+      this.managersCache.set(account, managers);
+      
+      return managers;
+    } catch (error) {
+      console.error(`Erro ao buscar managers da conta ${account}:`, error);
+      return [];
+    }
+  }
+
+  // Buscar manager por ID
+  async getManagerById(managerId: number, account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaManager | null> {
+    try {
+      const managers = await this.getManagers(account);
+      return managers.find(m => m.id === managerId) || null;
+    } catch (error) {
+      console.error(`Erro ao buscar manager ${managerId} da conta ${account}:`, error);
+      return null;
+    }
+  }
+
+  // Detectar manager atribuído ao subscriber
+  private async detectAssignedManager(subscriber: BotConversaSubscriber, account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaManager | null> {
+    try {
+      const managers = await this.getManagers(account);
+      
+      // Estratégia 1: Verificar se há um manager_id no subscriber
+      if (subscriber.assigned_manager_id) {
+        return await this.getManagerById(subscriber.assigned_manager_id, account);
+      }
+      
+      // Estratégia 2: Verificar campos personalizados por manager
+      if (subscriber.custom_fields) {
+        const managerFields = ['manager_id', 'assignedTo', 'atendente', 'responsible'];
+        for (const field of managerFields) {
+          if (subscriber.custom_fields[field]) {
+            const managerId = parseInt(subscriber.custom_fields[field]);
+            if (!isNaN(managerId)) {
+              return await this.getManagerById(managerId, account);
+            }
+          }
+        }
+      }
+      
+      // Estratégia 3: Verificar variáveis do BotConversa
+      if (subscriber.variables) {
+        const managerFields = ['manager_id', 'assignedTo', 'atendente', 'responsible'];
+        for (const field of managerFields) {
+          if (subscriber.variables[field]) {
+            const managerId = parseInt(subscriber.variables[field]);
+            if (!isNaN(managerId)) {
+              return await this.getManagerById(managerId, account);
+            }
+          }
+        }
+      }
+      
+      // Estratégia 4: Verificar se há um manager implícito baseado em tags/estado
+      if (subscriber.tags) {
+        // Procurar por tags que correspondem a nomes de managers
+        for (const tag of subscriber.tags) {
+          const manager = managers.find(m => 
+            m.full_name.toLowerCase().includes(tag.toLowerCase()) ||
+            m.email.toLowerCase().includes(tag.toLowerCase())
+          );
+          if (manager) {
+            return manager;
+          }
+        }
+      }
+      
+      // Estratégia 5: Usar distribuição round-robin baseada em assign_chat
+      // Se não há atribuição específica, usar managers com assign_chat > 0
+      const availableManagers = managers.filter(m => m.assign_chat > 0);
+      
+      if (availableManagers.length > 0) {
+        // Ordenar por assign_chat (prioridade) e depois por ID para consistência
+        availableManagers.sort((a, b) => {
+          if (a.assign_chat !== b.assign_chat) {
+            return b.assign_chat - a.assign_chat; // Maior prioridade primeiro
+          }
+          return a.id - b.id; // ID menor primeiro para consistência
+        });
+        
+        // Usar hash simples baseado no ID do subscriber para distribuição consistente
+        const subscriberHash = parseInt(subscriber.id) || 0;
+        const managerIndex = subscriberHash % availableManagers.length;
+        const selectedManager = availableManagers[managerIndex];
+        
+        console.log(`Auto-atribuição: ${subscriber.phone} → ${selectedManager.full_name} (${account})`);
+        return selectedManager;
+      }
+      
+      // Se não encontrou nenhum manager específico, retornar null
+      return null;
+    } catch (error) {
+      console.error(`Erro ao detectar manager atribuído para subscriber ${subscriber.id}:`, error);
+      return null;
+    }
+  }
+
   // Buscar subscriber por telefone
   async getSubscriberByPhone(phone: string, account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber | null> {
     try {
@@ -425,7 +562,23 @@ export class BotConversaService {
       conv.status === 'active'
     );
     
+    // Detectar manager atribuído ao subscriber
+    const assignedManager = await this.detectAssignedManager(subscriber, account);
+    
     if (existingConversation) {
+      // Atualizar informações do manager se mudou
+      if (assignedManager && (
+        existingConversation.botconversaManagerId !== assignedManager.id ||
+        existingConversation.botconversaManagerName !== assignedManager.full_name
+      )) {
+        await storage.updateConversation(existingConversation.id, {
+          botconversaManagerId: assignedManager.id,
+          botconversaManagerName: assignedManager.full_name,
+          botconversaManagerEmail: assignedManager.email
+        });
+        
+        console.log(`Manager atualizado para conversa ${existingConversation.id}: ${assignedManager.full_name}`);
+      }
       return existingConversation;
     }
     
@@ -458,7 +611,7 @@ export class BotConversaService {
       }
     }
     
-    // Criar nova conversa
+    // Criar nova conversa com informações do manager
     const newConversation: InsertConversation = {
       leadId: lead.id,
       attendantId: null,
@@ -467,13 +620,23 @@ export class BotConversaService {
     
     const conversation = await storage.createConversation(newConversation);
     
-    // Atualizar com informações do cliente
-    await storage.updateConversation(conversation.id, {
+    // Atualizar com informações do cliente e manager
+    const updateData: any = {
       customerName: customerName,
       customerPhone: subscriber.phone
-    });
+    };
     
-    return { ...conversation, customerName: customerName, customerPhone: subscriber.phone };
+    if (assignedManager) {
+      updateData.botconversaManagerId = assignedManager.id;
+      updateData.botconversaManagerName = assignedManager.full_name;
+      updateData.botconversaManagerEmail = assignedManager.email;
+      
+      console.log(`Manager atribuído à nova conversa: ${assignedManager.full_name}`);
+    }
+    
+    await storage.updateConversation(conversation.id, updateData);
+    
+    return { ...conversation, ...updateData };
   }
   
   // Extrair nome do cliente de diferentes fontes

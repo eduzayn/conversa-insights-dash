@@ -349,15 +349,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Buscar informações do atendente
-        const attendant = conv.attendantId ? await storage.getUser(conv.attendantId) : null;
-        const attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
-        
-        // Determinar equipe baseada no atendente
+        let attendantName = 'Não atribuído';
         let equipe = 'Não atribuído';
-        if (attendant) {
-          // Buscar team do atendente
-          const attendantTeam = teams.find(t => t.id === attendant.teamId);
-          equipe = attendantTeam ? attendantTeam.name : 'Atendimento';
+        
+        // Priorizar informações do BotConversa se disponíveis
+        if (conv.botconversaManagerName) {
+          attendantName = conv.botconversaManagerName;
+          
+          // Determinar equipe baseada no email do manager
+          if (conv.botconversaManagerEmail) {
+            // Mapear domínios/emails para equipes
+            const emailToTeam = {
+              'cobrancazayn22@gmail.com': 'Cobrança',
+              'elainezaynfinanceiro@gmail.com': 'Financeiro',
+              'juliazayn2018@gmail.com': 'Atendimento',
+              'miguelmourazayn@gmail.com': 'Atendimento',
+              'camilacobrancazayn24@gmail.com': 'Cobrança',
+              'ericktrabalhofamiliar@gmail.com': 'Relacionamento',
+              'danielatovarzayn@gmail.com': 'Relacionamento',
+              'carla-diniz@eduzayn.com.br': 'Atendimento',
+              'pedagogico@grupozayneducacional.com.br': 'Pedagógico',
+              'kamilledigital23@gmail.com': 'Marketing',
+              'amanda_monyck@hotmail.com': 'Suporte',
+              'zayn65675@gmail.com': 'Suporte',
+              'yasminvitorino.office@gmail.com': 'Comercial',
+              'brenodantas28@gmail.com': 'Comercial',
+              'jhonatapimenteljgc38@gmail.com': 'Comercial'
+            };
+            
+            equipe = emailToTeam[conv.botconversaManagerEmail] || 'Atendimento';
+          }
+        } else {
+          // Fallback para atendente do sistema local
+          const attendant = conv.attendantId ? await storage.getUser(conv.attendantId) : null;
+          attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
+          
+          if (attendant) {
+            const attendantTeam = teams.find(t => t.id === attendant.teamId);
+            equipe = attendantTeam ? attendantTeam.name : 'Atendimento';
+          }
         }
         
         return {

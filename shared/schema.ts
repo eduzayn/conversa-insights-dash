@@ -112,6 +112,10 @@ export const conversations = pgTable("conversations", {
   status: text("status").notNull().default("novo"), // novo, em_andamento, finalizado
   customerName: text("customer_name"), // Nome do cliente
   customerPhone: text("customer_phone"), // Telefone do cliente
+  // Informações do atendente BotConversa
+  botconversaManagerId: integer("botconversa_manager_id"), // ID do manager no BotConversa
+  botconversaManagerName: text("botconversa_manager_name"), // Nome do manager no BotConversa
+  botconversaManagerEmail: text("botconversa_manager_email"), // Email do manager no BotConversa
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
