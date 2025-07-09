@@ -350,6 +350,42 @@ export default function Certificacoes() {
                   <DialogHeader>
                     <DialogTitle>Nova Certificação</DialogTitle>
                   </DialogHeader>
+                  {/* Campo de Status em destaque no topo */}
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <Label htmlFor="status" className="text-lg font-semibold text-blue-800">Status da Certificação</Label>
+                    <Select value={newCertification.status} onValueChange={(value) => setNewCertification({ ...newCertification, status: value })}>
+                      <SelectTrigger className="mt-2 h-12 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendente">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                            Pendente
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="em_andamento">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                            Em Andamento
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="concluido">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            Concluído
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="cancelado">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                            Cancelado
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   <div className="grid grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="aluno">Aluno *</Label>
@@ -468,26 +504,21 @@ export default function Certificacoes() {
                       </div>
                     )}
                     <div>
-                      <Label htmlFor="status">Status</Label>
-                      <Select value={newCertification.status} onValueChange={(value) => setNewCertification({ ...newCertification, status: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pendente">Pendente</SelectItem>
-                          <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                          <SelectItem value="concluido">Concluído</SelectItem>
-                          <SelectItem value="cancelado">Cancelado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
                       <Label htmlFor="dataPrevista">Data Prevista</Label>
                       <Input
                         id="dataPrevista"
                         type="date"
                         value={newCertification.dataPrevista}
                         onChange={(e) => setNewCertification({ ...newCertification, dataPrevista: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dataEntrega">Data de Entrega</Label>
+                      <Input
+                        id="dataEntrega"
+                        type="date"
+                        value={newCertification.dataEntrega}
+                        onChange={(e) => setNewCertification({ ...newCertification, dataEntrega: e.target.value })}
                       />
                     </div>
 
@@ -808,42 +839,79 @@ export default function Certificacoes() {
             <DialogTitle>Editar Certificação</DialogTitle>
           </DialogHeader>
           {selectedCertification && (
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="edit-aluno">Aluno</Label>
-                <Input
-                  id="edit-aluno"
-                  value={selectedCertification.aluno}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, aluno: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-cpf">CPF</Label>
-                <Input
-                  id="edit-cpf"
-                  value={selectedCertification.cpf}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, cpf: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-modalidade">Modalidade</Label>
-                <Select value={selectedCertification.modalidade} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, modalidade: value })}>
-                  <SelectTrigger>
+            <>
+              {/* Campo de Status em destaque no topo */}
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <Label htmlFor="edit-status" className="text-lg font-semibold text-blue-800">Status da Certificação</Label>
+                <Select value={selectedCertification.status} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, status: value })}>
+                  <SelectTrigger className="mt-2 h-12 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                    <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
-                    <SelectItem value="EJA">EJA</SelectItem>
-                    <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
-                    <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
-                    <SelectItem value="Formação livre">Formação livre</SelectItem>
-                    <SelectItem value="Graduação">Graduação</SelectItem>
-                    <SelectItem value="Capacitação">Capacitação</SelectItem>
-                    <SelectItem value="Sequencial">Sequencial</SelectItem>
+                    <SelectItem value="pendente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Pendente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="em_andamento">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        Em Andamento
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="concluido">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Concluído
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cancelado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Cancelado
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="grid grid-cols-3 gap-6">
+                <div>
+                  <Label htmlFor="edit-aluno">Aluno</Label>
+                  <Input
+                    id="edit-aluno"
+                    value={selectedCertification.aluno}
+                    onChange={(e) => setSelectedCertification({ ...selectedCertification, aluno: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-cpf">CPF</Label>
+                  <Input
+                    id="edit-cpf"
+                    value={selectedCertification.cpf}
+                    onChange={(e) => setSelectedCertification({ ...selectedCertification, cpf: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-modalidade">Modalidade</Label>
+                  <Select value={selectedCertification.modalidade} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, modalidade: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
+                      <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
+                      <SelectItem value="EJA">EJA</SelectItem>
+                      <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
+                      <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
+                      <SelectItem value="Formação livre">Formação livre</SelectItem>
+                      <SelectItem value="Graduação">Graduação</SelectItem>
+                      <SelectItem value="Capacitação">Capacitação</SelectItem>
+                      <SelectItem value="Sequencial">Sequencial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               <div className="col-span-2">
                 <Label htmlFor="edit-curso">Curso</Label>
                 <Popover open={editCourseSearchOpen} onOpenChange={setEditCourseSearchOpen}>
@@ -923,26 +991,21 @@ export default function Certificacoes() {
                 </div>
               )}
               <div>
-                <Label htmlFor="edit-status">Status</Label>
-                <Select value={selectedCertification.status} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
                 <Label htmlFor="edit-dataPrevista">Data Prevista</Label>
                 <Input
                   id="edit-dataPrevista"
                   type="date"
                   value={selectedCertification.dataPrevista || ''}
                   onChange={(e) => setSelectedCertification({ ...selectedCertification, dataPrevista: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-dataEntrega">Data de Entrega</Label>
+                <Input
+                  id="edit-dataEntrega"
+                  type="date"
+                  value={selectedCertification.dataEntrega || ''}
+                  onChange={(e) => setSelectedCertification({ ...selectedCertification, dataEntrega: e.target.value })}
                 />
               </div>
 
@@ -1000,7 +1063,8 @@ export default function Certificacoes() {
                   onChange={(e) => setSelectedCertification({ ...selectedCertification, observacao: e.target.value })}
                 />
               </div>
-            </div>
+              </div>
+            </>
           )}
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setSelectedCertification(null)}>
