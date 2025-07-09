@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Route, useLocation } from "wouter";
+import { Route, useLocation, Switch } from "wouter";
 import { ModernStudentLayout } from "@/components/portal/ModernStudentLayout";
 import { StudentDashboard } from "@/components/portal/StudentDashboard";
 import MeusCursos from "./MeusCursos";
@@ -56,17 +56,19 @@ export default function PortalLayout() {
   
   return (
     <ModernStudentLayout studentData={studentData}>
-      <Route path="/portal" component={() => <StudentDashboard studentData={studentData} />} />
-      <Route path="/portal/cursos" component={MeusCursos} />
-      <Route path="/portal/disciplinas" component={MinhasDisciplinas} />
-      <Route path="/portal/avaliacoes" component={MinhasAvaliacoes} />
-      <Route path="/portal/certificados" component={Certificados} />
-      <Route path="/portal/suporte" component={SuporteChat} />
-      <Route path="/portal/pagamentos" component={Pagamentos} />
-      <Route path="/portal/documentos" component={Documentos} />
-      <Route path="/portal/perfil" component={PerfilAluno} />
-      <Route path="/portal/carteirinha" component={() => <ModernCarteirinha studentData={studentData} />} />
-      <Route component={() => <StudentDashboard studentData={studentData} />} />
+      <Switch>
+        <Route path="/portal" exact component={() => <StudentDashboard studentData={studentData} />} />
+        <Route path="/portal/cursos" component={MeusCursos} />
+        <Route path="/portal/disciplinas" component={MinhasDisciplinas} />
+        <Route path="/portal/avaliacoes" component={MinhasAvaliacoes} />
+        <Route path="/portal/certificados" component={Certificados} />
+        <Route path="/portal/suporte" component={SuporteChat} />
+        <Route path="/portal/pagamentos" component={Pagamentos} />
+        <Route path="/portal/documentos" component={Documentos} />
+        <Route path="/portal/perfil" component={PerfilAluno} />
+        <Route path="/portal/carteirinha" component={() => <ModernCarteirinha studentData={studentData} />} />
+        <Route component={() => <StudentDashboard studentData={studentData} />} />
+      </Switch>
     </ModernStudentLayout>
   );
 }

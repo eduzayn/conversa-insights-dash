@@ -15,8 +15,7 @@ import Produtividade from "./pages/admin/Produtividade";
 import Presenca from "./pages/admin/Presenca";
 import ChatInterno from "./pages/admin/ChatInterno";
 import Metas from "./pages/admin/Metas";
-// TEMPORARIAMENTE DESABILITADO: Import do CRM será reativado em breve
-// import Crm from "./pages/admin/Crm";
+import Crm from "./pages/admin/Crm";
 import Certificacoes from "./pages/admin/Certificacoes";
 import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
@@ -45,8 +44,7 @@ const App = () => (
             <Route path="/presenca" element={<Presenca />} />
             <Route path="/chat-interno" element={<ChatInterno />} />
             <Route path="/metas" element={<Metas />} />
-            {/* TEMPORARIAMENTE DESABILITADO: Rota do CRM será reativada em breve */}
-            {/* <Route path="/crm" element={<Crm />} /> */}
+            <Route path="/crm" element={<Crm />} />
             <Route path="/certificacoes" element={<Certificacoes />} />
             <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />

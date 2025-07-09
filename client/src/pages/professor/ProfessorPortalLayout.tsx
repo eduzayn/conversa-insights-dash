@@ -52,13 +52,14 @@ export default function ProfessorPortalLayout() {
   return (
     <ProfessorLayout professorData={professorData}>
       <Routes>
-        <Route path="/dashboard" element={<ProfessorDashboard />} />
-        <Route path="/disciplinas" element={<Disciplinas />} />
-        <Route path="/conteudos" element={<Conteudos />} />
-        <Route path="/avaliacoes" element={<Avaliacoes />} />
-        <Route path="/submissoes" element={<Submissoes />} />
-        <Route path="/relatorios" element={<Relatorios />} />
-        <Route path="/perfil" element={<PerfilProfessor />} />
+        <Route path="dashboard" element={<ProfessorDashboard />} />
+        <Route path="disciplinas" element={<Disciplinas />} />
+        <Route path="conteudos" element={<Conteudos />} />
+        <Route path="avaliacoes" element={<Avaliacoes />} />
+        <Route path="submissoes" element={<Submissoes />} />
+        <Route path="relatorios" element={<Relatorios />} />
+        <Route path="perfil" element={<PerfilProfessor />} />
+        <Route path="" element={<ProfessorDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </ProfessorLayout>
