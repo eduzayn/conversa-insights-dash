@@ -386,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'wendellacarioca@gmail.com': 'Documentação'
             };
             
-            equipe = emailToTeam[conv.botconversaManagerEmail] || 'Atendimento';
+            equipe = emailToTeam[conv.botconversaManagerEmail] || 'Comercial';
           }
         } else {
           // Fallback para atendente do sistema local
@@ -550,17 +550,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'wendellacarioca@gmail.com': 'Documentação'
       };
       
-      // Extrair equipes dos managers
-      const equipesFromManagers = new Set<string>();
-      allManagers.forEach(manager => {
-        const equipe = emailToTeam[manager.email] || 'Atendimento';
-        equipesFromManagers.add(equipe);
-      });
+      // Usar apenas as equipes reais do BotConversa baseadas nos departamentos identificados
+      const equipesReaisBotConversa = [
+        'Comercial',
+        'Cobrança', 
+        'Tutoria',
+        'Secretaria Pós',
+        'Secretaria Segunda',
+        'Documentação',
+        'Análise Certificação',
+        'Suporte',
+        'Financeiro',
+        'Não atribuído'
+      ];
       
-      // Adicionar equipes padrão
-      equipesFromManagers.add('Não atribuído');
-      
-      const equipes = Array.from(equipesFromManagers).sort();
+      const equipes = equipesReaisBotConversa.sort();
       
       // Buscar status reais das conversas do banco
       const conversations = await storage.getConversations();
@@ -581,7 +585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: m.id,
           name: m.full_name,
           email: m.email,
-          equipe: emailToTeam[m.email] || 'Atendimento',
+          equipe: emailToTeam[m.email] || 'Comercial',
           assign_chat: m.assign_chat
         }))
       });
