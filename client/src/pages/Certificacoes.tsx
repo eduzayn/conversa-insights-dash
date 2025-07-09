@@ -173,7 +173,14 @@ export default function Certificacoes() {
         params.append('modalidade', newCertification.modalidade);
       }
       
+      console.log('🔍 Buscando cursos com parâmetros:', { 
+        categoria: getCategoriaFromTab(activeTab), 
+        modalidade: newCertification.modalidade,
+        url: `/api/cursos-pre-cadastrados?${params}`
+      });
+      
       const response = await apiRequest(`/api/cursos-pre-cadastrados?${params}`);
+      console.log('📚 Cursos recebidos:', response.length);
       return response;
     }
   });
