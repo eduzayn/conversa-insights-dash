@@ -1,266 +1,89 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Video, 
-  BookOpen, 
-  Link2, 
-  FileText,
-  Plus,
-  Eye,
-  Edit,
-  Trash2,
-  Upload,
-  Search
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2 } from "lucide-react";
 
 export default function Conteudos() {
-  const [selectedDisciplina, setSelectedDisciplina] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAddingContent, setIsAddingContent] = useState(false);
-  const [contentType, setContentType] = useState<"video" | "ebook" | "link" | "pdf">("video");
+  const [selectedSubject, setSelectedSubject] = useState("");
 
-  const { data: conteudos, isLoading } = useQuery({
-    queryKey: ["/api/professor/contents", selectedDisciplina],
-  });
+  // Dados mock das disciplinas do professor
+  const subjects = [
+    { id: 1, nome: "Algoritmos e Estruturas de Dados I", codigo: "AED001" },
+    { id: 2, nome: "Programação Orientada a Objetos", codigo: "POO001" },
+    { id: 3, nome: "Banco de Dados", codigo: "BD001" }
+  ];
 
-  const { data: disciplinas } = useQuery({
-    queryKey: ["/api/professor/subjects"],
-  });
-
-  const mockConteudos = conteudos || [
+  // Dados mock dos conteúdos
+  const contents = [
     {
       id: 1,
       titulo: "Introdução aos Algoritmos",
       tipo: "video",
-      conteudo: "https://youtube.com/watch?v=abc123",
-      descricao: "Conceitos fundamentais de algoritmos e sua importância na programação",
-      disciplina: "Algoritmos e Programação I",
-      visualizacoes: 142,
+      url: "https://youtube.com/watch?v=abc123",
+      descricao: "Conceitos básicos de algoritmos e complexidade",
       ordem: 1,
-      createdAt: "2024-01-15",
-      isActive: true
+      subjectId: 1
     },
     {
       id: 2,
-      titulo: "E-book: Estruturas de Controle",
+      titulo: "Apostila de Estruturas de Dados",
       tipo: "ebook",
-      conteudo: "https://drive.google.com/file/d/xyz789",
-      descricao: "Material completo sobre estruturas condicionais e de repetição",
-      disciplina: "Algoritmos e Programação I",
-      visualizacoes: 98,
+      url: "https://drive.google.com/file/d/xyz789",
+      descricao: "Material complementar sobre listas, pilhas e filas",
       ordem: 2,
-      createdAt: "2024-01-20",
-      isActive: true
+      subjectId: 1
     },
     {
       id: 3,
-      titulo: "Documentação Oficial Python",
+      titulo: "Exercícios de POO",
       tipo: "link",
-      conteudo: "https://docs.python.org/3/",
-      descricao: "Link para a documentação oficial da linguagem Python",
-      disciplina: "Algoritmos e Programação I",
-      visualizacoes: 67,
-      ordem: 3,
-      createdAt: "2024-01-25",
-      isActive: true
-    },
-    {
-      id: 4,
-      titulo: "Árvores Binárias - Conceitos",
-      tipo: "video",
-      conteudo: "https://youtube.com/watch?v=def456",
-      descricao: "Explicação detalhada sobre árvores binárias e suas aplicações",
-      disciplina: "Estruturas de Dados",
-      visualizacoes: 89,
+      url: "https://example.com/exercicios",
+      descricao: "Lista de exercícios práticos",
       ordem: 1,
-      createdAt: "2024-02-01",
-      isActive: true
+      subjectId: 2
     }
   ];
 
-  const mockDisciplinas = disciplinas || [
-    { id: 1, nome: "Algoritmos e Programação I" },
-    { id: 2, nome: "Estruturas de Dados" },
-    { id: 3, nome: "Banco de Dados" }
-  ];
+  const filteredContents = selectedSubject 
+    ? contents.filter(content => content.subjectId === parseInt(selectedSubject))
+    : contents;
 
-  const filteredConteudos = mockConteudos.filter(conteudo => {
-    const matchesDisciplina = selectedDisciplina === "all" || conteudo.disciplina === selectedDisciplina;
-    const matchesSearch = conteudo.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         conteudo.descricao.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesDisciplina && matchesSearch;
-  });
-
-  const getTypeIcon = (tipo: string) => {
+  const getContentIcon = (tipo: string) => {
     switch (tipo) {
       case "video": return <Video className="h-4 w-4" />;
       case "ebook": return <BookOpen className="h-4 w-4" />;
-      case "link": return <Link2 className="h-4 w-4" />;
-      case "pdf": return <FileText className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
+      default: return <ExternalLink className="h-4 w-4" />;
     }
   };
 
-  const getTypeBadgeColor = (tipo: string) => {
-    switch (tipo) {
-      case "video": return "bg-red-100 text-red-800";
-      case "ebook": return "bg-blue-100 text-blue-800";
-      case "link": return "bg-green-100 text-green-800";
-      case "pdf": return "bg-purple-100 text-purple-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const handleAddContent = () => {
-    // Implementar lógica de adição
-    setIsAddingContent(false);
-    console.log("Conteúdo adicionado");
+  const getContentBadge = (tipo: string) => {
+    const variants = {
+      video: "bg-red-100 text-red-800",
+      ebook: "bg-blue-100 text-blue-800",
+      link: "bg-green-100 text-green-800"
+    };
+    return variants[tipo as keyof typeof variants] || "bg-gray-100 text-gray-800";
   };
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Aulas e Conteúdos</h1>
-          <p className="text-gray-600 mt-2">
-            Gerencie vídeo-aulas, e-books e materiais complementares
-          </p>
+          <p className="text-gray-600 mt-2">Adição e gerenciamento de vídeo-aulas, e-books e links úteis</p>
         </div>
-        <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Conteúdo
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Adicionar Novo Conteúdo</DialogTitle>
-              <DialogDescription>
-                Adicione vídeos, e-books ou links complementares às suas disciplinas
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="disciplina">Disciplina</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a disciplina" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockDisciplinas.map((disciplina) => (
-                        <SelectItem key={disciplina.id} value={disciplina.nome}>
-                          {disciplina.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo de Conteúdo</Label>
-                  <Select value={contentType} onValueChange={(value: any) => setContentType(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="video">Vídeo (YouTube/Drive)</SelectItem>
-                      <SelectItem value="ebook">E-book/PDF</SelectItem>
-                      <SelectItem value="link">Link Externo</SelectItem>
-                      <SelectItem value="pdf">Arquivo PDF</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="titulo">Título do Conteúdo</Label>
-                <Input placeholder="Digite o título do conteúdo" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="conteudo">
-                  {contentType === "video" ? "Link do YouTube ou Google Drive" :
-                   contentType === "ebook" ? "Link do E-book ou Google Drive" :
-                   contentType === "link" ? "URL do Link" :
-                   "Arquivo PDF"}
-                </Label>
-                {contentType === "pdf" ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Clique para fazer upload do arquivo PDF</p>
-                  </div>
-                ) : (
-                  <Input placeholder={
-                    contentType === "video" ? "https://youtube.com/watch?v=..." :
-                    contentType === "ebook" ? "https://drive.google.com/file/d/..." :
-                    "https://exemplo.com"
-                  } />
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea 
-                  placeholder="Descreva o conteúdo e seu objetivo de aprendizagem"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ordem">Ordem na Disciplina</Label>
-                <Input type="number" placeholder="1" defaultValue="1" />
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setIsAddingContent(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleAddContent}>
-                  Adicionar Conteúdo
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          Adicionar Conteúdo
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1 max-w-md relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar conteúdos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={selectedDisciplina} onValueChange={setSelectedDisciplina}>
-          <SelectTrigger className="w-64">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as disciplinas</SelectItem>
-            {mockDisciplinas.map((disciplina) => (
-              <SelectItem key={disciplina.id} value={disciplina.nome}>
-                {disciplina.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
@@ -269,10 +92,8 @@ export default function Conteudos() {
                 <Video className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
-                  {mockConteudos.filter(c => c.tipo === "video").length}
-                </p>
-                <p className="text-sm text-gray-600">Vídeos</p>
+                <p className="text-2xl font-bold">12</p>
+                <p className="text-sm text-gray-600">Vídeo-aulas</p>
               </div>
             </div>
           </CardContent>
@@ -285,9 +106,7 @@ export default function Conteudos() {
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
-                  {mockConteudos.filter(c => c.tipo === "ebook").length}
-                </p>
+                <p className="text-2xl font-bold">8</p>
                 <p className="text-sm text-gray-600">E-books</p>
               </div>
             </div>
@@ -298,13 +117,11 @@ export default function Conteudos() {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Link2 className="h-6 w-6 text-green-600" />
+                <ExternalLink className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
-                  {mockConteudos.filter(c => c.tipo === "link").length}
-                </p>
-                <p className="text-sm text-gray-600">Links</p>
+                <p className="text-2xl font-bold">6</p>
+                <p className="text-sm text-gray-600">Links Úteis</p>
               </div>
             </div>
           </CardContent>
@@ -313,91 +130,175 @@ export default function Conteudos() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Eye className="h-6 w-6 text-orange-600" />
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <FileText className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
-                  {mockConteudos.reduce((sum, c) => sum + c.visualizacoes, 0)}
-                </p>
-                <p className="text-sm text-gray-600">Visualizações</p>
+                <p className="text-2xl font-bold">26</p>
+                <p className="text-sm text-gray-600">Total Conteúdos</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Content List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredConteudos.map((conteudo) => (
-          <Card key={conteudo.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  {getTypeIcon(conteudo.tipo)}
-                  <Badge className={getTypeBadgeColor(conteudo.tipo)}>
-                    {conteudo.tipo === "video" ? "Vídeo" :
-                     conteudo.tipo === "ebook" ? "E-book" :
-                     conteudo.tipo === "link" ? "Link" : "PDF"}
-                  </Badge>
-                </div>
-                <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <CardTitle className="text-lg leading-tight">{conteudo.titulo}</CardTitle>
-              <CardDescription className="text-sm text-blue-600">
-                {conteudo.disciplina}
-              </CardDescription>
+      <Tabs defaultValue="listar" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="listar">Listar Conteúdos</TabsTrigger>
+          <TabsTrigger value="adicionar">Adicionar Conteúdo</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="listar" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtrar por Disciplina</CardTitle>
+              <CardDescription>Selecione uma disciplina para visualizar seus conteúdos</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {conteudo.descricao}
-              </p>
+            <CardContent>
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                <SelectTrigger className="w-full md:w-[300px]">
+                  <SelectValue placeholder="Todas as disciplinas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as disciplinas</SelectItem>
+                  {subjects.map(subject => (
+                    <SelectItem key={subject.id} value={subject.id.toString()}>
+                      {subject.codigo} - {subject.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
 
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-1 text-gray-600">
-                  <Eye className="h-3 w-3" />
-                  <span>{conteudo.visualizacoes} visualizações</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredContents.map(content => (
+              <Card key={content.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      {getContentIcon(content.tipo)}
+                      <CardTitle className="text-lg">{content.titulo}</CardTitle>
+                    </div>
+                    <Badge className={getContentBadge(content.tipo)}>
+                      {content.tipo.charAt(0).toUpperCase() + content.tipo.slice(1)}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-gray-600">{content.descricao}</p>
+                  
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <ExternalLink className="h-3 w-3" />
+                    <span className="truncate">{content.url}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-xs text-gray-500">Ordem: {content.ordem}</span>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="adicionar" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Adicionar Novo Conteúdo</CardTitle>
+              <CardDescription>Adicione vídeo-aulas, e-books ou links úteis às suas disciplinas</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="disciplina">Disciplina</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma disciplina" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map(subject => (
+                        <SelectItem key={subject.id} value={subject.id.toString()}>
+                          {subject.codigo} - {subject.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <span className="text-gray-500">Ordem: {conteudo.ordem}</span>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tipo">Tipo de Conteúdo</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="video">Vídeo-aula (YouTube/Drive)</SelectItem>
+                      <SelectItem value="ebook">E-book/Apostila</SelectItem>
+                      <SelectItem value="link">Link Útil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="pt-2 border-t">
-                <Button variant="outline" size="sm" className="w-full">
-                  Ver Conteúdo
+              <div className="space-y-2">
+                <Label htmlFor="titulo">Título do Conteúdo</Label>
+                <Input 
+                  id="titulo" 
+                  placeholder="Ex: Introdução aos Algoritmos" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="url">URL/Link</Label>
+                <Input 
+                  id="url" 
+                  placeholder="Ex: https://youtube.com/watch?v=... ou https://drive.google.com/..." 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="descricao">Descrição</Label>
+                <Textarea 
+                  id="descricao" 
+                  placeholder="Descreva o conteúdo e sua importância para a disciplina"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ordem">Ordem de Exibição</Label>
+                  <Input 
+                    id="ordem" 
+                    type="number" 
+                    placeholder="1" 
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Conteúdo
+                </Button>
+                <Button variant="outline">
+                  Cancelar
                 </Button>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {filteredConteudos.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Nenhum conteúdo encontrado
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm || selectedDisciplina !== "all" 
-                ? "Tente ajustar os filtros para encontrar conteúdos"
-                : "Comece criando seu primeiro conteúdo educacional"
-              }
-            </p>
-            <Button onClick={() => setIsAddingContent(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Conteúdo
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
