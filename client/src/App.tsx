@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/portal-aluno" element={<StudentPortal />} />
             <Route path="/portal/*" element={<PortalLayout />} />
             {/* Portal do Professor */}
+            <Route path="/professor-login" element={<ProfessorLogin />} />
             <Route path="/professor/login" element={<ProfessorLogin />} />
             <Route path="/professor/*" element={<ProfessorPortalLayout />} />
             <Route path="*" element={<NotFound />} />
