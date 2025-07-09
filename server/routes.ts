@@ -476,6 +476,225 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== ROTAS ESPECÍFICAS DO PORTAL DO ALUNO =====
+  
+  // Cursos do aluno  
+  app.get("/api/portal/aluno/cursos", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const enrollments = await storage.getStudentEnrollments(req.user.id);
+      res.json(enrollments);
+    } catch (error) {
+      console.error("Erro ao buscar cursos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Avaliações do aluno
+  app.get("/api/portal/aluno/avaliacoes", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      // Buscar avaliações de todas as matrículas do aluno
+      const enrollments = await storage.getStudentEnrollments(req.user.id);
+      const allEvaluations = [];
+      
+      for (const enrollment of enrollments) {
+        const evaluations = await storage.getStudentEvaluations(enrollment.id);
+        allEvaluations.push(...evaluations);
+      }
+      
+      res.json(allEvaluations);
+    } catch (error) {
+      console.error("Erro ao buscar avaliações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Certificados do aluno
+  app.get("/api/portal/aluno/certificados", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const certificates = await storage.getStudentCertificates(req.user.id);
+      res.json(certificates);
+    } catch (error) {
+      console.error("Erro ao buscar certificados:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Pagamentos do aluno
+  app.get("/api/portal/aluno/pagamentos", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const payments = await storage.getStudentPayments(req.user.id);
+      res.json(payments);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Documentos do aluno
+  app.get("/api/portal/aluno/documentos", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const documents = await storage.getStudentDocuments(req.user.id);
+      res.json(documents);
+    } catch (error) {
+      console.error("Erro ao buscar documentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Upload de documento
+  app.post("/api/portal/aluno/documentos", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      // Para este exemplo, vamos simular o upload
+      const { tipoDocumento } = req.body;
+      const fileName = `documento_${Date.now()}.pdf`;
+      
+      const document = await storage.createStudentDocument({
+        studentId: req.user.id,
+        tipoDocumento,
+        nomeArquivo: fileName,
+        urlArquivo: `/uploads/documentos/${fileName}`,
+        status: 'pendente',
+        dataEnvio: new Date(),
+        observacoes: 'Documento enviado para análise'
+      });
+
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Erro ao fazer upload do documento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Perfil do aluno
+  app.get("/api/portal/aluno/perfil", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Buscar informações acadêmicas
+      const enrollments = await storage.getStudentEnrollments(req.user.id);
+      const currentEnrollment = enrollments.find(e => e.status === 'ativa');
+
+      const profile = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        cpf: user.cpf,
+        telefone: user.telefone,
+        endereco: user.endereco,
+        cidade: user.cidade,
+        estado: user.estado,
+        cep: user.cep,
+        matriculaAtiva: enrollments.some(e => e.status === 'ativa'),
+        dataMatricula: currentEnrollment?.dataMatricula,
+        cursoAtual: currentEnrollment?.course?.nome,
+        modalidadeAtual: currentEnrollment?.course?.modalidade,
+        statusDocumentacao: 'aprovada', // Implementar lógica baseada nos documentos
+        observacoes: user.observacoes
+      };
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Erro ao buscar perfil:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar perfil do aluno
+  app.put("/api/portal/aluno/perfil", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const updatedUser = await storage.updateUser(req.user.id, req.body);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Carteirinha do aluno
+  app.get("/api/portal/aluno/carteirinha", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const card = await storage.getStudentCard(req.user.id);
+      res.json(card);
+    } catch (error) {
+      console.error("Erro ao buscar carteirinha:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Suporte - conversas do aluno
+  app.get("/api/portal/aluno/suporte/conversas", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      // Para este exemplo, retornamos um array vazio
+      // Em produção, implementar lógica de conversas de suporte
+      res.json([]);
+    } catch (error) {
+      console.error("Erro ao buscar conversas de suporte:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Suporte - mensagens da conversa
+  app.get("/api/portal/aluno/suporte/mensagens/:conversationId", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      // Para este exemplo, retornamos um array vazio
+      res.json([]);
+    } catch (error) {
+      console.error("Erro ao buscar mensagens:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Teams
   app.get("/api/teams", authenticateToken, async (req: any, res) => {
     try {

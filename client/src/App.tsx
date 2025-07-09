@@ -21,6 +21,7 @@ import IntegracaoBotConversa from "./pages/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/GerenciamentoRoteamento";
 import StudentLogin from "./pages/StudentLogin";
 import StudentPortal from "./pages/StudentPortal";
+import PortalLayout from "./pages/PortalLayout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
             <Route path="/portal-aluno" element={<StudentPortal />} />
+            <Route path="/portal/*" element={<PortalLayout />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />
