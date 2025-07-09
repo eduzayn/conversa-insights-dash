@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { StudentLayout } from "@/components/portal/StudentLayout";
 import MeusCursos from "./portal/MeusCursos";
+import MinhasDisciplinas from "./portal/MinhasDisciplinas";
 import MinhasAvaliacoes from "./portal/MinhasAvaliacoes";
 import Certificados from "./portal/Certificados";
 import SuporteChat from "./portal/SuporteChat";
@@ -53,6 +54,7 @@ export default function PortalLayout() {
     <StudentLayout studentData={studentData}>
       <Routes>
         <Route path="cursos" element={<MeusCursos />} />
+        <Route path="disciplinas" element={<MinhasDisciplinas />} />
         <Route path="avaliacoes" element={<MinhasAvaliacoes />} />
         <Route path="certificados" element={<Certificados />} />
         <Route path="suporte" element={<SuporteChat />} />

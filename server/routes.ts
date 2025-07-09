@@ -503,6 +503,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Disciplinas do aluno com conteúdos integrados do Portal do Professor
+  app.get("/api/portal/aluno/disciplinas", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      // Buscar matrículas do aluno
+      const enrollments = await storage.getStudentEnrollments(req.user.id);
+      
+      // Para cada matrícula, buscar disciplinas e seus conteúdos
+      const disciplinasCompletas = [];
+      
+      for (const enrollment of enrollments) {
+        // Mock: mapear curso para disciplinas (integração real dependeria da estrutura de cursos)
+        const disciplinas = await storage.getAllSubjects();
+        
+        for (const disciplina of disciplinas.slice(0, 2)) { // Limitar para teste
+          const conteudos = await storage.getSubjectContents(disciplina.id);
+          const avaliacoes = await storage.getProfessorEvaluations(disciplina.id);
+          
+          disciplinasCompletas.push({
+            id: disciplina.id,
+            nome: disciplina.nome,
+            codigo: disciplina.codigo,
+            descricao: disciplina.descricao,
+            cargaHoraria: disciplina.cargaHoraria,
+            area: disciplina.area,
+            professorNome: "Prof. João Silva", // Mock - seria buscado da relação professor-disciplina
+            progresso: Math.floor(Math.random() * 100), // Mock - seria calculado baseado no progresso real
+            conteudos: conteudos.map(conteudo => ({
+              ...conteudo,
+              professorNome: "Prof. João Silva",
+              visualizado: Math.random() > 0.5 // Mock - seria baseado no histórico do aluno
+            })),
+            avaliacoes: avaliacoes.map(avaliacao => ({
+              ...avaliacao,
+              status: avaliacao.dataFechamento > new Date().toISOString() ? "disponivel" : "expirada",
+              nota: Math.random() > 0.5 ? Math.floor(Math.random() * 10) + 1 : undefined,
+              professorNome: "Prof. João Silva"
+            }))
+          });
+        }
+      }
+
+      res.json(disciplinasCompletas);
+    } catch (error) {
+      console.error("Erro ao buscar disciplinas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Avaliações do aluno
   app.get("/api/portal/aluno/avaliacoes", authenticateToken, async (req: any, res) => {
     try {

@@ -11,7 +11,8 @@ import {
   User, 
   IdCard,
   LogOut,
-  GraduationCap
+  GraduationCap,
+  BookMarked
 } from "lucide-react";
 
 const sidebarItems = [
@@ -19,6 +20,11 @@ const sidebarItems = [
     title: "Meus Cursos",
     icon: BookOpen,
     href: "/portal/cursos"
+  },
+  {
+    title: "Minhas Disciplinas",
+    icon: BookMarked,
+    href: "/portal/disciplinas"
   },
   {
     title: "Minhas Avaliações",
