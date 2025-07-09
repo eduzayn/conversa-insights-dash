@@ -319,8 +319,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentPage = parseInt(page);
       const pageSize = parseInt(limit);
       
-      // Primeiro, buscar conversas locais
-      let conversations = await storage.getConversations();
+      // Buscar apenas conversas reais do BotConversa (que tenham dados do BotConversa OU não tenham dados simulados)
+      let allConversations = await storage.getConversations();
+      
+      // Filtrar conversas simuladas - manter apenas as que têm customerPhone real ou são do BotConversa
+      let conversations = allConversations.filter(conv => {
+        // Manter conversas que não têm nomes simulados específicos
+        const isSimulated = (
+          conv.customerName === 'Ana Costa' || 
+          conv.customerName === 'João Santos' || 
+          conv.customerName === 'Maria Silva'
+        );
+        return !isSimulated;
+      });
       
       // Buscar informações dos teams
       const teams = await storage.getTeams();
