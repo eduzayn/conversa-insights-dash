@@ -65,7 +65,8 @@ export const BOTCONVERSA_CONFIG = {
       'SECRETARIA SEGUNDA GRADUAÇÃO': { members: 2, emails: ['yasmin.vitorino@gmail.com', 'brunaalvesreis89@gmail.com'] },
       'SUPORTE UNICV': { members: 1, emails: ['alana.matos@universidadebrasil.edu.br'] },
       'FINANCEIRO': { members: 1, emails: ['kamilla.videla@gmail.com'] },
-      'DOCUMENTAÇÃO': { members: 1, emails: ['ronan.cleomenti@gmail.com'] }
+      'DOCUMENTAÇÃO': { members: 1, emails: ['ronan.cleomenti@gmail.com'] },
+      'ANÁLISE CERTIFICAÇÃO': { members: 6, emails: ['analise1@gmail.com', 'analise2@gmail.com', 'analise3@gmail.com', 'analise4@gmail.com', 'analise5@gmail.com', 'analise6@gmail.com'] }
     },
     
     ROUTING_RULES: {
@@ -91,6 +92,8 @@ export const BOTCONVERSA_CONFIG = {
       'Financeiro': 'FINANCEIRO',
       'Cobrança': 'COBRANÇA',
       'Tutoria': 'TUTORIA',
+      'Análise Certificação': 'ANÁLISE CERTIFICAÇÃO',
+      'Documentação': 'DOCUMENTAÇÃO',
       
       // Tags de comportamento
       'Resposta Rápida': 'SUPORTE',

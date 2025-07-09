@@ -335,6 +335,14 @@ Changelog:
    * ✅ Endpoint `/api/atendimentos` atualizado para aceitar parâmetro `companhia`
    * ✅ Filtro aplicado cirurgicamente sem alterar outras funcionalidades
    * Status: Sistema de filtros por companhia implementado e funcional
+- Departamentos BotConversa Atualizados (9 Jul 2025):
+   * ✅ Equipes criadas no banco de dados para todos os departamentos do BotConversa
+   * ✅ Departamentos da conta COMERCIAL mapeados corretamente:
+     - COMERCIAL, COBRANÇA, TUTORIA, SECRETARIA PÓS, SECRETARIA SEGUNDA
+     - DOCUMENTAÇÃO, ANÁLISE CERTIFICAÇÃO (6 membros), SUPORTE
+   * ✅ Configuração do sistema sincronizada com estrutura real do BotConversa
+   * ✅ Sistema de roteamento atualizado para incluir todos os departamentos
+   * Status: Departamentos completamente alinhados com estrutura do BotConversa
 ```
 
 ## User Preferences
