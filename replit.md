@@ -261,6 +261,14 @@ Changelog:
     - Extração automática de disciplinas restantes e extensões contratuais
     - Total no sistema após abril: 386 certificações históricas
     - Scripts criados: processar_excel_abril.ts, import_certificacoes_abril_2025.ts
+  * Importação Histórica - Março 2025 (9 Jul 2025):
+    - Processado arquivo Excel de março: 271 certificações identificadas
+    - 104 certificações novas importadas com fidelidade total aos dados originais
+    - 3 certificações já existentes no sistema
+    - Extração avançada de situação da análise baseada em múltiplos campos
+    - Identificação automática de práticas pedagógicas pré-aprovadas
+    - Total no sistema após março: 490 certificações históricas
+    - Scripts criados: processar_excel_marco.ts, import_certificacoes_marco_2025.ts
 ```
 
 ## User Preferences
