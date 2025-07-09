@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ const studentLoginSchema = z.object({
 type StudentLoginForm = z.infer<typeof studentLoginSchema>;
 
 export default function StudentLogin() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const form = useForm<StudentLoginForm>({
@@ -51,7 +51,7 @@ export default function StudentLogin() {
       localStorage.setItem('student_data', JSON.stringify(data.student));
       
       // Redirecionar para o portal do aluno
-      setLocation('/portal-aluno');
+      navigate('/portal-aluno');
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -175,7 +175,7 @@ export default function StudentLogin() {
 
         {/* Link para área administrativa */}
         <div className="text-center">
-          <Link href="/login" className="text-blue-600 hover:text-blue-800 text-sm">
+          <Link to="/login" className="text-blue-600 hover:text-blue-800 text-sm">
             Área Administrativa
           </Link>
         </div>
