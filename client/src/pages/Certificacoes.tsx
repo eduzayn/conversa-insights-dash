@@ -11,7 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft, Check, ChevronsUpDown } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -48,6 +51,8 @@ export default function Certificacoes() {
   const [dataFim, setDataFim] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
+  const [courseSearchOpen, setCourseSearchOpen] = useState(false);
+  const [editCourseSearchOpen, setEditCourseSearchOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -364,25 +369,52 @@ export default function Certificacoes() {
                     </div>
                     <div>
                       <Label htmlFor="curso">Curso *</Label>
-                      <Select value={newCertification.curso} onValueChange={(value) => {
-                        const selectedCourse = preRegisteredCourses.find(c => c.nome === value);
-                        setNewCertification({ 
-                          ...newCertification, 
-                          curso: value,
-                          cargaHoraria: selectedCourse ? selectedCourse.cargaHoraria.toString() : ''
-                        });
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um curso" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {preRegisteredCourses.map((course) => (
-                            <SelectItem key={course.id} value={course.nome}>
-                              {course.nome} - {course.cargaHoraria}h
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={courseSearchOpen} onOpenChange={setCourseSearchOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={courseSearchOpen}
+                            className="w-full justify-between"
+                          >
+                            {newCertification.curso || "Selecione um curso..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="Buscar curso..." />
+                            <CommandList>
+                              <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
+                              <CommandGroup>
+                                {preRegisteredCourses.map((course) => (
+                                  <CommandItem
+                                    key={course.id}
+                                    value={course.nome}
+                                    onSelect={(currentValue) => {
+                                      const selectedCourse = preRegisteredCourses.find(c => c.nome === currentValue);
+                                      setNewCertification({ 
+                                        ...newCertification, 
+                                        curso: currentValue,
+                                        cargaHoraria: selectedCourse ? selectedCourse.cargaHoraria.toString() : ''
+                                      });
+                                      setCourseSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        newCertification.curso === course.nome ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {course.nome} - {course.cargaHoraria}h
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div>
                       <Label htmlFor="cargaHoraria">Carga Horária</Label>
@@ -711,10 +743,61 @@ export default function Certificacoes() {
               </div>
               <div>
                 <Label htmlFor="edit-curso">Curso</Label>
+                <Popover open={editCourseSearchOpen} onOpenChange={setEditCourseSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={editCourseSearchOpen}
+                      className="w-full justify-between"
+                    >
+                      {selectedCertification.curso || "Selecione um curso..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar curso..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {preRegisteredCourses.map((course) => (
+                            <CommandItem
+                              key={course.id}
+                              value={course.nome}
+                              onSelect={(currentValue) => {
+                                const selectedCourse = preRegisteredCourses.find(c => c.nome === currentValue);
+                                setSelectedCertification({ 
+                                  ...selectedCertification, 
+                                  curso: currentValue,
+                                  cargaHoraria: selectedCourse ? selectedCourse.cargaHoraria.toString() : selectedCertification.cargaHoraria
+                                });
+                                setEditCourseSearchOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedCertification.curso === course.nome ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {course.nome} - {course.cargaHoraria}h
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label htmlFor="edit-cargaHoraria">Carga Horária</Label>
                 <Input
-                  id="edit-curso"
-                  value={selectedCertification.curso}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, curso: e.target.value })}
+                  id="edit-cargaHoraria"
+                  type="number"
+                  value={selectedCertification.cargaHoraria || ''}
+                  onChange={(e) => setSelectedCertification({ ...selectedCertification, cargaHoraria: e.target.value })}
+                  placeholder="Horas"
                 />
               </div>
               {activeTab === 'segunda' && (
