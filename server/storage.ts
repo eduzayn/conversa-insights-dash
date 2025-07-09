@@ -596,8 +596,6 @@ export class DatabaseStorage implements IStorage {
 
   // Pre-registered Courses
   async getPreRegisteredCourses(filters?: { modalidade?: string; categoria?: string; ativo?: boolean }): Promise<PreRegisteredCourse[]> {
-    let query = db.select().from(preRegisteredCourses);
-    
     const conditions = [];
     
     if (filters?.modalidade) {
@@ -613,11 +611,19 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      const courses = await db
+        .select()
+        .from(preRegisteredCourses)
+        .where(and(...conditions))
+        .orderBy(asc(preRegisteredCourses.nome));
+      return courses;
+    } else {
+      const courses = await db
+        .select()
+        .from(preRegisteredCourses)
+        .orderBy(asc(preRegisteredCourses.nome));
+      return courses;
     }
-    
-    const courses = await query.orderBy(asc(preRegisteredCourses.nome));
-    return courses;
   }
 
   async createPreRegisteredCourse(course: InsertPreRegisteredCourse): Promise<PreRegisteredCourse> {
