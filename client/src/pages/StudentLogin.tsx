@@ -173,10 +173,8 @@ export default function StudentLogin() {
 
         {/* Link para área administrativa */}
         <div className="text-center">
-          <Link href="/login">
-            <a className="text-blue-600 hover:text-blue-800 text-sm">
-              Área Administrativa
-            </a>
+          <Link href="/login" className="text-blue-600 hover:text-blue-800 text-sm">
+            Área Administrativa
           </Link>
         </div>
       </div>
