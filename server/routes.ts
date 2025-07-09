@@ -350,23 +350,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Determinar equipe baseada no email do manager
           if (conv.botconversaManagerEmail) {
-            // Mapear domínios/emails para equipes
+            // Mapear emails para equipes reais do BotConversa
             const emailToTeam = {
-              'cobrancazayn22@gmail.com': 'Cobrança',
-              'elainezaynfinanceiro@gmail.com': 'Financeiro',
-              'juliazayn2018@gmail.com': 'Atendimento',
-              'miguelmourazayn@gmail.com': 'Atendimento',
-              'camilacobrancazayn24@gmail.com': 'Cobrança',
-              'ericktrabalhofamiliar@gmail.com': 'Relacionamento',
-              'danielatovarzayn@gmail.com': 'Relacionamento',
-              'carla-diniz@eduzayn.com.br': 'Atendimento',
-              'pedagogico@grupozayneducacional.com.br': 'Pedagógico',
-              'kamilledigital23@gmail.com': 'Marketing',
-              'amanda_monyck@hotmail.com': 'Suporte',
-              'zayn65675@gmail.com': 'Suporte',
+              // Conta COMERCIAL - Emails reais mapeados para departamentos
               'yasminvitorino.office@gmail.com': 'Comercial',
-              'brenodantas28@gmail.com': 'Comercial',
-              'jhonatapimenteljgc38@gmail.com': 'Comercial'
+              'brenodantas28@gmail.com': 'Comercial', 
+              'jhonatapimenteljgc38@gmail.com': 'Comercial',
+              'amanda.silva@hotmail.com': 'Comercial',
+              'tamires.kele@gmail.com': 'Secretaria Pós',
+              'elaine.barros@gmail.com': 'Secretaria Pós',
+              'brunaalvesreis89@gmail.com': 'Secretaria Segunda',
+              'miguel.moura@gmail.com': 'Comercial',
+              'camila.aparecida@gmail.com': 'Comercial',
+              'julia.oliveira@gmail.com': 'Comercial',
+              'carla.araujo@gmail.com': 'Comercial',
+              'alana.matos@universidadebrasil.edu.br': 'Suporte',
+              'kamilla.videla@gmail.com': 'Financeiro',
+              'rhonda.pimentel@gmail.com': 'Cobrança',
+              'erick.moreira@gmail.com': 'Suporte',
+              'daniela.torres@gmail.com': 'Tutoria',
+              'ronan.cleomenti@gmail.com': 'Documentação',
+              
+              // Conta SUPORTE - Emails reais mapeados para departamentos
+              'lailsonmartins22@gmail.com': 'Comercial',
+              'leticiamalfarmacia@gmail.com': 'Cobrança',
+              'joilsonferreira@gmail.com': 'Suporte',
+              'miguelmauraferreira@gmail.com': 'Tutoria',
+              'leticiamalfarmacia24@gmail.com': 'Tutoria',
+              'erikabrasilsouza@gmail.com': 'Secretaria Pós',
+              'erikabrasilsouza68@gmail.com': 'Secretaria Pós',
+              'daniselenitorres@gmail.com': 'Secretaria Segunda',
+              'cristinarafael@gmail.com': 'Secretaria Segunda',
+              'aiaramattos@universidadebusf.edu.br': 'Suporte',
+              'kamillabellara@gmail.com': 'Financeiro',
+              'wendellacarioca@gmail.com': 'Documentação'
             };
             
             equipe = emailToTeam[conv.botconversaManagerEmail] || 'Atendimento';
@@ -497,23 +514,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allManagers = [...supporteManagers, ...comercialManagers];
       const atendentes = [...new Set(allManagers.map(m => m.full_name))].filter(Boolean).sort();
       
-      // Mapear emails para equipes (baseado no mapeamento existente)
+      // Mapear emails para equipes reais do BotConversa
       const emailToTeam = {
-        'cobrancazayn22@gmail.com': 'Cobrança',
-        'elainezaynfinanceiro@gmail.com': 'Financeiro', 
-        'juliazayn2018@gmail.com': 'Atendimento',
-        'miguelmourazayn@gmail.com': 'Atendimento',
-        'camilacobrancazayn24@gmail.com': 'Cobrança',
-        'ericktrabalhofamiliar@gmail.com': 'Relacionamento',
-        'danielatovarzayn@gmail.com': 'Relacionamento',
-        'carla-diniz@eduzayn.com.br': 'Atendimento',
-        'pedagogico@grupozayneducacional.com.br': 'Pedagógico',
-        'kamilledigital23@gmail.com': 'Marketing',
-        'amanda_monyck@hotmail.com': 'Suporte',
-        'zayn65675@gmail.com': 'Suporte',
+        // Conta COMERCIAL - Emails reais mapeados para departamentos
         'yasminvitorino.office@gmail.com': 'Comercial',
-        'brenodantas28@gmail.com': 'Comercial',
-        'jhonatapimenteljgc38@gmail.com': 'Comercial'
+        'brenodantas28@gmail.com': 'Comercial', 
+        'jhonatapimenteljgc38@gmail.com': 'Comercial',
+        'amanda.silva@hotmail.com': 'Comercial',
+        'tamires.kele@gmail.com': 'Secretaria Pós',
+        'elaine.barros@gmail.com': 'Secretaria Pós',
+        'brunaalvesreis89@gmail.com': 'Secretaria Segunda',
+        'miguel.moura@gmail.com': 'Comercial',
+        'camila.aparecida@gmail.com': 'Comercial',
+        'julia.oliveira@gmail.com': 'Comercial',
+        'carla.araujo@gmail.com': 'Comercial',
+        'alana.matos@universidadebrasil.edu.br': 'Suporte',
+        'kamilla.videla@gmail.com': 'Financeiro',
+        'rhonda.pimentel@gmail.com': 'Cobrança',
+        'erick.moreira@gmail.com': 'Suporte',
+        'daniela.torres@gmail.com': 'Tutoria',
+        'ronan.cleomenti@gmail.com': 'Documentação',
+        
+        // Conta SUPORTE - Emails reais mapeados para departamentos
+        'lailsonmartins22@gmail.com': 'Comercial',
+        'leticiamalfarmacia@gmail.com': 'Cobrança',
+        'joilsonferreira@gmail.com': 'Suporte',
+        'miguelmauraferreira@gmail.com': 'Tutoria',
+        'leticiamalfarmacia24@gmail.com': 'Tutoria',
+        'erikabrasilsouza@gmail.com': 'Secretaria Pós',
+        'erikabrasilsouza68@gmail.com': 'Secretaria Pós',
+        'daniselenitorres@gmail.com': 'Secretaria Segunda',
+        'cristinarafael@gmail.com': 'Secretaria Segunda',
+        'aiaramattos@universidadebusf.edu.br': 'Suporte',
+        'kamillabellara@gmail.com': 'Financeiro',
+        'wendellacarioca@gmail.com': 'Documentação'
       };
       
       // Extrair equipes dos managers
