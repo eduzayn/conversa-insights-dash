@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export default function Disciplinas() {
+  const navigate = useNavigate();
   const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -313,11 +315,27 @@ export default function Disciplinas() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" className="flex-1 gap-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1 gap-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/professor/conteudos');
+                  }}
+                >
                   <Settings className="h-3 w-3" />
                   Gerenciar
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1 gap-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1 gap-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/professor/relatorios');
+                  }}
+                >
                   <BarChart3 className="h-3 w-3" />
                   Relatórios
                 </Button>
@@ -341,15 +359,27 @@ export default function Disciplinas() {
               <div className="space-y-4">
                 <h4 className="font-semibold">Ações Rápidas</h4>
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={() => navigate('/professor/conteudos')}
+                  >
                     <Video className="h-4 w-4" />
                     Adicionar Conteúdo
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={() => navigate('/professor/avaliacoes')}
+                  >
                     <FileText className="h-4 w-4" />
                     Criar Avaliação
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={() => navigate('/professor/submissoes')}
+                  >
                     <Users className="h-4 w-4" />
                     Ver Alunos
                   </Button>
