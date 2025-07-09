@@ -330,8 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Buscar informações dos usuarios/attendants
-      const users = await storage.getUsers();
+      // Buscar informações dos teams
       const teams = await storage.getTeams();
       
       // Transformar conversas em formato de atendimentos
@@ -350,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Buscar informações do atendente
-        const attendant = conv.attendantId ? users.find(u => u.id === conv.attendantId) : null;
+        const attendant = conv.attendantId ? await storage.getUser(conv.attendantId) : null;
         const attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
         
         // Determinar equipe baseada no atendente

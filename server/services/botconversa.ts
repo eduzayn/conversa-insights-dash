@@ -149,7 +149,7 @@ export class BotConversaService {
   // Buscar todos os subscribers
   async getSubscribers(account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber[]> {
     try {
-      const data = await this.makeRequest('/subscriber/', account, { method: 'GET' });
+      const data = await this.makeRequest('/subscribers/', account, { method: 'GET' });
       return data.results || [];
     } catch (error) {
       console.error('Erro ao buscar subscribers:', error);

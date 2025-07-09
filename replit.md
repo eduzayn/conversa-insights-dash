@@ -292,6 +292,16 @@ Changelog:
     - Áreas organizadas: Educação, Educação Física, Ciências Humanas, Letras, Ciências Exatas, Artes, Ciências Biológicas
     - Total de cursos pré-cadastrados: 88 cursos ativos no sistema
     - Total final de certificações históricas: 806 certificações (janeiro a julho 2025)
+- Integração BotConversa Completa Implementada (9 Jul 2025):
+   * Endpoint /api/atendimentos migrado para dados reais do banco de dados
+   * Serviço BotConversaService expandido com métodos de sincronização automática
+   * Campos customerName e customerPhone adicionados ao schema de conversas
+   * Botão "Sincronizar BotConversa" implementado na interface de atendimentos
+   * Remoção completa de dados mock - sistema agora opera apenas com dados reais
+   * Integração funcional com 25 subscribers por conta (SUPORTE e COMERCIAL)
+   * Sistema de sincronização automática de conversas e leads implementado
+   * Chaves API configuradas para ambas as contas do BotConversa
+   * Interface de atendimentos totalmente funcional com dados reais das conversas
 - Correção Bug Filtro de Cursos por Modalidade (9 Jul 2025):
    * RESOLVIDO: Problema de filtro de cursos para modalidades "Segunda licenciatura" e "Formação Pedagógica"
    * Causa identificada: Discrepância entre strings frontend/backend ("Formação pedagógica" vs "Formação Pedagógica")
