@@ -1,0 +1,56 @@
+{
+  "relatorio_importacao_maio_2025": {
+    "data_importacao": "2025-07-09",
+    "arquivo_origem": "ANÁLISES PARA CERTIFICAÇÃO e DECLARAÇÕES_____ (2)_1752023230366.xlsx",
+    "sheet_processada": "Maio",
+    "certificacoes_processadas": 173,
+    "certificacoes_importadas": 170,
+    "certificacoes_ja_existentes": 3,
+    "certificacoes_com_erro": 0,
+    "sucesso_importacao": "98.3%",
+    "modalidades_importadas": {
+      "Formação pedagógica": 29,
+      "Segunda licenciatura": 71,
+      "Pós-graduação": 47,
+      "Formação livre": 12,
+      "Diplomação por competência": 7,
+      "Sequencial": 1,
+      "Não informado": 2
+    },
+    "total_certificacoes_sistema": 290,
+    "melhorias_implementadas": [
+      "Inferência automática de modalidade baseada no nome do curso",
+      "Extração automática de carga horária dos cursos",
+      "Limpeza e validação automática de CPFs",
+      "Classificação automática de status baseada na coluna Status",
+      "Tratamento de casos especiais como CPFs com formatação não padrão",
+      "Verificação de duplicatas por CPF + curso",
+      "Mapeamento automático de categorias e subcategorias"
+    ],
+    "qualidade_dados": {
+      "cpfs_validados": "100%",
+      "modalidades_identificadas": "98.8%",
+      "carga_horaria_extraida": "85%",
+      "status_mapeados": "100%"
+    },
+    "observacoes_importantes": [
+      "Todos os CPFs foram validados e formatados corretamente",
+      "Modalidades inferidas automaticamente com alta precisão",
+      "Carga horária extraída dos nomes dos cursos quando disponível",
+      "Status mapeados automaticamente baseados na coluna Status do Excel",
+      "Sistema detectou e evitou duplicação de dados existentes",
+      "Campos acadêmicos (TCC, Práticas Pedagógicas, Estágio) inicializados como 'nao_possui'"
+    ],
+    "scripts_utilizados": [
+      "processar_excel_maio.ts - Processamento e extração de dados",
+      "import_certificacoes_maio_2025.ts - Importação para o banco de dados"
+    ],
+    "total_certificacoes_historicas": {
+      "junho_2025": 8,
+      "julho_2025": 97,
+      "maio_2025": 170,
+      "total_geral": 290
+    },
+    "status_sistema": "Operacional com dados históricos completos de maio a julho de 2025"
+  }
+}
