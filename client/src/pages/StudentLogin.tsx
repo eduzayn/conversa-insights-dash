@@ -13,8 +13,8 @@ import { GraduationCap, Calendar, User } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 const studentLoginSchema = z.object({
-  cpf: z.string().min(11, "CPF deve ter pelo menos 11 dígitos").max(14, "CPF inválido"),
-  dataNascimento: z.string().min(1, "Data de nascimento é obrigatória")
+  email: z.string().email("E-mail inválido"),
+  cpf: z.string().min(11, "CPF deve ter pelo menos 11 dígitos").max(14, "CPF inválido")
 });
 
 type StudentLoginForm = z.infer<typeof studentLoginSchema>;
@@ -26,8 +26,8 @@ export default function StudentLogin() {
   const form = useForm<StudentLoginForm>({
     resolver: zodResolver(studentLoginSchema),
     defaultValues: {
-      cpf: "",
-      dataNascimento: ""
+      email: "",
+      cpf: ""
     }
   });
 
@@ -95,7 +95,7 @@ export default function StudentLogin() {
           <CardHeader>
             <CardTitle className="text-center">Entre com seus dados</CardTitle>
             <CardDescription className="text-center">
-              Utilize seu CPF e data de nascimento para acessar
+              Utilize seu e-mail como login e CPF como senha
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -109,22 +109,18 @@ export default function StudentLogin() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="cpf"
+                  name="email"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        CPF
+                        E-mail
                       </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="000.000.000-00"
-                          maxLength={14}
-                          onChange={(e) => {
-                            const formatted = formatCPF(e.target.value);
-                            field.onChange(formatted);
-                          }}
+                          type="email"
+                          placeholder="seu.email@exemplo.com"
                         />
                       </FormControl>
                       <FormMessage />
@@ -134,17 +130,23 @@ export default function StudentLogin() {
 
                 <FormField
                   control={form.control}
-                  name="dataNascimento"
+                  name="cpf"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        Data de Nascimento
+                        CPF (Senha)
                       </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          type="date"
+                          type="password"
+                          placeholder="000.000.000-00"
+                          maxLength={14}
+                          onChange={(e) => {
+                            const formatted = formatCPF(e.target.value);
+                            field.onChange(formatted);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

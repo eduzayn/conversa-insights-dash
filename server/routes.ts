@@ -40,8 +40,8 @@ const loginSchema = z.object({
 
 // Schema para login do aluno (Portal do Aluno)
 const studentLoginSchema = z.object({
+  email: z.string().email("E-mail inválido"),
   cpf: z.string().min(11, "CPF é obrigatório").max(14, "CPF inválido"),
-  dataNascimento: z.string().min(1, "Data de nascimento é obrigatória"),
 });
 
 // Schema para registro
@@ -195,30 +195,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Login para Portal do Aluno (usando CPF e data de nascimento)
+  // Login para Portal do Aluno (usando e-mail e CPF como senha)
   app.post("/api/auth/student-login", async (req, res) => {
     try {
-      const { cpf, dataNascimento } = studentLoginSchema.parse(req.body);
+      const { email, cpf } = studentLoginSchema.parse(req.body);
       
       // Limpar CPF removendo formatação
       const cleanCpf = cpf.replace(/\D/g, '');
-      console.log("🔍 Tentativa de login:", { cpf: cleanCpf, dataNascimento });
+      console.log("🔍 Tentativa de login:", { email, cpf: cleanCpf });
       
-      // Buscar aluno por CPF
-      const student = await storage.getUserByCpf(cleanCpf);
-      console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, isActive: student.isActive, matriculaAtiva: student.matriculaAtiva, dataNascimento: student.dataNascimento } : "não encontrado");
+      // Buscar aluno por e-mail
+      const student = await storage.getUserByEmail(email);
+      console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, isActive: student.isActive, matriculaAtiva: student.matriculaAtiva, cpf: student.cpf } : "não encontrado");
       
       if (!student || student.role !== 'aluno') {
         console.log("❌ Falha: aluno não encontrado ou não é aluno");
         return res.status(401).json({ message: "Credenciais inválidas ou aluno não encontrado" });
       }
 
-      // Validar data de nascimento (comparar como string no formato YYYY-MM-DD)
-      const studentBirthDate = student.dataNascimento;
-      console.log("📅 Comparação de datas:", { enviada: dataNascimento, banco: studentBirthDate });
+      // Validar CPF como senha (comparar CPF limpo)
+      const studentCpf = student.cpf?.replace(/\D/g, '') || '';
+      console.log("🔑 Comparação de CPFs:", { enviado: cleanCpf, banco: studentCpf });
       
-      if (studentBirthDate !== dataNascimento) {
-        console.log("❌ Falha: datas não coincidem");
+      if (studentCpf !== cleanCpf) {
+        console.log("❌ Falha: CPFs não coincidem");
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
@@ -228,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const token = jwt.sign(
-        { userId: student.id, cpf: student.cpf, role: student.role },
+        { userId: student.id, email: student.email, role: student.role },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
