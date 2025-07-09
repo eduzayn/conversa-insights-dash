@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { SupportChatModal } from "./SupportChatModal";
 
 export const SupportChatButton = () => {
+  // Temporariamente oculto - remover comentário para reativar
+  return null;
+  
+  /*
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -20,4 +24,5 @@ export const SupportChatButton = () => {
       <SupportChatModal open={isOpen} onOpenChange={setIsOpen} />
     </>
   );
+  */
 };
