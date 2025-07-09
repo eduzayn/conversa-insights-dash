@@ -226,6 +226,15 @@ Changelog:
     - Filtros e formulários sincronizados com as novas modalidades
     - Layout responsivo para 8 abas de categorias
     - Botão de chat de suporte temporariamente oculto
+  * Melhorias no Modal de Certificações (9 Jul 2025):
+    - Modal expandido para tamanho máximo (max-w-6xl) com altura responsiva
+    - Novos campos acadêmicos: TCC, Práticas Pedagógicas e Estágio
+    - Cada campo acadêmico possui 4 opções: Não Possui, Aprovado, Reprovado, Em Correção
+    - Layout reorganizado em 3 colunas com espaçamento otimizado
+    - Campo de curso expandido para 2 colunas para melhor visualização de nomes longos
+    - Dropdown de busca de cursos ampliado (600px) com informações estruturadas
+    - Badges coloridas para status acadêmicos nos cards de visualização
+    - Scroll vertical implementado para modais com muito conteúdo
 ```
 
 ## User Preferences

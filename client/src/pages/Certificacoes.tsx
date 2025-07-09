@@ -346,11 +346,11 @@ export default function Certificacoes() {
                     Nova Certificação
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Nova Certificação</DialogTitle>
                   </DialogHeader>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="aluno">Aluno *</Label>
                       <Input
@@ -388,7 +388,7 @@ export default function Certificacoes() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
+                    <div className="col-span-2">
                       <Label htmlFor="curso">Curso *</Label>
                       <Popover open={courseSearchOpen} onOpenChange={setCourseSearchOpen}>
                         <PopoverTrigger asChild>
@@ -396,16 +396,16 @@ export default function Certificacoes() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={courseSearchOpen}
-                            className="w-full justify-between"
+                            className="w-full justify-between text-left"
                           >
-                            {newCertification.curso || "Selecione um curso..."}
+                            <span className="truncate">{newCertification.curso || "Selecione um curso..."}</span>
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
+                        <PopoverContent className="w-[600px] p-0">
                           <Command>
                             <CommandInput placeholder="Buscar curso..." />
-                            <CommandList>
+                            <CommandList className="max-h-60">
                               <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
                               <CommandGroup>
                                 {preRegisteredCourses.map((course) => (
@@ -421,14 +421,18 @@ export default function Certificacoes() {
                                       });
                                       setCourseSearchOpen(false);
                                     }}
+                                    className="text-sm"
                                   >
                                     <Check
                                       className={cn(
-                                        "mr-2 h-4 w-4",
+                                        "mr-2 h-4 w-4 shrink-0",
                                         newCertification.curso === course.nome ? "opacity-100" : "opacity-0"
                                       )}
                                     />
-                                    {course.nome} - {course.cargaHoraria}h
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{course.nome}</span>
+                                      <span className="text-xs text-gray-500">{course.cargaHoraria}h - {course.area}</span>
+                                    </div>
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
@@ -799,12 +803,12 @@ export default function Certificacoes() {
 
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Certificação</DialogTitle>
           </DialogHeader>
           {selectedCertification && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-6">
               <div>
                 <Label htmlFor="edit-aluno">Aluno</Label>
                 <Input
@@ -840,7 +844,7 @@ export default function Certificacoes() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
+              <div className="col-span-2">
                 <Label htmlFor="edit-curso">Curso</Label>
                 <Popover open={editCourseSearchOpen} onOpenChange={setEditCourseSearchOpen}>
                   <PopoverTrigger asChild>
@@ -848,16 +852,16 @@ export default function Certificacoes() {
                       variant="outline"
                       role="combobox"
                       aria-expanded={editCourseSearchOpen}
-                      className="w-full justify-between"
+                      className="w-full justify-between text-left"
                     >
-                      {selectedCertification.curso || "Selecione um curso..."}
+                      <span className="truncate">{selectedCertification.curso || "Selecione um curso..."}</span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent className="w-[600px] p-0">
                     <Command>
                       <CommandInput placeholder="Buscar curso..." />
-                      <CommandList>
+                      <CommandList className="max-h-60">
                         <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
                         <CommandGroup>
                           {preRegisteredCourses.map((course) => (
@@ -873,14 +877,18 @@ export default function Certificacoes() {
                                 });
                                 setEditCourseSearchOpen(false);
                               }}
+                              className="text-sm"
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "mr-2 h-4 w-4 shrink-0",
                                   selectedCertification.curso === course.nome ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {course.nome} - {course.cargaHoraria}h
+                              <div className="flex flex-col">
+                                <span className="font-medium">{course.nome}</span>
+                                <span className="text-xs text-gray-500">{course.cargaHoraria}h - {course.area}</span>
+                              </div>
                             </CommandItem>
                           ))}
                         </CommandGroup>
