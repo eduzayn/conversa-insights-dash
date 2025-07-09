@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         department: req.user.department,
         cpf: req.user.cpf,
         telefone: req.user.telefone,
-        dataNascimento: req.user.data_nascimento,
+        dataNascimento: req.user.dataNascimento,
         matriculaAtiva: req.user.matriculaAtiva
       }
     });
@@ -206,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar aluno por CPF
       const student = await storage.getUserByCpf(cleanCpf);
-      console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, is_active: student.is_active, matricula_ativa: student.matricula_ativa, data_nascimento: student.data_nascimento } : "não encontrado");
+      console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, isActive: student.isActive, matriculaAtiva: student.matriculaAtiva, dataNascimento: student.dataNascimento } : "não encontrado");
       
       if (!student || student.role !== 'aluno') {
         console.log("❌ Falha: aluno não encontrado ou não é aluno");
@@ -222,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
-      if (!student.is_active || !student.matricula_ativa) {
+      if (!student.isActive || !student.matriculaAtiva) {
         console.log("❌ Falha: conta inativa ou matrícula inativa");
         return res.status(401).json({ message: "Matrícula inativa ou conta desativada" });
       }
@@ -244,8 +244,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cpf: student.cpf,
           telefone: student.telefone,
           role: student.role,
-          matriculaAtiva: student.matricula_ativa,
-          documentacaoStatus: student.documentacao_status
+          matriculaAtiva: student.matriculaAtiva,
+          documentacaoStatus: student.documentacaoStatus
         }
       });
     } catch (error) {

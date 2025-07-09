@@ -14,23 +14,30 @@ export { queryClient };
 
 // Helper function for API requests with authentication
 export const apiRequest = async (url: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('token');
+  // Buscar diferentes tipos de token dependendo do contexto
+  const adminToken = localStorage.getItem('token');
+  const professorToken = localStorage.getItem('professor_token');
+  const studentToken = localStorage.getItem('student_token');
+  
+  // Usar o token apropriado baseado na rota
+  let authToken = adminToken;
+  if (url.includes('/professor/') || url.includes('professor-login')) {
+    authToken = professorToken;
+  } else if (url.includes('/portal/aluno/') || url.includes('student-login')) {
+    authToken = studentToken;
+  }
   
   const config: RequestInit = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(authToken && { Authorization: `Bearer ${authToken}` }),
       ...options.headers,
     },
   };
 
   const response = await fetch(url, config);
   
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  return response.json();
+  // Retornar a resposta inteira para que o código cliente possa decidir como processar
+  return response;
 };
