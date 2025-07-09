@@ -245,6 +245,22 @@ Changelog:
     - Modalidades importadas: Segunda Licenciatura, Formação Pedagógica, Pós-Graduação, Diplomação por Competência
     - Casos especiais tratados: CPFs duplicados com cursos diferentes, status variados (concluído, em andamento, cancelado, pendente)
     - Scripts de análise e importação automatizados criados (analise_dados_junho.ts, import_certificacoes_junho_restantes.ts)
+  * Importação Histórica Completa - Maio 2025 (9 Jul 2025):
+    - Processado arquivo Excel completo de maio: 173 certificações identificadas
+    - 170 certificações novas importadas com sucesso (98.3% de taxa de sucesso)
+    - 3 certificações já existentes no sistema
+    - Inferência automática de modalidades com 98.8% de precisão
+    - Extração automática de carga horária dos nomes dos cursos
+    - Total no sistema após maio: 290 certificações
+    - Scripts criados: processar_excel_maio.ts, import_certificacoes_maio_2025.ts
+  * Importação Histórica - Abril 2025 (9 Jul 2025):
+    - Processado arquivo Excel de abril: 352 certificações identificadas
+    - 96 certificações novas importadas com fidelidade total aos dados originais
+    - 1 certificação já existente no sistema
+    - Mapeamento avançado de 11 colunas de dados incluindo práticas pedagógicas
+    - Extração automática de disciplinas restantes e extensões contratuais
+    - Total no sistema após abril: 386 certificações históricas
+    - Scripts criados: processar_excel_abril.ts, import_certificacoes_abril_2025.ts
 ```
 
 ## User Preferences
