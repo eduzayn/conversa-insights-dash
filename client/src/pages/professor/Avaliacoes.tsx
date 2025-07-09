@@ -13,6 +13,23 @@ import { FileText, Clock, Users, Plus, Settings, BarChart3, Edit, Trash2, CheckC
 export default function Avaliacoes() {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [activeTab, setActiveTab] = useState("listar");
+
+  const handleEditAvaliacao = (avaliacaoId: number) => {
+    console.log("Editando avaliação:", avaliacaoId);
+    setActiveTab("criar");
+  };
+
+  const handleViewResults = (avaliacaoId: number) => {
+    console.log("Visualizando resultados:", avaliacaoId);
+    // Aqui seria a navegação para página de resultados
+  };
+
+  const handleDeleteAvaliacao = (avaliacaoId: number) => {
+    if (window.confirm("Tem certeza que deseja excluir esta avaliação?")) {
+      console.log("Excluindo avaliação:", avaliacaoId);
+      // Aqui seria a chamada para excluir
+    }
+  };
   const [questions, setQuestions] = useState([
     {
       id: 1,
@@ -172,15 +189,30 @@ export default function Avaliacoes() {
                   <Separator />
 
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleEditAvaliacao(avaliacao.id)}
+                    >
                       <Edit className="h-3 w-3 mr-1" />
                       Editar
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleViewResults(avaliacao.id)}
+                    >
                       <BarChart3 className="h-3 w-3 mr-1" />
                       Resultados
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteAvaliacao(avaliacao.id)}
+                      className="hover:bg-red-50 hover:border-red-200"
+                    >
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
