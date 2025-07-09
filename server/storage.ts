@@ -14,6 +14,7 @@ import {
   goalProgress,
   userActivity,
   certifications,
+  preRegisteredCourses,
   type User, 
   type InsertUser,
   type RegistrationToken,
@@ -37,7 +38,9 @@ import {
   type UserActivity,
   type InsertUserActivity,
   type Certification,
-  type InsertCertification
+  type InsertCertification,
+  type PreRegisteredCourse,
+  type InsertPreRegisteredCourse
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count } from "drizzle-orm";
@@ -107,6 +110,12 @@ export interface IStorage {
   updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
   deleteCertification(id: number): Promise<void>;
   getCertificationById(id: number): Promise<Certification | undefined>;
+  
+  // Pre-registered Courses
+  getPreRegisteredCourses(filters?: { modalidade?: string; categoria?: string; ativo?: boolean }): Promise<PreRegisteredCourse[]>;
+  createPreRegisteredCourse(course: InsertPreRegisteredCourse): Promise<PreRegisteredCourse>;
+  updatePreRegisteredCourse(id: number, course: Partial<PreRegisteredCourse>): Promise<PreRegisteredCourse | undefined>;
+  deletePreRegisteredCourse(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -583,6 +592,57 @@ export class DatabaseStorage implements IStorage {
       .from(certifications)
       .where(eq(certifications.id, id));
     return certification || undefined;
+  }
+
+  // Pre-registered Courses
+  async getPreRegisteredCourses(filters?: { modalidade?: string; categoria?: string; ativo?: boolean }): Promise<PreRegisteredCourse[]> {
+    let query = db.select().from(preRegisteredCourses);
+    
+    const conditions = [];
+    
+    if (filters?.modalidade) {
+      conditions.push(eq(preRegisteredCourses.modalidade, filters.modalidade));
+    }
+    
+    if (filters?.categoria) {
+      conditions.push(eq(preRegisteredCourses.categoria, filters.categoria));
+    }
+    
+    if (filters?.ativo !== undefined) {
+      conditions.push(eq(preRegisteredCourses.ativo, filters.ativo));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    const courses = await query.orderBy(asc(preRegisteredCourses.nome));
+    return courses;
+  }
+
+  async createPreRegisteredCourse(course: InsertPreRegisteredCourse): Promise<PreRegisteredCourse> {
+    const [newCourse] = await db
+      .insert(preRegisteredCourses)
+      .values({
+        ...course,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newCourse;
+  }
+
+  async updatePreRegisteredCourse(id: number, course: Partial<PreRegisteredCourse>): Promise<PreRegisteredCourse | undefined> {
+    const [updatedCourse] = await db
+      .update(preRegisteredCourses)
+      .set({ ...course, updatedAt: new Date() })
+      .where(eq(preRegisteredCourses.id, id))
+      .returning();
+    return updatedCourse || undefined;
+  }
+
+  async deletePreRegisteredCourse(id: number): Promise<void> {
+    await db.delete(preRegisteredCourses).where(eq(preRegisteredCourses.id, id));
   }
 }
 

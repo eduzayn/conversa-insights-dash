@@ -1,0 +1,82 @@
+Lista de Cursos de Pós-Graduação (Ordem Alfabética)
+Alfabetização e Letramento - 600h
+Análise de Comportamento Aplicada ao Autismo – ABA com Habilitação em Docência no Ensino Superior - 600h
+Arbitragem, Mediação e Resolução de Conflitos - 600h
+Arte e Educação - 580h
+Atendimento Educacional Especializado com Ênfase em Educação Especial e Inclusiva - 760h
+Atendimento Educacional Especializado com Ênfase LIBRAS - 600h
+Atendimento Educacional Especializado com Ênfase TEA - 600h
+Autismo - 1100h
+Compliance - 600h
+Direito do Trabalho e Processual Trabalhista - 600h
+Direito Público e Licitatório - 600h
+Direito Tributário - 460h
+Direito Tributário e Processual Tributário - 600h
+Direitos e Novos Negócios - 600h
+Direitos Humanos e Diversidade - 600h
+Educação Especial e Inclusiva - 800h
+Educação Especial na Perspectiva da Educação Inclusiva - 580h
+Educação Multidisciplinar - 560h
+Educação Musical - 580h
+Educação Musical Inovadora - 600h
+Ensino da Língua Portuguesa - 600h
+Ensino de História e Geografia - 600h
+Ensino de Literatura e Produção de Textos em Língua Espanhola - 600h
+Ensino de Literatura e Produção de Textos em Língua Inglesa - 600h
+Gestão de Hospitais - 600h
+Gestão de Saúde - 600h
+Gestão da Saúde Municipal - 600h
+Gestão e Orientação Escolar - 600h
+Gestão Empresarial - 600h
+Gestão Escolar - 820h
+Gestão Escolar com Ênfase em Direito Educacional - 560h
+Gestão Escolar Integradora com Ênfase em Supervisão, Orientação, Administração e Inspeção - 740h
+Gestão Estratégica de Marketing - 600h
+Gestão Jurídica - 600h
+Gestão Pública Educacional - 600h
+História e Fundamentos da Filosofia - 600h
+IA na Educação - 600h
+Informática Forense - 600h
+Inteligência Artificial - 600h
+Internet das Coisas - 600h
+Letras com Ênfase em Linguística - 600h
+LIBRAS - 600h
+Marketing Político - 600h
+Metodologia do Ensino de Artes - 600h
+Metodologia do Ensino de Filosofia - 640h
+Metodologia do Ensino de Filosofia e Sociologia - 540h
+Metodologia do Ensino de Geografia - 600h
+Metodologia do Ensino de Matemática - 600h
+Metodologia do Ensino de Matemática e Física - 520h
+Metodologia do Ensino de Matemática – Nova Versão - 640h
+Metodologias Ativas e Tecnologias Educacionais - 600h
+Musicalização e Contação de História - 600h
+Musicoterapia - 540h
+Neurociência - 600h
+Neuropsicologia - 540h
+Neuropsicologia Clínica - 360h
+Neuropsicopedagogia - 870h
+Neuropsicopedagogia (versão nova) - 600h
+Planejamento e Gestão de Trânsito - 680h
+Psicanálise - 800h
+Psicologia Clínica - 600h
+Psicopedagogia Clínica - 680h
+Psicopedagogia Clínica, Institucional e Hospitalar - 620h
+Psicopedagogia com Ênfase em Neuro Educação - 600h
+Psicopedagogia Escolar - 600h
+Psicopedagogia Institucional e Clínica - 710h
+Alfabetização, Letramento e Psicopedagogia - 600h
+Segurança da Informação - 600h
+Sistema de Informação - 600h
+Supervisão Escolar - 600h
+Web Design - 600h
+Total: 71 cursos de pós-graduação
+
+Distribuição por área:
+
+Gestão Escolar: 27 cursos
+Saúde Mental: 19 cursos
+Gestão: 13 cursos
+Tecnologia da Informação: 7 cursos
+Saúde: 3 cursos
+Trânsito: 1 curso

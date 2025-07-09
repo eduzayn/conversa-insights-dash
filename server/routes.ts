@@ -1185,6 +1185,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rotas para cursos pré-cadastrados
+  app.get('/api/cursos-pre-cadastrados', authenticateToken, async (req: any, res) => {
+    try {
+      const { modalidade, categoria, ativo } = req.query;
+      const filters: any = {};
+      
+      if (modalidade) filters.modalidade = modalidade as string;
+      if (categoria) filters.categoria = categoria as string;
+      if (ativo !== undefined) filters.ativo = ativo === 'true';
+      
+      const courses = await storage.getPreRegisteredCourses(filters);
+      res.json(courses);
+    } catch (error) {
+      console.error('Erro ao buscar cursos pré-cadastrados:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/api/cursos-pre-cadastrados', authenticateToken, async (req: any, res) => {
+    try {
+      const courseData = req.body;
+      const course = await storage.createPreRegisteredCourse(courseData);
+      res.json(course);
+    } catch (error) {
+      console.error('Erro ao criar curso pré-cadastrado:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   app.get("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);

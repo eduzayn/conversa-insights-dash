@@ -208,6 +208,7 @@ export const certifications = pgTable("certifications", {
   extensaoData: date("extensao_data"),
   disciplinasRestantes: integer("disciplinas_restantes"),
   telefone: text("telefone"),
+  cargaHoraria: integer("carga_horaria"), // Campo para carga horária do curso
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -234,6 +235,19 @@ export const certificationDocuments = pgTable("certification_documents", {
   dataAprovacao: timestamp("data_aprovacao"),
   observacoes: text("observacoes"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tabela para cursos pré-cadastrados
+export const preRegisteredCourses = pgTable("pre_registered_courses", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  modalidade: text("modalidade").notNull(), // Pós-graduação, etc.
+  categoria: text("categoria").notNull(), // pos_graduacao, segunda_graduacao, etc.
+  cargaHoraria: integer("carga_horaria").notNull(),
+  area: text("area"), // Gestão Escolar, Saúde Mental, etc.
+  ativo: boolean("ativo").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Relações
@@ -411,6 +425,7 @@ export const insertCertificationSchema = createInsertSchema(certifications).pick
   extensaoData: true,
   disciplinasRestantes: true,
   telefone: true,
+  cargaHoraria: true,
 });
 
 export const insertCertificationHistorySchema = createInsertSchema(certificationHistory).pick({
@@ -429,6 +444,15 @@ export const insertCertificationDocumentSchema = createInsertSchema(certificatio
   dataEnvio: true,
   dataAprovacao: true,
   observacoes: true,
+});
+
+export const insertPreRegisteredCourseSchema = createInsertSchema(preRegisteredCourses).pick({
+  nome: true,
+  modalidade: true,
+  categoria: true,
+  cargaHoraria: true,
+  area: true,
+  ativo: true,
 });
 
 // Tipos
@@ -473,3 +497,6 @@ export type CertificationHistory = typeof certificationHistory.$inferSelect;
 
 export type InsertCertificationDocument = z.infer<typeof insertCertificationDocumentSchema>;
 export type CertificationDocument = typeof certificationDocuments.$inferSelect;
+
+export type InsertPreRegisteredCourse = z.infer<typeof insertPreRegisteredCourseSchema>;
+export type PreRegisteredCourse = typeof preRegisteredCourses.$inferSelect;

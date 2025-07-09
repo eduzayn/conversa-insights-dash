@@ -74,6 +74,7 @@ export default function Certificacoes() {
     cpf: '',
     modalidade: '',
     curso: '',
+    cargaHoraria: '',
     financeiro: '',
     documentacao: '',
     plataforma: '',
@@ -137,6 +138,15 @@ export default function Certificacoes() {
         return null;
     }
   };
+
+  // Query para buscar cursos pré-cadastrados
+  const { data: preRegisteredCourses = [] } = useQuery({
+    queryKey: ['/api/cursos-pre-cadastrados', { categoria: getCategoriaFromTab(activeTab) }],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/cursos-pre-cadastrados?categoria=${getCategoriaFromTab(activeTab)}`);
+      return response;
+    }
+  });
 
   const { data: certifications = [], isLoading } = useQuery({
     queryKey: ['/api/certificacoes', { 
@@ -354,11 +364,35 @@ export default function Certificacoes() {
                     </div>
                     <div>
                       <Label htmlFor="curso">Curso *</Label>
+                      <Select value={newCertification.curso} onValueChange={(value) => {
+                        const selectedCourse = preRegisteredCourses.find(c => c.nome === value);
+                        setNewCertification({ 
+                          ...newCertification, 
+                          curso: value,
+                          cargaHoraria: selectedCourse ? selectedCourse.cargaHoraria.toString() : ''
+                        });
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um curso" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {preRegisteredCourses.map((course) => (
+                            <SelectItem key={course.id} value={course.nome}>
+                              {course.nome} - {course.cargaHoraria}h
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="cargaHoraria">Carga Horária</Label>
                       <Input
-                        id="curso"
-                        value={newCertification.curso}
-                        onChange={(e) => setNewCertification({ ...newCertification, curso: e.target.value })}
-                        placeholder="Nome do curso"
+                        id="cargaHoraria"
+                        type="number"
+                        value={newCertification.cargaHoraria}
+                        onChange={(e) => setNewCertification({ ...newCertification, cargaHoraria: e.target.value })}
+                        placeholder="Horas"
+                        disabled={!!newCertification.curso}
                       />
                     </div>
                     {activeTab === 'segunda' && (
@@ -562,6 +596,9 @@ export default function Certificacoes() {
                                 <div className="font-semibold text-lg">{certification.aluno}</div>
                                 <div className="text-sm text-gray-600">CPF: {certification.cpf}</div>
                                 <div className="text-sm text-gray-600">Curso: {certification.curso}</div>
+                                {certification.cargaHoraria && (
+                                  <div className="text-sm text-gray-600">Carga Horária: {certification.cargaHoraria}h</div>
+                                )}
                                 {activeTab === 'segunda' && certification.subcategoria && (
                                   <div className="text-xs text-blue-600 mt-1">
                                     {SUBCATEGORIA_LABELS[certification.subcategoria as keyof typeof SUBCATEGORIA_LABELS]}
