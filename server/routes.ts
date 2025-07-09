@@ -408,15 +408,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Aplicar filtros adicionais
       let filteredAtendimentos = atendimentos;
       
-      if (status) {
+      // Filtro por status
+      if (status && status !== 'Todos') {
         filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
           atendimento.status === status
         );
       }
       
-      if (equipe) {
+      // Filtro por equipe
+      if (equipe && equipe !== 'Todas') {
         filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
           atendimento.equipe === equipe
+        );
+      }
+      
+      // Filtro por atendente (se fornecido)
+      if (req.query.atendente && req.query.atendente !== 'Todos') {
+        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
+          atendimento.atendente === req.query.atendente
+        );
+      }
+      
+      // Filtro por busca de texto (se fornecido)
+      if (req.query.search) {
+        const searchTerm = req.query.search.toLowerCase();
+        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
+          atendimento.lead.toLowerCase().includes(searchTerm) ||
+          atendimento.atendente.toLowerCase().includes(searchTerm) ||
+          atendimento.equipe.toLowerCase().includes(searchTerm)
         );
       }
       
@@ -426,6 +445,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
+
+
 
   app.patch("/api/atendimentos/:id/status", authenticateToken, async (req: any, res) => {
     try {
