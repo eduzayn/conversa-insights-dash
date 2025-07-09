@@ -439,7 +439,7 @@ export default function Certificacoes() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                          <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
+                          <SelectItem value="Formação Pedagógica">Formação Pedagógica</SelectItem>
                           <SelectItem value="EJA">EJA</SelectItem>
                           <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
                           <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
@@ -673,7 +673,7 @@ export default function Certificacoes() {
                           <SelectContent>
                             <SelectItem value="todas">Todas</SelectItem>
                             <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                            <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
+                            <SelectItem value="Formação Pedagógica">Formação Pedagógica</SelectItem>
                             <SelectItem value="EJA">EJA</SelectItem>
                             <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
                             <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
