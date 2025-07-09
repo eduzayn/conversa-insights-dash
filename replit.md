@@ -202,9 +202,9 @@ Changelog:
   * Botão "Criar Funil" com estilo melhorado e consistente
   * Coerência entre dados dos funis e estrutura real do sistema mantida
 - Módulo de Certificações - Importação de Dados Reais (8 Jul 2025):
-  * Sistema expandido para 5 categorias: Pós-Graduação, Segunda Graduação, Formação Livre, Diplomação por Competência, EJA
+  * Sistema expandido para 9 categorias: Pós-Graduação, Segunda Graduação, Formação Livre, Diplomação por Competência, EJA, Graduação, Capacitação, Sequencial
   * Layout ajustado para usar toda a largura da tela (removido container restritivo)
-  * Nova aba "Diplomação por Competência" implementada com dados específicos
+  * Modalidades atualizadas para refletir as necessidades reais do sistema educacional
   * Importação completa de dados de julho 2025: 97 certificações processadas
   * Importação adicional de dados de junho 2025: 26 certificações novas
   * Total atual no sistema: 124 certificações distribuídas:
@@ -217,6 +217,15 @@ Changelog:
   * Campos preservados fielmente da planilha original: início, aluno, CPF, modalidade, curso, financeiro, documentação, plataforma, tutoria, observações
   * Status automaticamente categorizados: concluído, em andamento, pendente, cancelado
   * Sistema pronto para uso com dados reais de certificações educacionais
+  * Divergências de dados sistematicamente corrigidas (9 Jul 2025):
+    - CPFs unificados para 6 alunos com registros duplicados
+    - Duplicatas removidas do sistema
+    - Sistema de busca funcionando sem erros de runtime
+  * Interface atualizada (9 Jul 2025):
+    - Modalidades ajustadas para: Segunda licenciatura, formação pedagógica, EJA, Diplomação por competência, pós-graduação, formação livre, graduação, capacitação, sequencial
+    - Filtros e formulários sincronizados com as novas modalidades
+    - Layout responsivo para 8 abas de categorias
+    - Botão de chat de suporte temporariamente oculto
 ```
 
 ## User Preferences

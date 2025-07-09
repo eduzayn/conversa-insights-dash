@@ -63,6 +63,8 @@ export default function Certificacoes() {
       case 'diplomacao': return 'diplomacao_competencia';
       case 'eja': return 'eja';
       case 'graduacao': return 'graduacao';
+      case 'capacitacao': return 'capacitacao';
+      case 'sequencial': return 'sequencial';
       default: return 'pos_graduacao';
     }
   };
@@ -345,6 +347,8 @@ export default function Certificacoes() {
                           <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
                           <SelectItem value="Formação livre">Formação livre</SelectItem>
                           <SelectItem value="Graduação">Graduação</SelectItem>
+                          <SelectItem value="Capacitação">Capacitação</SelectItem>
+                          <SelectItem value="Sequencial">Sequencial</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -419,13 +423,15 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
                 <TabsTrigger value="pos">Pós-graduação</TabsTrigger>
                 <TabsTrigger value="segunda">Segunda licenciatura</TabsTrigger>
                 <TabsTrigger value="formacao_livre">Formação livre</TabsTrigger>
                 <TabsTrigger value="diplomacao">Diplomação por competência</TabsTrigger>
                 <TabsTrigger value="eja">EJA</TabsTrigger>
                 <TabsTrigger value="graduacao">Graduação</TabsTrigger>
+                <TabsTrigger value="capacitacao">Capacitação</TabsTrigger>
+                <TabsTrigger value="sequencial">Sequencial</TabsTrigger>
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
@@ -478,6 +484,8 @@ export default function Certificacoes() {
                             <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
                             <SelectItem value="Formação livre">Formação livre</SelectItem>
                             <SelectItem value="Graduação">Graduação</SelectItem>
+                            <SelectItem value="Capacitação">Capacitação</SelectItem>
+                            <SelectItem value="Sequencial">Sequencial</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -659,6 +667,8 @@ export default function Certificacoes() {
                     <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
                     <SelectItem value="Formação livre">Formação livre</SelectItem>
                     <SelectItem value="Graduação">Graduação</SelectItem>
+                    <SelectItem value="Capacitação">Capacitação</SelectItem>
+                    <SelectItem value="Sequencial">Sequencial</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
