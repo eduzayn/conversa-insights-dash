@@ -51,9 +51,9 @@ export default function PortalLayout() {
     );
   }
 
+  const [location] = useLocation();
+  
   const renderContent = () => {
-    const [location] = useLocation();
-    
     switch (location) {
       case '/portal':
         return <StudentDashboard studentData={studentData} />;
