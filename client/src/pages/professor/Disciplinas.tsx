@@ -3,6 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   BookOpen, 
   Users, 
@@ -16,6 +21,34 @@ import {
 
 export default function Disciplinas() {
   const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    nome: "",
+    codigo: "",
+    area: "",
+    cargaHoraria: "",
+    descricao: ""
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = () => {
+    // Aqui seria feita a chamada para a API
+    console.log("Nova disciplina:", formData);
+    setIsModalOpen(false);
+    setFormData({
+      nome: "",
+      codigo: "",
+      area: "",
+      cargaHoraria: "",
+      descricao: ""
+    });
+  };
 
   const { data: disciplinas, isLoading } = useQuery({
     queryKey: ["/api/professor/subjects"],
@@ -83,10 +116,95 @@ export default function Disciplinas() {
             Gerencie suas disciplinas e visualize o progresso dos alunos
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Disciplina
-        </Button>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Disciplina
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Criar Nova Disciplina</DialogTitle>
+              <DialogDescription>
+                Adicione uma nova disciplina ao sistema e comece a gerenciar conteúdos e avaliações.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome da Disciplina</Label>
+                <Input
+                  id="nome"
+                  placeholder="Ex: Algoritmos e Programação I"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange("nome", e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="codigo">Código</Label>
+                  <Input
+                    id="codigo"
+                    placeholder="Ex: PROG001"
+                    value={formData.codigo}
+                    onChange={(e) => handleInputChange("codigo", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cargaHoraria">Carga Horária</Label>
+                  <Input
+                    id="cargaHoraria"
+                    type="number"
+                    placeholder="Ex: 80"
+                    value={formData.cargaHoraria}
+                    onChange={(e) => handleInputChange("cargaHoraria", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="area">Área de Conhecimento</Label>
+                <Select value={formData.area} onValueChange={(value) => handleInputChange("area", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ciencias-exatas">Ciências Exatas</SelectItem>
+                    <SelectItem value="ciencias-humanas">Ciências Humanas</SelectItem>
+                    <SelectItem value="ciencias-biologicas">Ciências Biológicas</SelectItem>
+                    <SelectItem value="engenharia">Engenharia</SelectItem>
+                    <SelectItem value="saude">Saúde</SelectItem>
+                    <SelectItem value="educacao">Educação</SelectItem>
+                    <SelectItem value="artes">Artes</SelectItem>
+                    <SelectItem value="linguistica">Linguística</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="descricao">Descrição</Label>
+                <Textarea
+                  id="descricao"
+                  placeholder="Descreva os objetivos e conteúdos da disciplina..."
+                  value={formData.descricao}
+                  onChange={(e) => handleInputChange("descricao", e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSubmit} disabled={!formData.nome || !formData.codigo}>
+                Criar Disciplina
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Overview */}
