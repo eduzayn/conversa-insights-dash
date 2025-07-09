@@ -15,6 +15,8 @@ interface AtendimentosFiltersProps {
 
 export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }: AtendimentosFiltersProps) => {
   const { data: filtersData, isLoading: isLoadingFilters } = useFiltersData();
+  
+
   return (
     <Card>
       <CardHeader>
@@ -93,11 +95,20 @@ export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }
               {isLoadingFilters ? (
                 <SelectItem value="loading" disabled>Carregando...</SelectItem>
               ) : (
-                filtersData?.status?.filter(Boolean).map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))
+                filtersData?.status?.filter(Boolean).length > 0 ? (
+                  filtersData.status.filter(Boolean).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Fallback se não conseguir carregar os dados
+                  <>
+                    <SelectItem value="Em andamento">Em andamento</SelectItem>
+                    <SelectItem value="Concluído">Concluído</SelectItem>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                  </>
+                )
               )}
             </SelectContent>
           </Select>
