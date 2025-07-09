@@ -235,6 +235,16 @@ Changelog:
     - Dropdown de busca de cursos ampliado (600px) com informações estruturadas
     - Badges coloridas para status acadêmicos nos cards de visualização
     - Scroll vertical implementado para modais com muito conteúdo
+    - Campo de Status movido para o topo do modal com destaque visual (fundo azul)
+    - Indicadores visuais com bolinhas coloridas para cada status nos dropdowns
+  * Importação Complementar de Dados - Junho 2025 (9 Jul 2025):
+    - Análise do arquivo PDF de junho identificou 28 certificações
+    - 20 certificações já estavam no sistema (71% de cobertura)
+    - 8 certificações restantes foram importadas com sucesso
+    - Total no sistema agora: 129 certificações
+    - Modalidades importadas: Segunda Licenciatura, Formação Pedagógica, Pós-Graduação, Diplomação por Competência
+    - Casos especiais tratados: CPFs duplicados com cursos diferentes, status variados (concluído, em andamento, cancelado, pendente)
+    - Scripts de análise e importação automatizados criados (analise_dados_junho.ts, import_certificacoes_junho_restantes.ts)
 ```
 
 ## User Preferences
