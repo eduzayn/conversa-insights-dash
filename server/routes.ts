@@ -214,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validar data de nascimento (comparar como string no formato YYYY-MM-DD)
-      const studentBirthDate = student.data_nascimento?.toISOString().split('T')[0];
+      const studentBirthDate = student.dataNascimento?.toISOString().split('T')[0];
       console.log("📅 Comparação de datas:", { enviada: dataNascimento, banco: studentBirthDate });
       
       if (studentBirthDate !== dataNascimento) {
