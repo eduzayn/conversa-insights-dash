@@ -161,12 +161,38 @@ export default function Certificacoes() {
     }
   };
 
+  // Função para obter categoria baseada na modalidade
+  const getCategoriaFromModalidade = (modalidade: string) => {
+    switch (modalidade) {
+      case 'Segunda licenciatura':
+      case 'Formação Pedagógica':
+        return 'segunda_graduacao';
+      case 'Pós-graduação':
+        return 'pos_graduacao';
+      case 'Formação livre':
+        return 'formacao_livre';
+      case 'Diplomação por competência':
+        return 'diplomacao_competencia';
+      case 'EJA':
+        return 'eja';
+      case 'Graduação':
+        return 'graduacao';
+      case 'Capacitação':
+        return 'capacitacao';
+      case 'Sequencial':
+        return 'sequencial';
+      default:
+        return getCategoriaFromTab(activeTab);
+    }
+  };
+
   // Query para buscar cursos pré-cadastrados para criação
   const { data: preRegisteredCourses = [] } = useQuery({
-    queryKey: ['/api/cursos-pre-cadastrados', { categoria: getCategoriaFromTab(activeTab), modalidade: newCertification.modalidade }],
+    queryKey: ['/api/cursos-pre-cadastrados', { categoria: getCategoriaFromModalidade(newCertification.modalidade), modalidade: newCertification.modalidade }],
     queryFn: async () => {
+      const categoria = getCategoriaFromModalidade(newCertification.modalidade);
       const params = new URLSearchParams({
-        categoria: getCategoriaFromTab(activeTab)
+        categoria: categoria
       });
       
       if (newCertification.modalidade) {
@@ -174,7 +200,7 @@ export default function Certificacoes() {
       }
       
       console.log('🔍 Buscando cursos com parâmetros:', { 
-        categoria: getCategoriaFromTab(activeTab), 
+        categoria: categoria, 
         modalidade: newCertification.modalidade,
         url: `/api/cursos-pre-cadastrados?${params}`
       });
@@ -187,10 +213,11 @@ export default function Certificacoes() {
 
   // Query para buscar cursos pré-cadastrados para edição
   const { data: editPreRegisteredCourses = [] } = useQuery({
-    queryKey: ['/api/cursos-pre-cadastrados-edit', { categoria: getCategoriaFromTab(activeTab), modalidade: selectedCertification?.modalidade }],
+    queryKey: ['/api/cursos-pre-cadastrados-edit', { categoria: getCategoriaFromModalidade(selectedCertification?.modalidade || ''), modalidade: selectedCertification?.modalidade }],
     queryFn: async () => {
+      const categoria = getCategoriaFromModalidade(selectedCertification?.modalidade || '');
       const params = new URLSearchParams({
-        categoria: getCategoriaFromTab(activeTab)
+        categoria: categoria
       });
       
       if (selectedCertification?.modalidade) {
