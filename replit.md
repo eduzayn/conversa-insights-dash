@@ -292,6 +292,15 @@ Changelog:
     - Áreas organizadas: Educação, Educação Física, Ciências Humanas, Letras, Ciências Exatas, Artes, Ciências Biológicas
     - Total de cursos pré-cadastrados: 88 cursos ativos no sistema
     - Total final de certificações históricas: 806 certificações (janeiro a julho 2025)
+- Correção Bug Filtro de Cursos por Modalidade (9 Jul 2025):
+   * RESOLVIDO: Problema de filtro de cursos para modalidades "Segunda licenciatura" e "Formação Pedagógica"
+   * Causa identificada: Discrepância entre strings frontend/backend ("Formação pedagógica" vs "Formação Pedagógica")
+   * Correção aplicada: Unificação de strings com "P" maiúsculo
+   * Melhoria implementada: Função `getCategoriaFromModalidade` para mapear modalidade → categoria correta
+   * Sistema corrigido: Modalidades "Segunda licenciatura" e "Formação Pedagógica" usam categoria `segunda_graduacao`
+   * Cursos adicionados: 3 cursos de Diplomação por Competência (Música, Educação Física, Pedagogia)
+   * Cursos adicionados: 2 cursos de Formação Livre (Psicanálise, Sexologia)
+   * Status: Filtro de cursos funcionando corretamente para todas as modalidades
 ```
 
 ## User Preferences
