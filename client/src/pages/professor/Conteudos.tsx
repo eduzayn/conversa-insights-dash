@@ -13,6 +13,19 @@ import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload } f
 export default function Conteudos() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [activeTab, setActiveTab] = useState("listar");
+  const [editingContent, setEditingContent] = useState<any>(null);
+
+  const handleEditContent = (content: any) => {
+    setEditingContent(content);
+    setActiveTab("adicionar");
+  };
+
+  const handleDeleteContent = (contentId: number) => {
+    if (window.confirm("Tem certeza que deseja excluir este conteúdo?")) {
+      console.log("Excluindo conteúdo:", contentId);
+      // Aqui seria feita a chamada para a API para deletar
+    }
+  };
 
   // Dados mock das disciplinas do professor
   const subjects = [
@@ -198,10 +211,21 @@ export default function Conteudos() {
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-xs text-gray-500">Ordem: {content.ordem}</span>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditContent(content)}
+                        title="Editar conteúdo"
+                      >
                         <Edit className="h-3 w-3" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteContent(content.id)}
+                        title="Excluir conteúdo"
+                        className="hover:bg-red-50 hover:border-red-200"
+                      >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
@@ -215,14 +239,21 @@ export default function Conteudos() {
         <TabsContent value="adicionar" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Adicionar Novo Conteúdo</CardTitle>
-              <CardDescription>Adicione vídeo-aulas, e-books ou links úteis às suas disciplinas</CardDescription>
+              <CardTitle>
+                {editingContent ? 'Editar Conteúdo' : 'Adicionar Novo Conteúdo'}
+              </CardTitle>
+              <CardDescription>
+                {editingContent 
+                  ? 'Atualize as informações do conteúdo selecionado' 
+                  : 'Adicione vídeo-aulas, e-books ou links úteis às suas disciplinas'
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="disciplina">Disciplina</Label>
-                  <Select>
+                  <Select defaultValue={editingContent?.subjectId?.toString()}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma disciplina" />
                     </SelectTrigger>
@@ -238,7 +269,7 @@ export default function Conteudos() {
 
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo de Conteúdo</Label>
-                  <Select>
+                  <Select defaultValue={editingContent?.tipo}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
@@ -255,7 +286,8 @@ export default function Conteudos() {
                 <Label htmlFor="titulo">Título do Conteúdo</Label>
                 <Input 
                   id="titulo" 
-                  placeholder="Ex: Introdução aos Algoritmos" 
+                  placeholder="Ex: Introdução aos Algoritmos"
+                  defaultValue={editingContent?.titulo || ""}
                 />
               </div>
 
@@ -264,6 +296,7 @@ export default function Conteudos() {
                 <Input 
                   id="url" 
                   placeholder="Ex: https://youtube.com/watch?v=... ou https://drive.google.com/..." 
+                  defaultValue={editingContent?.url || ""}
                 />
               </div>
 
@@ -273,6 +306,7 @@ export default function Conteudos() {
                   id="descricao" 
                   placeholder="Descreva o conteúdo e sua importância para a disciplina"
                   rows={3}
+                  defaultValue={editingContent?.descricao || ""}
                 />
               </div>
 
@@ -284,16 +318,24 @@ export default function Conteudos() {
                     type="number" 
                     placeholder="1" 
                     min="1"
+                    defaultValue={editingContent?.ordem || ""}
                   />
                 </div>
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button>
+                <Button onClick={() => {
+                  console.log(editingContent ? "Salvando alterações..." : "Adicionando novo conteúdo...");
+                  setEditingContent(null);
+                  setActiveTab("listar");
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Conteúdo
+                  {editingContent ? 'Salvar Alterações' : 'Adicionar Conteúdo'}
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => {
+                  setEditingContent(null);
+                  setActiveTab("listar");
+                }}>
                   Cancelar
                 </Button>
               </div>
