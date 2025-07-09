@@ -198,7 +198,7 @@ export const certifications = pgTable("certifications", {
   dataEntrega: text("data_entrega"),
   diploma: text("diploma"),
   status: text("status").notNull().default("pendente"), // pendente, em_analise, concluida, entregue
-  categoria: text("categoria").notNull().default("geral"), // geral, pos_graduacao, segunda_graduacao, formacao_livre, eja
+  categoria: text("categoria").notNull().default("geral"), // geral, pos_graduacao, segunda_graduacao, formacao_livre, eja, graduacao, diplomacao_competencia
   subcategoria: text("subcategoria"), // Para segunda graduação: segunda_licenciatura, formacao_pedagogica, pedagogia_bachareis
   prioridade: text("prioridade").default("mediana"), // urgente, mediana, normal
   situacaoAnalise: text("situacao_analise"), // Status da análise completa

@@ -62,6 +62,7 @@ export default function Certificacoes() {
       case 'formacao_livre': return 'formacao_livre';
       case 'diplomacao': return 'diplomacao_competencia';
       case 'eja': return 'eja';
+      case 'graduacao': return 'graduacao';
       default: return 'pos_graduacao';
     }
   };
@@ -337,9 +338,13 @@ export default function Certificacoes() {
                           <SelectValue placeholder="Selecione a modalidade" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="EAD">EAD</SelectItem>
-                          <SelectItem value="Presencial">Presencial</SelectItem>
-                          <SelectItem value="Semipresencial">Semipresencial</SelectItem>
+                          <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
+                          <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
+                          <SelectItem value="EJA">EJA</SelectItem>
+                          <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
+                          <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
+                          <SelectItem value="Formação livre">Formação livre</SelectItem>
+                          <SelectItem value="Graduação">Graduação</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -414,12 +419,13 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="pos">Certificação Pós</TabsTrigger>
-                <TabsTrigger value="segunda">2ª Graduação</TabsTrigger>
-                <TabsTrigger value="formacao_livre">Formação Livre</TabsTrigger>
-                <TabsTrigger value="diplomacao">Diplomação por Competência</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="pos">Pós-graduação</TabsTrigger>
+                <TabsTrigger value="segunda">Segunda licenciatura</TabsTrigger>
+                <TabsTrigger value="formacao_livre">Formação livre</TabsTrigger>
+                <TabsTrigger value="diplomacao">Diplomação por competência</TabsTrigger>
                 <TabsTrigger value="eja">EJA</TabsTrigger>
+                <TabsTrigger value="graduacao">Graduação</TabsTrigger>
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
@@ -465,9 +471,13 @@ export default function Certificacoes() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="todas">Todas</SelectItem>
-                            <SelectItem value="EAD">EAD</SelectItem>
-                            <SelectItem value="Presencial">Presencial</SelectItem>
-                            <SelectItem value="Semipresencial">Semipresencial</SelectItem>
+                            <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
+                            <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
+                            <SelectItem value="EJA">EJA</SelectItem>
+                            <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
+                            <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
+                            <SelectItem value="Formação livre">Formação livre</SelectItem>
+                            <SelectItem value="Graduação">Graduação</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -642,9 +652,13 @@ export default function Certificacoes() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EAD">EAD</SelectItem>
-                    <SelectItem value="Presencial">Presencial</SelectItem>
-                    <SelectItem value="Semipresencial">Semipresencial</SelectItem>
+                    <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
+                    <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
+                    <SelectItem value="EJA">EJA</SelectItem>
+                    <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
+                    <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
+                    <SelectItem value="Formação livre">Formação livre</SelectItem>
+                    <SelectItem value="Graduação">Graduação</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
