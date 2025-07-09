@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, Router, Route } from "wouter";
+import { useNavigate, Routes, Route } from "react-router-dom";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
 import ProfessorDashboard from "./professor/ProfessorDashboard";
 import Disciplinas from "./professor/Disciplinas";
@@ -19,7 +19,7 @@ interface ProfessorData {
 }
 
 export default function ProfessorPortalLayout() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [professorData, setProfessorData] = useState<ProfessorData | null>(null);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function ProfessorPortalLayout() {
     const data = localStorage.getItem('professor_data');
     
     if (!token || !data) {
-      setLocation('/professor/login');
+      navigate('/professor/login');
       return;
     }
 
@@ -37,9 +37,9 @@ export default function ProfessorPortalLayout() {
       setProfessorData(parsedData);
     } catch (error) {
       console.error('Erro ao carregar dados do professor:', error);
-      setLocation('/professor/login');
+      navigate('/professor/login');
     }
-  }, [setLocation]);
+  }, [navigate]);
 
   if (!professorData) {
     return (
@@ -51,16 +51,16 @@ export default function ProfessorPortalLayout() {
 
   return (
     <ProfessorLayout professorData={professorData}>
-      <Router base="/professor">
-        <Route path="/dashboard" component={ProfessorDashboard} />
-        <Route path="/disciplinas" component={Disciplinas} />
-        <Route path="/conteudos" component={Conteudos} />
-        <Route path="/avaliacoes" component={Avaliacoes} />
-        <Route path="/submissoes" component={Submissoes} />
-        <Route path="/relatorios" component={Relatorios} />
-        <Route path="/perfil" component={PerfilProfessor} />
-        <Route component={NotFound} />
-      </Router>
+      <Routes>
+        <Route path="/dashboard" element={<ProfessorDashboard />} />
+        <Route path="/disciplinas" element={<Disciplinas />} />
+        <Route path="/conteudos" element={<Conteudos />} />
+        <Route path="/avaliacoes" element={<Avaliacoes />} />
+        <Route path="/submissoes" element={<Submissoes />} />
+        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/perfil" element={<PerfilProfessor />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </ProfessorLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { GraduationCap, Mail, Lock, BookOpen } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function ProfessorLogin() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export default function ProfessorLogin() {
       localStorage.setItem('professor_data', JSON.stringify(data.professor));
       
       // Redirecionar para o dashboard do professor
-      setLocation('/professor/dashboard');
+      navigate('/professor/dashboard');
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -129,7 +129,7 @@ export default function ProfessorLogin() {
 
             <div className="mt-4 text-center">
               <button
-                onClick={() => setLocation('/')}
+                onClick={() => navigate('/')}
                 className="text-blue-600 hover:text-blue-700 text-sm"
               >
                 Área Administrativa
