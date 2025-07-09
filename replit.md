@@ -367,6 +367,11 @@ Changelog:
    * ✅ Rotas configuradas: /professor-login e /professor/login
    * ✅ Credenciais funcionais: joao.silva@instituicao.edu.br / professor123
    * ✅ Sistema 100% integrado e funcional
+- Bug React Hooks Corrigido - PortalLayout.tsx (9 Jul 2025):
+   * ✅ RESOLVIDO: Erro "Rendered more hooks than during the previous render"
+   * ✅ Causa identificada: Dupla chamada do hook useLocation()
+   * ✅ Correção aplicada: Unificação dos hooks em uma única chamada
+   * ✅ Estado: Portal do Aluno funcionando sem erros de React
 ```
 
 ## User Preferences

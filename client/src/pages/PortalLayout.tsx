@@ -21,7 +21,7 @@ interface StudentData {
 }
 
 export default function PortalLayout() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
 
   useEffect(() => {
@@ -50,8 +50,6 @@ export default function PortalLayout() {
       </div>
     );
   }
-
-  const [location] = useLocation();
   
   const renderContent = () => {
     switch (location) {
