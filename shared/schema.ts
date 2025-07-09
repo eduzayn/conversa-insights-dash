@@ -110,6 +110,8 @@ export const conversations = pgTable("conversations", {
   leadId: integer("lead_id").notNull().references(() => leads.id),
   attendantId: integer("attendant_id").references(() => users.id),
   status: text("status").notNull().default("novo"), // novo, em_andamento, finalizado
+  customerName: text("customer_name"), // Nome do cliente
+  customerPhone: text("customer_phone"), // Telefone do cliente
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -127,6 +129,7 @@ export const attendanceMessages = pgTable("attendance_messages", {
   fileName: text("file_name"),
   audioDuration: integer("audio_duration"),
   read: boolean("read").default(false),
+  externalId: text("external_id"), // ID da mensagem no BotConversa
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -372,6 +375,7 @@ export const insertAttendanceMessageSchema = createInsertSchema(attendanceMessag
   fileUrl: true,
   fileName: true,
   audioDuration: true,
+  externalId: true,
 });
 
 export const insertInternalNoteSchema = createInsertSchema(internalNotes).pick({

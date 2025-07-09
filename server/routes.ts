@@ -285,30 +285,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sincronizar conversas do BotConversa
+  app.post("/api/atendimentos/sync", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem sincronizar dados." });
+      }
+      
+      // Sincronizar ambas as contas
+      await Promise.all([
+        botConversaService.syncConversations('SUPORTE'),
+        botConversaService.syncConversations('COMERCIAL')
+      ]);
+      
+      res.json({ 
+        success: true, 
+        message: "Conversas sincronizadas com sucesso",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Erro ao sincronizar conversas:", error);
+      res.status(500).json({ 
+        message: "Erro ao sincronizar conversas",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
   // Atendimentos
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
       const { startDate, endDate, status, equipe } = req.query;
       
       // Buscar conversas baseadas nos filtros
-      const conversations = await storage.getConversations();
+      let conversations = await storage.getConversations();
+      
+      // Aplicar filtros de data se fornecidos
+      if (startDate || endDate) {
+        conversations = conversations.filter(conv => {
+          const convDate = new Date(conv.createdAt);
+          const start = startDate ? new Date(startDate) : new Date(0);
+          const end = endDate ? new Date(endDate) : new Date();
+          return convDate >= start && convDate <= end;
+        });
+      }
+      
+      // Buscar informações dos usuarios/attendants
+      const users = await storage.getUsers();
+      const teams = await storage.getTeams();
       
       // Transformar conversas em formato de atendimentos
-      const atendimentos = conversations.map((conv, index) => ({
-        id: conv.id,
-        lead: conv.customerName || `Cliente ${conv.id}`,
-        hora: new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        atendente: conv.attendantId ? `Atendente ${conv.attendantId}` : 'Não atribuído',
-        equipe: conv.attendantId ? 'Atendimento' : 'Não atribuído',
-        duracao: conv.status === 'closed' ? '15m' : 'Em andamento',
-        status: conv.status === 'active' ? 'Em andamento' : 
-               conv.status === 'closed' ? 'Concluído' : 'Pendente'
+      const atendimentos = await Promise.all(conversations.map(async (conv) => {
+        // Buscar mensagens da conversa para calcular duração
+        const messages = await storage.getConversationMessages(conv.id, 100, 0);
+        
+        // Calcular duração baseada nas mensagens
+        let duracao = 'Em andamento';
+        if (messages.length > 0 && conv.status === 'closed') {
+          const firstMessage = messages[messages.length - 1];
+          const lastMessage = messages[0];
+          const timeDiff = new Date(lastMessage.createdAt).getTime() - new Date(firstMessage.createdAt).getTime();
+          const minutes = Math.floor(timeDiff / (1000 * 60));
+          duracao = `${minutes}m`;
+        }
+        
+        // Buscar informações do atendente
+        const attendant = conv.attendantId ? users.find(u => u.id === conv.attendantId) : null;
+        const attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
+        
+        // Determinar equipe baseada no atendente
+        let equipe = 'Não atribuído';
+        if (attendant) {
+          // Buscar team do atendente
+          const attendantTeam = teams.find(t => t.id === attendant.teamId);
+          equipe = attendantTeam ? attendantTeam.name : 'Atendimento';
+        }
+        
+        return {
+          id: conv.id,
+          lead: conv.customerName || conv.customerPhone || `Cliente ${conv.id}`,
+          hora: new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          atendente: attendantName,
+          equipe: equipe,
+          duracao: duracao,
+          status: conv.status === 'active' ? 'Em andamento' : 
+                 conv.status === 'closed' ? 'Concluído' : 'Pendente'
+        };
       }));
       
-      res.json(atendimentos);
+      // Aplicar filtros adicionais
+      let filteredAtendimentos = atendimentos;
+      
+      if (status) {
+        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
+          atendimento.status === status
+        );
+      }
+      
+      if (equipe) {
+        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
+          atendimento.equipe === equipe
+        );
+      }
+      
+      res.json(filteredAtendimentos);
     } catch (error) {
       console.error("Erro ao buscar atendimentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });

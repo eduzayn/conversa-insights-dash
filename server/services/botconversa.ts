@@ -146,6 +146,99 @@ export class BotConversaService {
     });
   }
   
+  // Buscar todos os subscribers
+  async getSubscribers(account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber[]> {
+    try {
+      const data = await this.makeRequest('/subscriber/', account, { method: 'GET' });
+      return data.results || [];
+    } catch (error) {
+      console.error('Erro ao buscar subscribers:', error);
+      return [];
+    }
+  }
+  
+  // Buscar mensagens de um subscriber
+  async getSubscriberMessages(subscriberId: string, account: 'SUPORTE' | 'COMERCIAL'): Promise<any[]> {
+    try {
+      const data = await this.makeRequest(`/subscriber/${subscriberId}/messages/`, account, { method: 'GET' });
+      return data.results || [];
+    } catch (error) {
+      console.error('Erro ao buscar mensagens:', error);
+      return [];
+    }
+  }
+  
+  // Sincronizar conversas do BotConversa com o sistema
+  async syncConversations(account: 'SUPORTE' | 'COMERCIAL'): Promise<void> {
+    try {
+      console.log(`Sincronizando conversas da conta ${account}...`);
+      
+      // Buscar subscribers do BotConversa
+      const subscribers = await this.getSubscribers(account);
+      
+      // Para cada subscriber, criar ou atualizar conversa
+      for (const subscriber of subscribers) {
+        await this.syncSubscriberConversation(subscriber, account);
+      }
+      
+      console.log(`Sincronização concluída para ${account}: ${subscribers.length} subscribers processados`);
+    } catch (error) {
+      console.error(`Erro ao sincronizar conversas da conta ${account}:`, error);
+    }
+  }
+  
+  // Sincronizar conversa de um subscriber específico
+  async syncSubscriberConversation(subscriber: BotConversaSubscriber, account: 'SUPORTE' | 'COMERCIAL'): Promise<void> {
+    try {
+      // Buscar conversa existente
+      const existingConversation = await this.findOrCreateConversation(subscriber, account);
+      
+      // Buscar mensagens do subscriber
+      const messages = await this.getSubscriberMessages(subscriber.id, account);
+      
+      // Atualizar última atividade da conversa
+      if (messages.length > 0) {
+        const lastMessage = messages[0];
+        await storage.updateConversation(existingConversation.id, {
+          lastMessageAt: new Date(lastMessage.timestamp || subscriber.updated_at),
+          status: 'active'
+        });
+        
+        // Sincronizar mensagens
+        await this.syncMessages(existingConversation.id, messages);
+      }
+    } catch (error) {
+      console.error(`Erro ao sincronizar conversa do subscriber ${subscriber.id}:`, error);
+    }
+  }
+  
+  // Sincronizar mensagens de uma conversa
+  async syncMessages(conversationId: number, messages: any[]): Promise<void> {
+    try {
+      // Buscar mensagens existentes
+      const existingMessages = await storage.getConversationMessages(conversationId, 1000, 0);
+      const existingMessageIds = new Set(existingMessages.map(msg => msg.externalId).filter(Boolean));
+      
+      // Adicionar apenas mensagens novas
+      for (const message of messages) {
+        if (!existingMessageIds.has(message.id)) {
+          const attendanceMessage: InsertAttendanceMessage = {
+            conversationId,
+            senderId: message.direction === 'incoming' ? null : 1,
+            senderType: message.direction === 'incoming' ? 'student' : 'attendant',
+            content: message.content,
+            type: message.type,
+            externalId: message.id
+          };
+          
+          await storage.createAttendanceMessage(attendanceMessage);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar mensagens:', error);
+    }
+  }
+  
   // Definir valor de campo personalizado
   async setCustomField(subscriberId: string, fieldId: string, value: any, account: 'SUPORTE' | 'COMERCIAL'): Promise<void> {
     await this.makeRequest(`/subscriber/${subscriberId}/custom_fields/${fieldId}`, account, {
@@ -200,10 +293,10 @@ export class BotConversaService {
     const attendanceMessage: InsertAttendanceMessage = {
       conversationId: conversation.id,
       senderId: message.direction === 'incoming' ? null : 1, // null para cliente, 1 para sistema
+      senderType: message.direction === 'incoming' ? 'student' : 'attendant',
       content: message.content,
-      messageType: message.type,
-      timestamp: new Date(message.timestamp),
-      isRead: false
+      type: message.type,
+      externalId: message.id
     };
     
     await storage.createAttendanceMessage(attendanceMessage);
@@ -306,20 +399,42 @@ export class BotConversaService {
       return existingConversation;
     }
     
+    // Buscar ou criar lead primeiro
+    const leads = await storage.getLeads({ teamId: account === 'COMERCIAL' ? 2 : 1 });
+    let lead = leads.find(l => l.phone === subscriber.phone);
+    
+    if (!lead) {
+      // Criar lead se não existir
+      const newLead: InsertLead = {
+        name: subscriber.name || 'Contato sem nome',
+        phone: subscriber.phone,
+        email: subscriber.email || null,
+        source: `BotConversa ${account}`,
+        status: 'new',
+        companyAccount: account,
+        teamId: account === 'COMERCIAL' ? 2 : 1,
+        assignedTo: null
+      };
+      
+      lead = await storage.createLead(newLead);
+    }
+    
     // Criar nova conversa
     const newConversation: InsertConversation = {
-      customerName: subscriber.name || 'Contato sem nome',
-      customerPhone: subscriber.phone,
-      customerEmail: subscriber.email || null,
+      leadId: lead.id,
       attendantId: null,
-      status: 'waiting',
-      priority: 'medium',
-      subject: `Atendimento via BotConversa ${account}`,
-      teamId: account === 'COMERCIAL' ? 2 : 1,
-      lastMessageAt: new Date()
+      status: 'active'
     };
     
-    return await storage.createConversation(newConversation);
+    const conversation = await storage.createConversation(newConversation);
+    
+    // Atualizar com informações do cliente
+    await storage.updateConversation(conversation.id, {
+      customerName: subscriber.name || 'Contato sem nome',
+      customerPhone: subscriber.phone
+    });
+    
+    return { ...conversation, customerName: subscriber.name || 'Contato sem nome', customerPhone: subscriber.phone };
   }
   
   // Sincronizar dados do BotConversa com CRM

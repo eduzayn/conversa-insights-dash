@@ -1,7 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, RefreshCw, AlertCircle } from "lucide-react";
+import { Download, RefreshCw, AlertCircle, RotateCcw } from "lucide-react";
+import { useState } from "react";
+import { atendimentosService } from "@/services/atendimentosService";
 
 interface AtendimentosHeaderProps {
   isLoading: boolean;
@@ -18,6 +20,21 @@ export const AtendimentosHeader = ({
   onRefetch, 
   onExportCSV 
 }: AtendimentosHeaderProps) => {
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  const handleSyncConversations = async () => {
+    setIsSyncing(true);
+    try {
+      await atendimentosService.syncConversations();
+      // Atualizar dados após sincronização
+      onRefetch();
+    } catch (error) {
+      console.error('Erro ao sincronizar conversas:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  
   return (
     <>
       <div className="flex justify-between items-center">
@@ -28,6 +45,14 @@ export const AtendimentosHeader = ({
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleSyncConversations}
+            disabled={isSyncing || isLoading}
+          >
+            <RotateCcw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            Sincronizar BotConversa
+          </Button>
           <Button 
             variant="outline" 
             onClick={onRefetch}
