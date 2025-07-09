@@ -312,23 +312,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Atendimentos
+  // Atendimentos com paginação
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
-      const { startDate, endDate, status, equipe } = req.query;
+      const { startDate, endDate, status, equipe, page = 1, limit = 20 } = req.query;
+      const currentPage = parseInt(page);
+      const pageSize = parseInt(limit);
       
-      // Buscar conversas baseadas nos filtros
+      // Primeiro, buscar conversas locais
       let conversations = await storage.getConversations();
-      
-      // Aplicar filtros de data se fornecidos
-      if (startDate || endDate) {
-        conversations = conversations.filter(conv => {
-          const convDate = new Date(conv.createdAt);
-          const start = startDate ? new Date(startDate) : new Date(0);
-          const end = endDate ? new Date(endDate) : new Date();
-          return convDate >= start && convDate <= end;
-        });
-      }
       
       // Buscar informações dos teams
       const teams = await storage.getTeams();
@@ -439,7 +431,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
-      res.json(filteredAtendimentos);
+      // Aplicar filtros de data se fornecidos
+      if (startDate || endDate) {
+        filteredAtendimentos = filteredAtendimentos.filter(atendimento => {
+          const convDate = new Date(atendimento.hora);
+          const start = startDate ? new Date(startDate) : new Date(0);
+          const end = endDate ? new Date(endDate) : new Date();
+          return convDate >= start && convDate <= end;
+        });
+      }
+      
+      // Ordenar por data de criação (mais recentes primeiro)
+      filteredAtendimentos.sort((a, b) => b.id - a.id);
+      
+      // Calcular paginação
+      const total = filteredAtendimentos.length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedAtendimentos = filteredAtendimentos.slice(startIndex, endIndex);
+      
+      // Resposta com informações de paginação
+      res.json({
+        data: paginatedAtendimentos,
+        pagination: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages,
+          hasNext: currentPage < totalPages,
+          hasPrev: currentPage > 1
+        }
+      });
     } catch (error) {
       console.error("Erro ao buscar atendimentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });

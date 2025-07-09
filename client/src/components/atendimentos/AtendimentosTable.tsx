@@ -2,7 +2,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Atendimento } from "@/types/atendimento";
+import { useEffect, useRef } from "react";
 
 interface AtendimentosTableProps {
   atendimentos: Atendimento[];
@@ -10,6 +12,10 @@ interface AtendimentosTableProps {
   isUpdatingStatus: boolean;
   onStatusChange: (id: string, newStatus: string) => void;
   filters: any;
+  // Scroll infinito
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
 }
 
 export const AtendimentosTable = ({ 
@@ -17,8 +23,14 @@ export const AtendimentosTable = ({
   isLoading, 
   isUpdatingStatus, 
   onStatusChange, 
-  filters 
+  filters,
+  // Scroll infinito
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage
 }: AtendimentosTableProps) => {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
   const getStatusBadge = (status: string) => {
     const variants = {
       'Concluído': 'bg-green-100 text-green-800',
@@ -27,6 +39,27 @@ export const AtendimentosTable = ({
     };
     return variants[status as keyof typeof variants] || variants['Pendente'];
   };
+
+  // Intersection Observer para detectar quando o usuário chegou ao final da lista
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage?.();
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '20px'
+      }
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <Card>
@@ -96,6 +129,36 @@ export const AtendimentosTable = ({
                 ))}
               </tbody>
             </table>
+            
+            {/* Indicador de carregamento para scroll infinito */}
+            {hasNextPage && (
+              <div 
+                ref={loadMoreRef}
+                className="flex justify-center items-center py-6 border-t mt-4"
+              >
+                {isFetchingNextPage ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
+                    <span className="text-gray-600">Carregando mais atendimentos...</span>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => fetchNextPage?.()}
+                    className="text-blue-600 hover:bg-blue-50"
+                  >
+                    Carregar mais atendimentos
+                  </Button>
+                )}
+              </div>
+            )}
+            
+            {/* Indicador de fim da lista */}
+            {!hasNextPage && atendimentos.length > 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm border-t mt-4">
+                Todos os atendimentos foram carregados
+              </div>
+            )}
           </div>
         )}
       </CardContent>

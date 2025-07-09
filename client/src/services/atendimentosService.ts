@@ -4,12 +4,28 @@ import { Atendimento } from '@/types/atendimento';
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const atendimentosService = {
-  async getAtendimentos(filters?: any): Promise<Atendimento[]> {
+  async getAtendimentos(filters?: any, page: number = 1, limit: number = 20): Promise<{
+    data: Atendimento[],
+    pagination: {
+      page: number,
+      limit: number,
+      total: number,
+      totalPages: number,
+      hasNext: boolean,
+      hasPrev: boolean
+    }
+  }> {
     const params = new URLSearchParams();
     if (filters?.startDate) params.append('startDate', filters.startDate);
     if (filters?.endDate) params.append('endDate', filters.endDate);
     if (filters?.status) params.append('status', filters.status);
     if (filters?.equipe) params.append('equipe', filters.equipe);
+    if (filters?.atendente) params.append('atendente', filters.atendente);
+    if (filters?.search) params.append('search', filters.search);
+    
+    // Parâmetros de paginação
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
 
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/atendimentos?${params}`, {

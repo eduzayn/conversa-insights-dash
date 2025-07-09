@@ -20,7 +20,11 @@ const Atendimentos = () => {
     updateStatus,
     isUpdatingStatus,
     refetch,
-    exportToCSV
+    exportToCSV,
+    // Scroll infinito
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
   } = useAtendimentos();
 
   if (loading) {
@@ -66,6 +70,10 @@ const Atendimentos = () => {
               isUpdatingStatus={isUpdatingStatus}
               onStatusChange={handleStatusChange}
               filters={filters}
+              // Scroll infinito
+              fetchNextPage={fetchNextPage}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
             />
           </div>
         </main>

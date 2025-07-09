@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { atendimentosService } from '@/services/atendimentosService';
 import { AtendimentoData, AtendimentosFilters } from '@/types/atendimento';
 import { toast } from 'sonner';
@@ -9,20 +9,28 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
   const [filters, setFilters] = useState<AtendimentosFilters>(initialFilters);
   const queryClient = useQueryClient();
 
-  // Query para buscar atendimentos
+  // Query infinita para buscar atendimentos com paginação
   const {
-    data: atendimentos = [],
+    data,
     isLoading,
     error,
-    refetch
-  } = useQuery({
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ['atendimentos', filters],
-    queryFn: () => atendimentosService.getAtendimentos(filters),
+    queryFn: ({ pageParam = 1 }) => atendimentosService.getAtendimentos(filters, pageParam, 20),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.pagination.hasNext ? lastPage.pagination.page + 1 : undefined,
     refetchInterval: 30000, // Atualiza a cada 30 segundos
     staleTime: 10000, // Considera dados frescos por 10 segundos
-    retry: 1, // Only retry once to avoid excessive requests
-    retryDelay: 1000, // Wait 1 second before retry
+    retry: 1,
+    retryDelay: 1000,
   });
+
+  // Combinar todas as páginas em uma única lista
+  const atendimentos = data?.pages?.flatMap(page => page.data) || [];
 
   // Mutation para atualizar status
   const updateStatusMutation = useMutation({
@@ -93,6 +101,10 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
     updateStatus,
     isUpdatingStatus: updateStatusMutation.isPending,
     refetch,
-    exportToCSV
+    exportToCSV,
+    // Scroll infinito
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
   };
 };
