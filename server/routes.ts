@@ -315,7 +315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atendimentos com paginação
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
-      const { startDate, endDate, status, equipe, page = 1, limit = 20 } = req.query;
+      const { startDate, endDate, status, equipe, companhia, page = 1, limit = 20 } = req.query;
       const currentPage = parseInt(page);
       const pageSize = parseInt(limit);
       
@@ -382,6 +382,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
+        // Determinar companhia baseada no email do manager
+        let companhiaAtendimento = 'SUPORTE'; // Default
+        if (conv.botconversaManagerEmail) {
+          // Emails da conta COMERCIAL
+          const comercialEmails = [
+            'yasminvitorino.office@gmail.com',
+            'brenodantas28@gmail.com', 
+            'jhonatapimenteljgc38@gmail.com'
+          ];
+          
+          if (comercialEmails.includes(conv.botconversaManagerEmail)) {
+            companhiaAtendimento = 'COMERCIAL';
+          }
+        }
+        
         return {
           id: conv.id,
           lead: conv.customerName || conv.customerPhone || `Cliente ${conv.id}`,
@@ -394,7 +409,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           duracao: duracao,
           status: conv.status === 'active' ? 'Em andamento' : 
                  conv.status === 'closed' ? 'Concluído' : 'Pendente',
-          resultado: conv.resultado || null
+          resultado: conv.resultado || null,
+          companhia: companhiaAtendimento
         };
       }));
       
@@ -419,6 +435,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.atendente && req.query.atendente !== 'Todos') {
         filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
           atendimento.atendente === req.query.atendente
+        );
+      }
+      
+      // Filtro por companhia (se fornecido)
+      if (companhia && companhia !== 'Todas') {
+        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
+          atendimento.companhia === companhia
         );
       }
       

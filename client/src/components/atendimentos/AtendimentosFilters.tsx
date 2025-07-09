@@ -28,7 +28,7 @@ export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input 
@@ -110,6 +110,16 @@ export const AtendimentosFilters = ({ filters, onUpdateFilters, onClearFilters }
                   </>
                 )
               )}
+            </SelectContent>
+          </Select>
+          <Select value={filters.companhia || ''} onValueChange={(value) => onUpdateFilters({ companhia: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Companhia" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas</SelectItem>
+              <SelectItem value="COMERCIAL">Comercial</SelectItem>
+              <SelectItem value="SUPORTE">Suporte</SelectItem>
             </SelectContent>
           </Select>
         </div>

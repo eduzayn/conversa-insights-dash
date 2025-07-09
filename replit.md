@@ -327,6 +327,14 @@ Changelog:
    * ✅ Todos os endpoints da API conectados ao banco real
    * ✅ Sistema totalmente operacional com dados reais
    * Status: Migração 100% concluída, sistema pronto para uso em produção
+- Filtro de Companhia para Atendimentos BotConversa (9 Jul 2025):
+   * ✅ Campo `companhia` adicionado aos tipos `Atendimento` e `AtendimentosFilters`
+   * ✅ Lógica implementada no backend para determinar companhia baseada no email do manager
+   * ✅ Emails da conta COMERCIAL mapeados: yasminvitorino.office@gmail.com, brenodantas28@gmail.com, jhonatapimenteljgc38@gmail.com
+   * ✅ Filtro de companhia adicionado na interface (6ª coluna) com opções: Todas, Comercial, Suporte
+   * ✅ Endpoint `/api/atendimentos` atualizado para aceitar parâmetro `companhia`
+   * ✅ Filtro aplicado cirurgicamente sem alterar outras funcionalidades
+   * Status: Sistema de filtros por companhia implementado e funcional
 ```
 
 ## User Preferences

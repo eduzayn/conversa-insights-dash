@@ -22,6 +22,7 @@ export const atendimentosService = {
     if (filters?.equipe) params.append('equipe', filters.equipe);
     if (filters?.atendente) params.append('atendente', filters.atendente);
     if (filters?.search) params.append('search', filters.search);
+    if (filters?.companhia) params.append('companhia', filters.companhia);
     
     // Parâmetros de paginação
     params.append('page', page.toString());
