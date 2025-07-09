@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,24 +49,8 @@ export default function Disciplinas() {
     });
   };
 
-  const { data: disciplinas, isLoading } = useQuery({
-    queryKey: ["/api/professor/subjects"],
-  });
-
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-64"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 bg-gray-200 rounded"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const mockDisciplinas = disciplinas || [
+  // Lista das disciplinas do professor
+  const disciplinas = [
     {
       id: 1,
       nome: "Algoritmos e Programação I",
@@ -216,7 +199,7 @@ export default function Disciplinas() {
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{mockDisciplinas.length}</p>
+                <p className="text-2xl font-bold">{disciplinas.length}</p>
                 <p className="text-sm text-gray-600">Disciplinas Ativas</p>
               </div>
             </div>
@@ -231,7 +214,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {mockDisciplinas.reduce((sum, d) => sum + d.totalAlunos, 0)}
+                  {disciplinas.reduce((sum, d) => sum + d.totalAlunos, 0)}
                 </p>
                 <p className="text-sm text-gray-600">Total de Alunos</p>
               </div>
@@ -247,7 +230,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {mockDisciplinas.reduce((sum, d) => sum + d.totalConteudos, 0)}
+                  {disciplinas.reduce((sum, d) => sum + d.totalConteudos, 0)}
                 </p>
                 <p className="text-sm text-gray-600">Conteúdos Criados</p>
               </div>
@@ -263,7 +246,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {mockDisciplinas.reduce((sum, d) => sum + d.totalAvaliacoes, 0)}
+                  {disciplinas.reduce((sum, d) => sum + d.totalAvaliacoes, 0)}
                 </p>
                 <p className="text-sm text-gray-600">Avaliações Criadas</p>
               </div>
@@ -274,7 +257,7 @@ export default function Disciplinas() {
 
       {/* Disciplinas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockDisciplinas.map((disciplina) => (
+        {disciplinas.map((disciplina) => (
           <Card 
             key={disciplina.id} 
             className={`cursor-pointer transition-all hover:shadow-lg ${
