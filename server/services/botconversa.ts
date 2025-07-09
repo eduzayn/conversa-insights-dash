@@ -293,6 +293,47 @@ export class BotConversaService {
       body: JSON.stringify({ flow_id: flowId })
     });
   }
+
+  // Atualizar status da conversa no BotConversa via tags
+  async updateConversationStatusInBotConversa(customerPhone: string, newStatus: string, account: 'SUPORTE' | 'COMERCIAL'): Promise<void> {
+    try {
+      const subscriber = await this.getSubscriberByPhone(customerPhone, account);
+      
+      if (subscriber) {
+        // Mapeamento de status para tags do BotConversa
+        const statusTags = {
+          'Em andamento': 'conversa_ativa',
+          'Concluído': 'conversa_concluida',
+          'Pendente': 'conversa_pendente'
+        };
+        
+        const allStatusTags = Object.values(statusTags);
+        const newStatusTag = statusTags[newStatus as keyof typeof statusTags];
+        
+        if (newStatusTag) {
+          // Remover todas as tags de status anteriores
+          const currentTags = subscriber.tags || [];
+          for (const tagToRemove of allStatusTags) {
+            if (currentTags.includes(tagToRemove)) {
+              try {
+                await this.removeTagFromSubscriber(subscriber.id, tagToRemove, account);
+              } catch (error) {
+                console.log(`Tag ${tagToRemove} não encontrada para remover`);
+              }
+            }
+          }
+          
+          // Adicionar nova tag de status
+          await this.addTagToSubscriber(subscriber.id, newStatusTag, account);
+          
+          console.log(`Status atualizado no BotConversa: ${customerPhone} → ${newStatus} (${account})`);
+        }
+      }
+    } catch (error) {
+      console.error(`Erro ao atualizar status no BotConversa para ${customerPhone}:`, error);
+      // Não falha a operação local se houver erro no BotConversa
+    }
+  }
   
   // Buscar todos os subscribers
   async getSubscribers(account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber[]> {
@@ -550,6 +591,54 @@ export class BotConversaService {
       await storage.updateLead(existingLead.id, {
         status: newStatus
       });
+    }
+    
+    // Detectar mudanças de status da conversa baseadas em tags
+    await this.detectAndUpdateConversationStatusFromTags(subscriber, account);
+  }
+  
+  // Detectar e atualizar status da conversa baseado em tags
+  private async detectAndUpdateConversationStatusFromTags(subscriber: BotConversaSubscriber, account: 'SUPORTE' | 'COMERCIAL'): Promise<void> {
+    try {
+      // Buscar conversa existente
+      const conversations = await storage.getConversations();
+      const existingConversation = conversations.find(conv => 
+        conv.customerPhone === subscriber.phone
+      );
+      
+      if (existingConversation) {
+        // Mapeamento de tags para status de conversa
+        const tagToConversationStatus = {
+          'conversa_ativa': 'active',
+          'conversa_concluida': 'closed',
+          'conversa_pendente': 'pending',
+          'atendimento_finalizado': 'closed',
+          'aguardando_cliente': 'pending',
+          'em_atendimento': 'active'
+        };
+        
+        const tags = subscriber.tags || [];
+        let newStatus = null;
+        
+        // Procurar por tags que correspondem aos status de conversa
+        for (const tag of tags) {
+          if (tagToConversationStatus[tag]) {
+            newStatus = tagToConversationStatus[tag];
+            break;
+          }
+        }
+        
+        // Atualizar status da conversa se mudou
+        if (newStatus && existingConversation.status !== newStatus) {
+          await storage.updateConversation(existingConversation.id, {
+            status: newStatus
+          });
+          
+          console.log(`Status da conversa atualizado via webhook: ${existingConversation.id} → ${newStatus} (${account})`);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao detectar mudanças de status da conversa:', error);
     }
   }
   

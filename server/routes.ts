@@ -536,6 +536,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (updatedConversation) {
+        // Sincronização bidirecional com BotConversa
+        if (updatedConversation.customerPhone) {
+          // Tentar determinar qual conta do BotConversa usar
+          const accountToUse = updatedConversation.botconversaManagerEmail?.includes('comercial') ||
+                               updatedConversation.botconversaManagerEmail?.includes('yasmin') ||
+                               updatedConversation.botconversaManagerEmail?.includes('breno') ||
+                               updatedConversation.botconversaManagerEmail?.includes('jhonata') 
+                               ? 'COMERCIAL' : 'SUPORTE';
+          
+          // Atualizar status no BotConversa (não bloqueia se falhar)
+          try {
+            await botConversaService.updateConversationStatusInBotConversa(
+              updatedConversation.customerPhone,
+              status,
+              accountToUse
+            );
+            console.log(`✓ Status sincronizado com BotConversa: ${status} para ${updatedConversation.customerPhone}`);
+          } catch (error) {
+            console.error(`⚠️ Erro na sincronização com BotConversa:`, error);
+            // Não falha a operação local se houver erro no BotConversa
+          }
+        }
+
         const atendimento = {
           id: updatedConversation.id,
           lead: updatedConversation.customerName || `Cliente ${updatedConversation.id}`,
