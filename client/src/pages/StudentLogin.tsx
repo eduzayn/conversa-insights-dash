@@ -145,7 +145,6 @@ export default function StudentLogin() {
                         <Input
                           {...field}
                           type="date"
-                          placeholder="dd/mm/aaaa"
                         />
                       </FormControl>
                       <FormMessage />
