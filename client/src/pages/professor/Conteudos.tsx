@@ -12,6 +12,7 @@ import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload } f
 
 export default function Conteudos() {
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [activeTab, setActiveTab] = useState("listar");
 
   // Dados mock das disciplinas do professor
   const subjects = [
@@ -79,7 +80,7 @@ export default function Conteudos() {
           <h1 className="text-3xl font-bold text-gray-900">Aulas e Conteúdos</h1>
           <p className="text-gray-600 mt-2">Adição e gerenciamento de vídeo-aulas, e-books e links úteis</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setActiveTab("adicionar")}>
           <Plus className="h-4 w-4" />
           Adicionar Conteúdo
         </Button>
@@ -143,7 +144,7 @@ export default function Conteudos() {
         </Card>
       </div>
 
-      <Tabs defaultValue="listar" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="listar">Listar Conteúdos</TabsTrigger>
           <TabsTrigger value="adicionar">Adicionar Conteúdo</TabsTrigger>
