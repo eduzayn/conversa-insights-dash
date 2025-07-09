@@ -12,6 +12,17 @@ export interface BotConversaSubscriber {
   tags?: string[];
   created_at: string;
   updated_at: string;
+  // Campos adicionais da API real
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  ddd?: string;
+  live_chat?: string;
+  referrer?: string;
+  referral_count?: number;
+  campaigns?: any[];
+  variables?: Record<string, any>;
+  sequences?: any[];
 }
 
 export interface BotConversaWebhookData {
@@ -150,7 +161,14 @@ export class BotConversaService {
   async getSubscribers(account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber[]> {
     try {
       const data = await this.makeRequest('/subscribers/', account, { method: 'GET' });
-      return data.results || [];
+      const subscribers = data.results || [];
+      
+      // Log detalhado para análise dos dados
+      if (subscribers.length > 0) {
+        console.log(`[${account}] Exemplo de subscriber recebido:`, JSON.stringify(subscribers[0], null, 2));
+      }
+      
+      return subscribers;
     } catch (error) {
       console.error('Erro ao buscar subscribers:', error);
       return [];
@@ -184,6 +202,18 @@ export class BotConversaService {
       console.log(`Sincronização concluída para ${account}: ${subscribers.length} subscribers processados`);
     } catch (error) {
       console.error(`Erro ao sincronizar conversas da conta ${account}:`, error);
+    }
+  }
+  
+  // Buscar subscriber específico por ID
+  async getSubscriberById(subscriberId: string, account: 'SUPORTE' | 'COMERCIAL'): Promise<BotConversaSubscriber | null> {
+    try {
+      const subscriber = await this.makeRequest(`/subscriber/${subscriberId}/`, account, { method: 'GET' });
+      console.log(`[${account}] Detalhes do subscriber ${subscriberId}:`, JSON.stringify(subscriber, null, 2));
+      return subscriber;
+    } catch (error) {
+      console.error(`Erro ao buscar subscriber ${subscriberId}:`, error);
+      return null;
     }
   }
   
@@ -399,6 +429,9 @@ export class BotConversaService {
       return existingConversation;
     }
     
+    // Extrair nome do subscriber com múltiplas tentativas
+    let customerName = this.extractCustomerName(subscriber);
+    
     // Buscar ou criar lead primeiro
     const leads = await storage.getLeads({ teamId: account === 'COMERCIAL' ? 2 : 1 });
     let lead = leads.find(l => l.phone === subscriber.phone);
@@ -406,7 +439,7 @@ export class BotConversaService {
     if (!lead) {
       // Criar lead se não existir
       const newLead: InsertLead = {
-        name: subscriber.name || 'Contato sem nome',
+        name: customerName,
         phone: subscriber.phone,
         email: subscriber.email || null,
         source: `BotConversa ${account}`,
@@ -417,6 +450,12 @@ export class BotConversaService {
       };
       
       lead = await storage.createLead(newLead);
+    } else {
+      // Atualizar nome do lead se temos um nome melhor
+      if (customerName !== 'Contato sem nome' && (!lead.name || lead.name === 'Contato sem nome')) {
+        await storage.updateLead(lead.id, { name: customerName });
+        lead.name = customerName;
+      }
     }
     
     // Criar nova conversa
@@ -430,11 +469,72 @@ export class BotConversaService {
     
     // Atualizar com informações do cliente
     await storage.updateConversation(conversation.id, {
-      customerName: subscriber.name || 'Contato sem nome',
+      customerName: customerName,
       customerPhone: subscriber.phone
     });
     
-    return { ...conversation, customerName: subscriber.name || 'Contato sem nome', customerPhone: subscriber.phone };
+    return { ...conversation, customerName: customerName, customerPhone: subscriber.phone };
+  }
+  
+  // Extrair nome do cliente de diferentes fontes
+  private extractCustomerName(subscriber: BotConversaSubscriber): string {
+    // 1. Tentar campo 'name' diretamente
+    if (subscriber.name && subscriber.name.trim() && subscriber.name.trim() !== '') {
+      return subscriber.name.trim();
+    }
+    
+    // 2. Tentar campos estruturados da API BotConversa
+    if ((subscriber as any).full_name && (subscriber as any).full_name.trim() !== '') {
+      return (subscriber as any).full_name.trim();
+    }
+    
+    // 3. Combinar first_name e last_name
+    const firstName = (subscriber as any).first_name;
+    const lastName = (subscriber as any).last_name;
+    if (firstName && firstName.trim() !== '') {
+      let fullName = firstName.trim();
+      if (lastName && lastName.trim() !== '') {
+        fullName += ' ' + lastName.trim();
+      }
+      return fullName;
+    }
+    
+    // 4. Tentar campos personalizados comuns
+    if (subscriber.custom_fields) {
+      const nameFields = ['nome', 'name', 'cliente', 'customer', 'full_name', 'nome_completo', 'first_name', 'primeiro_nome'];
+      for (const field of nameFields) {
+        if (subscriber.custom_fields[field] && typeof subscriber.custom_fields[field] === 'string') {
+          const nameValue = subscriber.custom_fields[field].trim();
+          if (nameValue && nameValue !== '') {
+            return nameValue;
+          }
+        }
+      }
+    }
+    
+    // 5. Tentar variáveis do BotConversa
+    if ((subscriber as any).variables) {
+      const variables = (subscriber as any).variables;
+      const variableNameFields = ['nome', 'name', 'cliente', 'customer', 'full_name', 'nome_completo', 'first_name', 'primeiro_nome'];
+      for (const field of variableNameFields) {
+        if (variables[field] && typeof variables[field] === 'string') {
+          const nameValue = variables[field].trim();
+          if (nameValue && nameValue !== '') {
+            return nameValue;
+          }
+        }
+      }
+    }
+    
+    // 6. Tentar extrair nome do telefone formatado (última tentativa)
+    if (subscriber.phone) {
+      const phoneDigits = subscriber.phone.replace(/\D/g, '');
+      if (phoneDigits.length >= 10) {
+        return `Cliente ${phoneDigits.slice(-4)}`;
+      }
+    }
+    
+    return 'Contato sem nome';
   }
   
   // Sincronizar dados do BotConversa com CRM
