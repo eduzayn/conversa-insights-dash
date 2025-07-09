@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -26,7 +26,8 @@ interface ProfessorSidebarProps {
 }
 
 export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
-  const [location, setLocation] = useLocation();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
     {
@@ -69,7 +70,7 @@ export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
   const handleLogout = () => {
     localStorage.removeItem('professor_token');
     localStorage.removeItem('professor_data');
-    setLocation('/professor/login');
+    navigate('/professor/login');
   };
 
   const getInitials = (name: string) => {
@@ -126,11 +127,11 @@ export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
         <ul className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.path;
+            const isActive = location.pathname === item.path;
             
             return (
               <li key={item.path}>
-                <Link href={item.path}>
+                <Link to={item.path} className="block">
                   <Button
                     variant={isActive ? "default" : "ghost"}
                     className={`w-full justify-start gap-3 ${
