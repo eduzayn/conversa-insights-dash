@@ -2082,5 +2082,273 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== PORTAL DO PROFESSOR =====
+
+  // Autenticação do Professor
+  app.post("/api/auth/professor-login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "Credenciais inválidas" });
+      }
+
+      // Verificar se é professor, conteudista ou coordenador
+      if (!['professor', 'conteudista', 'coordenador'].includes(user.role)) {
+        return res.status(401).json({ message: "Acesso restrito a professores" });
+      }
+
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ message: "Credenciais inválidas" });
+      }
+
+      if (!user.isActive) {
+        return res.status(401).json({ message: "Conta desativada" });
+      }
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        token,
+        professor: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          department: user.department
+        }
+      });
+    } catch (error) {
+      console.error("Erro no login do professor:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Dashboard do Professor
+  app.get("/api/professor/dashboard", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      // Para este exemplo, retornamos dados mock
+      // Em produção, buscar dados reais do banco
+      const stats = {
+        totalDisciplinas: 3,
+        totalConteudos: 24,
+        totalAvaliacoes: 8,
+        totalAlunos: 156,
+        avaliacoesPendentes: 5,
+        interacoesRecentes: 23,
+      };
+
+      const recentActivities = [
+        {
+          id: 1,
+          type: "avaliacao",
+          title: "Nova submissão em Algoritmos I",
+          student: "Maria Silva",
+          time: "há 5 minutos",
+          status: "pendente"
+        },
+        {
+          id: 2,
+          type: "conteudo",
+          title: "Aula sobre Estruturas de Dados visualizada",
+          student: "João Santos",
+          time: "há 15 minutos",
+          status: "visualizado"
+        }
+      ];
+
+      res.json({ stats, recentActivities });
+    } catch (error) {
+      console.error("Erro ao buscar dashboard do professor:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Disciplinas do Professor
+  app.get("/api/professor/subjects", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const subjects = await storage.getProfessorSubjects(req.user.id);
+      res.json(subjects);
+    } catch (error) {
+      console.error("Erro ao buscar disciplinas do professor:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar nova disciplina
+  app.post("/api/professor/subjects", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas coordenadores" });
+      }
+
+      const { nome, codigo, descricao, cargaHoraria, area } = req.body;
+      const subject = await storage.createSubject({
+        nome,
+        codigo,
+        descricao,
+        cargaHoraria,
+        area
+      });
+
+      res.status(201).json(subject);
+    } catch (error) {
+      console.error("Erro ao criar disciplina:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Conteúdos de uma disciplina
+  app.get("/api/professor/contents", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { subjectId } = req.query;
+      if (!subjectId) {
+        return res.status(400).json({ message: "ID da disciplina é obrigatório" });
+      }
+
+      const contents = await storage.getSubjectContents(parseInt(subjectId as string), req.user.id);
+      res.json(contents);
+    } catch (error) {
+      console.error("Erro ao buscar conteúdos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar novo conteúdo
+  app.post("/api/professor/contents", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { subjectId, titulo, tipo, conteudo, descricao, ordem } = req.body;
+      const content = await storage.createSubjectContent({
+        subjectId,
+        professorId: req.user.id,
+        titulo,
+        tipo,
+        conteudo,
+        descricao,
+        ordem
+      });
+
+      res.status(201).json(content);
+    } catch (error) {
+      console.error("Erro ao criar conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Avaliações do Professor
+  app.get("/api/professor/evaluations", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { subjectId } = req.query;
+      const evaluations = await storage.getProfessorEvaluations(
+        req.user.id, 
+        subjectId ? parseInt(subjectId as string) : undefined
+      );
+
+      res.json(evaluations);
+    } catch (error) {
+      console.error("Erro ao buscar avaliações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar nova avaliação
+  app.post("/api/professor/evaluations", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const evaluationData = {
+        ...req.body,
+        professorId: req.user.id
+      };
+
+      const evaluation = await storage.createProfessorEvaluation(evaluationData);
+      res.status(201).json(evaluation);
+    } catch (error) {
+      console.error("Erro ao criar avaliação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Questões de uma avaliação
+  app.get("/api/professor/evaluations/:id/questions", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      const questions = await storage.getEvaluationQuestions(parseInt(id));
+      res.json(questions);
+    } catch (error) {
+      console.error("Erro ao buscar questões:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Adicionar questão à avaliação
+  app.post("/api/professor/evaluations/:id/questions", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      const questionData = {
+        ...req.body,
+        evaluationId: parseInt(id)
+      };
+
+      const question = await storage.createEvaluationQuestion(questionData);
+      res.status(201).json(question);
+    } catch (error) {
+      console.error("Erro ao criar questão:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Submissões de uma avaliação
+  app.get("/api/professor/evaluations/:id/submissions", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      const submissions = await storage.getEvaluationSubmissions(parseInt(id));
+      res.json(submissions);
+    } catch (error) {
+      console.error("Erro ao buscar submissões:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   return httpServer;
 }

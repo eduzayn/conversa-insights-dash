@@ -58,7 +58,25 @@ import {
   type StudentCertificate,
   type InsertStudentCertificate,
   type StudentCard,
-  type InsertStudentCard
+  type InsertStudentCard,
+  subjects,
+  professorSubjects,
+  subjectContents,
+  professorEvaluations,
+  evaluationQuestions,
+  evaluationSubmissions,
+  type Subject,
+  type InsertSubject,
+  type ProfessorSubject,
+  type InsertProfessorSubject,
+  type SubjectContent,
+  type InsertSubjectContent,
+  type ProfessorEvaluation,
+  type InsertProfessorEvaluation,
+  type EvaluationQuestion,
+  type InsertEvaluationQuestion,
+  type EvaluationSubmission,
+  type InsertEvaluationSubmission
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count } from "drizzle-orm";
@@ -166,6 +184,34 @@ export interface IStorage {
   createStudentCard(card: InsertStudentCard): Promise<StudentCard>;
   updateStudentCard(id: number, card: Partial<StudentCard>): Promise<StudentCard | undefined>;
   validateStudentCard(tokenValidacao: string): Promise<StudentCard | undefined>;
+
+  // Portal do Professor - Subjects
+  getProfessorSubjects(professorId: number): Promise<Subject[]>;
+  getAllSubjects(): Promise<Subject[]>;
+  createSubject(subject: InsertSubject): Promise<Subject>;
+  updateSubject(id: number, subject: Partial<Subject>): Promise<Subject | undefined>;
+  assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean): Promise<ProfessorSubject>;
+
+  // Portal do Professor - Subject Contents
+  getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]>;
+  createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent>;
+  updateSubjectContent(id: number, content: Partial<SubjectContent>): Promise<SubjectContent | undefined>;
+  deleteSubjectContent(id: number): Promise<void>;
+
+  // Portal do Professor - Evaluations
+  getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]>;
+  createProfessorEvaluation(evaluation: InsertProfessorEvaluation): Promise<ProfessorEvaluation>;
+  updateProfessorEvaluation(id: number, evaluation: Partial<ProfessorEvaluation>): Promise<ProfessorEvaluation | undefined>;
+  
+  // Portal do Professor - Evaluation Questions
+  getEvaluationQuestions(evaluationId: number): Promise<EvaluationQuestion[]>;
+  createEvaluationQuestion(question: InsertEvaluationQuestion): Promise<EvaluationQuestion>;
+  updateEvaluationQuestion(id: number, question: Partial<EvaluationQuestion>): Promise<EvaluationQuestion | undefined>;
+
+  // Portal do Professor - Evaluation Submissions
+  getEvaluationSubmissions(evaluationId: number): Promise<EvaluationSubmission[]>;
+  createEvaluationSubmission(submission: InsertEvaluationSubmission): Promise<EvaluationSubmission>;
+  updateEvaluationSubmission(id: number, submission: Partial<EvaluationSubmission>): Promise<EvaluationSubmission | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -892,6 +938,207 @@ export class DatabaseStorage implements IStorage {
       .from(studentCards)
       .where(eq(studentCards.tokenValidacao, tokenValidacao));
     return card || undefined;
+  }
+
+  // Portal do Professor - Subjects
+  async getProfessorSubjects(professorId: number): Promise<Subject[]> {
+    return await db
+      .select({
+        id: subjects.id,
+        nome: subjects.nome,
+        codigo: subjects.codigo,
+        descricao: subjects.descricao,
+        cargaHoraria: subjects.cargaHoraria,
+        area: subjects.area,
+        isActive: subjects.isActive,
+        createdAt: subjects.createdAt,
+        updatedAt: subjects.updatedAt,
+      })
+      .from(subjects)
+      .innerJoin(professorSubjects, eq(subjects.id, professorSubjects.subjectId))
+      .where(and(
+        eq(professorSubjects.professorId, professorId),
+        eq(subjects.isActive, true)
+      ))
+      .orderBy(asc(subjects.nome));
+  }
+
+  async getAllSubjects(): Promise<Subject[]> {
+    return await db
+      .select()
+      .from(subjects)
+      .where(eq(subjects.isActive, true))
+      .orderBy(asc(subjects.nome));
+  }
+
+  async createSubject(subject: InsertSubject): Promise<Subject> {
+    const [newSubject] = await db
+      .insert(subjects)
+      .values({
+        ...subject,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newSubject;
+  }
+
+  async updateSubject(id: number, subject: Partial<Subject>): Promise<Subject | undefined> {
+    const [updatedSubject] = await db
+      .update(subjects)
+      .set({ ...subject, updatedAt: new Date() })
+      .where(eq(subjects.id, id))
+      .returning();
+    return updatedSubject || undefined;
+  }
+
+  async assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean = true): Promise<ProfessorSubject> {
+    const [assignment] = await db
+      .insert(professorSubjects)
+      .values({
+        professorId,
+        subjectId,
+        canEdit,
+        createdAt: new Date(),
+      })
+      .returning();
+    return assignment;
+  }
+
+  // Portal do Professor - Subject Contents
+  async getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]> {
+    let query = db
+      .select()
+      .from(subjectContents)
+      .where(eq(subjectContents.subjectId, subjectId));
+
+    if (professorId) {
+      query = query.where(eq(subjectContents.professorId, professorId));
+    }
+
+    return await query.orderBy(asc(subjectContents.ordem));
+  }
+
+  async createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent> {
+    const [newContent] = await db
+      .insert(subjectContents)
+      .values({
+        ...content,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newContent;
+  }
+
+  async updateSubjectContent(id: number, content: Partial<SubjectContent>): Promise<SubjectContent | undefined> {
+    const [updatedContent] = await db
+      .update(subjectContents)
+      .set({ ...content, updatedAt: new Date() })
+      .where(eq(subjectContents.id, id))
+      .returning();
+    return updatedContent || undefined;
+  }
+
+  async deleteSubjectContent(id: number): Promise<void> {
+    await db
+      .delete(subjectContents)
+      .where(eq(subjectContents.id, id));
+  }
+
+  // Portal do Professor - Evaluations
+  async getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]> {
+    let query = db
+      .select()
+      .from(professorEvaluations)
+      .where(eq(professorEvaluations.professorId, professorId));
+
+    if (subjectId) {
+      query = query.where(eq(professorEvaluations.subjectId, subjectId));
+    }
+
+    return await query.orderBy(desc(professorEvaluations.createdAt));
+  }
+
+  async createProfessorEvaluation(evaluation: InsertProfessorEvaluation): Promise<ProfessorEvaluation> {
+    const [newEvaluation] = await db
+      .insert(professorEvaluations)
+      .values({
+        ...evaluation,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newEvaluation;
+  }
+
+  async updateProfessorEvaluation(id: number, evaluation: Partial<ProfessorEvaluation>): Promise<ProfessorEvaluation | undefined> {
+    const [updatedEvaluation] = await db
+      .update(professorEvaluations)
+      .set({ ...evaluation, updatedAt: new Date() })
+      .where(eq(professorEvaluations.id, id))
+      .returning();
+    return updatedEvaluation || undefined;
+  }
+  
+  // Portal do Professor - Evaluation Questions
+  async getEvaluationQuestions(evaluationId: number): Promise<EvaluationQuestion[]> {
+    return await db
+      .select()
+      .from(evaluationQuestions)
+      .where(eq(evaluationQuestions.evaluationId, evaluationId))
+      .orderBy(asc(evaluationQuestions.ordem));
+  }
+
+  async createEvaluationQuestion(question: InsertEvaluationQuestion): Promise<EvaluationQuestion> {
+    const [newQuestion] = await db
+      .insert(evaluationQuestions)
+      .values({
+        ...question,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newQuestion;
+  }
+
+  async updateEvaluationQuestion(id: number, question: Partial<EvaluationQuestion>): Promise<EvaluationQuestion | undefined> {
+    const [updatedQuestion] = await db
+      .update(evaluationQuestions)
+      .set({ ...question, updatedAt: new Date() })
+      .where(eq(evaluationQuestions.id, id))
+      .returning();
+    return updatedQuestion || undefined;
+  }
+
+  // Portal do Professor - Evaluation Submissions
+  async getEvaluationSubmissions(evaluationId: number): Promise<EvaluationSubmission[]> {
+    return await db
+      .select()
+      .from(evaluationSubmissions)
+      .where(eq(evaluationSubmissions.evaluationId, evaluationId))
+      .orderBy(desc(evaluationSubmissions.createdAt));
+  }
+
+  async createEvaluationSubmission(submission: InsertEvaluationSubmission): Promise<EvaluationSubmission> {
+    const [newSubmission] = await db
+      .insert(evaluationSubmissions)
+      .values({
+        ...submission,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newSubmission;
+  }
+
+  async updateEvaluationSubmission(id: number, submission: Partial<EvaluationSubmission>): Promise<EvaluationSubmission | undefined> {
+    const [updatedSubmission] = await db
+      .update(evaluationSubmissions)
+      .set({ ...submission, updatedAt: new Date() })
+      .where(eq(evaluationSubmissions.id, id))
+      .returning();
+    return updatedSubmission || undefined;
   }
 }
 

@@ -22,6 +22,8 @@ import GerenciamentoRoteamento from "./pages/GerenciamentoRoteamento";
 import StudentLogin from "./pages/StudentLogin";
 import StudentPortal from "./pages/StudentPortal";
 import PortalLayout from "./pages/PortalLayout";
+import ProfessorLogin from "./pages/ProfessorLogin";
+import ProfessorPortalLayout from "./pages/ProfessorPortalLayout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +53,9 @@ const App = () => (
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
             <Route path="/portal-aluno" element={<StudentPortal />} />
             <Route path="/portal/*" element={<PortalLayout />} />
+            {/* Portal do Professor */}
+            <Route path="/professor/login" element={<ProfessorLogin />} />
+            <Route path="/professor/*" element={<ProfessorPortalLayout />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />

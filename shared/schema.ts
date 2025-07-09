@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("agent"), // admin, agent, aluno
+  role: text("role").notNull().default("agent"), // admin, agent, aluno, professor, conteudista, coordenador
   companyAccount: text("company_account"), // COMERCIAL, SUPORTE
   department: text("department"), // Comercial, Cobrança, Suporte, etc.
   isActive: boolean("is_active").notNull().default(true),
@@ -376,6 +376,96 @@ export const studentCards = pgTable("student_cards", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ===== TABELAS DO PORTAL DO PROFESSOR =====
+
+// Disciplinas que os professores podem ministrar
+export const subjects = pgTable("subjects", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  codigo: text("codigo").notNull().unique(),
+  descricao: text("descricao"),
+  cargaHoraria: integer("carga_horaria").notNull(),
+  area: text("area").notNull(), // Exatas, Humanas, Biologicas, etc.
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Relacionamento professor-disciplina
+export const professorSubjects = pgTable("professor_subjects", {
+  id: serial("id").primaryKey(),
+  professorId: integer("professor_id").notNull().references(() => users.id),
+  subjectId: integer("subject_id").notNull().references(() => subjects.id),
+  canEdit: boolean("can_edit").notNull().default(true),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+});
+
+// Conteúdos das disciplinas (vídeos, e-books, links)
+export const subjectContents = pgTable("subject_contents", {
+  id: serial("id").primaryKey(),
+  subjectId: integer("subject_id").notNull().references(() => subjects.id),
+  professorId: integer("professor_id").notNull().references(() => users.id),
+  titulo: text("titulo").notNull(),
+  tipo: text("tipo").notNull(), // video, ebook, link, pdf
+  conteudo: text("conteudo").notNull(), // URL do YouTube, Google Drive, etc.
+  descricao: text("descricao"),
+  ordem: integer("ordem").default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  visualizacoes: integer("visualizacoes").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Avaliações criadas pelos professores
+export const professorEvaluations = pgTable("professor_evaluations", {
+  id: serial("id").primaryKey(),
+  subjectId: integer("subject_id").notNull().references(() => subjects.id),
+  professorId: integer("professor_id").notNull().references(() => users.id),
+  titulo: text("titulo").notNull(),
+  tipo: text("tipo").notNull(), // avaliacao, simulado, tarefa
+  descricao: text("descricao"),
+  tempoLimite: integer("tempo_limite"), // em minutos
+  tentativasPermitidas: integer("tentativas_permitidas").default(1),
+  notaMinima: integer("nota_minima").default(60),
+  embaralharQuestoes: boolean("embaralhar_questoes").default(true),
+  mostrarResultado: boolean("mostrar_resultado").default(true),
+  isActive: boolean("is_active").notNull().default(true),
+  dataAbertura: timestamp("data_abertura"),
+  dataFechamento: timestamp("data_fechamento"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Questões das avaliações
+export const evaluationQuestions = pgTable("evaluation_questions", {
+  id: serial("id").primaryKey(),
+  evaluationId: integer("evaluation_id").notNull().references(() => professorEvaluations.id),
+  enunciado: text("enunciado").notNull(),
+  tipo: text("tipo").notNull().default("multipla_escolha"), // multipla_escolha, verdadeiro_falso, texto_livre
+  alternativas: json("alternativas"), // Array de alternativas para múltipla escolha
+  gabarito: text("gabarito").notNull(), // Resposta correta
+  explicacao: text("explicacao"), // Explicação do gabarito
+  peso: integer("peso").default(1),
+  ordem: integer("ordem").default(0),
+  imagemUrl: text("imagem_url"), // Imagem da questão
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Submissões de alunos nas avaliações
+export const evaluationSubmissions = pgTable("evaluation_submissions", {
+  id: serial("id").primaryKey(),
+  evaluationId: integer("evaluation_id").notNull().references(() => professorEvaluations.id),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  respostas: json("respostas").notNull(), // {questionId: resposta}
+  nota: integer("nota"),
+  tempoGasto: integer("tempo_gasto"), // em minutos
+  tentativa: integer("tentativa").default(1),
+  status: text("status").notNull().default("pendente"), // pendente, corrigida, revisao
+  iniciadaEm: timestamp("iniciada_em").defaultNow(),
+  finalizadaEm: timestamp("finalizada_em"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relações
 export const usersRelations = relations(users, ({ many, one }) => ({
   teamMemberships: many(teamMembers),
@@ -398,6 +488,11 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   payments: many(studentPayments),
   certificates: many(studentCertificates),
   card: one(studentCards, { fields: [users.id], references: [studentCards.studentId] }),
+  // Relações para professores
+  professorSubjects: many(professorSubjects),
+  subjectContents: many(subjectContents),
+  evaluations: many(professorEvaluations),
+  evaluationSubmissions: many(evaluationSubmissions),
 }));
 
 export const teamsRelations = relations(teams, ({ many }) => ({
@@ -468,6 +563,39 @@ export const studentCardsRelations = relations(studentCards, ({ one }) => ({
 
 export const preRegisteredCoursesRelations = relations(preRegisteredCourses, ({ many }) => ({
   enrollments: many(studentEnrollments),
+}));
+
+// Relações do Portal do Professor
+export const subjectsRelations = relations(subjects, ({ many }) => ({
+  professorSubjects: many(professorSubjects),
+  contents: many(subjectContents),
+  evaluations: many(professorEvaluations),
+}));
+
+export const professorSubjectsRelations = relations(professorSubjects, ({ one }) => ({
+  professor: one(users, { fields: [professorSubjects.professorId], references: [users.id] }),
+  subject: one(subjects, { fields: [professorSubjects.subjectId], references: [subjects.id] }),
+}));
+
+export const subjectContentsRelations = relations(subjectContents, ({ one }) => ({
+  subject: one(subjects, { fields: [subjectContents.subjectId], references: [subjects.id] }),
+  professor: one(users, { fields: [subjectContents.professorId], references: [users.id] }),
+}));
+
+export const professorEvaluationsRelations = relations(professorEvaluations, ({ one, many }) => ({
+  subject: one(subjects, { fields: [professorEvaluations.subjectId], references: [subjects.id] }),
+  professor: one(users, { fields: [professorEvaluations.professorId], references: [users.id] }),
+  questions: many(evaluationQuestions),
+  submissions: many(evaluationSubmissions),
+}));
+
+export const evaluationQuestionsRelations = relations(evaluationQuestions, ({ one }) => ({
+  evaluation: one(professorEvaluations, { fields: [evaluationQuestions.evaluationId], references: [professorEvaluations.id] }),
+}));
+
+export const evaluationSubmissionsRelations = relations(evaluationSubmissions, ({ one }) => ({
+  evaluation: one(professorEvaluations, { fields: [evaluationSubmissions.evaluationId], references: [professorEvaluations.id] }),
+  student: one(users, { fields: [evaluationSubmissions.studentId], references: [users.id] }),
 }));
 
 // Schemas de inserção
@@ -768,3 +896,87 @@ export type StudentCertificate = typeof studentCertificates.$inferSelect;
 
 export type InsertStudentCard = z.infer<typeof insertStudentCardSchema>;
 export type StudentCard = typeof studentCards.$inferSelect;
+
+// Schemas de inserção para Portal do Professor
+export const insertSubjectSchema = createInsertSchema(subjects).pick({
+  nome: true,
+  codigo: true,
+  descricao: true,
+  cargaHoraria: true,
+  area: true,
+});
+
+export const insertProfessorSubjectSchema = createInsertSchema(professorSubjects).pick({
+  professorId: true,
+  subjectId: true,
+  canEdit: true,
+});
+
+export const insertSubjectContentSchema = createInsertSchema(subjectContents).pick({
+  subjectId: true,
+  professorId: true,
+  titulo: true,
+  tipo: true,
+  conteudo: true,
+  descricao: true,
+  ordem: true,
+});
+
+export const insertProfessorEvaluationSchema = createInsertSchema(professorEvaluations).pick({
+  subjectId: true,
+  professorId: true,
+  titulo: true,
+  tipo: true,
+  descricao: true,
+  tempoLimite: true,
+  tentativasPermitidas: true,
+  notaMinima: true,
+  embaralharQuestoes: true,
+  mostrarResultado: true,
+  dataAbertura: true,
+  dataFechamento: true,
+});
+
+export const insertEvaluationQuestionSchema = createInsertSchema(evaluationQuestions).pick({
+  evaluationId: true,
+  enunciado: true,
+  tipo: true,
+  alternativas: true,
+  gabarito: true,
+  explicacao: true,
+  peso: true,
+  ordem: true,
+  imagemUrl: true,
+});
+
+export const insertEvaluationSubmissionSchema = createInsertSchema(evaluationSubmissions).pick({
+  evaluationId: true,
+  studentId: true,
+  respostas: true,
+  tentativa: true,
+});
+
+// Schema de login para professores
+export const professorLoginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+// Tipos para Portal do Professor
+export type InsertSubject = z.infer<typeof insertSubjectSchema>;
+export type Subject = typeof subjects.$inferSelect;
+
+export type InsertProfessorSubject = z.infer<typeof insertProfessorSubjectSchema>;
+export type ProfessorSubject = typeof professorSubjects.$inferSelect;
+
+export type InsertSubjectContent = z.infer<typeof insertSubjectContentSchema>;
+export type SubjectContent = typeof subjectContents.$inferSelect;
+
+export type InsertProfessorEvaluation = z.infer<typeof insertProfessorEvaluationSchema>;
+export type ProfessorEvaluation = typeof professorEvaluations.$inferSelect;
+
+export type InsertEvaluationQuestion = z.infer<typeof insertEvaluationQuestionSchema>;
+export type EvaluationQuestion = typeof evaluationQuestions.$inferSelect;
+
+export type InsertEvaluationSubmission = z.infer<typeof insertEvaluationSubmissionSchema>;
+export type EvaluationSubmission = typeof evaluationSubmissions.$inferSelect;
