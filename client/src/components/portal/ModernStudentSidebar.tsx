@@ -24,7 +24,7 @@ const menuItems = [
   {
     title: "Dashboard",
     icon: Home,
-    href: "/portal-aluno",
+    href: "/portal",
     isMain: true
   },
   {
@@ -156,7 +156,7 @@ export function ModernStudentSidebar({ studentData, collapsed, onToggleCollapse 
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.isMain ? 
-              location === '/portal-aluno' : 
+              location === '/portal' || location === '/portal/' : 
               location === item.href;
             
             return (

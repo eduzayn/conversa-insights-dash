@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Route, useLocation } from "wouter";
 import { ModernStudentLayout } from "@/components/portal/ModernStudentLayout";
 import { StudentDashboard } from "@/components/portal/StudentDashboard";
 import MeusCursos from "./portal/MeusCursos";
@@ -51,21 +51,38 @@ export default function PortalLayout() {
     );
   }
 
+  const renderContent = () => {
+    const [location] = useLocation();
+    
+    switch (location) {
+      case '/portal':
+        return <StudentDashboard studentData={studentData} />;
+      case '/portal/cursos':
+        return <MeusCursos />;
+      case '/portal/disciplinas':
+        return <MinhasDisciplinas />;
+      case '/portal/avaliacoes':
+        return <MinhasAvaliacoes />;
+      case '/portal/certificados':
+        return <Certificados />;
+      case '/portal/suporte':
+        return <SuporteChat />;
+      case '/portal/pagamentos':
+        return <Pagamentos />;
+      case '/portal/documentos':
+        return <Documentos />;
+      case '/portal/perfil':
+        return <PerfilAluno />;
+      case '/portal/carteirinha':
+        return <ModernCarteirinha studentData={studentData} />;
+      default:
+        return <StudentDashboard studentData={studentData} />;
+    }
+  };
+
   return (
     <ModernStudentLayout studentData={studentData}>
-      <Routes>
-        <Route index element={<StudentDashboard studentData={studentData} />} />
-        <Route path="cursos" element={<MeusCursos />} />
-        <Route path="disciplinas" element={<MinhasDisciplinas />} />
-        <Route path="avaliacoes" element={<MinhasAvaliacoes />} />
-        <Route path="certificados" element={<Certificados />} />
-        <Route path="suporte" element={<SuporteChat />} />
-        <Route path="pagamentos" element={<Pagamentos />} />
-        <Route path="documentos" element={<Documentos />} />
-        <Route path="perfil" element={<PerfilAluno />} />
-        <Route path="carteirinha" element={<ModernCarteirinha studentData={studentData} />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      {renderContent()}
     </ModernStudentLayout>
   );
 }
