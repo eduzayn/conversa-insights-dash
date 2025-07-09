@@ -372,6 +372,15 @@ Changelog:
    * ✅ Causa identificada: Dupla chamada do hook useLocation()
    * ✅ Correção aplicada: Unificação dos hooks em uma única chamada
    * ✅ Estado: Portal do Aluno funcionando sem erros de React
+- Reorganização Completa da Estrutura de Pastas (9 Jul 2025):
+   * ✅ Criada estrutura organizada em client/src/pages/:
+     - admin/ (12 arquivos): Index, Login, Atendimentos, AtendimentoAluno, Produtividade, Presenca, ChatInterno, Metas, Certificacoes, IntegracaoBotConversa, GerenciamentoRoteamento, Crm, NotFound
+     - portal/ (10 arquivos): StudentLogin, StudentPortal, PortalLayout, MeusCursos, MinhasDisciplinas, MinhasAvaliacoes, Certificados, SuporteChat, Pagamentos, Documentos, PerfilAluno, Carteirinha
+     - professor/ (8 arquivos): ProfessorLogin, ProfessorPortalLayout, ProfessorDashboard, Disciplinas, Conteudos, Avaliacoes, Submissoes, Relatorios, PerfilProfessor
+   * ✅ Todos os imports do App.tsx atualizados corretamente
+   * ✅ Imports relativos corrigidos em todos os arquivos movidos
+   * ✅ Sistema funcionando 100% após reorganização
+   * ✅ Estrutura final muito mais organizada e maintível
 ```
 
 ## User Preferences

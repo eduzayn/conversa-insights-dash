@@ -19,12 +19,12 @@ import Metas from "./pages/admin/Metas";
 import Certificacoes from "./pages/admin/Certificacoes";
 import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
-import StudentLogin from "./pages/StudentLogin";
-import StudentPortal from "./pages/StudentPortal";
-import PortalLayout from "./pages/PortalLayout";
-import ProfessorLogin from "./pages/ProfessorLogin";
-import ProfessorPortalLayout from "./pages/ProfessorPortalLayout";
-import NotFound from "./pages/NotFound";
+import StudentLogin from "./pages/portal/StudentLogin";
+import StudentPortal from "./pages/portal/StudentPortal";
+import PortalLayout from "./pages/portal/PortalLayout";
+import ProfessorLogin from "./pages/professor/ProfessorLogin";
+import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
+import NotFound from "./pages/admin/NotFound";
 
 const queryClient = new QueryClient();
 

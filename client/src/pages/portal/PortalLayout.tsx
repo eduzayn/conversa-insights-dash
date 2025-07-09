@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { Route, useLocation } from "wouter";
 import { ModernStudentLayout } from "@/components/portal/ModernStudentLayout";
 import { StudentDashboard } from "@/components/portal/StudentDashboard";
-import MeusCursos from "./portal/MeusCursos";
-import MinhasDisciplinas from "./portal/MinhasDisciplinas";
-import MinhasAvaliacoes from "./portal/MinhasAvaliacoes";
-import Certificados from "./portal/Certificados";
-import SuporteChat from "./portal/SuporteChat";
-import Pagamentos from "./portal/Pagamentos";
-import Documentos from "./portal/Documentos";
-import PerfilAluno from "./portal/PerfilAluno";
+import MeusCursos from "./MeusCursos";
+import MinhasDisciplinas from "./MinhasDisciplinas";
+import MinhasAvaliacoes from "./MinhasAvaliacoes";
+import Certificados from "./Certificados";
+import SuporteChat from "./SuporteChat";
+import Pagamentos from "./Pagamentos";
+import Documentos from "./Documentos";
+import PerfilAluno from "./PerfilAluno";
 import { ModernCarteirinha } from "@/components/portal/ModernCarteirinha";
-import NotFound from "./NotFound";
+import NotFound from "../admin/NotFound";
 
 interface StudentData {
   id: number;

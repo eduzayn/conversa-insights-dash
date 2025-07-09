@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
-import ProfessorDashboard from "./professor/ProfessorDashboard";
-import Disciplinas from "./professor/Disciplinas";
-import Conteudos from "./professor/Conteudos";
-import Avaliacoes from "./professor/Avaliacoes";
-import Submissoes from "./professor/Submissoes";
-import Relatorios from "./professor/Relatorios";
-import PerfilProfessor from "./professor/PerfilProfessor";
-import NotFound from "./NotFound";
+import ProfessorDashboard from "./ProfessorDashboard";
+import Disciplinas from "./Disciplinas";
+import Conteudos from "./Conteudos";
+import Avaliacoes from "./Avaliacoes";
+import Submissoes from "./Submissoes";
+import Relatorios from "./Relatorios";
+import PerfilProfessor from "./PerfilProfessor";
+import NotFound from "../admin/NotFound";
 
 interface ProfessorData {
   id: number;
