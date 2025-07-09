@@ -1191,16 +1191,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { modalidade, categoria, ativo } = req.query;
       const filters: any = {};
       
-      console.log('🔍 Filtros recebidos:', { modalidade, categoria, ativo });
-      
       if (modalidade) filters.modalidade = modalidade as string;
       if (categoria) filters.categoria = categoria as string;
       if (ativo !== undefined) filters.ativo = ativo === 'true';
       
-      console.log('📋 Filtros aplicados:', filters);
-      
       const courses = await storage.getPreRegisteredCourses(filters);
-      console.log('📚 Cursos encontrados:', courses.length);
       
       res.json(courses);
     } catch (error) {
