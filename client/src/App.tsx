@@ -21,7 +21,7 @@ import Certificacoes from "./pages/admin/Certificacoes";
 import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
 import StudentLogin from "./pages/portal/StudentLogin";
-import StudentPortal from "./pages/portal/StudentPortal";
+
 import PortalLayout from "./pages/portal/PortalLayout";
 import ProfessorLogin from "./pages/professor/ProfessorLogin";
 import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";

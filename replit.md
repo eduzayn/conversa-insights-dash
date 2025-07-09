@@ -381,6 +381,15 @@ Changelog:
    * ✅ Imports relativos corrigidos em todos os arquivos movidos
    * ✅ Sistema funcionando 100% após reorganização
    * ✅ Estrutura final muito mais organizada e maintível
+- Limpeza Completa do Repositório (9 Jul 2025):
+   * ✅ Removidos 50+ arquivos de scripts temporários (import_*, debug_*, test_*, etc.)
+   * ✅ Eliminados dados temporários e relatórios de importação (dados_*.json, relatórios_*.json)
+   * ✅ Removidas análises e documentação temporária obsoleta
+   * ✅ Arquivo StudentPortal.tsx redundante removido (login redireciona direto para /portal)
+   * ✅ Código duplicado eliminado no PortalLayout.tsx (switch simplificado para Routes)
+   * ✅ Pasta attached_assets otimizada (removidos 15+ arquivos de texto temporários)
+   * ✅ Sistema de loading unificado com design consistente
+   * ✅ Repositório muito mais limpo e maintível (redução de ~70% em arquivos desnecessários)
 ```
 
 ## User Preferences

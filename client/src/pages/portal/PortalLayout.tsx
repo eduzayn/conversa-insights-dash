@@ -45,42 +45,28 @@ export default function PortalLayout() {
 
   if (!studentData) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando portal do aluno...</p>
+        </div>
       </div>
     );
   }
   
-  const renderContent = () => {
-    switch (location) {
-      case '/portal':
-        return <StudentDashboard studentData={studentData} />;
-      case '/portal/cursos':
-        return <MeusCursos />;
-      case '/portal/disciplinas':
-        return <MinhasDisciplinas />;
-      case '/portal/avaliacoes':
-        return <MinhasAvaliacoes />;
-      case '/portal/certificados':
-        return <Certificados />;
-      case '/portal/suporte':
-        return <SuporteChat />;
-      case '/portal/pagamentos':
-        return <Pagamentos />;
-      case '/portal/documentos':
-        return <Documentos />;
-      case '/portal/perfil':
-        return <PerfilAluno />;
-      case '/portal/carteirinha':
-        return <ModernCarteirinha studentData={studentData} />;
-      default:
-        return <StudentDashboard studentData={studentData} />;
-    }
-  };
-
   return (
     <ModernStudentLayout studentData={studentData}>
-      {renderContent()}
+      <Route path="/portal" component={() => <StudentDashboard studentData={studentData} />} />
+      <Route path="/portal/cursos" component={MeusCursos} />
+      <Route path="/portal/disciplinas" component={MinhasDisciplinas} />
+      <Route path="/portal/avaliacoes" component={MinhasAvaliacoes} />
+      <Route path="/portal/certificados" component={Certificados} />
+      <Route path="/portal/suporte" component={SuporteChat} />
+      <Route path="/portal/pagamentos" component={Pagamentos} />
+      <Route path="/portal/documentos" component={Documentos} />
+      <Route path="/portal/perfil" component={PerfilAluno} />
+      <Route path="/portal/carteirinha" component={() => <ModernCarteirinha studentData={studentData} />} />
+      <Route component={() => <StudentDashboard studentData={studentData} />} />
     </ModernStudentLayout>
   );
 }
