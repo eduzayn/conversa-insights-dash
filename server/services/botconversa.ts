@@ -712,7 +712,8 @@ export class BotConversaService {
     // Atualizar com informações do cliente e manager
     const updateData: any = {
       customerName: customerName,
-      customerPhone: subscriber.phone
+      customerPhone: subscriber.phone,
+      companyAccount: account // Adicionar identificação da companhia
     };
     
     if (assignedManager) {

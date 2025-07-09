@@ -118,6 +118,7 @@ export const conversations = pgTable("conversations", {
   botconversaManagerId: integer("botconversa_manager_id"), // ID do manager no BotConversa
   botconversaManagerName: text("botconversa_manager_name"), // Nome do manager no BotConversa
   botconversaManagerEmail: text("botconversa_manager_email"), // Email do manager no BotConversa
+  companyAccount: text("company_account"), // COMERCIAL (182301) ou SUPORTE (182331)
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

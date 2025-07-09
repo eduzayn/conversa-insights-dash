@@ -382,20 +382,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Determinar companhia baseada no email do manager
-        let companhiaAtendimento = 'SUPORTE'; // Default
-        if (conv.botconversaManagerEmail) {
-          // Emails da conta COMERCIAL
-          const comercialEmails = [
-            'yasminvitorino.office@gmail.com',
-            'brenodantas28@gmail.com', 
-            'jhonatapimenteljgc38@gmail.com'
-          ];
-          
-          if (comercialEmails.includes(conv.botconversaManagerEmail)) {
-            companhiaAtendimento = 'COMERCIAL';
-          }
-        }
+        // Determinar companhia baseada no campo companyAccount da conversa
+        let companhiaAtendimento = conv.companyAccount || 'SUPORTE'; // Default para SUPORTE se não definido
         
         return {
           id: conv.id,
