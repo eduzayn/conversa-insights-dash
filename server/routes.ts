@@ -493,10 +493,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const equipes = Array.from(equipesFromManagers).sort();
       
+      // Buscar status reais das conversas do banco
+      const conversations = await storage.getConversations();
+      const uniqueStatuses = [...new Set(conversations.map(conv => {
+        return conv.status === 'active' ? 'Em andamento' : 
+               conv.status === 'closed' ? 'Concluído' : 'Pendente';
+      }))];
+      
+      // Garantir que todos os status possíveis estejam disponíveis
+      const allPossibleStatuses = ['Em andamento', 'Concluído', 'Pendente'];
+      const statusFromDb = uniqueStatuses.length > 0 ? uniqueStatuses : allPossibleStatuses;
+      
       res.json({
         atendentes: [...atendentes, 'Não atribuído'].sort(),
         equipes: equipes,
-        status: ['Em andamento', 'Concluído', 'Pendente'],
+        status: statusFromDb,
         managersData: allManagers.map(m => ({
           id: m.id,
           name: m.full_name,
