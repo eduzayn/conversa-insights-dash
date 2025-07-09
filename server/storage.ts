@@ -15,6 +15,12 @@ import {
   userActivity,
   certifications,
   preRegisteredCourses,
+  studentEnrollments,
+  studentEvaluations,
+  studentDocuments,
+  studentPayments,
+  studentCertificates,
+  studentCards,
   type User, 
   type InsertUser,
   type RegistrationToken,
@@ -40,7 +46,19 @@ import {
   type Certification,
   type InsertCertification,
   type PreRegisteredCourse,
-  type InsertPreRegisteredCourse
+  type InsertPreRegisteredCourse,
+  type StudentEnrollment,
+  type InsertStudentEnrollment,
+  type StudentEvaluation,
+  type InsertStudentEvaluation,
+  type StudentDocument,
+  type InsertStudentDocument,
+  type StudentPayment,
+  type InsertStudentPayment,
+  type StudentCertificate,
+  type InsertStudentCertificate,
+  type StudentCard,
+  type InsertStudentCard
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count } from "drizzle-orm";
@@ -50,6 +68,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByCpf(cpf: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   
@@ -116,6 +135,37 @@ export interface IStorage {
   createPreRegisteredCourse(course: InsertPreRegisteredCourse): Promise<PreRegisteredCourse>;
   updatePreRegisteredCourse(id: number, course: Partial<PreRegisteredCourse>): Promise<PreRegisteredCourse | undefined>;
   deletePreRegisteredCourse(id: number): Promise<void>;
+
+  // Portal do Aluno - Student Enrollments
+  getStudentEnrollments(studentId: number): Promise<StudentEnrollment[]>;
+  createStudentEnrollment(enrollment: InsertStudentEnrollment): Promise<StudentEnrollment>;
+  updateStudentEnrollment(id: number, enrollment: Partial<StudentEnrollment>): Promise<StudentEnrollment | undefined>;
+
+  // Portal do Aluno - Student Evaluations
+  getStudentEvaluations(enrollmentId: number): Promise<StudentEvaluation[]>;
+  createStudentEvaluation(evaluation: InsertStudentEvaluation): Promise<StudentEvaluation>;
+  updateStudentEvaluation(id: number, evaluation: Partial<StudentEvaluation>): Promise<StudentEvaluation | undefined>;
+
+  // Portal do Aluno - Student Documents
+  getStudentDocuments(studentId: number): Promise<StudentDocument[]>;
+  createStudentDocument(document: InsertStudentDocument): Promise<StudentDocument>;
+  updateStudentDocument(id: number, document: Partial<StudentDocument>): Promise<StudentDocument | undefined>;
+
+  // Portal do Aluno - Student Payments
+  getStudentPayments(studentId: number): Promise<StudentPayment[]>;
+  createStudentPayment(payment: InsertStudentPayment): Promise<StudentPayment>;
+  updateStudentPayment(id: number, payment: Partial<StudentPayment>): Promise<StudentPayment | undefined>;
+
+  // Portal do Aluno - Student Certificates
+  getStudentCertificates(studentId: number): Promise<StudentCertificate[]>;
+  createStudentCertificate(certificate: InsertStudentCertificate): Promise<StudentCertificate>;
+  updateStudentCertificate(id: number, certificate: Partial<StudentCertificate>): Promise<StudentCertificate | undefined>;
+
+  // Portal do Aluno - Student Card
+  getStudentCard(studentId: number): Promise<StudentCard | undefined>;
+  createStudentCard(card: InsertStudentCard): Promise<StudentCard>;
+  updateStudentCard(id: number, card: Partial<StudentCard>): Promise<StudentCard | undefined>;
+  validateStudentCard(tokenValidacao: string): Promise<StudentCard | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -132,6 +182,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUserByCpf(cpf: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.cpf, cpf));
     return user || undefined;
   }
 
@@ -649,6 +704,194 @@ export class DatabaseStorage implements IStorage {
 
   async deletePreRegisteredCourse(id: number): Promise<void> {
     await db.delete(preRegisteredCourses).where(eq(preRegisteredCourses.id, id));
+  }
+
+  // Portal do Aluno - Student Enrollments
+  async getStudentEnrollments(studentId: number): Promise<StudentEnrollment[]> {
+    return await db
+      .select()
+      .from(studentEnrollments)
+      .where(eq(studentEnrollments.studentId, studentId))
+      .orderBy(desc(studentEnrollments.dataMatricula));
+  }
+
+  async createStudentEnrollment(enrollment: InsertStudentEnrollment): Promise<StudentEnrollment> {
+    const [newEnrollment] = await db
+      .insert(studentEnrollments)
+      .values({
+        ...enrollment,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newEnrollment;
+  }
+
+  async updateStudentEnrollment(id: number, enrollment: Partial<StudentEnrollment>): Promise<StudentEnrollment | undefined> {
+    const [updatedEnrollment] = await db
+      .update(studentEnrollments)
+      .set({ ...enrollment, updatedAt: new Date() })
+      .where(eq(studentEnrollments.id, id))
+      .returning();
+    return updatedEnrollment || undefined;
+  }
+
+  // Portal do Aluno - Student Evaluations
+  async getStudentEvaluations(enrollmentId: number): Promise<StudentEvaluation[]> {
+    return await db
+      .select()
+      .from(studentEvaluations)
+      .where(eq(studentEvaluations.enrollmentId, enrollmentId))
+      .orderBy(desc(studentEvaluations.dataAplicacao));
+  }
+
+  async createStudentEvaluation(evaluation: InsertStudentEvaluation): Promise<StudentEvaluation> {
+    const [newEvaluation] = await db
+      .insert(studentEvaluations)
+      .values({
+        ...evaluation,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newEvaluation;
+  }
+
+  async updateStudentEvaluation(id: number, evaluation: Partial<StudentEvaluation>): Promise<StudentEvaluation | undefined> {
+    const [updatedEvaluation] = await db
+      .update(studentEvaluations)
+      .set({ ...evaluation, updatedAt: new Date() })
+      .where(eq(studentEvaluations.id, id))
+      .returning();
+    return updatedEvaluation || undefined;
+  }
+
+  // Portal do Aluno - Student Documents
+  async getStudentDocuments(studentId: number): Promise<StudentDocument[]> {
+    return await db
+      .select()
+      .from(studentDocuments)
+      .where(eq(studentDocuments.studentId, studentId))
+      .orderBy(desc(studentDocuments.dataEnvio));
+  }
+
+  async createStudentDocument(document: InsertStudentDocument): Promise<StudentDocument> {
+    const [newDocument] = await db
+      .insert(studentDocuments)
+      .values({
+        ...document,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newDocument;
+  }
+
+  async updateStudentDocument(id: number, document: Partial<StudentDocument>): Promise<StudentDocument | undefined> {
+    const [updatedDocument] = await db
+      .update(studentDocuments)
+      .set({ ...document, updatedAt: new Date() })
+      .where(eq(studentDocuments.id, id))
+      .returning();
+    return updatedDocument || undefined;
+  }
+
+  // Portal do Aluno - Student Payments
+  async getStudentPayments(studentId: number): Promise<StudentPayment[]> {
+    return await db
+      .select()
+      .from(studentPayments)
+      .where(eq(studentPayments.studentId, studentId))
+      .orderBy(desc(studentPayments.dataVencimento));
+  }
+
+  async createStudentPayment(payment: InsertStudentPayment): Promise<StudentPayment> {
+    const [newPayment] = await db
+      .insert(studentPayments)
+      .values({
+        ...payment,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newPayment;
+  }
+
+  async updateStudentPayment(id: number, payment: Partial<StudentPayment>): Promise<StudentPayment | undefined> {
+    const [updatedPayment] = await db
+      .update(studentPayments)
+      .set({ ...payment, updatedAt: new Date() })
+      .where(eq(studentPayments.id, id))
+      .returning();
+    return updatedPayment || undefined;
+  }
+
+  // Portal do Aluno - Student Certificates
+  async getStudentCertificates(studentId: number): Promise<StudentCertificate[]> {
+    return await db
+      .select()
+      .from(studentCertificates)
+      .where(eq(studentCertificates.studentId, studentId))
+      .orderBy(desc(studentCertificates.dataEmissao));
+  }
+
+  async createStudentCertificate(certificate: InsertStudentCertificate): Promise<StudentCertificate> {
+    const [newCertificate] = await db
+      .insert(studentCertificates)
+      .values({
+        ...certificate,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newCertificate;
+  }
+
+  async updateStudentCertificate(id: number, certificate: Partial<StudentCertificate>): Promise<StudentCertificate | undefined> {
+    const [updatedCertificate] = await db
+      .update(studentCertificates)
+      .set({ ...certificate, updatedAt: new Date() })
+      .where(eq(studentCertificates.id, id))
+      .returning();
+    return updatedCertificate || undefined;
+  }
+
+  // Portal do Aluno - Student Card
+  async getStudentCard(studentId: number): Promise<StudentCard | undefined> {
+    const [card] = await db
+      .select()
+      .from(studentCards)
+      .where(eq(studentCards.studentId, studentId));
+    return card || undefined;
+  }
+
+  async createStudentCard(card: InsertStudentCard): Promise<StudentCard> {
+    const [newCard] = await db
+      .insert(studentCards)
+      .values({
+        ...card,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newCard;
+  }
+
+  async updateStudentCard(id: number, card: Partial<StudentCard>): Promise<StudentCard | undefined> {
+    const [updatedCard] = await db
+      .update(studentCards)
+      .set({ ...card, updatedAt: new Date() })
+      .where(eq(studentCards.id, id))
+      .returning();
+    return updatedCard || undefined;
+  }
+
+  async validateStudentCard(tokenValidacao: string): Promise<StudentCard | undefined> {
+    const [card] = await db
+      .select()
+      .from(studentCards)
+      .where(eq(studentCards.tokenValidacao, tokenValidacao));
+    return card || undefined;
   }
 }
 

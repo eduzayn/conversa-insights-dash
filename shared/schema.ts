@@ -10,10 +10,21 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("agent"), // admin, agent
+  role: text("role").notNull().default("agent"), // admin, agent, aluno
   companyAccount: text("company_account"), // COMERCIAL, SUPORTE
   department: text("department"), // Comercial, Cobrança, Suporte, etc.
   isActive: boolean("is_active").notNull().default(true),
+  // Campos específicos para alunos
+  cpf: text("cpf"),
+  telefone: text("telefone"),
+  dataNascimento: date("data_nascimento"),
+  endereco: text("endereco"),
+  cidade: text("cidade"),
+  estado: text("estado"),
+  cep: text("cep"),
+  fotoUrl: text("foto_url"),
+  matriculaAtiva: boolean("matricula_ativa").default(true),
+  documentacaoStatus: text("documentacao_status").default("pendente"), // pendente, deferida, indeferida
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -263,6 +274,108 @@ export const preRegisteredCourses = pgTable("pre_registered_courses", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela para matrículas dos alunos
+export const studentEnrollments = pgTable("student_enrollments", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  courseId: integer("course_id").notNull().references(() => preRegisteredCourses.id),
+  certificationId: integer("certification_id").references(() => certifications.id),
+  status: text("status").notNull().default("ativo"), // ativo, concluido, trancado, cancelado
+  progresso: integer("progresso").default(0), // 0-100%
+  dataMatricula: timestamp("data_matricula").defaultNow(),
+  dataInicio: timestamp("data_inicio"),
+  dataConclusao: timestamp("data_conclusao"),
+  notaFinal: integer("nota_final"), // 0-100
+  linkPlataforma: text("link_plataforma"),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para avaliações dos alunos
+export const studentEvaluations = pgTable("student_evaluations", {
+  id: serial("id").primaryKey(),
+  enrollmentId: integer("enrollment_id").notNull().references(() => studentEnrollments.id),
+  tipoAvaliacao: text("tipo_avaliacao").notNull(), // prova, trabalho, tcc, praticas_pedagogicas, estagio
+  titulo: text("titulo").notNull(),
+  nota: integer("nota"), // 0-100
+  status: text("status").notNull().default("pendente"), // pendente, aprovado, reprovado, em_correcao
+  dataAplicacao: timestamp("data_aplicacao"),
+  dataCorrecao: timestamp("data_correcao"),
+  feedbackTutor: text("feedback_tutor"),
+  tentativas: integer("tentativas").default(1),
+  peso: integer("peso").default(1), // peso da avaliação na nota final
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para documentos do aluno
+export const studentDocuments = pgTable("student_documents", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  tipoDocumento: text("tipo_documento").notNull(), // rg, cpf, historico_escolar, diploma, certificado
+  nomeArquivo: text("nome_arquivo").notNull(),
+  urlArquivo: text("url_arquivo").notNull(),
+  status: text("status").default("pendente"), // pendente, deferido, indeferido
+  dataEnvio: timestamp("data_envio").defaultNow(),
+  dataAnalise: timestamp("data_analise"),
+  observacoes: text("observacoes"),
+  analisadoPor: integer("analisado_por").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para pagamentos do aluno
+export const studentPayments = pgTable("student_payments", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  enrollmentId: integer("enrollment_id").references(() => studentEnrollments.id),
+  valor: integer("valor").notNull(), // valor em centavos
+  descricao: text("descricao").notNull(),
+  status: text("status").notNull().default("pendente"), // pendente, pago, vencido, cancelado
+  dataVencimento: timestamp("data_vencimento").notNull(),
+  dataPagamento: timestamp("data_pagamento"),
+  metodoPagamento: text("metodo_pagamento"), // boleto, cartao, pix
+  referencia: text("referencia"), // número do boleto, referência do pagamento
+  urlBoleto: text("url_boleto"),
+  isRecorrente: boolean("is_recorrente").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para certificados dos alunos
+export const studentCertificates = pgTable("student_certificates", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  enrollmentId: integer("enrollment_id").notNull().references(() => studentEnrollments.id),
+  tipoCertificado: text("tipo_certificado").notNull(), // certificado, diploma, declaracao
+  titulo: text("titulo").notNull(),
+  status: text("status").notNull().default("processando"), // processando, disponivel, solicitado
+  urlDownload: text("url_download"),
+  codigoVerificacao: text("codigo_verificacao").unique(),
+  dataEmissao: timestamp("data_emissao"),
+  dataSolicitacao: timestamp("data_solicitacao").defaultNow(),
+  validoAte: timestamp("valido_ate"),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para carteirinha do aluno (QR Code)
+export const studentCards = pgTable("student_cards", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  numeroCarteirinha: text("numero_carteirinha").notNull().unique(),
+  tokenValidacao: text("token_validacao").notNull().unique(),
+  qrCodeData: text("qr_code_data").notNull(),
+  status: text("status").notNull().default("ativa"), // ativa, inativa, expirada
+  validoAte: timestamp("valido_ate").notNull(),
+  fotoUrl: text("foto_url"),
+  cursoAtual: text("curso_atual"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relações
 export const usersRelations = relations(users, ({ many, one }) => ({
   teamMemberships: many(teamMembers),
@@ -279,6 +392,12 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   goals: many(goals),
   goalProgress: many(goalProgress),
   activity: many(userActivity),
+  // Relações para alunos
+  enrollments: many(studentEnrollments),
+  documents: many(studentDocuments),
+  payments: many(studentPayments),
+  certificates: many(studentCertificates),
+  card: one(studentCards, { fields: [users.id], references: [studentCards.studentId] }),
 }));
 
 export const teamsRelations = relations(teams, ({ many }) => ({
@@ -312,6 +431,43 @@ export const conversationsRelations = relations(conversations, ({ many, one }) =
   attendant: one(users, { fields: [conversations.attendantId], references: [users.id] }),
   messages: many(attendanceMessages),
   internalNotes: many(internalNotes),
+}));
+
+// Relações para as novas tabelas do Portal do Aluno
+export const studentEnrollmentsRelations = relations(studentEnrollments, ({ many, one }) => ({
+  student: one(users, { fields: [studentEnrollments.studentId], references: [users.id] }),
+  course: one(preRegisteredCourses, { fields: [studentEnrollments.courseId], references: [preRegisteredCourses.id] }),
+  certification: one(certifications, { fields: [studentEnrollments.certificationId], references: [certifications.id] }),
+  evaluations: many(studentEvaluations),
+  payments: many(studentPayments),
+  certificates: many(studentCertificates),
+}));
+
+export const studentEvaluationsRelations = relations(studentEvaluations, ({ one }) => ({
+  enrollment: one(studentEnrollments, { fields: [studentEvaluations.enrollmentId], references: [studentEnrollments.id] }),
+}));
+
+export const studentDocumentsRelations = relations(studentDocuments, ({ one }) => ({
+  student: one(users, { fields: [studentDocuments.studentId], references: [users.id] }),
+  analyzer: one(users, { fields: [studentDocuments.analisadoPor], references: [users.id] }),
+}));
+
+export const studentPaymentsRelations = relations(studentPayments, ({ one }) => ({
+  student: one(users, { fields: [studentPayments.studentId], references: [users.id] }),
+  enrollment: one(studentEnrollments, { fields: [studentPayments.enrollmentId], references: [studentEnrollments.id] }),
+}));
+
+export const studentCertificatesRelations = relations(studentCertificates, ({ one }) => ({
+  student: one(users, { fields: [studentCertificates.studentId], references: [users.id] }),
+  enrollment: one(studentEnrollments, { fields: [studentCertificates.enrollmentId], references: [studentEnrollments.id] }),
+}));
+
+export const studentCardsRelations = relations(studentCards, ({ one }) => ({
+  student: one(users, { fields: [studentCards.studentId], references: [users.id] }),
+}));
+
+export const preRegisteredCoursesRelations = relations(preRegisteredCourses, ({ many }) => ({
+  enrollments: many(studentEnrollments),
 }));
 
 // Schemas de inserção
@@ -469,6 +625,85 @@ export const insertPreRegisteredCourseSchema = createInsertSchema(preRegisteredC
   ativo: true,
 });
 
+// Schemas de inserção para Portal do Aluno
+export const insertStudentEnrollmentSchema = createInsertSchema(studentEnrollments).pick({
+  studentId: true,
+  courseId: true,
+  certificationId: true,
+  status: true,
+  progresso: true,
+  dataMatricula: true,
+  dataInicio: true,
+  dataConclusao: true,
+  notaFinal: true,
+  linkPlataforma: true,
+  observacoes: true,
+});
+
+export const insertStudentEvaluationSchema = createInsertSchema(studentEvaluations).pick({
+  enrollmentId: true,
+  tipoAvaliacao: true,
+  titulo: true,
+  nota: true,
+  status: true,
+  dataAplicacao: true,
+  dataCorrecao: true,
+  feedbackTutor: true,
+  tentativas: true,
+  peso: true,
+});
+
+export const insertStudentDocumentSchema = createInsertSchema(studentDocuments).pick({
+  studentId: true,
+  tipoDocumento: true,
+  nomeArquivo: true,
+  urlArquivo: true,
+  status: true,
+  dataEnvio: true,
+  dataAnalise: true,
+  observacoes: true,
+  analisadoPor: true,
+});
+
+export const insertStudentPaymentSchema = createInsertSchema(studentPayments).pick({
+  studentId: true,
+  enrollmentId: true,
+  valor: true,
+  descricao: true,
+  status: true,
+  dataVencimento: true,
+  dataPagamento: true,
+  metodoPagamento: true,
+  referencia: true,
+  urlBoleto: true,
+  isRecorrente: true,
+});
+
+export const insertStudentCertificateSchema = createInsertSchema(studentCertificates).pick({
+  studentId: true,
+  enrollmentId: true,
+  tipoCertificado: true,
+  titulo: true,
+  status: true,
+  urlDownload: true,
+  codigoVerificacao: true,
+  dataEmissao: true,
+  dataSolicitacao: true,
+  validoAte: true,
+  observacoes: true,
+});
+
+export const insertStudentCardSchema = createInsertSchema(studentCards).pick({
+  studentId: true,
+  numeroCarteirinha: true,
+  tokenValidacao: true,
+  qrCodeData: true,
+  status: true,
+  validoAte: true,
+  fotoUrl: true,
+  cursoAtual: true,
+});
+
 // Tipos
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -514,3 +749,22 @@ export type CertificationDocument = typeof certificationDocuments.$inferSelect;
 
 export type InsertPreRegisteredCourse = z.infer<typeof insertPreRegisteredCourseSchema>;
 export type PreRegisteredCourse = typeof preRegisteredCourses.$inferSelect;
+
+// Tipos para Portal do Aluno
+export type InsertStudentEnrollment = z.infer<typeof insertStudentEnrollmentSchema>;
+export type StudentEnrollment = typeof studentEnrollments.$inferSelect;
+
+export type InsertStudentEvaluation = z.infer<typeof insertStudentEvaluationSchema>;
+export type StudentEvaluation = typeof studentEvaluations.$inferSelect;
+
+export type InsertStudentDocument = z.infer<typeof insertStudentDocumentSchema>;
+export type StudentDocument = typeof studentDocuments.$inferSelect;
+
+export type InsertStudentPayment = z.infer<typeof insertStudentPaymentSchema>;
+export type StudentPayment = typeof studentPayments.$inferSelect;
+
+export type InsertStudentCertificate = z.infer<typeof insertStudentCertificateSchema>;
+export type StudentCertificate = typeof studentCertificates.$inferSelect;
+
+export type InsertStudentCard = z.infer<typeof insertStudentCardSchema>;
+export type StudentCard = typeof studentCards.$inferSelect;

@@ -1,0 +1,82 @@
+TAREFA COMPLETA PARA O REPLIT
+🎯 Objetivo
+Criar um Portal do Aluno funcional e separado da interface administrativa atual, com todos os módulos necessários para o acompanhamento acadêmico, perfil pessoal e carteirinha com QR Code validável.
+
+🧩 Módulos obrigatórios do Portal do Aluno
+Módulo	Rota sugerida	Descrição
+📚 Meus Cursos	/portal/cursos	Lista de cursos matriculados, progresso, links de acesso (se possível via iframe ou deep link)
+📝 Minhas Avaliações	/portal/avaliacoes	Notas, status de aprovação/reprovação, feedbacks de tutores
+📜 Certificados	/portal/certificados	Certificados disponíveis para download ou botão de solicitação (com status)
+💬 Suporte e Chat	/portal/suporte	Integração direta com o sistema de atendimento já existente
+💳 Pagamentos	/portal/pagamentos	Visualização de boletos, status de recorrência, valores em aberto, histórico de pagamentos
+📁 Documentos	/portal/documentos	Upload de RG, CPF, histórico escolar, e status de deferimento dos documentos
+🧑‍🎓 Perfil do Aluno	/portal/perfil	Dados pessoais, curso atual, status da matrícula, opção para editar e foto de perfil
+🪪 Carteirinha	/portal/carteirinha	Visual com foto, QR Code de validação, dados do curso e validade
+
+⚙️ Considerações Técnicas
+1. Rotas separadas
+Criar o portal em /portal com navegação independente da interface administrativa.
+
+O sistema atual do administrador não pode ser alterado ou afetado.
+
+2. Controle de Acesso (RBAC)
+Adicionar middleware de autenticação por papel (aluno/admin).
+
+Alunos só podem acessar /portal/*.
+
+3. Banco de Dados
+Utilizar tabelas já existentes de usuários, cursos, documentos, certificados e pagamentos.
+
+Criar tabelas auxiliares se necessário para:
+
+Histórico de avaliações.
+
+Validação de carteirinha (com token/hash).
+
+4. Back-End (Endpoints Recomendados)
+GET /api/portal/aluno/perfil
+
+PUT /api/portal/aluno/perfil
+
+GET /api/portal/aluno/cursos
+
+GET /api/portal/aluno/avaliacoes
+
+GET /api/portal/aluno/certificados
+
+GET /api/portal/aluno/documentos
+
+POST /api/portal/aluno/documentos
+
+GET /api/portal/aluno/pagamentos
+
+GET /api/portal/aluno/carteirinha
+
+GET /api/verificar-carteirinha?id=xyz123 (endpoint público de verificação via QR)
+
+5. QR Code da Carteirinha
+Gerado automaticamente a partir do ID do aluno + token de verificação
+
+Ao escanear, redireciona para página pública com status de validade
+
+A carteirinha só será válida se o aluno estiver com:
+
+Matrícula ativa
+
+Documentação deferida
+
+Pelo menos um pagamento realizado
+
+6. Design
+Reutilizar o mesmo sistema visual (Tailwind ou outro framework que esteja sendo usado).
+
+Navegação lateral com os ícones e módulos citados.
+
+📌 Regras e Cuidados
+Nenhuma alteração no painel administrativo atual.
+
+Código do Portal deve ser modularizado em diretório separado (/portal).
+
+Testar login simultâneo com contas de perfis diferentes (admin, aluno).
+
+Pode utilizar mock de dados inicialmente, mas garantir estrutura compatível com banco real.

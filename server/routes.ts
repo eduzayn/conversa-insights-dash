@@ -4,7 +4,7 @@ import { Server as SocketServer } from "socket.io";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
-import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema } from "@shared/schema";
+import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema, insertStudentEnrollmentSchema, insertStudentDocumentSchema, insertStudentPaymentSchema } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
 
@@ -36,6 +36,12 @@ const authenticateToken = async (req: any, res: any, next: any) => {
 const loginSchema = z.object({
   username: z.string().min(1, "Username é obrigatório"),
   password: z.string().min(1, "Password é obrigatório"),
+});
+
+// Schema para login do aluno (Portal do Aluno)
+const studentLoginSchema = z.object({
+  cpf: z.string().min(11, "CPF é obrigatório").max(14, "CPF inválido"),
+  dataNascimento: z.string().min(1, "Data de nascimento é obrigatória"),
 });
 
 // Schema para registro
@@ -180,9 +186,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: req.user.name,
         role: req.user.role,
         companyAccount: req.user.companyAccount,
-        department: req.user.department
+        department: req.user.department,
+        cpf: req.user.cpf,
+        telefone: req.user.telefone,
+        dataNascimento: req.user.dataNascimento,
+        matriculaAtiva: req.user.matriculaAtiva
       }
     });
+  });
+
+  // Login para Portal do Aluno (usando CPF e data de nascimento)
+  app.post("/api/auth/student-login", async (req, res) => {
+    try {
+      const { cpf, dataNascimento } = studentLoginSchema.parse(req.body);
+      
+      // Buscar aluno por CPF
+      const student = await storage.getUserByCpf(cpf);
+      if (!student || student.role !== 'aluno') {
+        return res.status(401).json({ message: "Credenciais inválidas ou aluno não encontrado" });
+      }
+
+      // Validar data de nascimento (comparar como string no formato YYYY-MM-DD)
+      const studentBirthDate = student.dataNascimento?.toISOString().split('T')[0];
+      if (studentBirthDate !== dataNascimento) {
+        return res.status(401).json({ message: "Credenciais inválidas" });
+      }
+
+      if (!student.isActive || !student.matriculaAtiva) {
+        return res.status(401).json({ message: "Matrícula inativa ou conta desativada" });
+      }
+
+      const token = jwt.sign(
+        { userId: student.id, cpf: student.cpf, role: student.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        token,
+        student: {
+          id: student.id,
+          name: student.name,
+          email: student.email,
+          cpf: student.cpf,
+          telefone: student.telefone,
+          role: student.role,
+          matriculaAtiva: student.matriculaAtiva,
+          documentacaoStatus: student.documentacaoStatus
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro no login do aluno:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
   });
 
   // Gerenciar tokens de registro (apenas admins)
@@ -206,6 +265,213 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ token: regToken.token, expiresAt: regToken.expiresAt });
     } catch (error) {
       console.error("Erro ao criar token:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ROTAS DO PORTAL DO ALUNO =====
+
+  // Dashboard do aluno - matrícula e progresso
+  app.get("/api/student/enrollments", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const enrollments = await storage.getStudentEnrollments(req.user.id);
+      res.json(enrollments);
+    } catch (error) {
+      console.error("Erro ao buscar matrículas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Avaliações do aluno
+  app.get("/api/student/enrollments/:enrollmentId/evaluations", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const { enrollmentId } = req.params;
+      const evaluations = await storage.getStudentEvaluations(parseInt(enrollmentId));
+      res.json(evaluations);
+    } catch (error) {
+      console.error("Erro ao buscar avaliações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Documentos do aluno
+  app.get("/api/student/documents", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const documents = await storage.getStudentDocuments(req.user.id);
+      res.json(documents);
+    } catch (error) {
+      console.error("Erro ao buscar documentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/student/documents", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const { tipoDocumento, nomeArquivo, urlArquivo } = req.body;
+      const document = await storage.createStudentDocument({
+        studentId: req.user.id,
+        tipoDocumento,
+        nomeArquivo,
+        urlArquivo
+      });
+
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Erro ao enviar documento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Pagamentos do aluno
+  app.get("/api/student/payments", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const payments = await storage.getStudentPayments(req.user.id);
+      res.json(payments);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Certificados do aluno
+  app.get("/api/student/certificates", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const certificates = await storage.getStudentCertificates(req.user.id);
+      res.json(certificates);
+    } catch (error) {
+      console.error("Erro ao buscar certificados:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Solicitar certificado
+  app.post("/api/student/certificates", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const { enrollmentId, tipoCertificado, titulo } = req.body;
+      const certificate = await storage.createStudentCertificate({
+        studentId: req.user.id,
+        enrollmentId: parseInt(enrollmentId),
+        tipoCertificado,
+        titulo,
+        codigoVerificacao: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      });
+
+      res.status(201).json(certificate);
+    } catch (error) {
+      console.error("Erro ao solicitar certificado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Carteirinha do aluno
+  app.get("/api/student/card", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const card = await storage.getStudentCard(req.user.id);
+      res.json(card);
+    } catch (error) {
+      console.error("Erro ao buscar carteirinha:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Gerar carteirinha (primeira vez)
+  app.post("/api/student/card", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      // Verificar se já existe carteirinha
+      const existingCard = await storage.getStudentCard(req.user.id);
+      if (existingCard) {
+        return res.status(400).json({ message: "Carteirinha já existe" });
+      }
+
+      const numeroCarteirinha = `EST${new Date().getFullYear()}${req.user.id.toString().padStart(6, '0')}`;
+      const tokenValidacao = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const qrCodeData = JSON.stringify({
+        studentId: req.user.id,
+        numeroCarteirinha,
+        tokenValidacao,
+        validoAte: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 ano
+      });
+
+      const card = await storage.createStudentCard({
+        studentId: req.user.id,
+        numeroCarteirinha,
+        tokenValidacao,
+        qrCodeData,
+        validoAte: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        cursoAtual: req.body.cursoAtual || null
+      });
+
+      res.status(201).json(card);
+    } catch (error) {
+      console.error("Erro ao gerar carteirinha:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Validar carteirinha (endpoint público)
+  app.get("/api/public/validate-card/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const card = await storage.validateStudentCard(token);
+      
+      if (!card) {
+        return res.status(404).json({ message: "Carteirinha não encontrada ou inválida" });
+      }
+
+      if (new Date() > card.validoAte) {
+        return res.status(400).json({ message: "Carteirinha expirada" });
+      }
+
+      if (card.status !== 'ativa') {
+        return res.status(400).json({ message: "Carteirinha inativa" });
+      }
+
+      res.json({
+        valid: true,
+        student: {
+          numeroCarteirinha: card.numeroCarteirinha,
+          cursoAtual: card.cursoAtual,
+          validoAte: card.validoAte
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao validar carteirinha:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

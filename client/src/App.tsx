@@ -19,6 +19,8 @@ import Metas from "./pages/Metas";
 import Certificacoes from "./pages/Certificacoes";
 import IntegracaoBotConversa from "./pages/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/GerenciamentoRoteamento";
+import StudentLogin from "./pages/StudentLogin";
+import StudentPortal from "./pages/StudentPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +46,9 @@ const App = () => (
             <Route path="/certificacoes" element={<Certificacoes />} />
             <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
+            {/* Portal do Aluno */}
+            <Route path="/portal-aluno/login" element={<StudentLogin />} />
+            <Route path="/portal-aluno" element={<StudentPortal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />
