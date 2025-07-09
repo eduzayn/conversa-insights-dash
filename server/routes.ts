@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         department: req.user.department,
         cpf: req.user.cpf,
         telefone: req.user.telefone,
-        dataNascimento: req.user.dataNascimento,
+        dataNascimento: req.user.data_nascimento,
         matriculaAtiva: req.user.matriculaAtiva
       }
     });
@@ -207,12 +207,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validar data de nascimento (comparar como string no formato YYYY-MM-DD)
-      const studentBirthDate = student.dataNascimento?.toISOString().split('T')[0];
+      const studentBirthDate = student.data_nascimento?.toISOString().split('T')[0];
       if (studentBirthDate !== dataNascimento) {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
-      if (!student.isActive || !student.matriculaAtiva) {
+      if (!student.is_active || !student.matricula_ativa) {
         return res.status(401).json({ message: "Matrícula inativa ou conta desativada" });
       }
 
@@ -231,8 +231,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cpf: student.cpf,
           telefone: student.telefone,
           role: student.role,
-          matriculaAtiva: student.matriculaAtiva,
-          documentacaoStatus: student.documentacaoStatus
+          matriculaAtiva: student.matricula_ativa,
+          documentacaoStatus: student.documentacao_status
         }
       });
     } catch (error) {
