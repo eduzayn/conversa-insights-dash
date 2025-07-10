@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Search, Plus, Eye, Copy, FileText, Link as LinkIcon, X } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Eye, Copy, FileText, Link as LinkIcon, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from 'react-router-dom';
 
@@ -20,105 +21,15 @@ interface AsaasPayment {
 export default function Cobrancas() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Dados de demonstração para cobranças
-  const mockPayments: AsaasPayment[] = [
-    {
-      id: 'pay_330',
-      customer: 'Eliane Dantas Silva',
-      value: 115.46,
-      description: 'Parcela 18 de 18: Formação Pedagógica em Geografia',
-      billingType: 'PIX',
-      dueDate: '2024-07-09',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_142',
-      customer: 'Administrador Teste',
-      value: 129.90,
-      description: 'Parcela 16 de 16: Formação Pedagógica em Música em música',
-      billingType: 'BOLETO',
-      dueDate: '2024-08-28',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_126',
-      customer: 'Administrador Teste',
-      value: 129.90,
-      description: 'Parcela 16 de 16: Segunda Licenciatura em Pedagogia',
-      billingType: 'BOLETO',
-      dueDate: '2024-07-27',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_231',
-      customer: 'Eliane Dantas Silva',
-      value: 115.46,
-      description: 'Parcela 17 de 18: Formação Pedagógica em Geografia',
-      billingType: 'PIX',
-      dueDate: '2024-07-17',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_179',
-      customer: 'Maria da Conceição Ferreira',
-      value: 129.90,
-      description: 'Parcela 16 de 16: Segunda Licenciatura em Música',
-      billingType: 'BOLETO',
-      dueDate: '2024-08-08',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_143',
-      customer: 'Administrador Teste',
-      value: 129.90,
-      description: 'Parcela 15 de 16: Formação Pedagógica em Música em música',
-      billingType: 'BOLETO',
-      dueDate: '2024-07-28',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_229',
-      customer: 'Denise de Abreu Neves Batista',
-      value: 129.90,
-      description: 'Parcela 16 de 16: 2ª graduação - Licenciatura em Pedagogia',
-      billingType: 'BOLETO',
-      dueDate: '2024-07-28',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_127',
-      customer: 'Administrador Teste',
-      value: 129.90,
-      description: 'Parcela 15 de 16: Segunda Licenciatura em Pedagogia',
-      billingType: 'BOLETO',
-      dueDate: '2024-07-27',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_237',
-      customer: 'Ana Paula Amaral Cecílio',
-      value: 99.00,
-      description: 'Parcela 16 de 16',
-      billingType: 'BOLETO',
-      dueDate: '2024-07-24',
-      status: 'PENDING'
-    },
-    {
-      id: 'pay_273',
-      customer: 'Fernanda Santos Borges',
-      value: 129.95,
-      description: 'Parcela 16 de 16',
-      billingType: 'BOLETO',
-      dueDate: '2024-07-24',
-      status: 'PENDING'
-    }
-  ];
-
-  // Buscar dados das cobranças - usar mock quando API falha
-  const { data: paymentsData = [], isLoading } = useQuery({
+  // Buscar dados reais das cobranças do Asaas
+  const { data: paymentsData = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin/asaas/payments'],
     enabled: true
   });
+
+  const handleRefresh = () => {
+    refetch();
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -131,8 +42,8 @@ export default function Cobrancas() {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  // Usar dados mock ou dados da API
-  const payments = Array.isArray(paymentsData) && paymentsData.length > 0 ? paymentsData : mockPayments;
+  // Usar apenas dados reais da API do Asaas
+  const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const filteredPayments = payments.filter((payment: AsaasPayment) => {
     const matchesSearch = searchTerm === '' || 
       payment.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -163,7 +74,17 @@ export default function Cobrancas() {
           <p className="text-gray-600">Gerencie todas as cobranças de seus alunos.</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button variant="outline" className="text-blue-600 border-blue-600">
+          <Button 
+            variant="outline" 
+            className="text-blue-600 border-blue-600"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
             Sincronizar com Asaas
           </Button>
           <Button className="bg-blue-600 hover:bg-blue-700">
@@ -172,6 +93,17 @@ export default function Cobrancas() {
           </Button>
         </div>
       </div>
+
+      {/* Erro de API - quando há problemas com Asaas */}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Erro ao conectar com a API do Asaas. Verifique suas credenciais e tente novamente.
+            {error.message && ` (${error.message})`}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Cards de estatísticas idênticos à imagem */}
       <div className="grid grid-cols-4 gap-6 mb-6">
