@@ -125,22 +125,25 @@ export default function MatriculaSimplificada() {
   });
 
   // Buscar cursos
-  const { data: courses = [] } = useQuery({
+  const { data: coursesData = [] } = useQuery({
     queryKey: ['/api/cursos-pre-cadastrados'],
     queryFn: () => apiRequest('/api/cursos-pre-cadastrados'),
   });
+  const courses = Array.isArray(coursesData) ? coursesData : [];
 
   // Buscar usuários (consultores)
-  const { data: users = [] } = useQuery({
+  const { data: usersData = [] } = useQuery({
     queryKey: ['/api/users'],
     queryFn: () => apiRequest('/api/users'),
   });
+  const users = Array.isArray(usersData) ? usersData : [];
 
   // Buscar equipes
-  const { data: teams = [] } = useQuery({
+  const { data: teamsData = [] } = useQuery({
     queryKey: ['/api/teams'],
     queryFn: () => apiRequest('/api/teams'),
   });
+  const teams = Array.isArray(teamsData) ? teamsData : [];
 
   // Mutation para criar matrícula
   const createEnrollmentMutation = useMutation({
@@ -190,8 +193,9 @@ export default function MatriculaSimplificada() {
     },
   });
 
-  // Filtrar matrículas
-  const filteredEnrollments = (enrollments || []).filter((enrollment: SimplifiedEnrollment) => {
+  // Filtrar matrículas - garantir que é um array
+  const enrollmentsList = Array.isArray(enrollments) ? enrollments : [];
+  const filteredEnrollments = enrollmentsList.filter((enrollment: SimplifiedEnrollment) => {
     const matchesSearch = enrollment.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          enrollment.studentEmail.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
