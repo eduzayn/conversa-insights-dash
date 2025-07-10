@@ -61,6 +61,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import { Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Header } from '@/components/Header';

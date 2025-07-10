@@ -4,13 +4,20 @@ import { Server as SocketServer } from "socket.io";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
-import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema, insertStudentEnrollmentSchema, insertStudentDocumentSchema, insertStudentPaymentSchema } from "@shared/schema";
+import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema, insertStudentEnrollmentSchema, insertStudentDocumentSchema, insertStudentPaymentSchema, insertSimplifiedEnrollmentSchema } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
+import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
+
+// Configuração do serviço Asaas
+const asaasService = new UnifiedAsaasService({
+  baseURL: 'https://api.asaas.com/v3',
+  apiKey: process.env.ASAAS_API_KEY || '$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDk5OTQ1ODg6OiRhYWNoXzc5ZGVhYzMzLTFhNDctNDE1My1hODI5LTZlY2Q3ZGE4MmMzYQ=='
+});
 
 // Middleware para validar JWT
 export const authenticateToken = async (req: any, res: any, next: any) => {
@@ -2321,6 +2328,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(certification);
     } catch (error) {
       console.error("Erro ao buscar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== MATRÍCULAS SIMPLIFICADAS =====
+
+  // Listar matrículas simplificadas
+  app.get("/api/simplified-enrollments", authenticateToken, async (req: any, res) => {
+    try {
+      const { status, tenantId, consultantId } = req.query;
+      const filters: any = {};
+      
+      if (status) filters.status = status as string;
+      if (tenantId) filters.tenantId = parseInt(tenantId as string);
+      if (consultantId) filters.consultantId = parseInt(consultantId as string);
+      
+      const enrollments = await storage.getSimplifiedEnrollments(filters);
+      res.json(enrollments);
+    } catch (error) {
+      console.error("Erro ao buscar matrículas simplificadas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar matrícula simplificada com integração Asaas
+  app.post("/api/simplified-enrollments", authenticateToken, async (req: any, res) => {
+    try {
+      const enrollmentData = req.body;
+      
+      // Validar dados obrigatórios
+      if (!enrollmentData.studentName || !enrollmentData.studentEmail || !enrollmentData.studentCpf) {
+        return res.status(400).json({ message: "Nome, email e CPF são obrigatórios" });
+      }
+
+      // Validar curso
+      const course = await storage.getPreRegisteredCourseById(enrollmentData.courseId);
+      if (!course) {
+        return res.status(400).json({ message: "Curso não encontrado" });
+      }
+
+      let asaasCustomerId = null;
+      let asaasPaymentId = null;
+      let paymentUrl = null;
+      let enrollmentStatus = 'pending';
+
+      try {
+        // 1. Criar cliente no Asaas
+        console.log('Criando cliente no Asaas...');
+        const customerData = {
+          name: enrollmentData.studentName,
+          email: enrollmentData.studentEmail,
+          cpfCnpj: enrollmentData.studentCpf.replace(/\D/g, ''),
+          phone: enrollmentData.studentPhone || undefined,
+          mobilePhone: enrollmentData.studentPhone || undefined,
+          observations: `Matrícula no curso: ${course.nome}`
+        };
+
+        const asaasCustomer = await asaasService.createCustomer(customerData);
+        asaasCustomerId = asaasCustomer.id;
+        console.log('Cliente criado no Asaas:', asaasCustomerId);
+
+        // 2. Criar cobrança no Asaas
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 7); // Vencimento em 7 dias
+
+        const paymentData = {
+          customer: asaasCustomerId,
+          billingType: enrollmentData.paymentMethod as 'BOLETO' | 'CREDIT_CARD' | 'PIX' | 'DEBIT_CARD',
+          value: enrollmentData.amount / 100, // Converter centavos para reais
+          dueDate: dueDate.toISOString().split('T')[0],
+          description: `Matrícula no curso ${course.nome} - ${course.modalidade}`,
+          externalReference: `MATRICULA_${Date.now()}`,
+          installmentCount: enrollmentData.installments || 1
+        };
+
+        const asaasPayment = await asaasService.createPayment(paymentData);
+        asaasPaymentId = asaasPayment.id;
+        paymentUrl = asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl;
+        enrollmentStatus = 'waiting_payment';
+        console.log('Cobrança criada no Asaas:', asaasPaymentId);
+
+      } catch (asaasError) {
+        console.error("Erro na integração com Asaas:", asaasError);
+        // Continuar mesmo se falhar no Asaas, mas registrar o erro
+      }
+
+      // 3. Criar matrícula no banco local
+      const enrollment = await storage.createSimplifiedEnrollment({
+        ...enrollmentData,
+        asaasCustomerId,
+        asaasPaymentId,
+        paymentUrl,
+        status: enrollmentStatus,
+        externalReference: `MATRICULA_${Date.now()}`
+      });
+
+      // 4. Criar usuário aluno se integração com Asaas foi bem-sucedida
+      if (asaasCustomerId && enrollmentStatus === 'waiting_payment') {
+        try {
+          const existingUser = await storage.getUserByEmail(enrollment.studentEmail);
+          if (!existingUser) {
+            // Criar usuário aluno para acesso ao portal
+            const hashedPassword = await bcrypt.hash(enrollment.studentCpf.replace(/\D/g, ''), 10);
+            const newUser = await storage.createUser({
+              username: enrollment.studentEmail,
+              email: enrollment.studentEmail,
+              password: hashedPassword,
+              role: 'aluno',
+              name: enrollment.studentName,
+              cpf: enrollment.studentCpf,
+              telefone: enrollment.studentPhone || '',
+              isActive: true
+            });
+
+            // Atualizar matrícula com ID do usuário
+            await storage.updateSimplifiedEnrollment(enrollment.id, {
+              studentId: newUser.id
+            });
+
+            // Criar vínculo com o curso para acesso imediato
+            if (newUser.id && enrollment.courseId) {
+              await storage.createStudentEnrollment({
+                userId: newUser.id,
+                courseId: enrollment.courseId,
+                dataMatricula: new Date(),
+                status: 'ativa',
+                progresso: 0,
+                horasCompletadas: 0
+              });
+            }
+
+            console.log('Usuário aluno criado:', newUser.id);
+          }
+        } catch (userError) {
+          console.error("Erro ao criar usuário:", userError);
+          // Não bloquear o processo se falhar criação do usuário
+        }
+      }
+      
+      res.status(201).json({
+        ...enrollment,
+        course: {
+          nome: course.nome,
+          modalidade: course.modalidade,
+          categoria: course.categoria,
+          preco: course.preco
+        },
+        message: asaasCustomerId 
+          ? "Matrícula criada com sucesso! Link de pagamento gerado." 
+          : "Matrícula criada. Integração com Asaas pendente."
+      });
+    } catch (error) {
+      console.error("Erro ao criar matrícula simplificada:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar status da matrícula
+  app.patch("/api/simplified-enrollments/:id/status", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ message: "Status é obrigatório" });
+      }
+
+      const enrollment = await storage.updateSimplifiedEnrollment(id, { status });
+      
+      if (!enrollment) {
+        return res.status(404).json({ message: "Matrícula não encontrada" });
+      }
+      
+      res.json(enrollment);
+    } catch (error) {
+      console.error("Erro ao atualizar status da matrícula:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar matrícula por ID
+  app.get("/api/simplified-enrollments/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const enrollment = await storage.getSimplifiedEnrollmentById(id);
+      
+      if (!enrollment) {
+        return res.status(404).json({ message: "Matrícula não encontrada" });
+      }
+      
+      res.json(enrollment);
+    } catch (error) {
+      console.error("Erro ao buscar matrícula:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

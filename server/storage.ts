@@ -226,7 +226,7 @@ export interface IStorage {
   updateEvaluationSubmission(id: number, submission: Partial<EvaluationSubmission>): Promise<EvaluationSubmission | undefined>;
 
   // Sistema de Matrícula Simplificada
-  getSimplifiedEnrollments(tenantId?: number): Promise<SimplifiedEnrollment[]>;
+  getSimplifiedEnrollments(filters?: { status?: string; tenantId?: number; consultantId?: number }): Promise<SimplifiedEnrollment[]>;
   createSimplifiedEnrollment(enrollment: InsertSimplifiedEnrollment): Promise<SimplifiedEnrollment>;
   updateSimplifiedEnrollment(id: number, enrollment: Partial<SimplifiedEnrollment>): Promise<SimplifiedEnrollment>;
   deleteSimplifiedEnrollment(id: number): Promise<void>;
@@ -1172,14 +1172,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Sistema de Matrícula Simplificada
-  async getSimplifiedEnrollments(tenantId?: number): Promise<SimplifiedEnrollment[]> {
-    const query = db
+  async getSimplifiedEnrollments(filters?: { status?: string; tenantId?: number; consultantId?: number }): Promise<SimplifiedEnrollment[]> {
+    let query = db
       .select()
       .from(simplifiedEnrollments)
-      .orderBy(simplifiedEnrollments.createdAt);
+      .orderBy(desc(simplifiedEnrollments.createdAt));
     
-    if (tenantId) {
-      query.where(eq(simplifiedEnrollments.tenantId, tenantId));
+    const conditions = [];
+    
+    if (filters?.status) {
+      conditions.push(eq(simplifiedEnrollments.status, filters.status));
+    }
+    
+    if (filters?.tenantId) {
+      conditions.push(eq(simplifiedEnrollments.tenantId, filters.tenantId));
+    }
+    
+    if (filters?.consultantId) {
+      conditions.push(eq(simplifiedEnrollments.consultantId, filters.consultantId));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
     
     return await query;

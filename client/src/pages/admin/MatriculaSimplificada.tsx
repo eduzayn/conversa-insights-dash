@@ -145,17 +145,54 @@ export default function MatriculaSimplificada() {
   });
   const teams = Array.isArray(teamsData) ? teamsData : [];
 
-  // Mutation para criar matrícula
+  // Mutation para criar matrícula com fluxo completo
   const createEnrollmentMutation = useMutation({
-    mutationFn: (data: EnrollmentFormData) => 
-      apiRequest('/api/simplified-enrollments', {
+    mutationFn: async (data: EnrollmentFormData) => {
+      // 1. Criar cliente no Asaas
+      const customerData = {
+        name: data.studentName,
+        email: data.studentEmail,
+        cpfCnpj: data.studentCpf.replace(/\D/g, ''), // Remove pontuação
+        mobilePhone: data.studentPhone?.replace(/\D/g, '') // Remove pontuação
+      };
+
+      const customer = await apiRequest('/api/asaas/customers', {
         method: 'POST',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
+        body: JSON.stringify(customerData)
+      });
+
+      // 2. Criar cobrança no Asaas
+      const chargeData = {
+        customer: customer.id,
+        billingType: data.paymentMethod,
+        value: data.amount,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 dias
+        description: `Matrícula - ${courses.find(c => c.id === data.courseId)?.nome || 'Curso'} - ${data.installments}x`
+      };
+
+      const payment = await apiRequest('/api/asaas/payments', {
+        method: 'POST',
+        body: JSON.stringify(chargeData)
+      });
+
+      // 3. Criar matrícula no sistema local
+      const enrollmentData = {
+        ...data,
+        asaasCustomerId: customer.id,
+        asaasPaymentId: payment.id,
+        paymentUrl: payment.invoiceUrl,
+        status: 'waiting_payment'
+      };
+
+      return await apiRequest('/api/simplified-enrollments', {
+        method: 'POST',
+        body: JSON.stringify(enrollmentData),
+      });
+    },
+    onSuccess: (result) => {
       toast({
-        title: "Matrícula criada",
-        description: "Matrícula simplificada criada com sucesso!",
+        title: "✅ Matrícula criada com sucesso!",
+        description: "Cliente criado no Asaas, cobrança gerada e aluno vinculado ao curso.",
       });
       setIsCreateDialogOpen(false);
       form.reset();
@@ -163,8 +200,8 @@ export default function MatriculaSimplificada() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar matrícula",
-        description: error.message || "Falha ao criar matrícula",
+        title: "❌ Erro ao criar matrícula",
+        description: error.message || "Falha no processo de matrícula",
         variant: "destructive",
       });
     },
