@@ -1627,28 +1627,41 @@ const CertificadosPos = () => {
                           <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
                           <Label className="font-medium text-blue-700">Frente do Certificado</Label>
                         </div>
-                        <div className="border-2 border-blue-200 rounded-lg p-6 bg-white shadow-inner">
+                        <div className="bg-gray-100 rounded-lg p-4 overflow-auto flex justify-center">
                           <div 
-                            dangerouslySetInnerHTML={{ 
-                              __html: selectedTemplate.htmlTemplate
-                                .replace(/{{nomeAluno}}/g, "João Silva Santos")
-                                .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
-                                .replace(/{{cpfAluno}}/g, "123.456.789-00")
-                                .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
-                                .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
-                                .replace(/{{cargaHoraria}}/g, "420")
-                                .replace(/{{numeroRegistro}}/g, "001/2025")
-                                .replace(/{{areaCurso}}/g, "Educação")
-                            }} 
+                            className="preview-container bg-white border border-gray-300 shadow-lg" 
                             style={{
-                              fontFamily: 'Times New Roman, serif',
-                              lineHeight: '1.6',
-                              color: '#000',
-                              fontSize: '16px',
-                              textAlign: 'center',
-                              minHeight: '300px'
+                              width: '1123px',
+                              height: '794px',
+                              transform: 'scale(0.65)',
+                              transformOrigin: 'top center',
+                              marginBottom: '-280px'
                             }}
-                          />
+                          >
+                            <div 
+                              dangerouslySetInnerHTML={{ 
+                                __html: selectedTemplate.htmlTemplate
+                                  .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                                  .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                                  .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                                  .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                                  .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                                  .replace(/{{cargaHoraria}}/g, "420")
+                                  .replace(/{{numeroRegistro}}/g, "001/2025")
+                                  .replace(/{{areaCurso}}/g, "Educação")
+                              }} 
+                              style={{
+                                fontFamily: 'Times New Roman, serif',
+                                lineHeight: '1.6',
+                                color: '#000',
+                                fontSize: '14px',
+                                textAlign: 'center',
+                                padding: '40px',
+                                height: '100%',
+                                boxSizing: 'border-box'
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                       
@@ -1658,28 +1671,41 @@ const CertificadosPos = () => {
                           <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
                           <Label className="font-medium text-orange-700">Verso do Certificado (Histórico)</Label>
                         </div>
-                        <div className="border-2 border-orange-200 rounded-lg p-6 bg-white shadow-inner">
+                        <div className="bg-gray-100 rounded-lg p-4 overflow-auto flex justify-center">
                           <div 
-                            dangerouslySetInnerHTML={{ 
-                              __html: selectedTemplate.templateVerso
-                                .replace(/{{nomeAluno}}/g, "João Silva Santos")
-                                .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
-                                .replace(/{{cpfAluno}}/g, "123.456.789-00")
-                                .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
-                                .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
-                                .replace(/{{cargaHoraria}}/g, "420")
-                                .replace(/{{numeroRegistro}}/g, "001/2025")
-                                .replace(/{{areaCurso}}/g, "Educação")
-                            }} 
+                            className="preview-container bg-white border border-gray-300 shadow-lg" 
                             style={{
-                              fontFamily: 'Times New Roman, serif',
-                              lineHeight: '1.6',
-                              color: '#000',
-                              fontSize: '16px',
-                              textAlign: 'left',
-                              minHeight: '300px'
+                              width: '1123px',
+                              height: '794px',
+                              transform: 'scale(0.65)',
+                              transformOrigin: 'top center',
+                              marginBottom: '-280px'
                             }}
-                          />
+                          >
+                            <div 
+                              dangerouslySetInnerHTML={{ 
+                                __html: selectedTemplate.templateVerso
+                                  .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                                  .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                                  .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                                  .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                                  .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                                  .replace(/{{cargaHoraria}}/g, "420")
+                                  .replace(/{{numeroRegistro}}/g, "001/2025")
+                                  .replace(/{{areaCurso}}/g, "Educação")
+                              }} 
+                              style={{
+                                fontFamily: 'Times New Roman, serif',
+                                lineHeight: '1.6',
+                                color: '#000',
+                                fontSize: '14px',
+                                textAlign: 'left',
+                                padding: '40px',
+                                height: '100%',
+                                boxSizing: 'border-box'
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
