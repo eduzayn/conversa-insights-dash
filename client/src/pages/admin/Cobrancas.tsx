@@ -308,7 +308,7 @@ export default function Cobrancas() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paymentsData?.payments.map((payment) => (
+                  {paymentsData?.payments?.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell>
                         <div>
