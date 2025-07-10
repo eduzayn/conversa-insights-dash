@@ -2826,19 +2826,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (dateCreatedGe) filters.dateCreatedGe = dateCreatedGe;
       if (dateCreatedLe) filters.dateCreatedLe = dateCreatedLe;
 
-      const payments = await storage.getPayments(filters);
+      // Usar novo método com JOIN de usuários para dados reais
+      const paymentsWithUserData = await storage.getPaymentsWithUserData(filters);
       
-      // Mapear para formato compatível com a interface
-      const formattedPayments = payments.map(payment => ({
+      // Mapear para formato compatível com a interface usando dados reais
+      const formattedPayments = paymentsWithUserData.map(payment => ({
         id: payment.externalId || payment.transactionId || payment.id.toString(),
-        customer: payment.externalId || `customer_${payment.userId}`,
-        customerName: `Usuário ${payment.userId}`, // TODO: buscar nome real do usuário
-        customerEmail: null,
+        customer: payment.customerName || payment.externalId || `cus_${payment.userId}`,
+        customerName: payment.userName || payment.customerName || 'Nome não disponível',
+        customerEmail: payment.userEmail || payment.customerEmail || 'Email não disponível',
         customerPhone: null,
-        customerCpfCnpj: null,
-        value: payment.amount,
-        description: payment.description || 'Cobrança do sistema',
-        billingType: payment.paymentMethod === 'pix' ? 'PIX' : payment.paymentMethod === 'boleto' ? 'BOLETO' : 'CREDIT_CARD',
+        customerCpfCnpj: payment.userCpf || null,
+        value: (payment.value || payment.amount) / 100, // Converter centavos para reais
+        description: payment.description || 'Pagamento do sistema',
+        billingType: payment.billingType || (payment.paymentMethod === 'pix' ? 'PIX' : payment.paymentMethod === 'boleto' ? 'BOLETO' : 'CREDIT_CARD'),
         dueDate: payment.dueDate,
         status: payment.status.toUpperCase(),
         paymentUrl: payment.paymentUrl,

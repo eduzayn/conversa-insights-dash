@@ -1197,6 +1197,54 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(payments.createdAt));
   }
 
+  // Buscar pagamentos com dados dos usuários (JOIN)
+  async getPaymentsWithUserData(filters?: { status?: string; externalId?: string }): Promise<any[]> {
+    let query = db
+      .select({
+        // Campos do pagamento
+        id: payments.id,
+        tenantId: payments.tenantId,
+        userId: payments.userId,
+        courseId: payments.courseId,
+        amount: payments.amount,
+        status: payments.status,
+        paymentMethod: payments.paymentMethod,
+        transactionId: payments.transactionId,
+        paidAt: payments.paidAt,
+        externalId: payments.externalId,
+        description: payments.description,
+        dueDate: payments.dueDate,
+        paymentUrl: payments.paymentUrl,
+        customerName: payments.customerName,
+        customerEmail: payments.customerEmail,
+        billingType: payments.billingType,
+        value: payments.value,
+        lastSyncedAt: payments.lastSyncedAt,
+        createdAt: payments.createdAt,
+        updatedAt: payments.updatedAt,
+        // Campos do usuário
+        userName: users.name,
+        userEmail: users.email,
+        userCpf: users.cpf
+      })
+      .from(payments)
+      .leftJoin(users, eq(payments.userId, users.id));
+    
+    const conditions = [];
+    if (filters?.status && filters.status !== 'all') {
+      conditions.push(eq(payments.status, filters.status));
+    }
+    if (filters?.externalId) {
+      conditions.push(eq(payments.externalId, filters.externalId));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(payments.createdAt));
+  }
+
   async createPayment(payment: InsertPayment): Promise<Payment> {
     const [newPayment] = await db
       .insert(payments)
