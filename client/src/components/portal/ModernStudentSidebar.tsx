@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -83,12 +83,12 @@ interface ModernStudentSidebarProps {
 }
 
 export function ModernStudentSidebar({ studentData, collapsed, onToggleCollapse }: ModernStudentSidebarProps) {
-  const [location, setLocation] = useLocation();
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.removeItem('student_token');
     localStorage.removeItem('student_data');
-    setLocation('/portal-aluno/login');
+    window.location.href = '/portal-aluno/login';
   };
 
   return (
@@ -156,11 +156,11 @@ export function ModernStudentSidebar({ studentData, collapsed, onToggleCollapse 
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.isMain ? 
-              location === '/portal' || location === '/portal/' : 
-              location === item.href;
+              location.pathname === '/portal' || location.pathname === '/portal/' : 
+              location.pathname === item.href;
             
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} to={item.href} className="block">
                 <Button
                   variant={isActive ? "default" : "ghost"}
                   className={cn(
