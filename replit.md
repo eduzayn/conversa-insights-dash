@@ -503,6 +503,14 @@ Changelog:
    * ✅ Filtros implementados: Status, ID do Usuário, Data Inicial, Data Final
    * ✅ Interface responsiva e profissional com shadcn/ui
    * Status: Página reimplementada e funcionando conforme especificação do usuário
+- Correção Crítica: TypeError payment.id.slice (10 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro "payment.id.slice is not a function" corrigido
+   * ✅ Causa identificada: payment.id era número, não string
+   * ✅ Correção aplicada: String(payment.id).slice(-8) na linha 775
+   * ✅ Autenticação JWT implementada em todas as chamadas da API
+   * ✅ Rotas do Asaas conectadas ao banco PostgreSQL real
+   * ✅ Sistema de estatísticas e sincronização funcional
+   * Status: Página de cobranças totalmente operacional sem erros JavaScript
 ```
 
 ## User Preferences

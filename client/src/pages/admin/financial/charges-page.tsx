@@ -772,7 +772,7 @@ const ChargesPage: React.FC = () => {
                       {paymentsData?.payments?.map((payment: AsaasPayment) => (
                         <TableRow key={payment.id}>
                           <TableCell className="font-mono text-xs">
-                            {payment.id.slice(-8)}
+                            {String(payment.id).slice(-8)}
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
