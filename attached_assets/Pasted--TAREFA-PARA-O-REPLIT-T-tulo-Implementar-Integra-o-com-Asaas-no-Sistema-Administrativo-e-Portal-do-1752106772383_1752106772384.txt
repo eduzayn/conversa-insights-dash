@@ -1,0 +1,143 @@
+ TAREFA PARA O REPLIT
+Título: Implementar Integração com Asaas no Sistema Administrativo e Portal do Aluno
+
+🎯 Objetivo
+Integrar o sistema ao gateway de pagamento Asaas, permitindo:
+
+Gestão de cobranças no painel administrativo
+
+Exibição de cobranças e status de pagamento no portal do aluno
+
+Controle automático de acesso com base nos pagamentos
+
+🧩 Funcionalidades a serem implementadas
+1. Serviço Principal: AsaasService
+Criar um serviço chamado AsaasService contendo os seguintes métodos:
+
+ts
+Copiar
+Editar
+testConnection(): Promise<{ success: boolean; message: string }>
+importAllPayments(): Promise<void>
+syncAllPayments(): Promise<void>
+processWebhookEvent(event: any): Promise<{ success: boolean; message: string }>
+validateConfiguration(): { valid: boolean; message: string }
+Configuração da API Asaas (padrão):
+
+ts
+Copiar
+Editar
+const ASAAS_CONFIG = {
+  baseURL: 'https://api.asaas.com/v3',
+  apiKey: process.env.ASAAS_API_KEY || '',
+  timeout: 30000,
+  retryAttempts: 3
+};
+2. Banco de Dados – Tabela de Pagamentos
+Criar tabela payments com o seguinte schema simplificado:
+
+sql
+Copiar
+Editar
+id SERIAL PRIMARY KEY,
+tenant_id INTEGER NOT NULL,
+user_id INTEGER NOT NULL,
+course_id INTEGER,
+amount INTEGER NOT NULL, -- em centavos
+status TEXT DEFAULT 'pending',
+payment_method TEXT,
+transaction_id TEXT,
+paid_at TIMESTAMP,
+external_id TEXT,
+description TEXT,
+due_date TIMESTAMP,
+payment_url TEXT,
+created_at TIMESTAMP DEFAULT NOW(),
+updated_at TIMESTAMP DEFAULT NOW()
+Status possíveis:
+'pending', 'paid', 'failed', 'refunded'
+
+3. Endpoints da API
+Administração:
+GET /api/asaas/status → Testa conectividade com o Asaas
+
+POST /api/asaas/payments/import → Importa cobranças
+
+POST /api/asaas/payments/sync → Sincroniza status
+
+GET /api/asaas/payments → Lista de cobranças
+
+POST /api/webhooks/asaas → Recebe notificações do Asaas
+
+Portal do Aluno:
+GET /api/aluno/pagamentos → Lista os pagamentos do aluno autenticado
+
+4. Página Administrativa
+Criar página em /admin/financeiro/cobrancas com:
+
+Lista de cobranças
+
+Filtros por aluno, curso, status e data
+
+Botões:
+
+"Importar Cobranças"
+
+"Sincronizar"
+
+Atualizações via WebSocket ao receber webhook
+
+5. Portal do Aluno – Página de Pagamentos
+Criar página /portal/pagamentos com:
+
+Lista de cobranças do aluno autenticado
+
+Exibição de:
+
+Título
+
+Valor
+
+Data de vencimento
+
+Status
+
+Botão para copiar link de pagamento
+
+Caso a cobrança esteja vencida há mais de 30 dias:
+
+Exibir alerta de acesso bloqueado
+
+Esse controle também será usado no módulo de cursos (restrição de acesso)
+
+6. Webhook
+Endpoint: POST /api/webhooks/asaas
+
+Responsabilidades:
+
+Atualizar o status da cobrança no banco
+
+Enviar atualização via WebSocket (payment_updated)
+
+Logar a operação
+
+7. Segurança
+Armazenar ASAAS_API_KEY como variável de ambiente
+
+Verificar se começa com $aact_
+
+Isolar os dados por tenant_id
+
+Validar a estrutura do webhook
+
+(No futuro) implementar validação de assinatura HMAC
+
+🚨 Importante
+Não quebrar nada que já esteja funcionando no painel ou no portal
+
+Toda lógica da integração deve estar isolada em um módulo/pasta (services/asaas ou similar)
+
+Garantir que alunos só vejam seus próprios pagamentos
+
+Acesso ao conteúdo deve considerar a regra de bloqueio por inadimplência
+

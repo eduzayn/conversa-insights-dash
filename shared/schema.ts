@@ -343,6 +343,25 @@ export const studentPayments = pgTable("student_payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela de pagamentos integrada com Asaas
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().default(1),
+  userId: integer("user_id").notNull().references(() => users.id),
+  courseId: integer("course_id").references(() => preRegisteredCourses.id),
+  amount: integer("amount").notNull(), // em centavos
+  status: text("status").notNull().default("pending"), // pending, paid, failed, refunded
+  paymentMethod: text("payment_method"), // boleto, credit_card, pix, other
+  transactionId: text("transaction_id"),
+  paidAt: timestamp("paid_at"),
+  externalId: text("external_id"), // ID do pagamento no Asaas
+  description: text("description"),
+  dueDate: timestamp("due_date"),
+  paymentUrl: text("payment_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Tabela para certificados dos alunos
 export const studentCertificates = pgTable("student_certificates", {
   id: serial("id").primaryKey(),
@@ -550,6 +569,11 @@ export const studentDocumentsRelations = relations(studentDocuments, ({ one }) =
 export const studentPaymentsRelations = relations(studentPayments, ({ one }) => ({
   student: one(users, { fields: [studentPayments.studentId], references: [users.id] }),
   enrollment: one(studentEnrollments, { fields: [studentPayments.enrollmentId], references: [studentEnrollments.id] }),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  user: one(users, { fields: [payments.userId], references: [users.id] }),
+  course: one(preRegisteredCourses, { fields: [payments.courseId], references: [preRegisteredCourses.id] }),
 }));
 
 export const studentCertificatesRelations = relations(studentCertificates, ({ one }) => ({
@@ -832,6 +856,21 @@ export const insertStudentCardSchema = createInsertSchema(studentCards).pick({
   cursoAtual: true,
 });
 
+export const insertPaymentSchema = createInsertSchema(payments).pick({
+  tenantId: true,
+  userId: true,
+  courseId: true,
+  amount: true,
+  status: true,
+  paymentMethod: true,
+  transactionId: true,
+  paidAt: true,
+  externalId: true,
+  description: true,
+  dueDate: true,
+  paymentUrl: true,
+});
+
 // Tipos
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -896,6 +935,9 @@ export type StudentCertificate = typeof studentCertificates.$inferSelect;
 
 export type InsertStudentCard = z.infer<typeof insertStudentCardSchema>;
 export type StudentCard = typeof studentCards.$inferSelect;
+
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
 
 // Schemas de inserção para Portal do Professor
 export const insertSubjectSchema = createInsertSchema(subjects).pick({

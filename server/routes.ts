@@ -7,6 +7,7 @@ import { storage } from "./storage";
 import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema, insertStudentEnrollmentSchema, insertStudentDocumentSchema, insertStudentPaymentSchema } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
+import { asaasService } from "./services/asaas";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
@@ -2450,6 +2451,427 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(submissions);
     } catch (error) {
       console.error("Erro ao buscar submissões:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== INTEGRAÇÃO ASAAS =====
+
+  // Testar conectividade com Asaas
+  app.post("/api/asaas/test", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const result = await asaasService.testConnection();
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao testar conexão Asaas:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
+    }
+  });
+
+  // Importar todas as cobranças do Asaas
+  app.post("/api/asaas/import-payments", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      await asaasService.importAllPayments();
+      res.json({ 
+        success: true, 
+        message: "Importação de pagamentos iniciada" 
+      });
+    } catch (error) {
+      console.error("Erro na importação de pagamentos:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Erro na importação" 
+      });
+    }
+  });
+
+  // Sincronizar status de todos os pagamentos
+  app.post("/api/asaas/sync-payments", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      await asaasService.syncAllPayments();
+      res.json({ 
+        success: true, 
+        message: "Sincronização de pagamentos concluída" 
+      });
+    } catch (error) {
+      console.error("Erro na sincronização de pagamentos:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Erro na sincronização" 
+      });
+    }
+  });
+
+  // Webhook do Asaas
+  app.post("/webhook/asaas", async (req, res) => {
+    try {
+      console.log('Webhook Asaas recebido:', req.body);
+      
+      const result = await asaasService.processWebhookEvent(req.body);
+      
+      if (result.success) {
+        // Emitir evento via WebSocket para atualizações em tempo real
+        io.emit('asaas_payment_update', {
+          event: req.body.event,
+          paymentId: req.body.payment.id
+        });
+        
+        res.status(200).json({ 
+          success: true, 
+          message: result.message 
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          message: result.message 
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao processar webhook Asaas:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro interno do servidor" 
+      });
+    }
+  });
+
+  // Listar pagamentos
+  app.get("/api/payments", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId, status, tenantId } = req.query;
+      const filters: any = {};
+      
+      // Admins podem ver todos os pagamentos, outros usuários só os próprios
+      if (req.user.role !== 'admin') {
+        filters.userId = req.user.id;
+      } else {
+        if (userId) filters.userId = parseInt(userId as string);
+        if (tenantId) filters.tenantId = parseInt(tenantId as string);
+      }
+      
+      if (status) filters.status = status as string;
+
+      const payments = await storage.getPayments(filters);
+      res.json(payments);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Verificar status de inadimplência de um usuário
+  app.get("/api/users/:userId/payment-status", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Usuários só podem verificar seu próprio status, admins podem ver todos
+      if (req.user.role !== 'admin' && req.user.id !== parseInt(userId)) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const payments = await storage.getUserPayments(parseInt(userId));
+      
+      // Verificar se há pagamentos em atraso
+      const now = new Date();
+      const overduePayments = payments.filter(payment => 
+        payment.status === 'pending' && 
+        new Date(payment.dueDate) < now
+      );
+      
+      const hasOverduePayments = overduePayments.length > 0;
+      const canAccess = !hasOverduePayments;
+      
+      res.json({
+        userId: parseInt(userId),
+        canAccess,
+        hasOverduePayments,
+        overdueCount: overduePayments.length,
+        totalPendingAmount: overduePayments.reduce((sum, p) => sum + p.amount, 0),
+        overduePayments: overduePayments.map(p => ({
+          id: p.id,
+          amount: p.amount,
+          dueDate: p.dueDate,
+          description: p.description,
+          paymentUrl: p.paymentUrl
+        }))
+      });
+    } catch (error) {
+      console.error("Erro ao verificar status de pagamento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ENDPOINTS API ASAAS =====
+  
+  // Testar conexão com Asaas
+  app.get("/api/admin/asaas/status", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const result = await asaasService.testConnection();
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao testar conexão Asaas:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro interno do servidor" 
+      });
+    }
+  });
+
+  // Listar pagamentos
+  app.get("/api/admin/asaas/payments", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const { status, userId, startDate, endDate } = req.query;
+      const filters: any = {};
+      
+      if (status) filters.status = status;
+      if (userId) filters.userId = parseInt(userId);
+      if (startDate) filters.startDate = startDate;
+      if (endDate) filters.endDate = endDate;
+
+      const payments = await storage.getPayments(filters);
+      res.json(payments);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar nova cobrança
+  app.post("/api/admin/asaas/payments", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const { userId, courseId, amount, description, dueDate, paymentMethod } = req.body;
+
+      // Validar dados obrigatórios
+      if (!userId || !amount || !description || !dueDate || !paymentMethod) {
+        return res.status(400).json({ 
+          message: "Dados obrigatórios: userId, amount, description, dueDate, paymentMethod" 
+        });
+      }
+
+      // Buscar dados do usuário
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Mapear método de pagamento
+      const billingTypeMap: Record<string, string> = {
+        'pix': 'PIX',
+        'boleto': 'BOLETO',
+        'credit_card': 'CREDIT_CARD'
+      };
+
+      const billingType = billingTypeMap[paymentMethod] || 'BOLETO';
+
+      // Primeiro, verificar se o cliente existe no Asaas ou criar
+      let customerId: string;
+      try {
+        // Tentar criar cliente (Asaas irá detectar se já existe)
+        customerId = await asaasService.createCustomer({
+          name: user.name || user.username,
+          email: user.email,
+          cpfCnpj: user.cpf || '00000000000',
+          externalReference: `user_${user.id}`
+        });
+      } catch (error: any) {
+        console.error("Erro ao criar/buscar cliente:", error);
+        return res.status(400).json({ 
+          message: "Erro ao processar cliente no Asaas",
+          details: error.message 
+        });
+      }
+
+      // Criar cobrança no Asaas
+      const paymentData = {
+        customer: customerId,
+        billingType: billingType as any,
+        value: amount,
+        dueDate: dueDate,
+        description: description,
+        externalReference: `payment_${Date.now()}_${userId}`
+      };
+
+      const asaasPayment = await asaasService.createPayment(paymentData);
+
+      // Salvar no banco de dados local
+      const localPayment = await storage.createPayment({
+        userId: userId,
+        courseId: courseId || null,
+        amount: amount,
+        status: asaasService.mapAsaasStatusToInternal(asaasPayment.status),
+        paymentMethod: paymentMethod,
+        transactionId: asaasPayment.id,
+        externalId: asaasPayment.id,
+        description: description,
+        dueDate: dueDate,
+        paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl || null
+      });
+
+      res.status(201).json({
+        success: true,
+        payment: localPayment,
+        asaasData: {
+          id: asaasPayment.id,
+          invoiceUrl: asaasPayment.invoiceUrl,
+          bankSlipUrl: asaasPayment.bankSlipUrl,
+          paymentUrl: asaasPayment.paymentUrl
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao criar cobrança:", error);
+      res.status(500).json({ 
+        message: "Erro ao criar cobrança",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Importar pagamentos do Asaas
+  app.post("/api/admin/asaas/payments/import", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const result = await asaasService.importAllPayments();
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao importar pagamentos:", error);
+      res.status(500).json({ 
+        message: "Erro ao importar pagamentos",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Sincronizar status dos pagamentos
+  app.post("/api/admin/asaas/payments/sync", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const result = await asaasService.syncAllPayments();
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao sincronizar pagamentos:", error);
+      res.status(500).json({ 
+        message: "Erro ao sincronizar pagamentos",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Webhook do Asaas
+  app.post("/api/webhooks/asaas", async (req, res) => {
+    try {
+      console.log('Webhook Asaas recebido:', req.body);
+      
+      const result = await asaasService.processWebhookEvent(req.body);
+      
+      // Emitir evento via WebSocket para atualizações em tempo real
+      io.emit('asaas_webhook', {
+        event: req.body.event,
+        paymentId: req.body.payment?.id,
+        status: req.body.payment?.status
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao processar webhook Asaas:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro ao processar webhook" 
+      });
+    }
+  });
+
+  // Buscar pagamentos do usuário (para Portal do Aluno)
+  app.get("/api/payments", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId } = req.query;
+      
+      // Se não for admin, só pode ver seus próprios pagamentos
+      const targetUserId = req.user.role === 'admin' && userId ? 
+        parseInt(userId) : req.user.id;
+      
+      const payments = await storage.getPayments({ userId: targetUserId });
+      res.json(payments);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos do usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Verificar status de inadimplência do usuário
+  app.get("/api/users/:userId/payment-status", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const targetUserId = parseInt(userId);
+      
+      // Verificar permissão
+      if (req.user.role !== 'admin' && req.user.id !== targetUserId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      const payments = await storage.getPayments({ userId: targetUserId });
+      
+      // Verificar pagamentos em atraso
+      const overduePayments = payments.filter(p => {
+        const isOverdue = p.status === 'overdue' || 
+          (p.status === 'pending' && new Date(p.dueDate) < new Date());
+        return isOverdue;
+      });
+      
+      const totalPendingAmount = overduePayments.reduce((sum, p) => sum + p.amount, 0);
+      const hasOverduePayments = overduePayments.length > 0;
+      
+      // Regra de negócio: bloquear acesso se houver pagamentos vencidos
+      const canAccess = !hasOverduePayments;
+      
+      res.json({
+        userId: targetUserId,
+        canAccess,
+        hasOverduePayments,
+        overdueCount: overduePayments.length,
+        totalPendingAmount,
+        overduePayments: overduePayments.map(p => ({
+          id: p.id,
+          amount: p.amount,
+          dueDate: p.dueDate,
+          description: p.description,
+          paymentUrl: p.paymentUrl
+        }))
+      });
+    } catch (error) {
+      console.error("Erro ao verificar status de pagamento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

@@ -21,6 +21,7 @@ import {
   studentPayments,
   studentCertificates,
   studentCards,
+  payments,
   type User, 
   type InsertUser,
   type RegistrationToken,
@@ -59,6 +60,8 @@ import {
   type InsertStudentCertificate,
   type StudentCard,
   type InsertStudentCard,
+  type Payment,
+  type InsertPayment,
   subjects,
   professorSubjects,
   subjectContents,
@@ -147,6 +150,13 @@ export interface IStorage {
   updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
   deleteCertification(id: number): Promise<void>;
   getCertificationById(id: number): Promise<Certification | undefined>;
+
+  // Payments (Asaas Integration)
+  getPayments(filters?: { userId?: number; status?: string; tenantId?: number }): Promise<Payment[]>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  updatePayment(id: number, payment: Partial<Payment>): Promise<Payment | undefined>;
+  getPaymentByExternalId(externalId: string): Promise<Payment | undefined>;
+  getUserPayments(userId: number): Promise<Payment[]>;
   
   // Pre-registered Courses
   getPreRegisteredCourses(filters?: { modalidade?: string; categoria?: string; ativo?: boolean }): Promise<PreRegisteredCourse[]>;
@@ -1144,6 +1154,66 @@ export class DatabaseStorage implements IStorage {
       .where(eq(evaluationSubmissions.id, id))
       .returning();
     return updatedSubmission || undefined;
+  }
+
+  // Payments (Asaas Integration)
+  async getPayments(filters?: { userId?: number; status?: string; tenantId?: number }): Promise<Payment[]> {
+    let query = db.select().from(payments);
+    
+    const conditions = [];
+    if (filters?.userId) {
+      conditions.push(eq(payments.userId, filters.userId));
+    }
+    if (filters?.status) {
+      conditions.push(eq(payments.status, filters.status));
+    }
+    if (filters?.tenantId) {
+      conditions.push(eq(payments.tenantId, filters.tenantId));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(payments.createdAt));
+  }
+
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db
+      .insert(payments)
+      .values({
+        ...payment,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newPayment;
+  }
+
+  async updatePayment(id: number, payment: Partial<Payment>): Promise<Payment | undefined> {
+    const [updatedPayment] = await db
+      .update(payments)
+      .set({ ...payment, updatedAt: new Date() })
+      .where(eq(payments.id, id))
+      .returning();
+    return updatedPayment || undefined;
+  }
+
+  async getPaymentByExternalId(externalId: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.externalId, externalId))
+      .limit(1);
+    return payment || undefined;
+  }
+
+  async getUserPayments(userId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId))
+      .orderBy(desc(payments.createdAt));
   }
 
   // Integração Portal Professor-Aluno
