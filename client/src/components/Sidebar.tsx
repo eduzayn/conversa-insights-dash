@@ -1,48 +1,72 @@
-
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { 
   BarChart3, 
-  Users, 
-  TrendingUp, 
-  Clock, 
+  MessageSquare, 
+  GraduationCap, 
+  DollarSign,
+  Settings,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Target,
-  MessagesSquare,
-  UserCheck,
+  ChevronDown,
+  ChevronUp,
   Menu,
-  X,
-  Kanban,
-  Settings,
-  Award,
-  CreditCard,
-  UserPlus,
-  Key
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const menuItems = [
-  { icon: BarChart3, label: "Dashboard", path: "/" },
-  { icon: UserCheck, label: "Atendimento ao Aluno", path: "/atendimento-aluno" },
-  { icon: MessagesSquare, label: "Chat Interno", path: "/chat-interno" },
-  { icon: Kanban, label: "CRM", path: "/crm" },
-  { icon: Award, label: "Certificações", path: "/certificacoes" },
-  { icon: Users, label: "Atendimentos", path: "/atendimentos" },
-  { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
-  { icon: Clock, label: "Presença", path: "/presenca" },
-  { icon: Target, label: "Metas & Engajamento", path: "/metas" },
-  { icon: CreditCard, label: "Cobranças Asaas", path: "/cobrancas" },
-  { icon: Settings, label: "Integração BotConversa", path: "/integracao-botconversa" },
-  { icon: Key, label: "Gerenciar Tokens", path: "/gerenciar-tokens" },
-  { icon: UserPlus, label: "Matrícula Simplificada", path: "/matricula-simplificada" },
+const menuSections = [
+  {
+    label: 'Geral',
+    icon: BarChart3,
+    items: [
+      { label: 'Dashboard', path: '/' },
+      { label: 'Produtividade', path: '/produtividade' },
+      { label: 'Metas & Engajamento', path: '/metas' },
+    ]
+  },
+  {
+    label: 'Relacionamento',
+    icon: MessageSquare,
+    items: [
+      { label: 'Atendimento ao Aluno', path: '/atendimento-aluno' },
+      { label: 'Chat Interno', path: '/chat-interno' },
+      { label: 'CRM', path: '/crm' },
+      { label: 'Atendimentos', path: '/atendimentos' },
+    ]
+  },
+  {
+    label: 'Acadêmico',
+    icon: GraduationCap,
+    items: [
+      { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
+      { label: 'Certificações', path: '/certificacoes' },
+      { label: 'Presença', path: '/presenca' },
+    ]
+  },
+  {
+    label: 'Financeiro',
+    icon: DollarSign,
+    items: [
+      { label: 'Cobranças Asaas', path: '/cobrancas' },
+    ]
+  },
+  {
+    label: 'Integrações',
+    icon: Settings,
+    items: [
+      { label: 'BotConversa', path: '/integracao-botconversa' },
+      { label: 'Gerenciar Tokens', path: '/gerenciar-tokens' },
+    ]
+  }
 ];
 
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<string[]>(['Geral', 'Relacionamento', 'Acadêmico', 'Financeiro', 'Integrações']);
 
   const handleBotConversaAccess = () => {
     window.open("https://app.botconversa.com.br/login/", "_blank");
@@ -50,6 +74,16 @@ export const Sidebar = () => {
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
+  };
+
+  const toggleSection = (sectionLabel: string) => {
+    if (collapsed && !mobileOpen) return; // Não permite expandir/contrair quando sidebar está colapsada
+    
+    setExpandedSections(prev => 
+      prev.includes(sectionLabel) 
+        ? prev.filter(s => s !== sectionLabel)
+        : [...prev, sectionLabel]
+    );
   };
 
   return (
@@ -113,24 +147,61 @@ export const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={closeMobileMenu}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center p-3 rounded-lg transition-colors min-h-[44px]",
-                  "hover:bg-gray-100 active:bg-gray-200",
-                  isActive ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "text-gray-700"
-                )
-              }
-              title={collapsed && !mobileOpen ? item.label : undefined}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {(!collapsed || mobileOpen) && <span className="ml-3 font-medium">{item.label}</span>}
-            </NavLink>
+        <nav className="flex-1 p-4 space-y-1">
+          {menuSections.map((section) => (
+            <div key={section.label} className="space-y-1">
+              {/* Section Header */}
+              <button
+                onClick={() => toggleSection(section.label)}
+                className={cn(
+                  "w-full flex items-center justify-between p-3 rounded-lg transition-colors min-h-[44px] group",
+                  "hover:bg-gray-100 active:bg-gray-200 text-gray-700 font-medium",
+                  collapsed && !mobileOpen ? "justify-center" : ""
+                )}
+                title={collapsed && !mobileOpen ? section.label : undefined}
+              >
+                <div className="flex items-center">
+                  <section.icon className="h-5 w-5 flex-shrink-0" />
+                  {(!collapsed || mobileOpen) && (
+                    <span className="ml-3">{section.label}</span>
+                  )}
+                </div>
+                {(!collapsed || mobileOpen) && (
+                  <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                    {expandedSections.includes(section.label) ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                )}
+              </button>
+
+              {/* Section Items */}
+              {(expandedSections.includes(section.label) || (collapsed && !mobileOpen)) && (
+                <div className={cn(
+                  "space-y-1",
+                  collapsed && !mobileOpen ? "hidden" : "pl-8"
+                )}>
+                  {section.items.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={closeMobileMenu}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center p-2 rounded-lg transition-colors min-h-[40px] text-sm",
+                          "hover:bg-gray-100 active:bg-gray-200",
+                          isActive ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "text-gray-600"
+                        )
+                      }
+                    >
+                      <span className="font-medium">{item.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
       </div>
