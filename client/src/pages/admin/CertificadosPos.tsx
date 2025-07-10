@@ -1495,7 +1495,7 @@ const CertificadosPos = () => {
 
           {/* Modal de Visualização de Modelo */}
           <Dialog open={isViewTemplateModalOpen} onOpenChange={setIsViewTemplateModalOpen}>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Eye className="h-5 w-5" />
@@ -1627,14 +1627,14 @@ const CertificadosPos = () => {
                           <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
                           <Label className="font-medium text-blue-700">Frente do Certificado</Label>
                         </div>
-                        <div className="bg-gray-100 rounded-lg p-2 flex justify-center items-center min-h-[400px]">
+                        <div className="bg-gray-100 rounded-lg p-4 w-full">
                           <div 
-                            className="preview-container bg-white border border-gray-300 shadow-lg" 
+                            className="preview-container bg-white border border-gray-300 shadow-lg mx-auto" 
                             style={{
-                              width: '1123px',
-                              height: '794px',
-                              transform: 'scale(0.45)',
-                              transformOrigin: 'center center'
+                              width: '100%',
+                              maxWidth: '600px',
+                              height: '300px',
+                              aspectRatio: '1123/794'
                             }}
                           >
                             <div 
@@ -1651,13 +1651,14 @@ const CertificadosPos = () => {
                               }} 
                               style={{
                                 fontFamily: 'Times New Roman, serif',
-                                lineHeight: '1.6',
+                                lineHeight: '1.4',
                                 color: '#000',
-                                fontSize: '14px',
+                                fontSize: '10px',
                                 textAlign: 'center',
-                                padding: '40px',
+                                padding: '20px',
                                 height: '100%',
-                                boxSizing: 'border-box'
+                                boxSizing: 'border-box',
+                                overflow: 'hidden'
                               }}
                             />
                           </div>
@@ -1670,14 +1671,14 @@ const CertificadosPos = () => {
                           <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
                           <Label className="font-medium text-orange-700">Verso do Certificado (Histórico)</Label>
                         </div>
-                        <div className="bg-gray-100 rounded-lg p-2 flex justify-center items-center min-h-[400px]">
+                        <div className="bg-gray-100 rounded-lg p-4 w-full">
                           <div 
-                            className="preview-container bg-white border border-gray-300 shadow-lg" 
+                            className="preview-container bg-white border border-gray-300 shadow-lg mx-auto" 
                             style={{
-                              width: '1123px',
-                              height: '794px',
-                              transform: 'scale(0.45)',
-                              transformOrigin: 'center center'
+                              width: '100%',
+                              maxWidth: '600px',
+                              height: '300px',
+                              aspectRatio: '1123/794'
                             }}
                           >
                             <div 
@@ -1694,13 +1695,14 @@ const CertificadosPos = () => {
                               }} 
                               style={{
                                 fontFamily: 'Times New Roman, serif',
-                                lineHeight: '1.6',
+                                lineHeight: '1.3',
                                 color: '#000',
-                                fontSize: '14px',
+                                fontSize: '8px',
                                 textAlign: 'left',
-                                padding: '40px',
+                                padding: '20px',
                                 height: '100%',
-                                boxSizing: 'border-box'
+                                boxSizing: 'border-box',
+                                overflow: 'hidden'
                               }}
                             />
                           </div>
