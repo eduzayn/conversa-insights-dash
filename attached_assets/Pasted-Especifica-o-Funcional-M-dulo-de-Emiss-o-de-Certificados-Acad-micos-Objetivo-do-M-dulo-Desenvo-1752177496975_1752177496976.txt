@@ -1,0 +1,150 @@
+Especificação Funcional – Módulo de Emissão de Certificados Acadêmicos
+🎯 Objetivo do Módulo
+Desenvolver um sistema interno para emissão automatizada e segura de certificados educacionais (Pós-Graduação, Formação Pedagógica, Segunda Licenciatura), com:
+
+Validação por QR Code
+
+Documento com frente (certificação) e verso (histórico escolar)
+
+Dados acadêmicos gerados automaticamente
+
+Conformidade com o padrão exigido pelo MEC (Resolução CNE/CES nº 1/2018)
+
+Emissão rápida, sem digitação manual repetitiva
+
+PDF protegido contra edição
+
+🧱 Módulos e Entidades
+🔹 1. Curso
+Campo	Tipo
+nome	string
+categoria	enum
+áreaConhecimento	string
+cargaHorariaTotal	number
+dataInicio	date
+dataFim	date
+
+🔹 2. Disciplina
+Campo	Tipo
+nome	string
+cargaHoraria	number
+ordem	number
+professorId	foreignKey
+
+🔹 3. Professor (Corpo Docente)
+Campo	Tipo
+nome	string
+titulacao	string
+cpf	string
+
+🔹 4. Aluno
+Campo	Tipo
+nome	string
+cpf	string
+cursoId	foreignKey
+dataConclusao	date
+status	enum
+
+🔹 5. Certificado
+Campo	Tipo
+alunoId	foreignKey
+cursoId	foreignKey
+disciplinas	auto
+status	enum (solicitado / autorizado / emitido)
+dataEmissao	date
+qrCodeHash	string (UUID/slug único)
+linkValidacao	string (ex: https://eduzayn.com.br/verification/XYZ123)
+livro	string
+folha	string
+registroId	string
+
+🔄 Fluxo de Emissão
+Solicitação de certificado pelo aluno ou equipe
+
+Verificação de critérios:
+
+Carga horária mínima
+
+Frequência mínima (75%)
+
+Nota mínima (70%)
+
+Monografia aprovada (quando aplicável)
+
+Liberação da emissão
+
+Botão "Emitir Certificado"
+
+Geração de documento PDF com frente e verso
+
+Assinatura digital (manual ou via certificado ICP-Brasil no futuro)
+
+QR Code no rodapé do certificado
+
+Registro e rastreabilidade
+
+Registro com número de livro, folha e hash público
+
+🖨️ Layout do Certificado
+Frente
+Cabeçalho com nome da instituição
+
+Nome do curso, categoria e carga horária
+
+Nome do aluno e CPF
+
+Título concedido (ex: "Especialista")
+
+Data de emissão
+
+Assinaturas digitais
+
+QR Code de validação no rodapé
+
+Texto legal de conformidade com o MEC
+
+Verso
+Tabela com todas as disciplinas:
+
+Nome
+
+Carga horária
+
+Nome do docente
+
+Titulação
+
+Frequência e Nota
+
+Critérios de aprovação
+
+Texto sobre a legislação aplicada (Resolução CNE/CES nº 1/2018)
+
+Repetição do QR Code e link de validação
+
+🔒 Segurança
+Documento PDF gerado automaticamente
+
+Proteção contra edição
+
+Hash único para cada certificado
+
+Página pública de validação (ex: /certificado/:hash)
+
+Campo de status do certificado (Válido, Revogado, Pendente)
+
+📎 Extras futuros (opcionais)
+Exportação de histórico em PDF separado
+
+Assinatura eletrônica via certificado ICP-Brasil
+
+Relatório geral de certificados emitidos
+
+Integração com o módulo de tutoria (para liberação automática)
+
+✅ Resultado esperado
+Você cadastra o curso 1 vez
+
+O sistema gera os certificados automaticamente com todos os dados
+
+O aluno ou equipe baixa um PDF com frente e verso já pronto e validável

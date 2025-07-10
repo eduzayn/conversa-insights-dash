@@ -380,6 +380,108 @@ export const studentCards = pgTable("student_cards", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ===== SISTEMA DE EMISSÃO DE CERTIFICADOS ACADÊMICOS =====
+
+// Cursos acadêmicos (diferentes dos cursos pré-cadastrados)
+export const academicCourses = pgTable("academic_courses", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  descricao: text("descricao"),
+  categoria: text("categoria").notNull(), // Pós-Graduação, Segunda Licenciatura, etc.
+  areaConhecimento: text("areaconhecimento").notNull(), // Saúde Mental, Educação, etc.
+  modalidade: text("modalidade").notNull(), // EAD, Presencial, Híbrido
+  cargaHoraria: integer("cargahoraria"),
+  duracao: text("duracao"),
+  preco: integer("preco"), // em centavos
+  status: text("status").notNull().default("ativo"),
+  coordenadorId: integer("coordenadorid"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Professores/Corpo Docente
+export const academicProfessors = pgTable("academic_professors", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  email: text("email").notNull(),
+  titulacao: text("titulacao"),
+  especializacao: text("especializacao"),
+  biografia: text("biografia"),
+  isActive: boolean("isactive").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Disciplinas dos cursos acadêmicos
+export const academicDisciplines = pgTable("academic_disciplines", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  codigo: text("codigo"),
+  courseId: integer("courseid").notNull().references(() => academicCourses.id),
+  professorId: integer("professorid").references(() => academicProfessors.id),
+  cargaHoraria: integer("cargahoraria"),
+  ementa: text("ementa"),
+  objetivos: text("objetivos"),
+  ordem: integer("ordem"),
+  isActive: boolean("isactive").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Alunos dos cursos acadêmicos
+export const academicStudents = pgTable("academic_students", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  email: text("email").notNull(),
+  cpf: text("cpf").notNull(),
+  telefone: text("telefone"),
+  dataNascimento: date("datanascimento"),
+  endereco: text("endereco"),
+  courseId: integer("courseid").notNull().references(() => academicCourses.id),
+  dataMatricula: date("datamatricula"),
+  status: text("status").notNull().default("cursando"), // cursando, concluido, evadido, trancado
+  notaFinal: integer("notafinal"), // 0-100
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notas por disciplina
+export const academicGrades = pgTable("academic_grades", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => academicStudents.id),
+  disciplineId: integer("discipline_id").notNull().references(() => academicDisciplines.id),
+  nota: integer("nota").notNull(), // 0-100
+  frequencia: integer("frequencia").notNull(), // 0-100
+  status: text("status").notNull().default("aprovado"), // aprovado, reprovado, cursando
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Certificados acadêmicos emitidos
+export const academicCertificates = pgTable("academic_certificates", {
+  id: serial("id").primaryKey(),
+  studentId: integer("studentid").notNull().references(() => academicStudents.id),
+  courseId: integer("courseid").notNull().references(() => academicCourses.id),
+  numeroRegistro: text("numeroregistro"),
+  dataEmissao: date("dataemissao"),
+  dataValidade: date("datavalidade"),
+  dataSolicitacao: date("datasolicitacao").defaultNow(),
+  status: text("status").notNull().default("solicitado"), // solicitado, autorizado, emitido, revogado
+  observacoes: text("observacoes"),
+  qrCodeHash: text("qrcodehash"),
+  linkValidacao: text("linkvalidacao"),
+  pdfUrl: text("pdfurl"),
+  registroId: text("registroid"),
+  livro: text("livro"), // Livro de registro
+  folha: text("folha"), // Folha de registro
+  solicitadoPor: integer("solicitadopor").references(() => users.id), // Quem solicitou
+  autorizadoPor: integer("autorizadopor").references(() => users.id), // Quem autorizou
+  emitidoPor: integer("emitidopor").references(() => users.id), // Quem emitiu
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ===== TABELAS DO PORTAL DO PROFESSOR =====
 
 // Disciplinas que os professores podem ministrar
@@ -889,6 +991,83 @@ export const insertStudentCardSchema = createInsertSchema(studentCards).pick({
   cursoAtual: true,
 });
 
+// Schemas de inserção para Sistema de Certificados Acadêmicos
+export const insertAcademicCourseSchema = createInsertSchema(academicCourses).pick({
+  nome: true,
+  descricao: true,
+  categoria: true,
+  areaConhecimento: true,
+  modalidade: true,
+  cargaHoraria: true,
+  duracao: true,
+  preco: true,
+  status: true,
+  coordenadorId: true,
+});
+
+export const insertAcademicProfessorSchema = createInsertSchema(academicProfessors).pick({
+  nome: true,
+  email: true,
+  titulacao: true,
+  especializacao: true,
+  biografia: true,
+  isActive: true,
+});
+
+export const insertAcademicDisciplineSchema = createInsertSchema(academicDisciplines).pick({
+  nome: true,
+  codigo: true,
+  courseId: true,
+  professorId: true,
+  cargaHoraria: true,
+  ementa: true,
+  objetivos: true,
+  ordem: true,
+  isActive: true,
+});
+
+export const insertAcademicStudentSchema = createInsertSchema(academicStudents).pick({
+  nome: true,
+  email: true,
+  cpf: true,
+  telefone: true,
+  dataNascimento: true,
+  endereco: true,
+  courseId: true,
+  dataMatricula: true,
+  status: true,
+  notaFinal: true,
+});
+
+export const insertAcademicGradeSchema = createInsertSchema(academicGrades).pick({
+  studentId: true,
+  disciplineId: true,
+  nota: true,
+  frequencia: true,
+  status: true,
+  observacoes: true,
+});
+
+export const insertAcademicCertificateSchema = createInsertSchema(academicCertificates).pick({
+  studentId: true,
+  courseId: true,
+  numeroRegistro: true,
+  dataEmissao: true,
+  dataValidade: true,
+  dataSolicitacao: true,
+  status: true,
+  observacoes: true,
+  qrCodeHash: true,
+  linkValidacao: true,
+  pdfUrl: true,
+  registroId: true,
+  livro: true,
+  folha: true,
+  solicitadoPor: true,
+  autorizadoPor: true,
+  emitidoPor: true,
+});
+
 
 
 // Tipos
@@ -1042,3 +1221,22 @@ export type EvaluationQuestion = typeof evaluationQuestions.$inferSelect;
 
 export type InsertEvaluationSubmission = z.infer<typeof insertEvaluationSubmissionSchema>;
 export type EvaluationSubmission = typeof evaluationSubmissions.$inferSelect;
+
+// Tipos para Sistema de Certificados Acadêmicos
+export type InsertAcademicCourse = z.infer<typeof insertAcademicCourseSchema>;
+export type AcademicCourse = typeof academicCourses.$inferSelect;
+
+export type InsertAcademicProfessor = z.infer<typeof insertAcademicProfessorSchema>;
+export type AcademicProfessor = typeof academicProfessors.$inferSelect;
+
+export type InsertAcademicDiscipline = z.infer<typeof insertAcademicDisciplineSchema>;
+export type AcademicDiscipline = typeof academicDisciplines.$inferSelect;
+
+export type InsertAcademicStudent = z.infer<typeof insertAcademicStudentSchema>;
+export type AcademicStudent = typeof academicStudents.$inferSelect;
+
+export type InsertAcademicGrade = z.infer<typeof insertAcademicGradeSchema>;
+export type AcademicGrade = typeof academicGrades.$inferSelect;
+
+export type InsertAcademicCertificate = z.infer<typeof insertAcademicCertificateSchema>;
+export type AcademicCertificate = typeof academicCertificates.$inferSelect;

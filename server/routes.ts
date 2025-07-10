@@ -4,7 +4,21 @@ import { Server as SocketServer } from "socket.io";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
-import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema, insertStudentEnrollmentSchema, insertStudentDocumentSchema, insertStudentPaymentSchema, insertSimplifiedEnrollmentSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertRegistrationTokenSchema, 
+  insertCertificationSchema, 
+  insertStudentEnrollmentSchema, 
+  insertStudentDocumentSchema, 
+  insertStudentPaymentSchema, 
+  insertSimplifiedEnrollmentSchema,
+  insertAcademicCourseSchema,
+  insertAcademicProfessorSchema,
+  insertAcademicDisciplineSchema,
+  insertAcademicStudentSchema,
+  insertAcademicGradeSchema,
+  insertAcademicCertificateSchema
+} from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
@@ -2857,6 +2871,339 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(submissions);
     } catch (error) {
       console.error("Erro ao buscar submissões:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== SISTEMA ACADÊMICO - CERTIFICADOS PÓS =====
+
+  // Cursos Acadêmicos
+  app.get("/api/academic/courses", authenticateToken, async (req: any, res) => {
+    try {
+      const { categoria, status } = req.query;
+      const courses = await storage.getAcademicCourses({ categoria, status });
+      res.json(courses);
+    } catch (error) {
+      console.error("Erro ao buscar cursos acadêmicos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/courses", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const courseData = insertAcademicCourseSchema.parse(req.body);
+      const course = await storage.createAcademicCourse(courseData);
+      res.status(201).json(course);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar curso acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/academic/courses/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const course = await storage.updateAcademicCourse(parseInt(id), req.body);
+      if (!course) {
+        return res.status(404).json({ message: "Curso não encontrado" });
+      }
+      res.json(course);
+    } catch (error) {
+      console.error("Erro ao atualizar curso acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.delete("/api/academic/courses/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteAcademicCourse(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao deletar curso acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Professores Acadêmicos
+  app.get("/api/academic/professors", authenticateToken, async (req: any, res) => {
+    try {
+      const professors = await storage.getAcademicProfessors();
+      res.json(professors);
+    } catch (error) {
+      console.error("Erro ao buscar professores acadêmicos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/professors", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const professorData = insertAcademicProfessorSchema.parse(req.body);
+      const professor = await storage.createAcademicProfessor(professorData);
+      res.status(201).json(professor);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar professor acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/academic/professors/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const professor = await storage.updateAcademicProfessor(parseInt(id), req.body);
+      if (!professor) {
+        return res.status(404).json({ message: "Professor não encontrado" });
+      }
+      res.json(professor);
+    } catch (error) {
+      console.error("Erro ao atualizar professor acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Disciplinas Acadêmicas
+  app.get("/api/academic/disciplines", authenticateToken, async (req: any, res) => {
+    try {
+      const { courseId } = req.query;
+      const disciplines = await storage.getAcademicDisciplines(courseId ? parseInt(courseId as string) : undefined);
+      res.json(disciplines);
+    } catch (error) {
+      console.error("Erro ao buscar disciplinas acadêmicas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/disciplines", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const disciplineData = insertAcademicDisciplineSchema.parse(req.body);
+      const discipline = await storage.createAcademicDiscipline(disciplineData);
+      res.status(201).json(discipline);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/academic/disciplines/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const discipline = await storage.updateAcademicDiscipline(parseInt(id), req.body);
+      if (!discipline) {
+        return res.status(404).json({ message: "Disciplina não encontrada" });
+      }
+      res.json(discipline);
+    } catch (error) {
+      console.error("Erro ao atualizar disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Alunos Acadêmicos
+  app.get("/api/academic/students", authenticateToken, async (req: any, res) => {
+    try {
+      const { courseId, status } = req.query;
+      const students = await storage.getAcademicStudents({ 
+        courseId: courseId ? parseInt(courseId as string) : undefined, 
+        status: status as string 
+      });
+      res.json(students);
+    } catch (error) {
+      console.error("Erro ao buscar alunos acadêmicos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/students", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const studentData = insertAcademicStudentSchema.parse(req.body);
+      const student = await storage.createAcademicStudent(studentData);
+      res.status(201).json(student);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar aluno acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/academic/students/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const student = await storage.updateAcademicStudent(parseInt(id), req.body);
+      if (!student) {
+        return res.status(404).json({ message: "Aluno não encontrado" });
+      }
+      res.json(student);
+    } catch (error) {
+      console.error("Erro ao atualizar aluno acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Notas Acadêmicas
+  app.get("/api/academic/grades", authenticateToken, async (req: any, res) => {
+    try {
+      const { studentId, disciplineId } = req.query;
+      const grades = await storage.getAcademicGrades(
+        studentId ? parseInt(studentId as string) : undefined,
+        disciplineId ? parseInt(disciplineId as string) : undefined
+      );
+      res.json(grades);
+    } catch (error) {
+      console.error("Erro ao buscar notas acadêmicas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/grades", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const gradeData = insertAcademicGradeSchema.parse(req.body);
+      const grade = await storage.createAcademicGrade(gradeData);
+      res.status(201).json(grade);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar nota acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/academic/grades/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const grade = await storage.updateAcademicGrade(parseInt(id), req.body);
+      if (!grade) {
+        return res.status(404).json({ message: "Nota não encontrada" });
+      }
+      res.json(grade);
+    } catch (error) {
+      console.error("Erro ao atualizar nota acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Certificados Acadêmicos
+  app.get("/api/academic/certificates", authenticateToken, async (req: any, res) => {
+    try {
+      const { studentId, courseId, status } = req.query;
+      const certificates = await storage.getAcademicCertificates({
+        studentId: studentId ? parseInt(studentId as string) : undefined,
+        courseId: courseId ? parseInt(courseId as string) : undefined,
+        status: status as string
+      });
+      res.json(certificates);
+    } catch (error) {
+      console.error("Erro ao buscar certificados acadêmicos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/certificates", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const certificateData = insertAcademicCertificateSchema.parse(req.body);
+      const certificate = await storage.createAcademicCertificate(certificateData);
+      res.status(201).json(certificate);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar certificado acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/academic/certificates/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const certificate = await storage.updateAcademicCertificate(parseInt(id), req.body);
+      if (!certificate) {
+        return res.status(404).json({ message: "Certificado não encontrado" });
+      }
+      res.json(certificate);
+    } catch (error) {
+      console.error("Erro ao atualizar certificado acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Emitir certificado acadêmico
+  app.post("/api/academic/certificates/:id/issue", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const certificate = await storage.issueAcademicCertificate(parseInt(id), req.user.id);
+      if (!certificate) {
+        return res.status(404).json({ message: "Certificado não encontrado" });
+      }
+      res.json(certificate);
+    } catch (error) {
+      console.error("Erro ao emitir certificado acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

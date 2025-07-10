@@ -21,6 +21,12 @@ import {
   studentPayments,
   studentCertificates,
   studentCards,
+  academicCourses,
+  academicProfessors,
+  academicDisciplines,
+  academicStudents,
+  academicGrades,
+  academicCertificates,
 
   simplifiedEnrollments,
   type User, 
@@ -81,10 +87,23 @@ import {
   type EvaluationQuestion,
   type InsertEvaluationQuestion,
   type EvaluationSubmission,
-  type InsertEvaluationSubmission
+  type InsertEvaluationSubmission,
+  type AcademicCourse,
+  type InsertAcademicCourse,
+  type AcademicProfessor,
+  type InsertAcademicProfessor,
+  type AcademicDiscipline,
+  type InsertAcademicDiscipline,
+  type AcademicStudent,
+  type InsertAcademicStudent,
+  type AcademicGrade,
+  type InsertAcademicGrade,
+  type AcademicCertificate,
+  type InsertAcademicCertificate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count, isNotNull } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
   // Users
@@ -233,6 +252,38 @@ export interface IStorage {
   updateSimplifiedEnrollment(id: number, enrollment: Partial<SimplifiedEnrollment>): Promise<SimplifiedEnrollment>;
   deleteSimplifiedEnrollment(id: number): Promise<void>;
   getSimplifiedEnrollmentById(id: number): Promise<SimplifiedEnrollment | null>;
+
+  // Sistema de Certificados Acadêmicos - Cursos
+  getAcademicCourses(filters?: { categoria?: string; status?: string }): Promise<AcademicCourse[]>;
+  createAcademicCourse(course: InsertAcademicCourse): Promise<AcademicCourse>;
+  updateAcademicCourse(id: number, course: Partial<AcademicCourse>): Promise<AcademicCourse | undefined>;
+  deleteAcademicCourse(id: number): Promise<void>;
+
+  // Sistema de Certificados Acadêmicos - Professores
+  getAcademicProfessors(): Promise<AcademicProfessor[]>;
+  createAcademicProfessor(professor: InsertAcademicProfessor): Promise<AcademicProfessor>;
+  updateAcademicProfessor(id: number, professor: Partial<AcademicProfessor>): Promise<AcademicProfessor | undefined>;
+
+  // Sistema de Certificados Acadêmicos - Disciplinas
+  getAcademicDisciplines(courseId?: number): Promise<AcademicDiscipline[]>;
+  createAcademicDiscipline(discipline: InsertAcademicDiscipline): Promise<AcademicDiscipline>;
+  updateAcademicDiscipline(id: number, discipline: Partial<AcademicDiscipline>): Promise<AcademicDiscipline | undefined>;
+
+  // Sistema de Certificados Acadêmicos - Alunos
+  getAcademicStudents(filters?: { courseId?: number; status?: string }): Promise<AcademicStudent[]>;
+  createAcademicStudent(student: InsertAcademicStudent): Promise<AcademicStudent>;
+  updateAcademicStudent(id: number, student: Partial<AcademicStudent>): Promise<AcademicStudent | undefined>;
+
+  // Sistema de Certificados Acadêmicos - Notas
+  getAcademicGrades(studentId?: number, disciplineId?: number): Promise<AcademicGrade[]>;
+  createAcademicGrade(grade: InsertAcademicGrade): Promise<AcademicGrade>;
+  updateAcademicGrade(id: number, grade: Partial<AcademicGrade>): Promise<AcademicGrade | undefined>;
+
+  // Sistema de Certificados Acadêmicos - Certificados
+  getAcademicCertificates(filters?: { studentId?: number; courseId?: number; status?: string }): Promise<AcademicCertificate[]>;
+  createAcademicCertificate(certificate: InsertAcademicCertificate): Promise<AcademicCertificate>;
+  updateAcademicCertificate(id: number, certificate: Partial<AcademicCertificate>): Promise<AcademicCertificate | undefined>;
+  issueAcademicCertificate(id: number, emitidoPor: number): Promise<AcademicCertificate | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1273,6 +1324,266 @@ export class DatabaseStorage implements IStorage {
       .where(eq(simplifiedEnrollments.id, id))
       .limit(1);
     return enrollment || null;
+  }
+
+  // Sistema de Certificados Acadêmicos - Cursos
+  async getAcademicCourses(filters?: { categoria?: string; status?: string }): Promise<AcademicCourse[]> {
+    const conditions = [];
+    
+    if (filters?.categoria) {
+      conditions.push(eq(academicCourses.categoria, filters.categoria));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(academicCourses.status, filters.status));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(academicCourses).where(and(...conditions)).orderBy(desc(academicCourses.createdAt));
+    }
+    
+    return await db.select().from(academicCourses).orderBy(desc(academicCourses.createdAt));
+  }
+
+  async createAcademicCourse(course: InsertAcademicCourse): Promise<AcademicCourse> {
+    const [newCourse] = await db
+      .insert(academicCourses)
+      .values({
+        ...course,
+        status: course.status || 'ativo',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newCourse;
+  }
+
+  async updateAcademicCourse(id: number, course: Partial<AcademicCourse>): Promise<AcademicCourse | undefined> {
+    const [updatedCourse] = await db
+      .update(academicCourses)
+      .set({ ...course, updatedAt: new Date() })
+      .where(eq(academicCourses.id, id))
+      .returning();
+    return updatedCourse || undefined;
+  }
+
+  async deleteAcademicCourse(id: number): Promise<void> {
+    await db.delete(academicCourses).where(eq(academicCourses.id, id));
+  }
+
+  // Sistema de Certificados Acadêmicos - Professores
+  async getAcademicProfessors(): Promise<AcademicProfessor[]> {
+    return await db
+      .select()
+      .from(academicProfessors)
+      .where(eq(academicProfessors.isActive, true))
+      .orderBy(asc(academicProfessors.nome));
+  }
+
+  async createAcademicProfessor(professor: InsertAcademicProfessor): Promise<AcademicProfessor> {
+    const [newProfessor] = await db
+      .insert(academicProfessors)
+      .values({
+        ...professor,
+        isActive: professor.isActive ?? true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newProfessor;
+  }
+
+  async updateAcademicProfessor(id: number, professor: Partial<AcademicProfessor>): Promise<AcademicProfessor | undefined> {
+    const [updatedProfessor] = await db
+      .update(academicProfessors)
+      .set({ ...professor, updatedAt: new Date() })
+      .where(eq(academicProfessors.id, id))
+      .returning();
+    return updatedProfessor || undefined;
+  }
+
+  // Sistema de Certificados Acadêmicos - Disciplinas
+  async getAcademicDisciplines(courseId?: number): Promise<AcademicDiscipline[]> {
+    if (courseId) {
+      return await db
+        .select()
+        .from(academicDisciplines)
+        .where(and(eq(academicDisciplines.courseId, courseId), eq(academicDisciplines.isActive, true)))
+        .orderBy(asc(academicDisciplines.ordem));
+    }
+    
+    return await db
+      .select()
+      .from(academicDisciplines)
+      .where(eq(academicDisciplines.isActive, true))
+      .orderBy(asc(academicDisciplines.ordem));
+  }
+
+  async createAcademicDiscipline(discipline: InsertAcademicDiscipline): Promise<AcademicDiscipline> {
+    const [newDiscipline] = await db
+      .insert(academicDisciplines)
+      .values({
+        ...discipline,
+        isActive: discipline.isActive ?? true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newDiscipline;
+  }
+
+  async updateAcademicDiscipline(id: number, discipline: Partial<AcademicDiscipline>): Promise<AcademicDiscipline | undefined> {
+    const [updatedDiscipline] = await db
+      .update(academicDisciplines)
+      .set({ ...discipline, updatedAt: new Date() })
+      .where(eq(academicDisciplines.id, id))
+      .returning();
+    return updatedDiscipline || undefined;
+  }
+
+  // Sistema de Certificados Acadêmicos - Alunos
+  async getAcademicStudents(filters?: { courseId?: number; status?: string }): Promise<AcademicStudent[]> {
+    const conditions = [];
+    
+    if (filters?.courseId) {
+      conditions.push(eq(academicStudents.courseId, filters.courseId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(academicStudents.status, filters.status));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(academicStudents).where(and(...conditions)).orderBy(asc(academicStudents.nome));
+    }
+    
+    return await db.select().from(academicStudents).orderBy(asc(academicStudents.nome));
+  }
+
+  async createAcademicStudent(student: InsertAcademicStudent): Promise<AcademicStudent> {
+    const [newStudent] = await db
+      .insert(academicStudents)
+      .values({
+        ...student,
+        status: student.status || 'cursando',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newStudent;
+  }
+
+  async updateAcademicStudent(id: number, student: Partial<AcademicStudent>): Promise<AcademicStudent | undefined> {
+    const [updatedStudent] = await db
+      .update(academicStudents)
+      .set({ ...student, updatedAt: new Date() })
+      .where(eq(academicStudents.id, id))
+      .returning();
+    return updatedStudent || undefined;
+  }
+
+  // Sistema de Certificados Acadêmicos - Notas
+  async getAcademicGrades(studentId?: number, disciplineId?: number): Promise<AcademicGrade[]> {
+    const conditions = [];
+    
+    if (studentId) {
+      conditions.push(eq(academicGrades.studentId, studentId));
+    }
+    
+    if (disciplineId) {
+      conditions.push(eq(academicGrades.disciplineId, disciplineId));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(academicGrades).where(and(...conditions)).orderBy(desc(academicGrades.createdAt));
+    }
+    
+    return await db.select().from(academicGrades).orderBy(desc(academicGrades.createdAt));
+  }
+
+  async createAcademicGrade(grade: InsertAcademicGrade): Promise<AcademicGrade> {
+    const [newGrade] = await db
+      .insert(academicGrades)
+      .values({
+        ...grade,
+        status: grade.status || 'aprovado',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newGrade;
+  }
+
+  async updateAcademicGrade(id: number, grade: Partial<AcademicGrade>): Promise<AcademicGrade | undefined> {
+    const [updatedGrade] = await db
+      .update(academicGrades)
+      .set({ ...grade, updatedAt: new Date() })
+      .where(eq(academicGrades.id, id))
+      .returning();
+    return updatedGrade || undefined;
+  }
+
+  // Sistema de Certificados Acadêmicos - Certificados
+  async getAcademicCertificates(filters?: { studentId?: number; courseId?: number; status?: string }): Promise<AcademicCertificate[]> {
+    const conditions = [];
+    
+    if (filters?.studentId) {
+      conditions.push(eq(academicCertificates.studentId, filters.studentId));
+    }
+    
+    if (filters?.courseId) {
+      conditions.push(eq(academicCertificates.courseId, filters.courseId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(academicCertificates.status, filters.status));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(academicCertificates).where(and(...conditions)).orderBy(desc(academicCertificates.createdAt));
+    }
+    
+    return await db.select().from(academicCertificates).orderBy(desc(academicCertificates.createdAt));
+  }
+
+  async createAcademicCertificate(certificate: InsertAcademicCertificate): Promise<AcademicCertificate> {
+    const [newCertificate] = await db
+      .insert(academicCertificates)
+      .values({
+        ...certificate,
+        status: certificate.status || 'solicitado',
+        qrCodeHash: certificate.qrCodeHash || randomUUID(),
+        linkValidacao: certificate.linkValidacao || `https://sistema.edu.br/validar/${randomUUID()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newCertificate;
+  }
+
+  async updateAcademicCertificate(id: number, certificate: Partial<AcademicCertificate>): Promise<AcademicCertificate | undefined> {
+    const [updatedCertificate] = await db
+      .update(academicCertificates)
+      .set({ ...certificate, updatedAt: new Date() })
+      .where(eq(academicCertificates.id, id))
+      .returning();
+    return updatedCertificate || undefined;
+  }
+
+  async issueAcademicCertificate(id: number, emitidoPor: number): Promise<AcademicCertificate | undefined> {
+    const [updatedCertificate] = await db
+      .update(academicCertificates)
+      .set({ 
+        status: 'emitido',
+        emitidoPor,
+        dataEmissao: new Date(),
+        registroId: `REG-${Date.now()}`,
+        pdfUrl: `https://certificados.edu.br/${id}/${randomUUID()}.pdf`,
+        updatedAt: new Date()
+      })
+      .where(eq(academicCertificates.id, id))
+      .returning();
+    return updatedCertificate || undefined;
   }
 }
 
