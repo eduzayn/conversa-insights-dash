@@ -2785,26 +2785,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Listar pagamentos
+  // Listar pagamentos do Asaas
   app.get("/api/admin/asaas/payments", authenticateToken, async (req: any, res) => {
     try {
       if (req.user.role !== 'admin') {
         return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
       }
 
-      const { status, userId, startDate, endDate } = req.query;
+      const { status, customer, dateCreatedGe, dateCreatedLe } = req.query;
       const filters: any = {};
       
-      if (status) filters.status = status;
-      if (userId) filters.userId = parseInt(userId);
-      if (startDate) filters.startDate = startDate;
-      if (endDate) filters.endDate = endDate;
+      if (status && status !== 'all') filters.status = status;
+      if (customer) filters.customer = customer;
+      if (dateCreatedGe) filters.dateCreatedGe = dateCreatedGe;
+      if (dateCreatedLe) filters.dateCreatedLe = dateCreatedLe;
 
-      const payments = await storage.getPayments(filters);
+      const payments = await asaasService.getAllPayments(filters);
       res.json(payments);
     } catch (error) {
-      console.error("Erro ao buscar pagamentos:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      console.error("Erro ao buscar cobranças do Asaas:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar cobranças do Asaas",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
     }
   });
 

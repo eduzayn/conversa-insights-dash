@@ -241,9 +241,9 @@ export class AsaasService {
     }
   }
 
-  async importAllPayments(): Promise<{ imported: number; errors: string[] }> {
+  async importAllPayments(): Promise<{ imported: number; errors: string[]; payments: any[] }> {
     try {
-      const result = { imported: 0, errors: [] as string[] };
+      const result = { imported: 0, errors: [] as string[], payments: [] as any[] };
       let offset = 0;
       const limit = 100;
       let hasMore = true;
@@ -260,8 +260,27 @@ export class AsaasService {
 
           for (const payment of payments) {
             try {
-              // Aqui você processaria cada pagamento
-              // Por exemplo, salvando no banco de dados
+              // Mapear dados do Asaas para formato interno
+              const mappedPayment = {
+                id: payment.id,
+                customer: payment.customer,
+                description: payment.description,
+                value: payment.value,
+                dueDate: payment.dueDate,
+                status: payment.status,
+                billingType: payment.billingType,
+                invoiceUrl: payment.invoiceUrl,
+                dateCreated: payment.dateCreated,
+                paymentDate: payment.paymentDate,
+                originalValue: payment.originalValue,
+                interestValue: payment.interestValue,
+                fineValue: payment.fineValue,
+                netValue: payment.netValue,
+                bankSlipUrl: payment.bankSlipUrl,
+                pixTransaction: payment.pixTransaction
+              };
+              
+              result.payments.push(mappedPayment);
               result.imported++;
             } catch (error: any) {
               result.errors.push(`Erro ao processar pagamento ${payment.id}: ${error.message}`);
@@ -283,6 +302,42 @@ export class AsaasService {
     } catch (error: any) {
       console.error('Erro na importação:', error);
       throw new Error(`Falha na importação: ${error.message}`);
+    }
+  }
+
+  async getAllPayments(filters: {
+    customer?: string;
+    status?: string;
+    dateCreatedGe?: string;
+    dateCreatedLe?: string;
+  } = {}): Promise<any[]> {
+    try {
+      const allPayments: any[] = [];
+      let offset = 0;
+      const limit = 100;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await this.listPayments({ ...filters, limit, offset });
+        const payments = response.data || [];
+        
+        if (payments.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        allPayments.push(...payments);
+        offset += limit;
+        hasMore = payments.length === limit;
+        
+        // Delay para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      return allPayments;
+    } catch (error: any) {
+      console.error('Erro ao buscar todas as cobranças:', error);
+      throw new Error(`Falha ao buscar cobranças: ${error.message}`);
     }
   }
 
