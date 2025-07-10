@@ -1146,6 +1146,300 @@ export class DatabaseStorage implements IStorage {
     return updatedSubmission || undefined;
   }
 
+  // Payments (Asaas Integration)
+  async getPayments(filters?: { userId?: number; status?: string; tenantId?: number }): Promise<Payment[]> {
+    const conditions = [];
+    if (filters?.userId) {
+      conditions.push(eq(payments.userId, filters.userId));
+    }
+    if (filters?.status) {
+      conditions.push(eq(payments.status, filters.status));
+    }
+    if (filters?.tenantId) {
+      conditions.push(eq(payments.tenantId, filters.tenantId));
+    }
+    
+    if (conditions.length > 0) {
+      return await db
+        .select()
+        .from(payments)
+        .where(and(...conditions))
+        .orderBy(desc(payments.createdAt));
+    }
+    
+    return await db
+      .select()
+      .from(payments)
+      .orderBy(desc(payments.createdAt));
+  }
+
+  // Buscar pagamentos com dados dos usuários (JOIN)
+  async getPaymentsWithUserData(filters?: { status?: string; externalId?: string }): Promise<any[]> {
+    const conditions = [];
+    if (filters?.status && filters.status !== 'all') {
+      conditions.push(eq(payments.status, filters.status));
+    }
+    if (filters?.externalId) {
+      conditions.push(eq(payments.externalId, filters.externalId));
+    }
+    
+    if (conditions.length > 0) {
+      return await db
+        .select({
+          // Campos do pagamento
+          id: payments.id,
+          tenantId: payments.tenantId,
+          userId: payments.userId,
+          courseId: payments.courseId,
+          amount: payments.amount,
+          status: payments.status,
+          paymentMethod: payments.paymentMethod,
+          transactionId: payments.transactionId,
+          paidAt: payments.paidAt,
+          externalId: payments.externalId,
+          description: payments.description,
+          dueDate: payments.dueDate,
+          paymentUrl: payments.paymentUrl,
+          customerName: payments.customerName,
+          customerEmail: payments.customerEmail,
+          billingType: payments.billingType,
+          value: payments.value,
+          lastSyncedAt: payments.lastSyncedAt,
+          createdAt: payments.createdAt,
+          updatedAt: payments.updatedAt,
+          // Campos do usuário
+          userName: users.name,
+          userEmail: users.email,
+          userCpf: users.cpf
+        })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .where(and(...conditions))
+        .orderBy(desc(payments.createdAt));
+    }
+    
+    return await db
+      .select({
+        // Campos do pagamento
+        id: payments.id,
+        tenantId: payments.tenantId,
+        userId: payments.userId,
+        courseId: payments.courseId,
+        amount: payments.amount,
+        status: payments.status,
+        paymentMethod: payments.paymentMethod,
+        transactionId: payments.transactionId,
+        paidAt: payments.paidAt,
+        externalId: payments.externalId,
+        description: payments.description,
+        dueDate: payments.dueDate,
+        paymentUrl: payments.paymentUrl,
+        customerName: payments.customerName,
+        customerEmail: payments.customerEmail,
+        billingType: payments.billingType,
+        value: payments.value,
+        lastSyncedAt: payments.lastSyncedAt,
+        createdAt: payments.createdAt,
+        updatedAt: payments.updatedAt,
+        // Campos do usuário
+        userName: users.name,
+        userEmail: users.email,
+        userCpf: users.cpf
+      })
+      .from(payments)
+      .leftJoin(users, eq(payments.userId, users.id))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db
+      .insert(payments)
+      .values({
+        ...payment,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newPayment;
+  }
+
+  async updatePayment(id: number, payment: Partial<Payment>): Promise<Payment | undefined> {
+    const [updatedPayment] = await db
+      .update(payments)
+      .set({ ...payment, updatedAt: new Date() })
+      .where(eq(payments.id, id))
+      .returning();
+    return updatedPayment || undefined;
+  }
+
+  async getPaymentByExternalId(externalId: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.externalId, externalId))
+      .limit(1);
+    return payment || undefined;
+  }
+
+  async getUserPayments(userId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  // Métodos para sincronização com Asaas
+  async upsertAsaasPayment(asaasPayment: any): Promise<Payment> {
+    // Buscar pagamento existente pelo externalId
+    const existingPayment = await this.getPaymentByExternalId(asaasPayment.id);
+    
+    if (existingPayment) {
+      // Atualizar pagamento existente
+      const [updatedPayment] = await db
+        .update(payments)
+        .set({
+          status: this.mapAsaasStatus(asaasPayment.status),
+          value: Math.round(asaasPayment.value * 100), // converter para centavos
+          customerName: asaasPayment.customer?.name || asaasPayment.customerName || asaasPayment.customer,
+          customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
+          billingType: asaasPayment.billingType,
+          paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl,
+          dueDate: new Date(asaasPayment.dueDate),
+          paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
+          lastSyncedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(payments.id, existingPayment.id))
+        .returning();
+      
+      return updatedPayment;
+    } else {
+      // Criar novo pagamento
+      const [newPayment] = await db
+        .insert(payments)
+        .values({
+          tenantId: 1,
+          userId: 1, // Usuário padrão para cobranças do Asaas
+          amount: Math.round(asaasPayment.value * 100), // converter para centavos
+          value: Math.round(asaasPayment.value * 100),
+          status: this.mapAsaasStatus(asaasPayment.status),
+          paymentMethod: asaasPayment.billingType?.toLowerCase(),
+          externalId: asaasPayment.id,
+          description: asaasPayment.description || 'Cobrança Asaas',
+          customerName: asaasPayment.customer?.name || asaasPayment.customerName || asaasPayment.customer,
+          customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
+          billingType: asaasPayment.billingType,
+          paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl,
+          dueDate: new Date(asaasPayment.dueDate),
+          paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
+          lastSyncedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      
+      return newPayment;
+    }
+  }
+
+  async getLastSyncDate(): Promise<Date | null> {
+    const [lastPayment] = await db
+      .select({ lastSyncedAt: payments.lastSyncedAt })
+      .from(payments)
+      .where(isNotNull(payments.lastSyncedAt))
+      .orderBy(desc(payments.lastSyncedAt))
+      .limit(1);
+    
+    return lastPayment?.lastSyncedAt || null;
+  }
+
+  async getAllSyncedPayments(): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(isNotNull(payments.externalId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  mapAsaasStatus(asaasStatus: string): string {
+    const statusMap: Record<string, string> = {
+      'PENDING': 'pending',
+      'RECEIVED': 'paid',
+      'RECEIVED_IN_CASH': 'paid',
+      'CONFIRMED': 'paid',
+      'OVERDUE': 'overdue',
+      'CANCELLED': 'failed',
+      'REFUNDED': 'refunded',
+      'REFUND_REQUESTED': 'refunded',
+    };
+    return statusMap[asaasStatus] || 'pending';
+  }
+
+  async createOrUpdatePaymentFromAsaas(asaasPayment: any): Promise<Payment> {
+    try {
+      // Verificar se já existe um pagamento com este externalId
+      const existingPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.externalId, asaasPayment.id))
+        .limit(1);
+
+      // Converter valores decimais para centavos (multiplicar por 100)
+      const rawAmount = parseFloat(String(asaasPayment.value || asaasPayment.originalValue || '0'));
+      const amountInCents = Math.round(rawAmount * 100);
+      const rawValue = parseFloat(String(asaasPayment.value || asaasPayment.originalValue || '0'));
+
+      const paymentData = {
+        tenantId: 1, // Tenant padrão
+        userId: 1, // Usuário padrão para pagamentos importados
+        courseId: null,
+        amount: amountInCents, // Valor em centavos
+        status: this.mapAsaasStatus(asaasPayment.status),
+        paymentMethod: asaasPayment.billingType?.toLowerCase() || 'unknown',
+        transactionId: asaasPayment.id,
+        externalId: asaasPayment.id,
+        description: asaasPayment.description || 'Pagamento importado do Asaas',
+        dueDate: asaasPayment.dueDate ? new Date(asaasPayment.dueDate) : new Date(),
+        paymentUrl: asaasPayment.invoiceUrl,
+        customerName: asaasPayment.customer?.name || asaasPayment.customerName,
+        customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
+        billingType: asaasPayment.billingType,
+        value: amountInCents, // Valor em centavos conforme schema
+        paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
+        lastSyncedAt: new Date(),
+      };
+
+      if (existingPayments.length > 0) {
+        // Atualizar pagamento existente
+        const [updatedPayment] = await db
+          .update(payments)
+          .set({
+            ...paymentData,
+            updatedAt: new Date(),
+          })
+          .where(eq(payments.id, existingPayments[0].id))
+          .returning();
+        return updatedPayment;
+      } else {
+        // Criar novo pagamento
+        const [newPayment] = await db
+          .insert(payments)
+          .values({
+            ...paymentData,
+            createdAt: asaasPayment.dateCreated ? new Date(asaasPayment.dateCreated) : new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        return newPayment;
+      }
+    } catch (error) {
+      console.error('Erro ao criar/atualizar pagamento do Asaas:', error);
+      throw error;
+    }
+  }
+
+  // Integração Portal Professor-Aluno
   async getStudentsBySubject(subjectId: number): Promise<number[]> {
     // Mock: retornar IDs de alunos matriculados na disciplina
     return [1, 2, 3]; // Simular 3 alunos matriculados
@@ -1160,6 +1454,8 @@ export class DatabaseStorage implements IStorage {
     // Mock: criar notificação
     console.log("Notificação criada:", notification);
   }
+
+
 
   // Função auxiliar para buscar curso pré-cadastrado
   async getPreRegisteredCourseById(courseId: number): Promise<PreRegisteredCourse | undefined> {
@@ -1215,7 +1511,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSimplifiedEnrollment(id: number): Promise<void> {
-    await db.delete(simplifiedEnrollments).where(eq(simplifiedEnrollments.id, id));
+    await db
+      .delete(simplifiedEnrollments)
+      .where(eq(simplifiedEnrollments.id, id));
   }
 
   async getSimplifiedEnrollmentById(id: number): Promise<SimplifiedEnrollment | null> {
@@ -1225,6 +1523,51 @@ export class DatabaseStorage implements IStorage {
       .where(eq(simplifiedEnrollments.id, id))
       .limit(1);
     return enrollment || null;
+  }
+
+  async updatePaymentByExternalId(externalId: string, updateData: any): Promise<any> {
+    try {
+      const existingPayment = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.externalId, externalId))
+        .limit(1);
+
+      if (existingPayment.length === 0) {
+        throw new Error(`Pagamento com external_id ${externalId} não encontrado`);
+      }
+
+      // Converter valores decimais para centavos se necessário
+      if (updateData.amount && typeof updateData.amount === 'string') {
+        updateData.amount = Math.round(parseFloat(updateData.amount) * 100);
+      }
+
+      const [updatedPayment] = await db
+        .update(payments)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+          lastSyncedAt: new Date()
+        })
+        .where(eq(payments.externalId, externalId))
+        .returning();
+
+      return updatedPayment;
+    } catch (error) {
+      console.error('Erro ao atualizar pagamento por external_id:', error);
+      throw error;
+    }
+  }
+
+  async clearAllPayments(): Promise<void> {
+    try {
+      console.log('🗑️ Limpando todos os pagamentos do banco local...');
+      await db.delete(payments);
+      console.log('✅ Todos os pagamentos foram removidos do banco local');
+    } catch (error) {
+      console.error('Erro ao limpar pagamentos:', error);
+      throw error;
+    }
   }
 }
 

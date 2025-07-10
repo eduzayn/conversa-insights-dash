@@ -20,7 +20,7 @@ import Certificacoes from "./pages/admin/Certificacoes";
 import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
 
-import ChargesPage from "./pages/admin/financial/charges-page";
+
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
 import StudentLogin from "./pages/portal/StudentLogin";
 import LoginRouter from "./components/LoginRouter";
@@ -53,9 +53,7 @@ const App = () => (
             <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
 
-            <Route path="/cobrancas" element={<ChargesPage />} />
-            <Route path="/integracao-asaas" element={<ChargesPage />} />
-            <Route path="/charges" element={<ChargesPage />} />
+
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
