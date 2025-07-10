@@ -360,7 +360,7 @@ export default function IntegracaoAsaas() {
               <Loader2 className="h-8 w-8 animate-spin" />
               <span className="ml-2">Carregando cobranças...</span>
             </div>
-          ) : allCharges.length === 0 ? (
+          ) : (!allCharges || allCharges.length === 0) ? (
             <div className="text-center py-8">
               <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900">Nenhuma cobrança encontrada</h3>
@@ -380,7 +380,7 @@ export default function IntegracaoAsaas() {
               </div>
 
               {/* Lista de cobranças */}
-              {allCharges.map((charge) => (
+              {(allCharges || []).map((charge) => (
                 <div 
                   key={charge.id} 
                   className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
