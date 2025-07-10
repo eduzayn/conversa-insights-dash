@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Route, useLocation, Switch } from "wouter";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { ModernStudentLayout } from "@/components/portal/ModernStudentLayout";
 import { StudentDashboard } from "@/components/portal/StudentDashboard";
@@ -22,7 +22,7 @@ interface StudentData {
 }
 
 export default function PortalLayout() {
-  const [location, setLocation] = useLocation();
+  const location = useLocation();
   const navigate = useNavigate();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
 
@@ -58,19 +58,19 @@ export default function PortalLayout() {
   
   return (
     <ModernStudentLayout studentData={studentData}>
-      <Switch>
-        <Route path="/portal" exact component={() => <StudentDashboard studentData={studentData} />} />
-        <Route path="/portal/cursos" component={MeusCursos} />
-        <Route path="/portal/disciplinas" component={MinhasDisciplinas} />
-        <Route path="/portal/avaliacoes" component={MinhasAvaliacoes} />
-        <Route path="/portal/certificados" component={Certificados} />
-        <Route path="/portal/suporte" component={SuporteChat} />
-        <Route path="/portal/pagamentos" component={Pagamentos} />
-        <Route path="/portal/documentos" component={Documentos} />
-        <Route path="/portal/perfil" component={PerfilAluno} />
-        <Route path="/portal/carteirinha" component={() => <ModernCarteirinha studentData={studentData} />} />
-        <Route component={() => <StudentDashboard studentData={studentData} />} />
-      </Switch>
+      <Routes>
+        <Route path="/" element={<StudentDashboard studentData={studentData} />} />
+        <Route path="/cursos" element={<MeusCursos />} />
+        <Route path="/disciplinas" element={<MinhasDisciplinas />} />
+        <Route path="/avaliacoes" element={<MinhasAvaliacoes />} />
+        <Route path="/certificados" element={<Certificados />} />
+        <Route path="/suporte" element={<SuporteChat />} />
+        <Route path="/pagamentos" element={<Pagamentos />} />
+        <Route path="/documentos" element={<Documentos />} />
+        <Route path="/perfil" element={<PerfilAluno />} />
+        <Route path="/carteirinha" element={<ModernCarteirinha studentData={studentData} />} />
+        <Route path="*" element={<StudentDashboard studentData={studentData} />} />
+      </Routes>
     </ModernStudentLayout>
   );
 }

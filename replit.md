@@ -390,6 +390,16 @@ Changelog:
    * ✅ Pasta attached_assets otimizada (removidos 15+ arquivos de texto temporários)
    * ✅ Sistema de loading unificado com design consistente
    * ✅ Repositório muito mais limpo e maintível (redução de ~70% em arquivos desnecessários)
+- Correção Crítica: Sistema de Roteamento Unificado (10 Jul 2025):
+   * ✅ RESOLVIDO: Erro 401 (Unauthorized) no endpoint /api/auth/login corrigido
+   * ✅ Sistema de autenticação melhorado com validação robusta de tokens JWT
+   * ✅ Middleware authenticateToken aprimorado para melhor tratamento de erros
+   * ✅ Hook useAuth otimizado para evitar chamadas desnecessárias à API
+   * ✅ CRÍTICO: Wouter Router completamente removido do Portal do Aluno
+   * ✅ Portal do Aluno migrado 100% para React Router DOM
+   * ✅ Redirecionamento pós-login funcionando corretamente (/portal-aluno/login → /portal)
+   * ✅ Conflitos entre sistemas de roteamento eliminados permanentemente
+   * ✅ Sistema unificado previne problemas futuros de navegação
 ```
 
 ## User Preferences
