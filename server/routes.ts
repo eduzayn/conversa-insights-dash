@@ -25,6 +25,7 @@ import { botConversaService, type BotConversaWebhookData } from "./services/botc
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
+import { PDFService } from './pdfService';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -34,6 +35,9 @@ const asaasService = new UnifiedAsaasService({
   baseURL: 'https://api.asaas.com/v3',
   apiKey: process.env.ASAAS_API_KEY!
 });
+
+// Configuração do serviço PDF
+const pdfService = new PDFService(storage);
 
 // Middleware para validar JWT
 export const authenticateToken = async (req: any, res: any, next: any) => {
@@ -3356,6 +3360,239 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao deletar modelo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== GERAÇÃO DE CERTIFICADOS PDF =====
+  
+  // Gerar PDF de certificado com orientação paisagem
+  app.post("/api/certificates/:certificateId/generate-pdf/:templateId", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { certificateId, templateId } = req.params;
+      
+      console.log(`🎓 Iniciando geração de PDF - Certificado: ${certificateId}, Template: ${templateId}`);
+      
+      // Gerar PDF usando o PDFService
+      const pdfBuffer = await pdfService.generateCertificatePDF(
+        parseInt(certificateId), 
+        parseInt(templateId)
+      );
+
+      // Configurar headers para download do PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="certificado-${certificateId}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log(`✅ PDF gerado com sucesso - Tamanho: ${pdfBuffer.length} bytes`);
+      
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Erro ao gerar PDF do certificado:", error);
+      res.status(500).json({ 
+        message: "Erro interno do servidor", 
+        error: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
+    }
+  });
+
+  // Preview de certificado em HTML para visualização antes de gerar PDF
+  app.get("/api/certificates/:certificateId/preview/:templateId", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { certificateId, templateId } = req.params;
+      
+      // Buscar dados do certificado
+      const certificate = await storage.getAcademicCertificateById(parseInt(certificateId));
+      if (!certificate) {
+        return res.status(404).json({ message: "Certificado não encontrado" });
+      }
+
+      // Buscar template
+      const template = await storage.getCertificateTemplateById(parseInt(templateId));
+      if (!template) {
+        return res.status(404).json({ message: "Template não encontrado" });
+      }
+
+      // Buscar dados do aluno e curso
+      const student = await storage.getAcademicStudentById(certificate.studentId);
+      const course = await storage.getAcademicCourseById(certificate.courseId);
+
+      if (!student || !course) {
+        return res.status(404).json({ message: "Dados do aluno ou curso não encontrados" });
+      }
+
+      // Preparar dados para substituição
+      const certificateData = {
+        nomeAluno: student.nome,
+        cpfAluno: student.cpf,
+        nomeCurso: course.nome,
+        areaCurso: course.area || 'Educação',
+        cargaHoraria: String(course.cargaHoraria),
+        dataInicio: course.dataInicio || new Date().toLocaleDateString('pt-BR'),
+        dataConclusao: new Date().toLocaleDateString('pt-BR'),
+        dataEmissao: certificate.dataEmissao || new Date().toLocaleDateString('pt-BR'),
+        numeroRegistro: certificate.numeroRegistro || `CERT-${Date.now()}`,
+        livro: certificate.livro || '001',
+        folha: certificate.folha || String(certificate.id).padStart(3, '0'),
+        instituicao: template.instituicaoNome,
+        instituicaoEndereco: template.instituicaoEndereco || ''
+      };
+
+      // Substituir variáveis no HTML da frente
+      let htmlFrente = template.htmlTemplate;
+      let htmlVerso = template.templateVerso;
+      
+      // Substituir variáveis básicas
+      Object.entries(certificateData).forEach(([key, value]) => {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        htmlFrente = htmlFrente.replace(regex, String(value));
+        htmlVerso = htmlVerso.replace(regex, String(value));
+      });
+
+      // HTML completo para preview com orientação paisagem
+      const htmlCompleto = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Preview - Certificado ${certificateData.nomeAluno}</title>
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 20mm;
+            }
+            
+            body {
+              margin: 0;
+              padding: 20px;
+              font-family: 'Times New Roman', serif;
+              background: #f5f5f5;
+            }
+            
+            .preview-controls {
+              background: white;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              text-align: center;
+            }
+            
+            .preview-controls button {
+              background: #1e40af;
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 5px;
+              cursor: pointer;
+              margin: 0 10px;
+              font-size: 14px;
+            }
+            
+            .preview-controls button:hover {
+              background: #1d4ed8;
+            }
+            
+            .page-container {
+              background: white;
+              width: 297mm;
+              height: 210mm;
+              margin: 20px auto;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              page-break-after: always;
+              position: relative;
+              overflow: hidden;
+            }
+            
+            .page-title {
+              background: #1e40af;
+              color: white;
+              text-align: center;
+              padding: 10px;
+              font-weight: bold;
+              font-size: 16px;
+              margin-bottom: 20px;
+            }
+            
+            .certificate-content {
+              padding: 40px;
+              height: calc(100% - 60px);
+              box-sizing: border-box;
+            }
+            
+            /* Estilos específicos para o certificado */
+            .certificate-front, .certificate-back {
+              width: 100%;
+              height: 100%;
+              font-size: 12pt;
+              line-height: 1.4;
+            }
+            
+            @media print {
+              body { background: white; }
+              .preview-controls { display: none; }
+              .page-container { 
+                box-shadow: none; 
+                margin: 0;
+                width: 100%;
+                height: 100vh;
+              }
+              .page-title { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="preview-controls">
+            <button onclick="window.print()">🖨️ Imprimir Certificado</button>
+            <button onclick="downloadPDF()">📄 Download PDF</button>
+            <button onclick="window.close()">✖️ Fechar Preview</button>
+          </div>
+          
+          <!-- PÁGINA 1 - FRENTE DO CERTIFICADO -->
+          <div class="page-container">
+            <div class="page-title">PÁGINA 1 - FRENTE DO CERTIFICADO (FORMATO PAISAGEM)</div>
+            <div class="certificate-content">
+              <div class="certificate-front">
+                ${htmlFrente}
+              </div>
+            </div>
+          </div>
+          
+          <!-- PÁGINA 2 - VERSO DO CERTIFICADO (HISTÓRICO) -->
+          <div class="page-container">
+            <div class="page-title">PÁGINA 2 - VERSO DO CERTIFICADO - HISTÓRICO ESCOLAR (FORMATO PAISAGEM)</div>
+            <div class="certificate-content">
+              <div class="certificate-back">
+                ${htmlVerso}
+              </div>
+            </div>
+          </div>
+
+          <script>
+            function downloadPDF() {
+              window.open('/api/certificates/${certificateId}/generate-pdf/${templateId}', '_blank');
+            }
+          </script>
+        </body>
+        </html>
+      `;
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(htmlCompleto);
+    } catch (error) {
+      console.error("Erro ao gerar preview:", error);
+      res.status(500).json({ 
+        message: "Erro interno do servidor", 
+        error: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
     }
   });
 

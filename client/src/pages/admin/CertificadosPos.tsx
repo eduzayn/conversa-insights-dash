@@ -470,6 +470,60 @@ const CertificadosPos = () => {
     });
   };
 
+  // Função para preview de certificado real
+  const handlePreviewCertificate = (certificate: AcademicCertificate) => {
+    // Para certificados emitidos, vamos usar o template padrão (ID 2 está disponível no banco)
+    // Em uma implementação real, você pode associar cada certificado a um template específico
+    const templateId = 2; // ID do template disponível no banco
+    
+    const previewUrl = `/api/certificates/${certificate.id}/preview/${templateId}`;
+    window.open(previewUrl, '_blank', 'width=1200,height=800');
+  };
+
+  // Função para download do PDF do certificado
+  const handleDownloadPDF = async (certificate: AcademicCertificate) => {
+    try {
+      // Para certificados emitidos, vamos usar o template padrão (ID 2 está disponível no banco)
+      const templateId = 2; // ID do template disponível no banco
+      
+      const response = await fetch(`/api/certificates/${certificate.id}/generate-pdf/${templateId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PDF');
+      }
+
+      // Fazer download do PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `certificado-${certificate.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({ 
+        title: 'Sucesso', 
+        description: 'PDF do certificado baixado com sucesso' 
+      });
+    } catch (error) {
+      console.error('Erro ao baixar PDF:', error);
+      toast({ 
+        title: 'Erro', 
+        description: 'Erro ao baixar o PDF do certificado', 
+        variant: 'destructive' 
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -912,11 +966,15 @@ const CertificadosPos = () => {
                 
                 {selectedCertificate.status === 'emitido' && (
                   <>
-                    <Button variant="outline" onClick={() => {/* Implementar download PDF */}}>
+                    <Button variant="outline" onClick={() => handlePreviewCertificate(selectedCertificate)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview Certificado
+                    </Button>
+                    <Button variant="outline" onClick={() => handleDownloadPDF(selectedCertificate)}>
                       <Download className="h-4 w-4 mr-2" />
                       Download PDF
                     </Button>
-                    <Button variant="outline" onClick={() => {/* Implementar impressão */}}>
+                    <Button variant="outline" onClick={() => handlePreviewCertificate(selectedCertificate)}>
                       <Printer className="h-4 w-4 mr-2" />
                       Imprimir
                     </Button>
