@@ -22,7 +22,12 @@ interface Enrollment {
 
 export default function MeusCursos() {
   const { data: enrollments = [], isLoading } = useQuery({
-    queryKey: ['/api/portal/aluno/cursos']
+    queryKey: ['/api/portal/aluno/cursos'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
+    initialData: [],
+    placeholderData: []
   });
 
   const getStatusBadge = (status: string) => {

@@ -37,7 +37,12 @@ export default function Documentos() {
   const queryClient = useQueryClient();
 
   const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['/api/portal/aluno/documentos']
+    queryKey: ['/api/portal/aluno/documentos'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
+    initialData: [],
+    placeholderData: []
   });
 
   const uploadDocumentMutation = useMutation({

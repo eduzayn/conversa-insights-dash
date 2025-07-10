@@ -26,7 +26,12 @@ interface Payment {
 
 export default function Pagamentos() {
   const { data: payments = [], isLoading } = useQuery({
-    queryKey: ['/api/portal/aluno/pagamentos']
+    queryKey: ['/api/portal/aluno/pagamentos'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
+    initialData: [],
+    placeholderData: []
   });
 
   const getStatusBadge = (status: string) => {

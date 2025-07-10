@@ -24,7 +24,12 @@ interface Evaluation {
 
 export default function MinhasAvaliacoes() {
   const { data: evaluations = [], isLoading } = useQuery({
-    queryKey: ['/api/portal/aluno/avaliacoes']
+    queryKey: ['/api/portal/aluno/avaliacoes'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
+    initialData: [],
+    placeholderData: []
   });
 
   const getStatusBadge = (status: string) => {

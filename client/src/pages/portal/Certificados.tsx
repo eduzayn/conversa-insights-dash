@@ -28,7 +28,12 @@ export default function Certificados() {
   const queryClient = useQueryClient();
   
   const { data: certificates = [], isLoading } = useQuery({
-    queryKey: ['/api/portal/aluno/certificados']
+    queryKey: ['/api/portal/aluno/certificados'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
+    initialData: [],
+    placeholderData: []
   });
 
   const requestCertificateMutation = useMutation({
