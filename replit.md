@@ -412,6 +412,17 @@ Changelog:
    * ✅ Portal do Professor confirmado: já usava exclusivamente React Router DOM
    * ✅ Dependência wouter removida do package.json (4 pacotes desinstalados)
    * ✅ Projeto 100% limpo: zero referências ao Wouter em todo o código
+- Sistema Multi-Company Access Implementado (10 Jul 2025):
+   * ✅ Campo `multiCompanyAccess` JSON adicionado ao schema de usuários via SQL direto
+   * ✅ Interface de registro redesenhada com layout mais amplo (max-w-4xl)
+   * ✅ Campos básicos organizados em grid 2 colunas para otimizar espaço horizontal
+   * ✅ Seletor de tipo de acesso: "Acesso Único" vs "Acesso Multi-Companhias"
+   * ✅ Acesso único: mantém compatibilidade total com sistema anterior
+   * ✅ Acesso multi-companhias: permite trabalhar em Comercial e Suporte simultaneamente
+   * ✅ Cards de companhias organizados em grid para layout mais compacto
+   * ✅ Validações implementadas: pelo menos uma companhia ativa com departamentos
+   * ✅ Backend atualizado com tipos estendidos e processamento dos dados JSON
+   * ✅ Sistema totalmente funcional para colaboradores multi-departamentais
 - Integração Completa com Gateway de Pagamento Asaas (10 Jul 2025):
    * ✅ Interface administrativa IntegracaoAsaas.tsx implementada com dashboard completo
    * ✅ Endpoints da API Asaas implementados: /api/admin/asaas/* (status, payments, sync, create)
