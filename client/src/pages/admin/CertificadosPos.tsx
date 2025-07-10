@@ -1598,101 +1598,80 @@ const CertificadosPos = () => {
                       </Button>
                     </div>
                     
-                    {/* Preview do certificado simplificado */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                      
-                      {/* Preview Frente */}
-                      <div id="preview-frente" className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                          <Label className="font-medium text-blue-700">Frente do Certificado</Label>
-                        </div>
-                        <div className="bg-gray-100 rounded-lg p-4 w-full">
-                          <div 
-                            className="preview-container bg-white border border-gray-300 shadow-lg mx-auto" 
-                            style={{
-                              width: '100%',
-                              maxWidth: '600px',
-                              height: '300px',
-                              aspectRatio: '1123/794'
-                            }}
-                          >
-                            <div 
-                              dangerouslySetInnerHTML={{ 
-                                __html: selectedTemplate.htmlTemplate
-                                  .replace(/{{nomeAluno}}/g, "João Silva Santos")
-                                  .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
-                                  .replace(/{{cpfAluno}}/g, "123.456.789-00")
-                                  .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
-                                  .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
-                                  .replace(/{{cargaHoraria}}/g, "420")
-                                  .replace(/{{numeroRegistro}}/g, "001/2025")
-                                  .replace(/{{areaCurso}}/g, "Educação")
-                              }} 
-                              style={{
-                                fontFamily: 'Times New Roman, serif',
-                                lineHeight: '1.4',
-                                color: '#000',
-                                fontSize: '10px',
-                                textAlign: 'center',
-                                padding: '20px',
-                                height: '100%',
-                                boxSizing: 'border-box',
-                                overflow: 'hidden'
-                              }}
-                            />
-                          </div>
-                        </div>
+                    {/* Preview limpo do certificado */}
+                    <div className="space-y-6">
+                      {/* Frente */}
+                      <div 
+                        className="bg-white border border-gray-300 shadow-lg mx-auto" 
+                        style={{
+                          width: '100%',
+                          maxWidth: '700px',
+                          height: '350px',
+                          aspectRatio: '1123/794'
+                        }}
+                      >
+                        <div 
+                          dangerouslySetInnerHTML={{ 
+                            __html: selectedTemplate.htmlTemplate
+                              .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                              .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                              .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                              .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                              .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                              .replace(/{{cargaHoraria}}/g, "420")
+                              .replace(/{{numeroRegistro}}/g, "001/2025")
+                              .replace(/{{areaCurso}}/g, "Educação")
+                          }} 
+                          style={{
+                            fontFamily: 'Times New Roman, serif',
+                            lineHeight: '1.4',
+                            color: '#000',
+                            fontSize: '10px',
+                            textAlign: 'center',
+                            padding: '20px',
+                            height: '100%',
+                            boxSizing: 'border-box',
+                            overflow: 'hidden'
+                          }}
+                        />
                       </div>
                       
-                      {/* Preview Verso */}
-                      <div id="preview-verso" className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
-                          <Label className="font-medium text-orange-700">Verso do Certificado (Histórico)</Label>
-                        </div>
-                        <div className="bg-gray-100 rounded-lg p-4 w-full">
-                          <div 
-                            className="preview-container bg-white border border-gray-300 shadow-lg mx-auto" 
-                            style={{
-                              width: '100%',
-                              maxWidth: '600px',
-                              height: '300px',
-                              aspectRatio: '1123/794'
-                            }}
-                          >
-                            <div 
-                              dangerouslySetInnerHTML={{ 
-                                __html: selectedTemplate.templateVerso
-                                  .replace(/{{nomeAluno}}/g, "João Silva Santos")
-                                  .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
-                                  .replace(/{{cpfAluno}}/g, "123.456.789-00")
-                                  .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
-                                  .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
-                                  .replace(/{{cargaHoraria}}/g, "420")
-                                  .replace(/{{numeroRegistro}}/g, "001/2025")
-                                  .replace(/{{areaCurso}}/g, "Educação")
-                              }} 
-                              style={{
-                                fontFamily: 'Times New Roman, serif',
-                                lineHeight: '1.3',
-                                color: '#000',
-                                fontSize: '8px',
-                                textAlign: 'left',
-                                padding: '20px',
-                                height: '100%',
-                                boxSizing: 'border-box',
-                                overflow: 'hidden'
-                              }}
-                            />
-                          </div>
-                        </div>
+                      {/* Verso */}
+                      <div 
+                        className="bg-white border border-gray-300 shadow-lg mx-auto" 
+                        style={{
+                          width: '100%',
+                          maxWidth: '700px',
+                          height: '350px',
+                          aspectRatio: '1123/794'
+                        }}
+                      >
+                        <div 
+                          dangerouslySetInnerHTML={{ 
+                            __html: selectedTemplate.templateVerso
+                              .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                              .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                              .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                              .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                              .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                              .replace(/{{cargaHoraria}}/g, "420")
+                              .replace(/{{numeroRegistro}}/g, "001/2025")
+                              .replace(/{{areaCurso}}/g, "Educação")
+                          }} 
+                          style={{
+                            fontFamily: 'Times New Roman, serif',
+                            lineHeight: '1.3',
+                            color: '#000',
+                            fontSize: '8px',
+                            textAlign: 'left',
+                            padding: '20px',
+                            height: '100%',
+                            boxSizing: 'border-box',
+                            overflow: 'hidden'
+                          }}
+                        />
                       </div>
                     </div>
-                    
-                    <p className="text-xs text-muted-foreground text-center mt-3 italic">
-                      ℹ️ Preview com dados de exemplo para demonstração - Certificado completo com frente e verso
-                    </p>
                   </div>
 
                   {/* Botões de ação principais */}
