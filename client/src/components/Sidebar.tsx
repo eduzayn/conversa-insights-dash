@@ -34,7 +34,7 @@ const menuItems = [
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
   { icon: Settings, label: "Integração BotConversa", path: "/integracao-botconversa" },
-  { icon: CreditCard, label: "Integração Asaas", path: "/integracao-asaas" },
+  { icon: CreditCard, label: "Cobranças", path: "/cobrancas" },
   { icon: UserPlus, label: "Matrícula Simplificada", path: "/matricula-simplificada" },
 ];
 
