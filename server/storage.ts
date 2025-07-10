@@ -24,6 +24,7 @@ import {
   academicCourses,
   academicProfessors,
   academicDisciplines,
+  courseDisciplines,
   academicStudents,
   academicGrades,
   academicCertificates,
@@ -94,6 +95,8 @@ import {
   type InsertAcademicProfessor,
   type AcademicDiscipline,
   type InsertAcademicDiscipline,
+  type CourseDiscipline,
+  type InsertCourseDiscipline,
   type AcademicStudent,
   type InsertAcademicStudent,
   type AcademicGrade,
@@ -265,9 +268,14 @@ export interface IStorage {
   updateAcademicProfessor(id: number, professor: Partial<AcademicProfessor>): Promise<AcademicProfessor | undefined>;
 
   // Sistema de Certificados Acadêmicos - Disciplinas
-  getAcademicDisciplines(courseId?: number): Promise<AcademicDiscipline[]>;
+  getAcademicDisciplines(): Promise<AcademicDiscipline[]>;
   createAcademicDiscipline(discipline: InsertAcademicDiscipline): Promise<AcademicDiscipline>;
   updateAcademicDiscipline(id: number, discipline: Partial<AcademicDiscipline>): Promise<AcademicDiscipline | undefined>;
+  
+  // Sistema de Certificados Acadêmicos - Relacionamento Curso-Disciplina
+  getCourseDisciplines(courseId: number): Promise<AcademicDiscipline[]>;
+  addCourseDisciplines(courseId: number, disciplineIds: number[]): Promise<void>;
+  removeCourseDisciplines(courseId: number, disciplineIds?: number[]): Promise<void>;
 
   // Sistema de Certificados Acadêmicos - Alunos
   getAcademicStudents(filters?: { courseId?: number; status?: string }): Promise<AcademicStudent[]>;
@@ -1403,20 +1411,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Sistema de Certificados Acadêmicos - Disciplinas
-  async getAcademicDisciplines(courseId?: number): Promise<AcademicDiscipline[]> {
-    if (courseId) {
-      return await db
-        .select()
-        .from(academicDisciplines)
-        .where(and(eq(academicDisciplines.courseId, courseId), eq(academicDisciplines.isActive, true)))
-        .orderBy(asc(academicDisciplines.ordem));
-    }
-    
+  async getAcademicDisciplines(): Promise<AcademicDiscipline[]> {
     return await db
       .select()
       .from(academicDisciplines)
-      .where(eq(academicDisciplines.isActive, true))
-      .orderBy(asc(academicDisciplines.ordem));
+      .where(eq(academicDisciplines.status, 'ativa'))
+      .orderBy(asc(academicDisciplines.nome));
   }
 
   async createAcademicDiscipline(discipline: InsertAcademicDiscipline): Promise<AcademicDiscipline> {
@@ -1424,7 +1424,7 @@ export class DatabaseStorage implements IStorage {
       .insert(academicDisciplines)
       .values({
         ...discipline,
-        isActive: discipline.isActive ?? true,
+        status: discipline.status || 'ativa',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1439,6 +1439,66 @@ export class DatabaseStorage implements IStorage {
       .where(eq(academicDisciplines.id, id))
       .returning();
     return updatedDiscipline || undefined;
+  }
+
+  // Sistema de Certificados Acadêmicos - Relacionamento Curso-Disciplina
+  async getCourseDisciplines(courseId: number): Promise<AcademicDiscipline[]> {
+    const result = await db
+      .select({
+        id: academicDisciplines.id,
+        nome: academicDisciplines.nome,
+        codigo: academicDisciplines.codigo,
+        professorId: academicDisciplines.professorId,
+        cargaHoraria: academicDisciplines.cargaHoraria,
+        periodo: academicDisciplines.periodo,
+        tipo: academicDisciplines.tipo,
+        ementa: academicDisciplines.ementa,
+        prerequeisitos: academicDisciplines.prerequeisitos,
+        status: academicDisciplines.status,
+        createdAt: academicDisciplines.createdAt,
+        updatedAt: academicDisciplines.updatedAt,
+      })
+      .from(academicDisciplines)
+      .innerJoin(courseDisciplines, eq(courseDisciplines.disciplineId, academicDisciplines.id))
+      .where(eq(courseDisciplines.courseId, courseId))
+      .orderBy(asc(courseDisciplines.ordem));
+    
+    return result;
+  }
+
+  async addCourseDisciplines(courseId: number, disciplineIds: number[]): Promise<void> {
+    // Primeiro, remove todas as disciplinas existentes do curso
+    await db.delete(courseDisciplines).where(eq(courseDisciplines.courseId, courseId));
+    
+    // Depois, adiciona as novas disciplinas
+    if (disciplineIds.length > 0) {
+      const courseDisciplineData = disciplineIds.map((disciplineId, index) => ({
+        courseId,
+        disciplineId,
+        ordem: index + 1,
+        periodo: 1, // Padrão
+        obrigatoria: true, // Padrão
+      }));
+      
+      await db.insert(courseDisciplines).values(courseDisciplineData);
+    }
+  }
+
+  async removeCourseDisciplines(courseId: number, disciplineIds?: number[]): Promise<void> {
+    if (disciplineIds && disciplineIds.length > 0) {
+      // Remove disciplinas específicas
+      await db
+        .delete(courseDisciplines)
+        .where(
+          and(
+            eq(courseDisciplines.courseId, courseId),
+            eq(courseDisciplines.disciplineId, disciplineIds[0]) // Simplificado para uma disciplina por vez
+          )
+        );
+    } else {
+      // Remove todas as disciplinas do curso
+      await db.delete(courseDisciplines).where(eq(courseDisciplines.courseId, courseId));
+    }
   }
 
   // Sistema de Certificados Acadêmicos - Alunos

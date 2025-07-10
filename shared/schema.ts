@@ -412,20 +412,31 @@ export const academicProfessors = pgTable("academic_professors", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Disciplinas dos cursos acadêmicos
+// Disciplinas acadêmicas (independentes de curso)
 export const academicDisciplines = pgTable("academic_disciplines", {
   id: serial("id").primaryKey(),
   nome: text("nome").notNull(),
   codigo: text("codigo"),
-  courseId: integer("courseid").notNull().references(() => academicCourses.id),
   professorId: integer("professorid").references(() => academicProfessors.id),
   cargaHoraria: integer("cargahoraria"),
+  periodo: integer("periodo").default(1), // 1º, 2º, 3º período, etc.
+  tipo: text("tipo").default("obrigatoria"), // obrigatoria, optativa, eletiva
   ementa: text("ementa"),
-  objetivos: text("objetivos"),
-  ordem: integer("ordem"),
-  isActive: boolean("isactive").notNull().default(true),
+  prerequeisitos: text("prerequeisitos").array(), // array de códigos de disciplinas pré-requisitas
+  status: text("status").notNull().default("ativo"), // ativo, inativo
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela de junção - Relacionamento muitos-para-muitos entre cursos e disciplinas
+export const courseDisciplines = pgTable("course_disciplines", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").notNull().references(() => academicCourses.id),
+  disciplineId: integer("discipline_id").notNull().references(() => academicDisciplines.id),
+  ordem: integer("ordem").default(1), // ordem da disciplina no curso
+  periodo: integer("periodo").default(1), // em qual período a disciplina é oferecida
+  obrigatoria: boolean("obrigatoria").default(true), // se é obrigatória ou optativa para este curso
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Alunos dos cursos acadêmicos
@@ -757,6 +768,47 @@ export const evaluationSubmissionsRelations = relations(evaluationSubmissions, (
   student: one(users, { fields: [evaluationSubmissions.studentId], references: [users.id] }),
 }));
 
+// Relações para as tabelas acadêmicas
+export const academicCoursesRelations = relations(academicCourses, ({ many }) => ({
+  students: many(academicStudents),
+  certificates: many(academicCertificates),
+  courseDisciplines: many(courseDisciplines),
+}));
+
+export const academicDisciplinesRelations = relations(academicDisciplines, ({ many, one }) => ({
+  professor: one(academicProfessors, { fields: [academicDisciplines.professorId], references: [academicProfessors.id] }),
+  courseDisciplines: many(courseDisciplines),
+  grades: many(academicGrades),
+}));
+
+export const courseDisciplinesRelations = relations(courseDisciplines, ({ one }) => ({
+  course: one(academicCourses, { fields: [courseDisciplines.courseId], references: [academicCourses.id] }),
+  discipline: one(academicDisciplines, { fields: [courseDisciplines.disciplineId], references: [academicDisciplines.id] }),
+}));
+
+export const academicProfessorsRelations = relations(academicProfessors, ({ many }) => ({
+  disciplines: many(academicDisciplines),
+}));
+
+export const academicStudentsRelations = relations(academicStudents, ({ many, one }) => ({
+  course: one(academicCourses, { fields: [academicStudents.courseId], references: [academicCourses.id] }),
+  grades: many(academicGrades),
+  certificates: many(academicCertificates),
+}));
+
+export const academicGradesRelations = relations(academicGrades, ({ one }) => ({
+  student: one(academicStudents, { fields: [academicGrades.studentId], references: [academicStudents.id] }),
+  discipline: one(academicDisciplines, { fields: [academicGrades.disciplineId], references: [academicDisciplines.id] }),
+}));
+
+export const academicCertificatesRelations = relations(academicCertificates, ({ one }) => ({
+  student: one(academicStudents, { fields: [academicCertificates.studentId], references: [academicStudents.id] }),
+  course: one(academicCourses, { fields: [academicCertificates.courseId], references: [academicCourses.id] }),
+  requestedBy: one(users, { fields: [academicCertificates.solicitadoPor], references: [users.id] }),
+  authorizedBy: one(users, { fields: [academicCertificates.autorizadoPor], references: [users.id] }),
+  issuedBy: one(users, { fields: [academicCertificates.emitidoPor], references: [users.id] }),
+}));
+
 // Schemas de inserção
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -1017,13 +1069,21 @@ export const insertAcademicProfessorSchema = createInsertSchema(academicProfesso
 export const insertAcademicDisciplineSchema = createInsertSchema(academicDisciplines).pick({
   nome: true,
   codigo: true,
-  courseId: true,
   professorId: true,
   cargaHoraria: true,
+  periodo: true,
+  tipo: true,
   ementa: true,
-  objetivos: true,
+  prerequeisitos: true,
+  status: true,
+});
+
+export const insertCourseDisciplineSchema = createInsertSchema(courseDisciplines).pick({
+  courseId: true,
+  disciplineId: true,
   ordem: true,
-  isActive: true,
+  periodo: true,
+  obrigatoria: true,
 });
 
 export const insertAcademicStudentSchema = createInsertSchema(academicStudents).pick({
@@ -1231,6 +1291,9 @@ export type AcademicProfessor = typeof academicProfessors.$inferSelect;
 
 export type InsertAcademicDiscipline = z.infer<typeof insertAcademicDisciplineSchema>;
 export type AcademicDiscipline = typeof academicDisciplines.$inferSelect;
+
+export type InsertCourseDiscipline = z.infer<typeof insertCourseDisciplineSchema>;
+export type CourseDiscipline = typeof courseDisciplines.$inferSelect;
 
 export type InsertAcademicStudent = z.infer<typeof insertAcademicStudentSchema>;
 export type AcademicStudent = typeof academicStudents.$inferSelect;

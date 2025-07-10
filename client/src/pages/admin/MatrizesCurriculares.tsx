@@ -173,17 +173,32 @@ const MatrizesCurriculares = () => {
 
   // Mutations para cursos
   const createCourseMutation = useMutation({
-    mutationFn: async (data: Partial<Curso>) => {
-      return apiRequest('/api/academic/courses', {
+    mutationFn: async (data: Partial<Curso> & { selectedDisciplines?: number[] }) => {
+      const { selectedDisciplines, ...courseData } = data;
+      
+      // Criar o curso primeiro
+      const course = await apiRequest('/api/academic/courses', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(courseData),
         headers: { 'Content-Type': 'application/json' }
       });
+
+      // Se houver disciplinas selecionadas, associá-las ao curso
+      if (selectedDisciplines && selectedDisciplines.length > 0) {
+        await apiRequest(`/api/academic/courses/${course.id}/disciplines`, {
+          method: 'POST',
+          body: JSON.stringify({ disciplineIds: selectedDisciplines }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      return course;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/academic/courses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/academic/disciplines'] });
       setIsCourseCreateModalOpen(false);
-      toast({ title: 'Sucesso', description: 'Curso criado com sucesso' });
+      toast({ title: 'Sucesso', description: 'Curso criado com sucesso e disciplinas associadas' });
     },
     onError: () => {
       toast({ title: 'Erro', description: 'Erro ao criar curso', variant: 'destructive' });
@@ -274,6 +289,24 @@ const MatrizesCurriculares = () => {
     },
     onError: () => {
       toast({ title: 'Erro', description: 'Erro ao remover professor', variant: 'destructive' });
+    }
+  });
+
+  // Mutations para relacionamento Curso-Disciplina
+  const addCourseDisciplinesMutation = useMutation({
+    mutationFn: async ({ courseId, disciplineIds }: { courseId: number; disciplineIds: number[] }) => {
+      return apiRequest(`/api/academic/courses/${courseId}/disciplines`, {
+        method: 'POST',
+        body: JSON.stringify({ disciplineIds }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/academic/courses'] });
+      toast({ title: 'Sucesso', description: 'Disciplinas adicionadas ao curso com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao adicionar disciplinas ao curso', variant: 'destructive' });
     }
   });
 
@@ -404,7 +437,7 @@ const MatrizesCurriculares = () => {
 
   const CourseForm = ({ course, onSubmit, onCancel }: {
     course?: Curso | null;
-    onSubmit: (data: Partial<Curso>) => void;
+    onSubmit: (data: Partial<Curso> & { selectedDisciplines?: number[] }) => void;
     onCancel: () => void;
   }) => {
     const [formData, setFormData] = useState({
@@ -420,9 +453,11 @@ const MatrizesCurriculares = () => {
       descricao: course?.descricao || ''
     });
 
+    const [selectedDisciplines, setSelectedDisciplines] = useState<number[]>([]);
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      onSubmit(formData);
+      onSubmit({ ...formData, selectedDisciplines });
     };
 
     return (
@@ -557,6 +592,66 @@ const MatrizesCurriculares = () => {
             rows={4}
             placeholder="Descrição geral do curso, objetivos e perfil do egresso..."
           />
+        </div>
+
+        {/* Seleção Múltipla de Disciplinas */}
+        <div className="space-y-3">
+          <Label>Disciplinas do Curso (máximo 20)</Label>
+          <p className="text-sm text-muted-foreground">
+            Selecione até 20 disciplinas que farão parte da matriz curricular deste curso
+          </p>
+          <div className="border rounded-lg p-4 space-y-2 max-h-64 overflow-y-auto">
+            {disciplinas.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhuma disciplina disponível. Crie disciplinas primeiro na aba "Disciplinas".
+              </p>
+            ) : (
+              disciplinas.map((disciplina) => (
+                <div key={disciplina.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
+                  <input
+                    type="checkbox"
+                    id={`disciplina-${disciplina.id}`}
+                    checked={selectedDisciplines.includes(disciplina.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        if (selectedDisciplines.length < 20) {
+                          setSelectedDisciplines(prev => [...prev, disciplina.id]);
+                        } else {
+                          toast({ 
+                            title: 'Limite atingido', 
+                            description: 'Máximo de 20 disciplinas por curso',
+                            variant: 'destructive'
+                          });
+                        }
+                      } else {
+                        setSelectedDisciplines(prev => prev.filter(id => id !== disciplina.id));
+                      }
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor={`disciplina-${disciplina.id}`} className="flex-1 text-sm cursor-pointer">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="font-medium">{disciplina.nome}</span>
+                        <span className="text-muted-foreground ml-2">({disciplina.codigo})</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {disciplina.cargaHoraria}h
+                        </Badge>
+                        {getTipoBadge(disciplina.tipo)}
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              ))
+            )}
+          </div>
+          {selectedDisciplines.length > 0 && (
+            <div className="text-sm text-muted-foreground">
+              {selectedDisciplines.length} de 20 disciplinas selecionadas
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">

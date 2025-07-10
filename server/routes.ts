@@ -2990,8 +2990,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Disciplinas Acadêmicas
   app.get("/api/academic/disciplines", authenticateToken, async (req: any, res) => {
     try {
-      const { courseId } = req.query;
-      const disciplines = await storage.getAcademicDisciplines(courseId ? parseInt(courseId as string) : undefined);
+      const disciplines = await storage.getAcademicDisciplines();
       res.json(disciplines);
     } catch (error) {
       console.error("Erro ao buscar disciplinas acadêmicas:", error);
@@ -3031,6 +3030,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(discipline);
     } catch (error) {
       console.error("Erro ao atualizar disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Relacionamento Curso-Disciplina
+  app.get("/api/academic/courses/:courseId/disciplines", authenticateToken, async (req: any, res) => {
+    try {
+      const { courseId } = req.params;
+      const disciplines = await storage.getCourseDisciplines(parseInt(courseId));
+      res.json(disciplines);
+    } catch (error) {
+      console.error("Erro ao buscar disciplinas do curso:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/academic/courses/:courseId/disciplines", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { courseId } = req.params;
+      const { disciplineIds } = req.body;
+      
+      if (!Array.isArray(disciplineIds)) {
+        return res.status(400).json({ message: "disciplineIds deve ser um array" });
+      }
+
+      await storage.addCourseDisciplines(parseInt(courseId), disciplineIds);
+      res.json({ message: "Disciplinas adicionadas ao curso com sucesso" });
+    } catch (error) {
+      console.error("Erro ao adicionar disciplinas ao curso:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.delete("/api/academic/courses/:courseId/disciplines", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { courseId } = req.params;
+      const { disciplineIds } = req.body;
+      
+      await storage.removeCourseDisciplines(parseInt(courseId), disciplineIds);
+      res.json({ message: "Disciplinas removidas do curso com sucesso" });
+    } catch (error) {
+      console.error("Erro ao remover disciplinas do curso:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
