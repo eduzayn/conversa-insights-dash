@@ -266,6 +266,15 @@ const MatrizesCurriculares = () => {
 
   // Função para obter badge de tipo
   const getTipoBadge = (tipo: string) => {
+    // Proteção contra valores undefined ou null
+    if (!tipo || typeof tipo !== 'string') {
+      return (
+        <Badge variant="outline">
+          Não definido
+        </Badge>
+      );
+    }
+
     const configs = {
       obrigatoria: { variant: 'default' as const, color: 'text-blue-600' },
       optativa: { variant: 'secondary' as const, color: 'text-green-600' },
