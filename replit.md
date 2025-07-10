@@ -549,7 +549,7 @@ Changelog:
    * ✅ Sidebar reorganizada em 5 seções contextuais com submenus
    * ✅ Geral: Dashboard, Produtividade, Metas & Engajamento
    * ✅ Relacionamento: Atendimento ao Aluno, Chat Interno, CRM, Atendimentos
-   * ✅ Acadêmico: Matrícula Simplificada, Certificações, Presença
+   * ✅ Acadêmico: Matrícula Simplificada, Análise Certificação, Presença
    * ✅ Financeiro: Cobranças Asaas
    * ✅ Integrações: BotConversa, Gerenciar Tokens
    * ✅ Ícones apenas nos cabeçalhos principais (sem ícones nos submenus)

@@ -43,7 +43,7 @@ const menuSections = [
     icon: GraduationCap,
     items: [
       { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
-      { label: 'Certificações', path: '/certificacoes' },
+      { label: 'Análise Certificação', path: '/certificacoes' },
       { label: 'Certificados de Pós', path: '/certificados-pos' },
     ]
   },
