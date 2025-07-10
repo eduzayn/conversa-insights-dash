@@ -1328,7 +1328,32 @@ const CertificadosPos = () => {
                   )}
 
                   <div>
-                    <Label className="font-semibold">Template HTML</Label>
+                    <Label className="font-semibold">Preview Visual</Label>
+                    <div className="border rounded-lg p-4 bg-white min-h-48 max-h-64 overflow-auto">
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: selectedTemplate.htmlTemplate
+                            .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                            .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                            .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                            .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                            .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                            .replace(/{{cargaHoraria}}/g, "420")
+                            .replace(/{{numeroRegistro}}/g, "001/2025")
+                            .replace(/{{areaCurso}}/g, "Educação")
+                        }} 
+                        className="certificate-preview"
+                        style={{
+                          fontFamily: 'Times New Roman, serif',
+                          lineHeight: '1.6',
+                          color: '#000'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="font-semibold">Código HTML</Label>
                     <Textarea 
                       value={selectedTemplate.htmlTemplate} 
                       readOnly 
