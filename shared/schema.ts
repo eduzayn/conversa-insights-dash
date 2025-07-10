@@ -351,7 +351,8 @@ export const certificateTemplates = pgTable("certificate_templates", {
   nome: text("nome").notNull(),
   categoria: text("categoria").notNull(), // pos_graduacao, segunda_licenciatura, formacao_pedagogica
   tipo: text("tipo").notNull().default("completo"), // completo, frente, verso
-  htmlTemplate: text("html_template").notNull(), // Template HTML/CSS
+  htmlTemplate: text("html_template").notNull(), // Template HTML/CSS da frente
+  templateVerso: text("template_verso").notNull(), // Template HTML/CSS do verso (histórico escolar)
   variaveis: json("variaveis").notNull().default([]), // Array de variáveis disponíveis
   instituicaoNome: text("instituicao_nome").notNull().default("Instituição de Ensino Superior"),
   instituicaoEndereco: text("instituicao_endereco"),
@@ -1156,6 +1157,7 @@ export const insertCertificateTemplateSchema = createInsertSchema(certificateTem
   categoria: true,
   tipo: true,
   htmlTemplate: true,
+  templateVerso: true,
   variaveis: true,
   instituicaoNome: true,
   instituicaoEndereco: true,

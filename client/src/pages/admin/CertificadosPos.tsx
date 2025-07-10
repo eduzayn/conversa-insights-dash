@@ -75,6 +75,7 @@ interface CertificateTemplate {
   categoria: string;
   tipo: string;
   htmlTemplate: string;
+  templateVerso: string;
   variaveis: any[];
   instituicaoNome: string;
   instituicaoEndereco?: string;
@@ -1136,6 +1137,7 @@ const CertificadosPos = () => {
                   categoria: formData.get('categoria') as string,
                   tipo: formData.get('tipo') as string,
                   htmlTemplate: formData.get('htmlTemplate') as string,
+                  templateVerso: formData.get('templateVerso') as string,
                   variaveis: JSON.parse(formData.get('variaveis') as string || '[]'),
                   instituicaoNome: formData.get('instituicaoNome') as string,
                   instituicaoEndereco: formData.get('instituicaoEndereco') as string,
@@ -1208,14 +1210,53 @@ const CertificadosPos = () => {
                     <Input name="instituicaoEndereco" placeholder="Rua, número, cidade, estado" />
                   </div>
 
-                  <div>
-                    <Label htmlFor="htmlTemplate">Template HTML *</Label>
-                    <Textarea
-                      name="htmlTemplate"
-                      required
-                      className="min-h-32"
-                      placeholder="Cole aqui o código HTML do template do certificado..."
-                    />
+                  {/* Sistema de Abas para Template HTML */}
+                  <div className="space-y-4">
+                    <Label className="text-lg font-semibold">Templates HTML *</Label>
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex space-x-1 mb-4">
+                        <button
+                          type="button"
+                          className="px-3 py-1 text-sm font-medium rounded-md bg-blue-600 text-white"
+                          onClick={() => document.getElementById('tab-frente')?.scrollIntoView()}
+                        >
+                          Frente (Certificado)
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1 text-sm font-medium rounded-md bg-orange-600 text-white"
+                          onClick={() => document.getElementById('tab-verso')?.scrollIntoView()}
+                        >
+                          Verso (Histórico)
+                        </button>
+                      </div>
+                      
+                      <div id="tab-frente" className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                          <Label htmlFor="htmlTemplate" className="font-medium">Template HTML - Frente do Certificado *</Label>
+                        </div>
+                        <Textarea
+                          name="htmlTemplate"
+                          required
+                          className="min-h-32 bg-white"
+                          placeholder="Cole aqui o código HTML da frente do certificado..."
+                        />
+                      </div>
+                      
+                      <div id="tab-verso" className="space-y-3 mt-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
+                          <Label htmlFor="templateVerso" className="font-medium">Template HTML - Verso do Certificado (Histórico) *</Label>
+                        </div>
+                        <Textarea
+                          name="templateVerso"
+                          required
+                          className="min-h-32 bg-white"
+                          placeholder="Cole aqui o código HTML do verso do certificado (histórico escolar completo)..."
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div>
@@ -1282,7 +1323,7 @@ const CertificadosPos = () => {
               
               {selectedTemplate && (
                 <div className="space-y-4">
-                  {/* Apenas o Preview Visual do Certificado */}
+                  {/* Sistema de Abas para Preview */}
                   <div className="border-2 border-primary/20 rounded-lg p-6 bg-white">
                     <div className="flex items-center justify-between mb-4">
                       <Label className="text-lg font-semibold text-primary">Preview Visual do Certificado</Label>
@@ -1290,8 +1331,18 @@ const CertificadosPos = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          // Abrir preview em tela cheia
-                          const previewHtml = selectedTemplate.htmlTemplate
+                          // Abrir preview completo em tela cheia (frente + verso)
+                          const previewHtmlFrente = selectedTemplate.htmlTemplate
+                            .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                            .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                            .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                            .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                            .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                            .replace(/{{cargaHoraria}}/g, "420")
+                            .replace(/{{numeroRegistro}}/g, "001/2025")
+                            .replace(/{{areaCurso}}/g, "Educação");
+                            
+                          const previewHtmlVerso = selectedTemplate.templateVerso
                             .replace(/{{nomeAluno}}/g, "João Silva Santos")
                             .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
                             .replace(/{{cpfAluno}}/g, "123.456.789-00")
@@ -1307,35 +1358,50 @@ const CertificadosPos = () => {
                               <!DOCTYPE html>
                               <html>
                               <head>
-                                <title>Preview - ${selectedTemplate.nome}</title>
+                                <title>Preview Completo - ${selectedTemplate.nome}</title>
                                 <style>
                                   body { 
                                     font-family: 'Times New Roman', serif; 
                                     margin: 0; 
                                     padding: 20px; 
                                     background: #f5f5f5;
-                                    display: flex;
-                                    justify-content: center;
-                                    align-items: center;
-                                    min-height: 100vh;
                                   }
-                                  .certificate-container { 
+                                  .page { 
                                     background: white;
                                     padding: 40px;
                                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                                     max-width: 800px;
                                     width: 100%;
                                     border-radius: 8px;
+                                    margin: 0 auto 20px;
+                                    min-height: 600px;
+                                  }
+                                  .page-header {
+                                    text-align: center;
+                                    margin-bottom: 20px;
+                                    padding: 10px;
+                                    background: #e3f2fd;
+                                    border-radius: 6px;
                                   }
                                   @media print { 
                                     body { background: white; }
-                                    .certificate-container { box-shadow: none; }
+                                    .page { box-shadow: none; page-break-after: always; }
+                                    .page-header { display: none; }
                                   }
                                 </style>
                               </head>
                               <body>
-                                <div class="certificate-container">
-                                  ${previewHtml}
+                                <div class="page">
+                                  <div class="page-header">
+                                    <h3 style="margin: 0; color: #1976d2;">PÁGINA 1 - FRENTE DO CERTIFICADO</h3>
+                                  </div>
+                                  ${previewHtmlFrente}
+                                </div>
+                                <div class="page">
+                                  <div class="page-header">
+                                    <h3 style="margin: 0; color: #f57c00;">PÁGINA 2 - VERSO DO CERTIFICADO (HISTÓRICO)</h3>
+                                  </div>
+                                  ${previewHtmlVerso}
                                 </div>
                               </body>
                               </html>
@@ -1346,36 +1412,98 @@ const CertificadosPos = () => {
                         className="gap-1"
                       >
                         <Eye className="h-3 w-3" />
-                        Tela Cheia
+                        Preview Completo
                       </Button>
                     </div>
                     
-                    {/* Preview do certificado com maior destaque */}
-                    <div className="border-2 border-gray-200 rounded-lg p-8 bg-white shadow-inner min-h-96">
-                      <div 
-                        dangerouslySetInnerHTML={{ 
-                          __html: selectedTemplate.htmlTemplate
-                            .replace(/{{nomeAluno}}/g, "João Silva Santos")
-                            .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
-                            .replace(/{{cpfAluno}}/g, "123.456.789-00")
-                            .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
-                            .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
-                            .replace(/{{cargaHoraria}}/g, "420")
-                            .replace(/{{numeroRegistro}}/g, "001/2025")
-                            .replace(/{{areaCurso}}/g, "Educação")
-                        }} 
-                        style={{
-                          fontFamily: 'Times New Roman, serif',
-                          lineHeight: '1.6',
-                          color: '#000',
-                          fontSize: '16px',
-                          textAlign: 'center',
-                          minHeight: '300px'
-                        }}
-                      />
+                    {/* Abas para visualização separada */}
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                      <div className="flex space-x-2">
+                        <button
+                          type="button"
+                          className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          onClick={() => {
+                            document.getElementById('preview-frente')?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                        >
+                          Frente (Certificado)
+                        </button>
+                        <button
+                          type="button"
+                          className="px-4 py-2 text-sm font-medium rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors"
+                          onClick={() => {
+                            document.getElementById('preview-verso')?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                        >
+                          Verso (Histórico)
+                        </button>
+                      </div>
+                      
+                      {/* Preview Frente */}
+                      <div id="preview-frente" className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                          <Label className="font-medium text-blue-700">Frente do Certificado</Label>
+                        </div>
+                        <div className="border-2 border-blue-200 rounded-lg p-6 bg-white shadow-inner">
+                          <div 
+                            dangerouslySetInnerHTML={{ 
+                              __html: selectedTemplate.htmlTemplate
+                                .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                                .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                                .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                                .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                                .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                                .replace(/{{cargaHoraria}}/g, "420")
+                                .replace(/{{numeroRegistro}}/g, "001/2025")
+                                .replace(/{{areaCurso}}/g, "Educação")
+                            }} 
+                            style={{
+                              fontFamily: 'Times New Roman, serif',
+                              lineHeight: '1.6',
+                              color: '#000',
+                              fontSize: '16px',
+                              textAlign: 'center',
+                              minHeight: '300px'
+                            }}
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Preview Verso */}
+                      <div id="preview-verso" className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
+                          <Label className="font-medium text-orange-700">Verso do Certificado (Histórico)</Label>
+                        </div>
+                        <div className="border-2 border-orange-200 rounded-lg p-6 bg-white shadow-inner">
+                          <div 
+                            dangerouslySetInnerHTML={{ 
+                              __html: selectedTemplate.templateVerso
+                                .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                                .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                                .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                                .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                                .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                                .replace(/{{cargaHoraria}}/g, "420")
+                                .replace(/{{numeroRegistro}}/g, "001/2025")
+                                .replace(/{{areaCurso}}/g, "Educação")
+                            }} 
+                            style={{
+                              fontFamily: 'Times New Roman, serif',
+                              lineHeight: '1.6',
+                              color: '#000',
+                              fontSize: '16px',
+                              textAlign: 'left',
+                              minHeight: '300px'
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
+                    
                     <p className="text-xs text-muted-foreground text-center mt-3 italic">
-                      ℹ️ Preview com dados de exemplo para demonstração
+                      ℹ️ Preview com dados de exemplo para demonstração - Certificado completo com frente e verso
                     </p>
                   </div>
 
