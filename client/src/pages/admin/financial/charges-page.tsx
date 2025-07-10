@@ -125,6 +125,19 @@ const ChargesPage: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState<AsaasPayment | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCreateChargeModalOpen, setIsCreateChargeModalOpen] = useState(false);
+
+  // Estados para criação de cobrança
+  const [newCharge, setNewCharge] = useState({
+    customerName: '',
+    customerEmail: '',
+    customerCpfCnpj: '',
+    customerMobilePhone: '',
+    billingType: 'BOLETO',
+    value: '',
+    dueDate: '',
+    description: ''
+  });
 
   // Forçar scroll ao topo quando a página carregar
   useEffect(() => {
@@ -247,6 +260,66 @@ const ChargesPage: React.FC = () => {
         variant: 'destructive',
       });
     }
+  });
+
+  // Mutation para criar cobrança
+  const createChargeMutation = useMutation({
+    mutationFn: async () => {
+      // 1. Primeiro, criar o cliente no Asaas
+      const customerData = {
+        name: newCharge.customerName,
+        email: newCharge.customerEmail,
+        cpfCnpj: newCharge.customerCpfCnpj,
+        mobilePhone: newCharge.customerMobilePhone
+      };
+
+      const customer = await apiRequest('/api/asaas/customers', {
+        method: 'POST',
+        body: JSON.stringify(customerData)
+      });
+
+      // 2. Depois, criar a cobrança usando o ID do cliente
+      const chargeData = {
+        customer: customer.id,
+        billingType: newCharge.billingType,
+        value: parseFloat(newCharge.value),
+        dueDate: newCharge.dueDate,
+        description: newCharge.description
+      };
+
+      return await apiRequest('/api/asaas/payments', {
+        method: 'POST',
+        body: JSON.stringify(chargeData)
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Cobrança criada com sucesso!',
+        description: 'Cliente e cobrança foram criados no Asaas',
+      });
+      // Resetar formulário e fechar modal
+      setNewCharge({
+        customerName: '',
+        customerEmail: '',
+        customerCpfCnpj: '',
+        customerMobilePhone: '',
+        billingType: 'BOLETO',
+        value: '',
+        dueDate: '',
+        description: ''
+      });
+      setIsCreateChargeModalOpen(false);
+      // Atualizar tabela
+      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments/stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao criar cobrança',
+        description: error.message || 'Falha ao criar cliente ou cobrança no Asaas',
+        variant: 'destructive',
+      });
+    },
   });
 
   // Função para formatar valores monetários
@@ -829,7 +902,7 @@ const ChargesPage: React.FC = () => {
                 <p className="text-muted-foreground mb-4">
                   Em breve: formulário completo para criar cobranças
                 </p>
-                <Button>
+                <Button onClick={() => setIsCreateChargeModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Cobrança
                 </Button>
@@ -1094,6 +1167,144 @@ const ChargesPage: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Criar Nova Cobrança */}
+      <Dialog open={isCreateChargeModalOpen} onOpenChange={setIsCreateChargeModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Adicionar Cobrança</DialogTitle>
+            <DialogDescription>
+              Criar nova cobrança no Asaas
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Dados do Cliente */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Dados do Cliente</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="customerName">Nome Completo *</Label>
+                  <Input
+                    id="customerName"
+                    value={newCharge.customerName}
+                    onChange={(e) => setNewCharge({...newCharge, customerName: e.target.value})}
+                    placeholder="João da Silva"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerEmail">E-mail *</Label>
+                  <Input
+                    id="customerEmail"
+                    type="email"
+                    value={newCharge.customerEmail}
+                    onChange={(e) => setNewCharge({...newCharge, customerEmail: e.target.value})}
+                    placeholder="joao@email.com"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerCpfCnpj">CPF ou CNPJ *</Label>
+                  <Input
+                    id="customerCpfCnpj"
+                    value={newCharge.customerCpfCnpj}
+                    onChange={(e) => setNewCharge({...newCharge, customerCpfCnpj: e.target.value})}
+                    placeholder="12345678900"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerMobilePhone">Telefone Celular *</Label>
+                  <Input
+                    id="customerMobilePhone"
+                    value={newCharge.customerMobilePhone}
+                    onChange={(e) => setNewCharge({...newCharge, customerMobilePhone: e.target.value})}
+                    placeholder="31999999999"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Dados da Cobrança */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Dados da Cobrança</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="billingType">Forma de Pagamento *</Label>
+                  <Select value={newCharge.billingType} onValueChange={(value) => setNewCharge({...newCharge, billingType: value})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BOLETO">Boleto</SelectItem>
+                      <SelectItem value="PIX">PIX</SelectItem>
+                      <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="value">Valor (R$) *</Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    step="0.01"
+                    value={newCharge.value}
+                    onChange={(e) => setNewCharge({...newCharge, value: e.target.value})}
+                    placeholder="99.00"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dueDate">Data de Vencimento *</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={newCharge.dueDate}
+                    onChange={(e) => setNewCharge({...newCharge, dueDate: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Input
+                    id="description"
+                    value={newCharge.description}
+                    onChange={(e) => setNewCharge({...newCharge, description: e.target.value})}
+                    placeholder="Parcela 1 de 12 - Curso XYZ"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Botões */}
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateChargeModalOpen(false)}
+                disabled={createChargeMutation.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => createChargeMutation.mutate()}
+                disabled={createChargeMutation.isPending || !newCharge.customerName || !newCharge.customerEmail || !newCharge.customerCpfCnpj || !newCharge.customerMobilePhone || !newCharge.value || !newCharge.dueDate}
+              >
+                {createChargeMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Adicionar Cobrança
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
           </div>
