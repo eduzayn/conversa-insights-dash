@@ -1627,15 +1627,14 @@ const CertificadosPos = () => {
                           <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
                           <Label className="font-medium text-blue-700">Frente do Certificado</Label>
                         </div>
-                        <div className="bg-gray-100 rounded-lg p-4 overflow-auto flex justify-center">
+                        <div className="bg-gray-100 rounded-lg p-2 flex justify-center items-center min-h-[400px]">
                           <div 
                             className="preview-container bg-white border border-gray-300 shadow-lg" 
                             style={{
                               width: '1123px',
                               height: '794px',
-                              transform: 'scale(0.65)',
-                              transformOrigin: 'top center',
-                              marginBottom: '-280px'
+                              transform: 'scale(0.45)',
+                              transformOrigin: 'center center'
                             }}
                           >
                             <div 
@@ -1671,15 +1670,14 @@ const CertificadosPos = () => {
                           <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
                           <Label className="font-medium text-orange-700">Verso do Certificado (Histórico)</Label>
                         </div>
-                        <div className="bg-gray-100 rounded-lg p-4 overflow-auto flex justify-center">
+                        <div className="bg-gray-100 rounded-lg p-2 flex justify-center items-center min-h-[400px]">
                           <div 
                             className="preview-container bg-white border border-gray-300 shadow-lg" 
                             style={{
                               width: '1123px',
                               height: '794px',
-                              transform: 'scale(0.65)',
-                              transformOrigin: 'top center',
-                              marginBottom: '-280px'
+                              transform: 'scale(0.45)',
+                              transformOrigin: 'center center'
                             }}
                           >
                             <div 

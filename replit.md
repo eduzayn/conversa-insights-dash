@@ -589,6 +589,13 @@ Changelog:
      - Tratamento de erros robusto com toasts informativos
    * ✅ Integração frontend-backend 100% funcional e testada
    * ✅ Página acessível via sidebar (Acadêmico > Certificados Acadêmicos)
+   * ✅ CORREÇÃO: Layout do modal de preview ajustado para formato A4 paisagem (10 Jul 2025)
+     - Aplicado formato A4 paisagem correto (1123px × 794px)
+     - Certificado centralizado horizontalmente no modal
+     - Escala de 45% para visualização otimizada
+     - Eliminada rolagem horizontal/vertical desnecessária
+     - Layout proporcional ao PDF final gerado
+     - Fundo cinza para simular papel
    * Status: Sistema completo para criação e gestão de templates de certificados implementado
 - Renomeação do Módulo "Gestão Acadêmica" para "Gestão de Cursos" (10 Jul 2025):
    * ✅ Sidebar atualizada: "Gestão Acadêmica" alterado para "Gestão de Cursos"
