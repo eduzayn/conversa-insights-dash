@@ -275,6 +275,17 @@ router.get('/payments', auth, async (req, res) => {
     const filters = paymentFiltersSchema.parse(req.query);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     
+    // DEBUG: Log dos filtros recebidos
+    console.log('[Asaas Payments] Filtros recebidos:', {
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      status: filters.status,
+      billingType: filters.billingType,
+      search: filters.search,
+      page: filters.page,
+      limit: filters.limit
+    });
+    
     // Converter page para offset se necessário
     if (filters.page && !filters.offset) {
       const limit = filters.limit || 20;
@@ -283,6 +294,16 @@ router.get('/payments', auth, async (req, res) => {
     
     const paymentsResponse = await asaas.getPayments(filters);
     const payments = paymentsResponse.data || [];
+    
+    // DEBUG: Log das datas dos primeiros pagamentos retornados
+    console.log('[Asaas Payments] Primeiros 3 pagamentos retornados:', 
+      payments.slice(0, 3).map((p: any) => ({
+        id: p.id,
+        dateCreated: p.dateCreated,
+        dueDate: p.dueDate,
+        status: p.status
+      }))
+    );
     
     // Buscar dados dos clientes para enriquecer a resposta
     const customersMap = new Map();

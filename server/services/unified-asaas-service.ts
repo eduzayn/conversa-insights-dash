@@ -229,9 +229,26 @@ export class UnifiedAsaasService {
    */
   async getPayments(filters: PaymentFilters = {}): Promise<any> {
     try {
+      // DEBUG: Log dos parâmetros enviados para a API do Asaas
+      console.log('[Asaas Service] Parâmetros enviados para API:', filters);
+      
       const response = await this.api.get('/payments', { params: filters });
+      
+      // DEBUG: Log da resposta da API
+      const payments = response.data.data || [];
+      console.log('[Asaas Service] Total de pagamentos retornados:', payments.length);
+      if (payments.length > 0) {
+        console.log('[Asaas Service] Primeiro pagamento:', {
+          id: payments[0].id,
+          dateCreated: payments[0].dateCreated,
+          dueDate: payments[0].dueDate,
+          status: payments[0].status
+        });
+      }
+      
       return response.data;
     } catch (error: any) {
+      console.error('[Asaas Service] Erro na requisição:', error.response?.data || error.message);
       throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao listar cobranças');
     }
   }
