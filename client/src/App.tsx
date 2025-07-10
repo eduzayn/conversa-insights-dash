@@ -26,6 +26,8 @@ import GerenciarTokens from "./pages/admin/GerenciarTokens";
 
 
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
+import CorpoDocente from "./pages/admin/CorpoDocente";
+import MatrizesCurriculares from "./pages/admin/MatrizesCurriculares";
 import StudentLogin from "./pages/portal/StudentLogin";
 import LoginRouter from "./components/LoginRouter";
 
@@ -64,6 +66,8 @@ const App = () => (
 
 
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
+            <Route path="/corpo-docente" element={<CorpoDocente />} />
+            <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
             <Route path="/portal/*" element={<PortalLayout />} />
