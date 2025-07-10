@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
@@ -68,7 +69,28 @@ interface CertificateStats {
   revogados: number;
 }
 
+interface CertificateTemplate {
+  id: number;
+  nome: string;
+  categoria: string;
+  tipo: string;
+  htmlTemplate: string;
+  variaveis: any[];
+  instituicaoNome: string;
+  instituicaoEndereco?: string;
+  instituicaoLogo?: string;
+  assinaturaDigital1?: string;
+  assinaturaDigital2?: string;
+  textoLegal: string;
+  qrCodePosition: string;
+  isActive: boolean;
+  createdBy?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const CertificadosPos = () => {
+  const [activeTab, setActiveTab] = useState('certificados');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoriaFilter, setCategoriaFilter] = useState<string>('all');
@@ -78,6 +100,14 @@ const CertificadosPos = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Estados para modelos de certificados
+  const [selectedTemplate, setSelectedTemplate] = useState<CertificateTemplate | null>(null);
+  const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false);
+  const [isViewTemplateModalOpen, setIsViewTemplateModalOpen] = useState(false);
+  const [templateSearchTerm, setTemplateSearchTerm] = useState('');
+  const [templateCategoriaFilter, setTemplateCategoriaFilter] = useState<string>('all');
+  const [templateTipoFilter, setTemplateTipoFilter] = useState<string>('all');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -107,6 +137,15 @@ const CertificadosPos = () => {
     queryFn: async () => {
       const response = await apiRequest('/api/academic/students');
       return response as AcademicStudent[];
+    }
+  });
+
+  // Buscar modelos de certificados
+  const { data: templates = [], isLoading: loadingTemplates } = useQuery({
+    queryKey: ['/api/certificate-templates'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/certificate-templates');
+      return response as CertificateTemplate[];
     }
   });
 
@@ -144,6 +183,58 @@ const CertificadosPos = () => {
     },
     onError: () => {
       toast({ title: 'Erro', description: 'Erro ao atualizar status', variant: 'destructive' });
+    }
+  });
+
+  // Mutations para modelos de certificados
+  const createTemplateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/certificate-templates', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/certificate-templates'] });
+      setIsCreateTemplateModalOpen(false);
+      toast({ title: 'Sucesso', description: 'Modelo de certificado criado com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao criar modelo de certificado', variant: 'destructive' });
+    }
+  });
+
+  const updateTemplateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return apiRequest(`/api/certificate-templates/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/certificate-templates'] });
+      setIsViewTemplateModalOpen(false);
+      toast({ title: 'Sucesso', description: 'Modelo de certificado atualizado com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao atualizar modelo de certificado', variant: 'destructive' });
+    }
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/certificate-templates/${id}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/certificate-templates'] });
+      toast({ title: 'Sucesso', description: 'Modelo de certificado excluído com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao excluir modelo de certificado', variant: 'destructive' });
     }
   });
 
@@ -252,11 +343,30 @@ const CertificadosPos = () => {
             <p className="text-muted-foreground">Gestão de certificados de Pós-Graduação e Segunda Licenciatura</p>
           </div>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+        <Button 
+          onClick={() => activeTab === 'certificados' ? setIsCreateModalOpen(true) : setIsCreateTemplateModalOpen(true)} 
+          className="gap-2"
+        >
           <Plus className="h-4 w-4" />
-          Novo Certificado
+          {activeTab === 'certificados' ? 'Novo Certificado' : 'Novo Modelo'}
         </Button>
       </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="certificados" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Certificados
+          </TabsTrigger>
+          <TabsTrigger value="modelos" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Modelos de Certificados
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Aba de Certificados */}
+        <TabsContent value="certificados" className="space-y-6">
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -751,6 +861,367 @@ const CertificadosPos = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+        </TabsContent>
+
+        {/* Aba de Modelos de Certificados */}
+        <TabsContent value="modelos" className="space-y-6">
+          
+          {/* Cards de Estatísticas para Modelos */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Modelos</CardTitle>
+                <Settings className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{templates.length}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Modelos Ativos</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {templates.filter(t => t.isActive).length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pós-Graduação</CardTitle>
+                <GraduationCap className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {templates.filter(t => t.categoria === 'pos_graduacao').length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Segunda Graduação</CardTitle>
+                <Award className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {templates.filter(t => t.categoria === 'segunda_graduacao').length}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtros para Modelos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filtros de Modelos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome do modelo..."
+                    value={templateSearchTerm}
+                    onChange={(e) => setTemplateSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                <Select value={templateCategoriaFilter} onValueChange={setTemplateCategoriaFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Categorias</SelectItem>
+                    <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
+                    <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                    <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={templateTipoFilter} onValueChange={setTemplateTipoFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="certificado">Certificado</SelectItem>
+                    <SelectItem value="diploma">Diploma</SelectItem>
+                    <SelectItem value="declaracao">Declaração</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Lista de Modelos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Modelos de Certificados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingTemplates ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : templates.length === 0 ? (
+                <div className="text-center py-8">
+                  <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Nenhum modelo encontrado</h3>
+                  <p className="text-muted-foreground mb-4">Crie seu primeiro modelo de certificado para começar.</p>
+                  <Button onClick={() => setIsCreateTemplateModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeiro Modelo
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {templates
+                    .filter(template => {
+                      const matchesSearch = !templateSearchTerm || 
+                        template.nome.toLowerCase().includes(templateSearchTerm.toLowerCase());
+                      const matchesCategoria = templateCategoriaFilter === 'all' || 
+                        template.categoria === templateCategoriaFilter;
+                      const matchesTipo = templateTipoFilter === 'all' || 
+                        template.tipo === templateTipoFilter;
+                      return matchesSearch && matchesCategoria && matchesTipo;
+                    })
+                    .map((template) => (
+                      <Card key={template.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                              <CardTitle className="text-lg">{template.nome}</CardTitle>
+                              <div className="flex gap-2">
+                                <Badge variant="outline">
+                                  {template.categoria.replace('_', ' ')}
+                                </Badge>
+                                <Badge variant="secondary">
+                                  {template.tipo}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {template.isActive ? (
+                                <Badge variant="default" className="gap-1">
+                                  <CheckCircle className="h-3 w-3" />
+                                  Ativo
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="gap-1">
+                                  <XCircle className="h-3 w-3" />
+                                  Inativo
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-2 text-sm text-muted-foreground">
+                            <p><strong>Instituição:</strong> {template.instituicaoNome}</p>
+                            <p><strong>Posição QR Code:</strong> {template.qrCodePosition}</p>
+                            <p><strong>Variáveis:</strong> {template.variaveis?.length || 0} campos</p>
+                          </div>
+                          
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedTemplate(template);
+                                setIsViewTemplateModalOpen(true);
+                              }}
+                              className="flex-1"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Ver
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {/* Implementar preview */}}
+                            >
+                              <Printer className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteTemplateMutation.mutate(template.id)}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Modal de Criação de Modelo */}
+          <Dialog open={isCreateTemplateModalOpen} onOpenChange={setIsCreateTemplateModalOpen}>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Novo Modelo de Certificado
+                </DialogTitle>
+              </DialogHeader>
+              
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const data = {
+                  nome: formData.get('nome') as string,
+                  categoria: formData.get('categoria') as string,
+                  tipo: formData.get('tipo') as string,
+                  htmlTemplate: formData.get('htmlTemplate') as string,
+                  variaveis: JSON.parse(formData.get('variaveis') as string || '[]'),
+                  instituicaoNome: formData.get('instituicaoNome') as string,
+                  instituicaoEndereco: formData.get('instituicaoEndereco') as string,
+                  instituicaoLogo: formData.get('instituicaoLogo') as string,
+                  assinaturaDigital1: formData.get('assinaturaDigital1') as string,
+                  assinaturaDigital2: formData.get('assinaturaDigital2') as string,
+                  textoLegal: formData.get('textoLegal') as string,
+                  qrCodePosition: formData.get('qrCodePosition') as string,
+                  isActive: formData.get('isActive') === 'on'
+                };
+                createTemplateMutation.mutate(data);
+              }}>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="nome">Nome do Modelo *</Label>
+                      <Input name="nome" required placeholder="Ex: Certificado Pós-Graduação Padrão" />
+                    </div>
+                    <div>
+                      <Label htmlFor="categoria">Categoria *</Label>
+                      <Select name="categoria" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
+                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="tipo">Tipo *</Label>
+                      <Select name="tipo" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="certificado">Certificado</SelectItem>
+                          <SelectItem value="diploma">Diploma</SelectItem>
+                          <SelectItem value="declaracao">Declaração</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="instituicaoNome">Nome da Instituição *</Label>
+                      <Input name="instituicaoNome" required placeholder="Ex: Universidade XYZ" />
+                    </div>
+                    <div>
+                      <Label htmlFor="qrCodePosition">Posição do QR Code *</Label>
+                      <Select name="qrCodePosition" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Posição do QR Code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="inferior_esquerdo">Inferior Esquerdo</SelectItem>
+                          <SelectItem value="inferior_direito">Inferior Direito</SelectItem>
+                          <SelectItem value="superior_esquerdo">Superior Esquerdo</SelectItem>
+                          <SelectItem value="superior_direito">Superior Direito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instituicaoEndereco">Endereço da Instituição</Label>
+                    <Input name="instituicaoEndereco" placeholder="Rua, número, cidade, estado" />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="htmlTemplate">Template HTML *</Label>
+                    <Textarea
+                      name="htmlTemplate"
+                      required
+                      className="min-h-32"
+                      placeholder="Cole aqui o código HTML do template do certificado..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="textoLegal">Texto Legal *</Label>
+                    <Textarea
+                      name="textoLegal"
+                      required
+                      placeholder="Texto legal para validação do certificado..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="variaveis">Variáveis do Template (JSON)</Label>
+                    <Textarea
+                      name="variaveis"
+                      placeholder='[{"nome": "nomeAluno", "tipo": "texto"}, {"nome": "nomeCurso", "tipo": "texto"}]'
+                      className="min-h-20"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="assinaturaDigital1">URL Assinatura Digital 1</Label>
+                      <Input name="assinaturaDigital1" placeholder="https://..." />
+                    </div>
+                    <div>
+                      <Label htmlFor="assinaturaDigital2">URL Assinatura Digital 2</Label>
+                      <Input name="assinaturaDigital2" placeholder="https://..." />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instituicaoLogo">URL do Logo da Instituição</Label>
+                    <Input name="instituicaoLogo" placeholder="https://..." />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" name="isActive" id="isActive" defaultChecked className="rounded" />
+                    <Label htmlFor="isActive">Modelo ativo</Label>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateTemplateModalOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={createTemplateMutation.isPending}>
+                      {createTemplateMutation.isPending ? 'Criando...' : 'Criar Modelo'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -17,7 +17,8 @@ import {
   insertAcademicDisciplineSchema,
   insertAcademicStudentSchema,
   insertAcademicGradeSchema,
-  insertAcademicCertificateSchema
+  insertAcademicCertificateSchema,
+  insertCertificateTemplateSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
@@ -3253,6 +3254,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(certificate);
     } catch (error) {
       console.error("Erro ao emitir certificado acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== MODELOS DE CERTIFICADOS =====
+  
+  // Buscar modelos de certificados
+  app.get("/api/certificate-templates", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { categoria, tipo, isActive } = req.query;
+      const filters: any = {};
+      
+      if (categoria) filters.categoria = categoria;
+      if (tipo) filters.tipo = tipo;
+      if (isActive !== undefined) filters.isActive = isActive === 'true';
+
+      const templates = await storage.getCertificateTemplates(filters);
+      res.json(templates);
+    } catch (error) {
+      console.error("Erro ao buscar modelos de certificados:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar modelo específico
+  app.get("/api/certificate-templates/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const template = await storage.getCertificateTemplateById(parseInt(id));
+      if (!template) {
+        return res.status(404).json({ message: "Modelo não encontrado" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error("Erro ao buscar modelo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar modelo de certificado
+  app.post("/api/certificate-templates", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const templateData = insertCertificateTemplateSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+      
+      const template = await storage.createCertificateTemplate(templateData);
+      res.status(201).json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar modelo de certificado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar modelo de certificado
+  app.put("/api/certificate-templates/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const template = await storage.updateCertificateTemplate(parseInt(id), req.body);
+      if (!template) {
+        return res.status(404).json({ message: "Modelo não encontrado" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error("Erro ao atualizar modelo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar modelo de certificado
+  app.delete("/api/certificate-templates/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteCertificateTemplate(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao deletar modelo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
