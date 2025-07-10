@@ -121,41 +121,136 @@ const CertificadosPos = () => {
     const dadosExemplo = {
       nomeAluno: "João Silva Santos",
       nomeCurso: template.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia",
+      cpfAluno: "123.456.789-00",
       dataEmissao: new Date().toLocaleDateString('pt-BR'),
       instituicao: template.instituicaoNome,
       cargaHoraria: "420",
-      numeroRegistro: "001/2025"
+      numeroRegistro: "001/2025",
+      areaCurso: "Educação"
     };
 
-    // Substituir variáveis no template HTML
-    let htmlFinal = template.htmlTemplate;
+    // Substituir variáveis no template HTML da frente
+    let htmlFrente = template.htmlTemplate;
     Object.entries(dadosExemplo).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, 'g');
-      htmlFinal = htmlFinal.replace(regex, value);
+      htmlFrente = htmlFrente.replace(regex, value);
     });
 
-    // Abrir nova janela com o preview
+    // Substituir variáveis no template HTML do verso
+    let htmlVerso = template.templateVerso;
+    Object.entries(dadosExemplo).forEach(([key, value]) => {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      htmlVerso = htmlVerso.replace(regex, value);
+    });
+
+    // Abrir nova janela com o preview organizado
     const previewWindow = window.open('', '_blank');
     if (previewWindow) {
       previewWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Preview - ${template.nome}</title>
+          <title>Preview Certificado - ${template.nome}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .preview-container { max-width: 800px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; }
-            .preview-header { text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; }
-            @media print { .preview-header { display: none; } }
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 0; 
+              padding: 20px; 
+              background: #f0f0f0;
+            }
+            .preview-header { 
+              text-align: center; 
+              margin-bottom: 30px; 
+              padding: 15px; 
+              background: #fff; 
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .page-container {
+              background: white;
+              margin: 20px auto;
+              padding: 40px;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              border-radius: 8px;
+              max-width: 900px;
+            }
+            .page-title {
+              background: #e3f2fd;
+              color: #1976d2;
+              padding: 10px 20px;
+              margin: -40px -40px 30px -40px;
+              border-radius: 8px 8px 0 0;
+              font-weight: bold;
+              text-align: center;
+              border-bottom: 3px solid #1976d2;
+            }
+            .page-break {
+              page-break-before: always;
+              break-before: page;
+            }
+            .print-controls {
+              text-align: center;
+              margin: 20px 0;
+              background: white;
+              padding: 15px;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .print-controls button {
+              background: #1976d2;
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              margin: 0 10px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 14px;
+            }
+            .print-controls button:hover {
+              background: #1565c0;
+            }
+            @media print { 
+              .preview-header, .print-controls { display: none; }
+              .page-container { 
+                margin: 0; 
+                padding: 0; 
+                box-shadow: none; 
+                border-radius: 0;
+                max-width: none;
+              }
+              .page-title { margin: 0; }
+              body { background: white; margin: 0; padding: 0; }
+            }
           </style>
         </head>
         <body>
           <div class="preview-header">
-            <h3>Preview do Template: ${template.nome}</h3>
-            <p>Este é um preview com dados de exemplo. Use Ctrl+P para imprimir.</p>
+            <h2>Preview Completo: ${template.nome}</h2>
+            <p>Certificado com frente e verso (histórico escolar) - Dados de exemplo para demonstração</p>
           </div>
-          <div class="preview-container">
-            ${htmlFinal}
+
+          <div class="print-controls">
+            <button onclick="window.print()">🖨️ Imprimir Certificado</button>
+            <button onclick="window.close()">✖️ Fechar Preview</button>
+          </div>
+          
+          <!-- PÁGINA 1 - FRENTE DO CERTIFICADO -->
+          <div class="page-container">
+            <div class="page-title">PÁGINA 1 - FRENTE DO CERTIFICADO</div>
+            ${htmlFrente}
+          </div>
+          
+          <!-- PÁGINA 2 - VERSO DO CERTIFICADO (HISTÓRICO) -->
+          <div class="page-container page-break">
+            <div class="page-title">PÁGINA 2 - VERSO DO CERTIFICADO (HISTÓRICO ESCOLAR)</div>
+            ${htmlVerso}
+          </div>
+
+          <div class="print-controls">
+            <p><strong>📋 Instruções:</strong></p>
+            <p>• Este preview mostra o certificado completo com frente e verso</p>
+            <p>• Use o botão "Imprimir" para gerar o PDF final</p>
+            <p>• Na impressão, as duas páginas serão separadas automaticamente</p>
           </div>
         </body>
         </html>
