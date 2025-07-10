@@ -331,22 +331,11 @@ export class DatabaseStorage implements IStorage {
 
   async getTeamMembers(teamId: number): Promise<User[]> {
     return await db
-      .select({
-        id: users.id,
-        username: users.username,
-        password: users.password,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        companyAccount: users.companyAccount,
-        department: users.department,
-        isActive: users.isActive,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-      })
-      .from(teamMembers)
-      .innerJoin(users, eq(teamMembers.userId, users.id))
-      .where(eq(teamMembers.teamId, teamId));
+      .select()
+      .from(users)
+      .innerJoin(teamMembers, eq(teamMembers.userId, users.id))
+      .where(eq(teamMembers.teamId, teamId))
+      .then(results => results.map(result => result.users));
   }
 
   async addTeamMember(teamId: number, userId: number, role: string = "member"): Promise<void> {
@@ -1033,7 +1022,7 @@ export class DatabaseStorage implements IStorage {
         professorId,
         subjectId,
         canEdit,
-        createdAt: new Date(),
+        assignedAt: new Date(),
       })
       .returning();
     return assignment;
@@ -1041,16 +1030,17 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Subject Contents
   async getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]> {
-    let query = db
-      .select()
-      .from(subjectContents)
-      .where(eq(subjectContents.subjectId, subjectId));
-
+    const conditions = [eq(subjectContents.subjectId, subjectId)];
+    
     if (professorId) {
-      query = query.where(eq(subjectContents.professorId, professorId));
+      conditions.push(eq(subjectContents.professorId, professorId));
     }
 
-    return await query.orderBy(asc(subjectContents.ordem));
+    return await db
+      .select()
+      .from(subjectContents)
+      .where(and(...conditions))
+      .orderBy(asc(subjectContents.ordem));
   }
 
   async createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent> {
@@ -1082,16 +1072,17 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Evaluations
   async getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]> {
-    let query = db
-      .select()
-      .from(professorEvaluations)
-      .where(eq(professorEvaluations.professorId, professorId));
-
+    const conditions = [eq(professorEvaluations.professorId, professorId)];
+    
     if (subjectId) {
-      query = query.where(eq(professorEvaluations.subjectId, subjectId));
+      conditions.push(eq(professorEvaluations.subjectId, subjectId));
     }
 
-    return await query.orderBy(desc(professorEvaluations.createdAt));
+    return await db
+      .select()
+      .from(professorEvaluations)
+      .where(and(...conditions))
+      .orderBy(desc(professorEvaluations.createdAt));
   }
 
   async createProfessorEvaluation(evaluation: InsertProfessorEvaluation): Promise<ProfessorEvaluation> {
@@ -1127,11 +1118,7 @@ export class DatabaseStorage implements IStorage {
   async createEvaluationQuestion(question: InsertEvaluationQuestion): Promise<EvaluationQuestion> {
     const [newQuestion] = await db
       .insert(evaluationQuestions)
-      .values({
-        ...question,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(question)
       .returning();
     return newQuestion;
   }
@@ -1139,7 +1126,7 @@ export class DatabaseStorage implements IStorage {
   async updateEvaluationQuestion(id: number, question: Partial<EvaluationQuestion>): Promise<EvaluationQuestion | undefined> {
     const [updatedQuestion] = await db
       .update(evaluationQuestions)
-      .set({ ...question, updatedAt: new Date() })
+      .set(question)
       .where(eq(evaluationQuestions.id, id))
       .returning();
     return updatedQuestion || undefined;
@@ -1157,11 +1144,7 @@ export class DatabaseStorage implements IStorage {
   async createEvaluationSubmission(submission: InsertEvaluationSubmission): Promise<EvaluationSubmission> {
     const [newSubmission] = await db
       .insert(evaluationSubmissions)
-      .values({
-        ...submission,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(submission)
       .returning();
     return newSubmission;
   }
@@ -1169,7 +1152,7 @@ export class DatabaseStorage implements IStorage {
   async updateEvaluationSubmission(id: number, submission: Partial<EvaluationSubmission>): Promise<EvaluationSubmission | undefined> {
     const [updatedSubmission] = await db
       .update(evaluationSubmissions)
-      .set({ ...submission, updatedAt: new Date() })
+      .set(submission)
       .where(eq(evaluationSubmissions.id, id))
       .returning();
     return updatedSubmission || undefined;
@@ -1177,8 +1160,6 @@ export class DatabaseStorage implements IStorage {
 
   // Payments (Asaas Integration)
   async getPayments(filters?: { userId?: number; status?: string; tenantId?: number }): Promise<Payment[]> {
-    let query = db.select().from(payments);
-    
     const conditions = [];
     if (filters?.userId) {
       conditions.push(eq(payments.userId, filters.userId));
@@ -1190,6 +1171,8 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(payments.tenantId, filters.tenantId));
     }
     
+    let query = db.select().from(payments);
+    
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
@@ -1199,6 +1182,14 @@ export class DatabaseStorage implements IStorage {
 
   // Buscar pagamentos com dados dos usuários (JOIN)
   async getPaymentsWithUserData(filters?: { status?: string; externalId?: string }): Promise<any[]> {
+    const conditions = [];
+    if (filters?.status && filters.status !== 'all') {
+      conditions.push(eq(payments.status, filters.status));
+    }
+    if (filters?.externalId) {
+      conditions.push(eq(payments.externalId, filters.externalId));
+    }
+    
     let query = db
       .select({
         // Campos do pagamento
@@ -1229,14 +1220,6 @@ export class DatabaseStorage implements IStorage {
       })
       .from(payments)
       .leftJoin(users, eq(payments.userId, users.id));
-    
-    const conditions = [];
-    if (filters?.status && filters.status !== 'all') {
-      conditions.push(eq(payments.status, filters.status));
-    }
-    if (filters?.externalId) {
-      conditions.push(eq(payments.externalId, filters.externalId));
-    }
     
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
@@ -1399,7 +1382,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Configurar valores padrão para cobrança
-      const amount = courseInfo?.preco || 299.00; // Valor padrão se não encontrar o curso
+      const amount = 299.00; // Valor padrão para cursos
       const courseName = courseInfo?.nome || 'Curso não especificado';
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 7); // Vencimento em 7 dias
@@ -1420,13 +1403,18 @@ export class DatabaseStorage implements IStorage {
       
       // Tentar criar cobrança no Asaas
       try {
-        const asaasService = (await import('./services/asaas')).default;
+        const { asaasService } = await import('./services/asaas');
+        // Primeiro criar o cliente no Asaas se necessário
+        const customerData = {
+          name: user.username,
+          email: user.email,
+          cpfCnpj: user.cpf || ''
+        };
+        
+        const customer = await asaasService.createCustomer(customerData);
+        
         const asaasPayment = await asaasService.createPayment({
-          customer: {
-            name: user.username,
-            email: user.email,
-            cpfCnpj: user.cpf || '', // Assumindo que CPF pode estar no usuário
-          },
+          customer: typeof customer === 'string' ? customer : customer.id,
           billingType: 'BOLETO',
           dueDate: dueDate.toISOString().split('T')[0],
           value: amount,
