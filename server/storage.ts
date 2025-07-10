@@ -261,6 +261,7 @@ export interface IStorage {
 
   // Sistema de Certificados Acadêmicos - Cursos
   getAcademicCourses(filters?: { categoria?: string; status?: string }): Promise<AcademicCourse[]>;
+  getAcademicCourseById(id: number): Promise<AcademicCourse | undefined>;
   createAcademicCourse(course: InsertAcademicCourse): Promise<AcademicCourse>;
   updateAcademicCourse(id: number, course: Partial<AcademicCourse>): Promise<AcademicCourse | undefined>;
   deleteAcademicCourse(id: number): Promise<void>;
@@ -282,6 +283,7 @@ export interface IStorage {
 
   // Sistema de Certificados Acadêmicos - Alunos
   getAcademicStudents(filters?: { courseId?: number; status?: string }): Promise<AcademicStudent[]>;
+  getAcademicStudentById(id: number): Promise<AcademicStudent | undefined>;
   createAcademicStudent(student: InsertAcademicStudent): Promise<AcademicStudent>;
   updateAcademicStudent(id: number, student: Partial<AcademicStudent>): Promise<AcademicStudent | undefined>;
 
@@ -292,6 +294,7 @@ export interface IStorage {
 
   // Sistema de Certificados Acadêmicos - Certificados
   getAcademicCertificates(filters?: { studentId?: number; courseId?: number; status?: string }): Promise<AcademicCertificate[]>;
+  getAcademicCertificateById(id: number): Promise<AcademicCertificate | undefined>;
   createAcademicCertificate(certificate: InsertAcademicCertificate): Promise<AcademicCertificate>;
   updateAcademicCertificate(id: number, certificate: Partial<AcademicCertificate>): Promise<AcademicCertificate | undefined>;
   issueAcademicCertificate(id: number, emitidoPor: number): Promise<AcademicCertificate | undefined>;
@@ -1363,6 +1366,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(academicCourses).orderBy(desc(academicCourses.createdAt));
   }
 
+  async getAcademicCourseById(id: number): Promise<AcademicCourse | undefined> {
+    const [course] = await db
+      .select()
+      .from(academicCourses)
+      .where(eq(academicCourses.id, id));
+    return course || undefined;
+  }
+
   async createAcademicCourse(course: InsertAcademicCourse): Promise<AcademicCourse> {
     const [newCourse] = await db
       .insert(academicCourses)
@@ -1530,6 +1541,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(academicStudents).orderBy(asc(academicStudents.nome));
   }
 
+  async getAcademicStudentById(id: number): Promise<AcademicStudent | undefined> {
+    const [student] = await db
+      .select()
+      .from(academicStudents)
+      .where(eq(academicStudents.id, id));
+    return student || undefined;
+  }
+
   async createAcademicStudent(student: InsertAcademicStudent): Promise<AcademicStudent> {
     const [newStudent] = await db
       .insert(academicStudents)
@@ -1614,6 +1633,14 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await db.select().from(academicCertificates).orderBy(desc(academicCertificates.createdAt));
+  }
+
+  async getAcademicCertificateById(id: number): Promise<AcademicCertificate | undefined> {
+    const [certificate] = await db
+      .select()
+      .from(academicCertificates)
+      .where(eq(academicCertificates.id, id));
+    return certificate || undefined;
   }
 
   async createAcademicCertificate(certificate: InsertAcademicCertificate): Promise<AcademicCertificate> {
