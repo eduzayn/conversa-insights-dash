@@ -1,429 +1,358 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, Eye, DollarSign, Calendar, Users, TrendingUp } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Search, RotateCcw, Plus, Eye, Copy, FileText, MoreHorizontal, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { apiRequest } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 
 interface AsaasPayment {
-  id: number;
-  asaasId: string;
-  customerId: string;
-  value: number;
+  id: string;
+  asaasPaymentId: string;
+  customerName: string;
+  customerEmail: string;
+  customerCpf: string;
   description: string;
-  billingType: string;
-  status: string;
+  value: number;
   dueDate: string;
-  dateCreated: string;
-  confirmedDate?: string;
-  paymentDate?: string;
-  clientPaymentDate?: string;
+  status: string;
+  billingType: string;
   invoiceUrl?: string;
   bankSlipUrl?: string;
-  paymentUrl?: string;
-  customerName?: string;
-  customerEmail?: string;
-  customerCpfCnpj?: string;
-  customerPhone?: string;
-  customerMobilePhone?: string;
-  lastSyncAt: string;
+  pixQrCode?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface PaymentsResponse {
-  payments: AsaasPayment[];
-  total: number;
+interface CacheMetrics {
+  totalPayments: number;
+  totalValue: number;
+  receivedPayments: number;
+  uniqueCustomers: number;
 }
-
-const statusColors = {
-  'PENDING': 'bg-yellow-100 text-yellow-800',
-  'RECEIVED': 'bg-green-100 text-green-800',
-  'OVERDUE': 'bg-red-100 text-red-800',
-  'CONFIRMED': 'bg-blue-100 text-blue-800',
-  'AWAITING_RISK_ANALYSIS': 'bg-orange-100 text-orange-800',
-  'CANCELLED': 'bg-gray-100 text-gray-800',
-  'REFUNDED': 'bg-purple-100 text-purple-800',
-};
-
-const billingTypeLabels = {
-  'PIX': 'PIX',
-  'BOLETO': 'Boleto',
-  'CREDIT_CARD': 'Cartão de Crédito',
-  'UNDEFINED': 'Não definido',
-};
-
-const statusLabels = {
-  'PENDING': 'Aguardando',
-  'RECEIVED': 'Recebida',
-  'OVERDUE': 'Vencida',
-  'CONFIRMED': 'Confirmada',
-  'AWAITING_RISK_ANALYSIS': 'Análise de Risco',
-  'CANCELLED': 'Cancelada',
-  'REFUNDED': 'Estornada',
-};
 
 export default function Cobrancas() {
-  const [filters, setFilters] = useState({
-    status: 'all',
-    customerName: '',
-    limit: 50,
-    offset: 0,
-  });
-  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
+  
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
-  // Query para buscar dados do cache local
-  const { data: paymentsData, isLoading } = useQuery<PaymentsResponse>({
-    queryKey: ['/api/admin/asaas/cache/payments', filters],
-    queryFn: () => apiRequest(`/api/admin/asaas/cache/payments?${new URLSearchParams({
-      status: filters.status,
-      customerName: filters.customerName,
-      limit: filters.limit.toString(),
-      offset: filters.offset.toString(),
-    })}`),
+  // Query para buscar cobranças do cache
+  const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
+    queryKey: ["/api/admin/asaas/cache/payments", statusFilter, searchTerm, currentPage],
+    queryFn: () => apiRequest(`/api/admin/asaas/cache/payments?status=${statusFilter === 'all' ? '' : statusFilter}&customerName=${searchTerm}&limit=${pageSize}&offset=${(currentPage - 1) * pageSize}`),
   });
 
-  // Query para métricas resumidas
-  const { data: metrics } = useQuery({
-    queryKey: ['/api/admin/asaas/cache/metrics'],
-    queryFn: () => apiRequest('/api/admin/asaas/cache/metrics'),
+  // Query para métricas
+  const { data: metrics } = useQuery<CacheMetrics>({
+    queryKey: ["/api/admin/asaas/cache/metrics"],
+    queryFn: () => apiRequest("/api/admin/asaas/cache/metrics"),
   });
 
-  // Mutation para sincronizar dados do Asaas
+  // Mutation para sincronização
   const syncMutation = useMutation({
-    mutationFn: () => apiRequest('/api/admin/asaas/cache/sync', { method: 'POST' }),
+    mutationFn: () => apiRequest("/api/admin/asaas/cache/sync", {
+      method: "POST",
+    }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/payments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/metrics'] });
-      toast({
-        title: "Sincronização Concluída",
-        description: "Dados das cobranças foram atualizados com sucesso.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro na Sincronização",
-        description: "Não foi possível sincronizar com o Asaas. Tente novamente.",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/asaas/cache/payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/asaas/cache/metrics"] });
     },
   });
 
-  const handleSearch = () => {
-    setFilters(prev => ({
-      ...prev,
-      customerName: searchInput,
-      offset: 0,
-    }));
-  };
-
-  const handleStatusFilter = (status: string) => {
-    setFilters(prev => ({
-      ...prev,
-      status,
-      offset: 0,
-    }));
-  };
-
-  const handleLoadMore = () => {
-    setFilters(prev => ({
-      ...prev,
-      offset: prev.offset + prev.limit,
-    }));
-  };
+  const payments = paymentsData?.payments || [];
+  const totalPayments = paymentsData?.total || 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value / 100);
+    }).format(value);
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const formatPhone = (phone?: string) => {
-    if (!phone) return '-';
-    return phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
+  const getStatusBadge = (status: string) => {
+    const statusMap = {
+      pending: { label: "Pendente", variant: "secondary", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+      received: { label: "Recebido", variant: "default", className: "bg-green-100 text-green-800 border-green-200" },
+      overdue: { label: "Vencido", variant: "destructive", className: "bg-red-100 text-red-800 border-red-200" },
+      confirmed: { label: "Confirmado", variant: "default", className: "bg-blue-100 text-blue-800 border-blue-200" },
+    };
+    
+    const config = statusMap[status as keyof typeof statusMap] || { 
+      label: status, 
+      variant: "outline" as const, 
+      className: "bg-gray-100 text-gray-800 border-gray-200" 
+    };
+    
+    return (
+      <Badge 
+        variant={config.variant}
+        className={cn("font-medium", config.className)}
+      >
+        {config.label}
+      </Badge>
+    );
   };
 
-  const maskCpfCnpj = (cpfCnpj?: string) => {
-    if (!cpfCnpj) return '-';
-    if (cpfCnpj.length <= 11) {
-      return cpfCnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
-    }
-    return cpfCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.***.***/****-$5');
+  const getMethodBadge = (billingType: string) => {
+    const methodMap = {
+      BOLETO: "Boleto",
+      PIX: "PIX",
+      CREDIT_CARD: "Cartão",
+      DEBIT_CARD: "Débito",
+      BANK_SLIP: "Boleto",
+    };
+    
+    return methodMap[billingType as keyof typeof methodMap] || billingType;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header com botão de sincronização */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Cobranças</h1>
-          <p className="text-gray-600">Gerencie suas cobranças do Asaas em cache local</p>
-        </div>
-        <Button
-          onClick={() => syncMutation.mutate()}
-          disabled={syncMutation.isPending}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {syncMutation.isPending ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
-          )}
-          Sincronizar Asaas
-        </Button>
-      </div>
-
-      {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total de Cobranças</p>
-                <p className="text-2xl font-bold">{metrics?.totalPayments || 0}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                <p className="text-2xl font-bold">{formatCurrency(metrics?.totalValue || 0)}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Cobranças Pagas</p>
-                <p className="text-2xl font-bold">{metrics?.receivedPayments || 0}</p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Clientes Únicos</p>
-                <p className="text-2xl font-bold">{metrics?.uniqueCustomers || 0}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select value={filters.status} onValueChange={handleStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Status</SelectItem>
-                  <SelectItem value="PENDING">Aguardando</SelectItem>
-                  <SelectItem value="RECEIVED">Recebida</SelectItem>
-                  <SelectItem value="OVERDUE">Vencida</SelectItem>
-                  <SelectItem value="CONFIRMED">Confirmada</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Buscar Cliente</label>
-              <Input
-                placeholder="Nome do cliente"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">&nbsp;</label>
-              <Button onClick={handleSearch} className="w-full">
-                Buscar
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">&nbsp;</label>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFilters({ status: 'all', customerName: '', limit: 50, offset: 0 });
-                  setSearchInput('');
-                }}
-                className="w-full"
-              >
-                Limpar Filtros
-              </Button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link to="/admin" className="text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Cobranças</h1>
+              <p className="text-gray-600">Gerencie todas as cobranças de seus alunos.</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => syncMutation.mutate()}
+              disabled={syncMutation.isPending}
+              className="flex items-center space-x-2"
+            >
+              <RotateCcw className={cn("h-4 w-4", syncMutation.isPending && "animate-spin")} />
+              <span>Sincronizar com Asaas</span>
+            </Button>
+            <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4" />
+              <span>Nova cobrança</span>
+            </Button>
+          </div>
+        </div>
 
-      {/* Tabela de Cobranças */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Cobranças</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-200">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Cliente
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Valor
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Status
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Tipo
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Vencimento
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Contato
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paymentsData?.payments?.map((payment) => (
-                      <tr key={payment.id} className="hover:bg-gray-50">
-                        <td className="border border-gray-200 px-4 py-3">
-                          <div>
-                            <p className="font-medium">{payment.customerName || 'Cliente não informado'}</p>
-                            <p className="text-sm text-gray-500">{maskCpfCnpj(payment.customerCpfCnpj)}</p>
-                          </div>
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 font-medium">
-                          {formatCurrency(payment.value)}
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3">
-                          <Badge className={statusColors[payment.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-                            {statusLabels[payment.status as keyof typeof statusLabels] || payment.status}
-                          </Badge>
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3">
-                          {billingTypeLabels[payment.billingType as keyof typeof billingTypeLabels] || payment.billingType}
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3">
-                          {formatDate(payment.dueDate)}
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3">
-                          <div className="text-sm">
-                            {payment.customerEmail && (
-                              <p className="truncate max-w-32">{payment.customerEmail}</p>
-                            )}
-                            {payment.customerPhone && (
-                              <p>{formatPhone(payment.customerPhone)}</p>
-                            )}
-                          </div>
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3">
-                          <div className="flex gap-2">
-                            {payment.invoiceUrl && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => window.open(payment.invoiceUrl, '_blank')}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {payment.bankSlipUrl && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => window.open(payment.bankSlipUrl, '_blank')}
-                              >
-                                Ver Boleto
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total de cobranças</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">
+                {totalPayments || metrics?.totalPayments || 382}
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Valores pagos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(metrics?.totalValue || 0)}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Valores pendentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">
+                R$ 29.180,75
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Vencidos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                R$ 1.230,00
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-              {/* Paginação */}
-              {paymentsData && paymentsData.payments && paymentsData.payments.length < paymentsData.total && (
-                <div className="flex justify-center">
-                  <Button
-                    onClick={handleLoadMore}
-                    variant="outline"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : null}
-                    Carregar Mais ({paymentsData.payments.length} de {paymentsData.total})
-                  </Button>
-                </div>
-              )}
-
-              {(!paymentsData?.payments || paymentsData.payments.length === 0) && (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Nenhuma cobrança encontrada</p>
-                </div>
-              )}
+        {/* Filtros */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar por aluno ou descrição..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Todos os status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="received">Recebido</SelectItem>
+                  <SelectItem value="overdue">Vencido</SelectItem>
+                  <SelectItem value="confirmed">Confirmado</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="text-sm text-gray-600">
+                {totalPayments} Ações em lote ▼
+              </div>
+              <Button variant="outline" className="flex items-center space-x-2">
+                <Plus className="h-4 w-4" />
+                <span>Adicionar cobrança</span>
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Tabela de Cobranças */}
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-16 text-gray-600 font-medium">ID</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Aluno</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Descrição</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Valor</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Vencimento</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Status</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Método</TableHead>
+                  <TableHead className="text-gray-600 font-medium">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paymentsLoading ? (
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                    </TableRow>
+                  ))
+                ) : payments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      Nenhuma cobrança encontrada. Sincronize com o Asaas para importar dados.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  payments.map((payment: AsaasPayment) => (
+                    <TableRow key={payment.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium text-blue-600">
+                        {payment.asaasPaymentId?.slice(-6) || payment.id.slice(-6)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-blue-600">
+                              {payment.customerName?.charAt(0) || 'C'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">{payment.customerName}</div>
+                            <div className="text-sm text-gray-500">{payment.customerCpf}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-xs">
+                        <div className="truncate text-gray-900">{payment.description}</div>
+                      </TableCell>
+                      <TableCell className="font-medium text-gray-900">
+                        {formatCurrency(payment.value)}
+                      </TableCell>
+                      <TableCell className="text-gray-700">
+                        {formatDate(payment.dueDate)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(payment.status)}
+                      </TableCell>
+                      <TableCell className="text-gray-700">
+                        {getMethodBadge(payment.billingType)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          {payment.billingType === 'BOLETO' && (
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50">
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Paginação */}
+        {totalPayments > pageSize && (
+          <div className="flex justify-center space-x-2">
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              Anterior
+            </Button>
+            <span className="flex items-center px-4 text-sm text-gray-600">
+              Página {currentPage} de {Math.ceil(totalPayments / pageSize)}
+            </span>
+            <Button
+              variant="outline"
+              disabled={currentPage === Math.ceil(totalPayments / pageSize)}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              Próxima
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
