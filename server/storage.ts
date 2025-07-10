@@ -1533,6 +1533,106 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async syncAsaasPayments(): Promise<{
+    success: boolean;
+    message: string;
+    syncedPayments: number;
+    errors: string[];
+  }> {
+    try {
+      // Importar serviço do Asaas
+      const { asaasService } = await import('./services/asaas');
+      
+      // Validar configuração
+      const validation = await asaasService.validateConfiguration();
+      if (!validation.valid) {
+        return {
+          success: false,
+          message: validation.message,
+          syncedPayments: 0,
+          errors: [validation.message],
+        };
+      }
+
+      // Buscar todas as cobranças do Asaas com dados dos clientes
+      const asaasPayments = await asaasService.getAllPaymentsWithCustomers();
+      
+      let syncedCount = 0;
+      const errors: string[] = [];
+      
+      for (const payment of asaasPayments) {
+        try {
+          // Mapear dados do Asaas para o formato do banco
+          const mappedPayment = {
+            asaasId: payment.id,
+            customerId: payment.customer,
+            value: Math.round(payment.value * 100), // Converter para centavos
+            description: payment.description || 'Cobrança sem descrição',
+            billingType: payment.billingType || 'BOLETO',
+            status: payment.status || 'PENDING',
+            dueDate: new Date(payment.dueDate),
+            dateCreated: new Date(payment.dateCreated),
+            confirmedDate: payment.confirmedDate ? new Date(payment.confirmedDate) : null,
+            paymentDate: payment.paymentDate ? new Date(payment.paymentDate) : null,
+            clientPaymentDate: payment.clientPaymentDate ? new Date(payment.clientPaymentDate) : null,
+            invoiceUrl: payment.invoiceUrl || null,
+            bankSlipUrl: payment.bankSlipUrl || null,
+            paymentUrl: payment.paymentUrl || null,
+            pixTransaction: payment.pixTransaction || null,
+            externalReference: payment.externalReference || null,
+            installmentNumber: payment.installmentNumber || null,
+            invoiceNumber: payment.invoiceNumber || null,
+            netValue: payment.netValue ? Math.round(payment.netValue * 100) : null,
+            originalValue: payment.originalValue ? Math.round(payment.originalValue * 100) : null,
+            interestValue: payment.interestValue ? Math.round(payment.interestValue * 100) : null,
+            // Dados do cliente
+            customerName: payment.customerData?.name || 'Cliente não identificado',
+            customerEmail: payment.customerData?.email || null,
+            customerCpfCnpj: payment.customerData?.cpfCnpj || null,
+            customerPhone: payment.customerData?.phone || null,
+            customerMobilePhone: payment.customerData?.mobilePhone || null,
+            lastSyncAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          // Usar método de bulk upsert existente
+          await this.bulkUpsertAsaasPayments([mappedPayment]);
+          syncedCount++;
+          
+        } catch (error: any) {
+          errors.push(`Erro ao sincronizar pagamento ${payment.id}: ${error.message}`);
+          console.error('Erro ao sincronizar pagamento:', error);
+        }
+      }
+
+      // Registrar controle de sincronização
+      await this.createSyncControl({
+        lastSyncDate: new Date(),
+        totalPayments: syncedCount,
+        syncedPayments: syncedCount,
+        errorCount: errors.length,
+        status: 'completed',
+      });
+
+      return {
+        success: true,
+        message: `Sincronização concluída com sucesso. ${syncedCount} cobranças sincronizadas.`,
+        syncedPayments: syncedCount,
+        errors,
+      };
+
+    } catch (error: any) {
+      console.error('Erro na sincronização:', error);
+      return {
+        success: false,
+        message: `Erro na sincronização: ${error.message}`,
+        syncedPayments: 0,
+        errors: [error.message],
+      };
+    }
+  }
+
   async createSyncControl(syncData: InsertAsaasSyncControl): Promise<AsaasSyncControl> {
     const [newSync] = await db
       .insert(asaasSyncControl)

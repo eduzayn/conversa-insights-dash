@@ -1,35 +1,18 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, RotateCcw, Plus, Eye, Copy, FileText, MoreHorizontal, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { apiRequest } from "@/lib/queryClient";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarDays, DollarSign, TrendingUp, Users, RefreshCw, Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import { apiRequest } from '@/lib/queryClient';
 
-interface AsaasPayment {
-  id: string;
-  asaasPaymentId: string;
-  customerName: string;
-  customerEmail: string;
-  customerCpf: string;
-  description: string;
-  value: number;
-  dueDate: string;
-  status: string;
-  billingType: string;
-  invoiceUrl?: string;
-  bankSlipUrl?: string;
-  pixQrCode?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface CacheMetrics {
+interface AsaasMetrics {
   totalPayments: number;
   totalValue: number;
   receivedValue: number;
@@ -39,44 +22,95 @@ interface CacheMetrics {
   uniqueCustomers: number;
 }
 
+interface AsaasPayment {
+  id: number;
+  asaasId: string;
+  customerId: string;
+  value: number;
+  description: string;
+  billingType: string;
+  status: string;
+  dueDate: string;
+  dateCreated: string;
+  confirmedDate?: string;
+  paymentDate?: string;
+  customerName: string;
+  customerEmail?: string;
+  customerCpfCnpj?: string;
+  customerPhone?: string;
+  invoiceUrl?: string;
+  bankSlipUrl?: string;
+  paymentUrl?: string;
+}
+
+interface AsaasPaymentsResponse {
+  payments: AsaasPayment[];
+  total: number;
+}
+
+const statusColors = {
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  RECEIVED: 'bg-green-100 text-green-800',
+  OVERDUE: 'bg-red-100 text-red-800',
+  CONFIRMED: 'bg-blue-100 text-blue-800',
+  REFUNDED: 'bg-gray-100 text-gray-800',
+};
+
+const billingTypeLabels = {
+  BOLETO: 'Boleto',
+  PIX: 'PIX',
+  CREDIT_CARD: 'Cartão de Crédito',
+  UNDEFINED: 'Indefinido',
+};
+
 export default function Cobrancas() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 50;
-  
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [billingTypeFilter, setBillingTypeFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
 
-  // Query para buscar cobranças do cache
-  const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
-    queryKey: ["/api/admin/asaas/cache/payments", statusFilter, searchTerm, currentPage],
-    queryFn: () => apiRequest(`/api/admin/asaas/cache/payments?status=${statusFilter === 'all' ? '' : statusFilter}&customerName=${searchTerm}&limit=${pageSize}&offset=${(currentPage - 1) * pageSize}`),
+  // Buscar métricas do cache
+  const { data: metrics, isLoading: metricsLoading } = useQuery<AsaasMetrics>({
+    queryKey: ['/api/admin/asaas/cache/metrics'],
+    queryFn: () => apiRequest('/api/admin/asaas/cache/metrics'),
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
 
-  // Query para métricas
-  const { data: metrics } = useQuery<CacheMetrics>({
-    queryKey: ["/api/admin/asaas/cache/metrics"],
-    queryFn: () => apiRequest("/api/admin/asaas/cache/metrics"),
-  });
-
-  // Mutation para sincronização
-  const syncMutation = useMutation({
-    mutationFn: () => apiRequest("/api/admin/asaas/cache/sync", {
-      method: "POST",
+  // Buscar cobranças do cache
+  const { data: paymentsData, isLoading: paymentsLoading } = useQuery<AsaasPaymentsResponse>({
+    queryKey: ['/api/admin/asaas/cache/payments', currentPage, statusFilter, billingTypeFilter, searchTerm],
+    queryFn: () => apiRequest('/api/admin/asaas/cache/payments', {
+      params: {
+        page: currentPage,
+        limit: 20,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        billingType: billingTypeFilter === 'all' ? undefined : billingTypeFilter,
+        search: searchTerm || undefined,
+      },
     }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/asaas/cache/payments"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/asaas/cache/metrics"] });
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+  });
+
+  // Mutation para sincronizar dados
+  const syncMutation = useMutation({
+    mutationFn: () => apiRequest('/api/admin/asaas/cache/sync', { method: 'POST' }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Sincronização concluída com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/payments'] });
+      setIsSyncing(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro na sincronização');
+      setIsSyncing(false);
     },
   });
 
-  const payments = paymentsData?.payments || [];
-  const totalPayments = paymentsData?.total || 0;
-
-  // Função para criar nova cobrança
-  const handleNewPayment = () => {
-    // Redirecionar para página de integração Asaas ou abrir modal
-    window.location.href = '/integracao-asaas';
+  const handleSync = () => {
+    setIsSyncing(true);
+    syncMutation.mutate();
   };
 
   const formatCurrency = (value: number) => {
@@ -90,285 +124,270 @@ export default function Cobrancas() {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      pending: { label: "Pendente", variant: "secondary", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-      received: { label: "Recebido", variant: "default", className: "bg-green-100 text-green-800 border-green-200" },
-      overdue: { label: "Vencido", variant: "destructive", className: "bg-red-100 text-red-800 border-red-200" },
-      confirmed: { label: "Confirmado", variant: "default", className: "bg-blue-100 text-blue-800 border-blue-200" },
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      PENDING: 'Pendente',
+      RECEIVED: 'Recebido',
+      OVERDUE: 'Vencido',
+      CONFIRMED: 'Confirmado',
+      REFUNDED: 'Reembolsado',
     };
-    
-    const config = statusMap[status as keyof typeof statusMap] || { 
-      label: status, 
-      variant: "outline" as const, 
-      className: "bg-gray-100 text-gray-800 border-gray-200" 
-    };
-    
-    return (
-      <Badge 
-        variant={config.variant}
-        className={cn("font-medium", config.className)}
-      >
-        {config.label}
-      </Badge>
-    );
+    return labels[status as keyof typeof labels] || status;
   };
 
-  const getMethodBadge = (billingType: string) => {
-    const methodMap = {
-      BOLETO: "Boleto",
-      PIX: "PIX",
-      CREDIT_CARD: "Cartão",
-      DEBIT_CARD: "Débito",
-      BANK_SLIP: "Boleto",
-    };
-    
-    return methodMap[billingType as keyof typeof methodMap] || billingType;
-  };
+  const totalPages = Math.ceil((paymentsData?.total || 0) / 20);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link to="/admin" className="text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Cobranças</h1>
-              <p className="text-gray-600">Gerencie todas as cobranças de seus alunos.</p>
-            </div>
-          </div>
-          <div className="flex space-x-3">
-            <Button
-              variant="outline"
-              onClick={() => syncMutation.mutate()}
-              disabled={syncMutation.isPending}
-              className="flex items-center space-x-2"
-            >
-              <RotateCcw className={cn("h-4 w-4", syncMutation.isPending && "animate-spin")} />
-              <span>Sincronizar com Asaas</span>
-            </Button>
-            <Button 
-              onClick={handleNewPayment}
-              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Nova cobrança</span>
-            </Button>
-          </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Cobranças Asaas</h1>
+          <p className="text-gray-600">Gerencie e monitore suas cobranças</p>
         </div>
+        <Button
+          onClick={handleSync}
+          disabled={isSyncing}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+          {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+        </Button>
+      </div>
 
-        {/* Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total de cobranças</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {totalPayments || metrics?.totalPayments || 382}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Valores pagos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(metrics?.receivedValue || 0)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Valores pendentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {formatCurrency(metrics?.pendingValue || 0)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Vencidos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(metrics?.overdueValue || 0)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filtros */}
+      {/* Cards de Métricas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar por aluno ou descrição..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Cobranças</CardTitle>
+            <CalendarDays className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : metrics?.totalPayments || 0}
+            </div>
+            <p className="text-xs text-gray-600">
+              {metricsLoading ? '...' : `${metrics?.receivedPayments || 0} recebidas`}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : formatCurrency(metrics?.totalValue || 0)}
+            </div>
+            <p className="text-xs text-gray-600">
+              {metricsLoading ? '...' : `${formatCurrency(metrics?.receivedValue || 0)} recebidos`}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+            <TrendingUp className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : formatCurrency(metrics?.pendingValue || 0)}
+            </div>
+            <p className="text-xs text-gray-600">
+              {metricsLoading ? '...' : `${formatCurrency(metrics?.overdueValue || 0)} vencidos`}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clientes Únicos</CardTitle>
+            <Users className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : metrics?.uniqueCustomers || 0}
+            </div>
+            <p className="text-xs text-gray-600">
+              Clientes ativos
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="search">Buscar</Label>
+              <Input
+                id="search"
+                placeholder="Nome do cliente ou descrição..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger>
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="received">Recebido</SelectItem>
-                  <SelectItem value="overdue">Vencido</SelectItem>
-                  <SelectItem value="confirmed">Confirmado</SelectItem>
+                  <SelectItem value="PENDING">Pendente</SelectItem>
+                  <SelectItem value="RECEIVED">Recebido</SelectItem>
+                  <SelectItem value="OVERDUE">Vencido</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmado</SelectItem>
+                  <SelectItem value="REFUNDED">Reembolsado</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-sm text-gray-600">
-                {totalPayments} Ações em lote ▼
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={handleNewPayment}
-                className="flex items-center space-x-2"
+            </div>
+            <div>
+              <Label htmlFor="billingType">Tipo de Cobrança</Label>
+              <Select value={billingTypeFilter} onValueChange={setBillingTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os tipos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="BOLETO">Boleto</SelectItem>
+                  <SelectItem value="PIX">PIX</SelectItem>
+                  <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                  setBillingTypeFilter('all');
+                  setCurrentPage(1);
+                }}
+                variant="outline"
+                className="w-full"
               >
-                <Plus className="h-4 w-4" />
-                <span>Adicionar cobrança</span>
+                Limpar Filtros
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Tabela de Cobranças */}
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="w-16 text-gray-600 font-medium">ID</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Aluno</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Descrição</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Valor</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Vencimento</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Status</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Método</TableHead>
-                  <TableHead className="text-gray-600 font-medium">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paymentsLoading ? (
-                  Array.from({ length: 10 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    </TableRow>
-                  ))
-                ) : payments.length === 0 ? (
+      {/* Tabela de Cobranças */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Cobranças</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {paymentsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Carregando cobranças...</p>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      Nenhuma cobrança encontrada. Sincronize com o Asaas para importar dados.
-                    </TableCell>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                ) : (
-                  payments.map((payment: AsaasPayment) => (
-                    <TableRow key={payment.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium text-blue-600">
-                        {payment.asaasPaymentId?.slice(-6) || payment.id.slice(-6)}
-                      </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {paymentsData?.payments.map((payment) => (
+                    <TableRow key={payment.id}>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-blue-600">
-                              {payment.customerName?.charAt(0) || 'C'}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">{payment.customerName}</div>
-                            <div className="text-sm text-gray-500">{payment.customerCpf}</div>
-                          </div>
+                        <div>
+                          <div className="font-medium">{payment.customerName}</div>
+                          <div className="text-sm text-gray-600">{payment.customerEmail}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="truncate text-gray-900">{payment.description}</div>
-                      </TableCell>
-                      <TableCell className="font-medium text-gray-900">
-                        {formatCurrency(payment.value)}
-                      </TableCell>
-                      <TableCell className="text-gray-700">
-                        {formatDate(payment.dueDate)}
+                      <TableCell>{payment.description}</TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(payment.value / 100)}
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(payment.status)}
-                      </TableCell>
-                      <TableCell className="text-gray-700">
-                        {getMethodBadge(payment.billingType)}
+                        <Badge variant="outline">
+                          {billingTypeLabels[payment.billingType as keyof typeof billingTypeLabels] || payment.billingType}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50">
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          {payment.billingType === 'BOLETO' && (
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50">
-                              <FileText className="h-4 w-4" />
+                        <Badge className={statusColors[payment.status as keyof typeof statusColors]}>
+                          {getStatusLabel(payment.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(payment.dueDate)}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          {payment.invoiceUrl && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(payment.invoiceUrl, '_blank')}
+                            >
+                              Ver Fatura
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          {payment.bankSlipUrl && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(payment.bankSlipUrl, '_blank')}
+                            >
+                              Ver Boleto
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                  ))}
+                </TableBody>
+              </Table>
 
-        {/* Paginação */}
-        {totalPayments > pageSize && (
-          <div className="flex justify-center space-x-2">
-            <Button
-              variant="outline"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Anterior
-            </Button>
-            <span className="flex items-center px-4 text-sm text-gray-600">
-              Página {currentPage} de {Math.ceil(totalPayments / pageSize)}
-            </span>
-            <Button
-              variant="outline"
-              disabled={currentPage === Math.ceil(totalPayments / pageSize)}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Próxima
-            </Button>
-          </div>
-        )}
-      </div>
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600">
+                    Mostrando {((currentPage - 1) * 20) + 1} a {Math.min(currentPage * 20, paymentsData?.total || 0)} de {paymentsData?.total || 0} resultados
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

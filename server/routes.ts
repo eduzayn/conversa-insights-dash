@@ -3313,14 +3313,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
-      // Implementar sincronização incremental aqui
-      // Por enquanto, retorna sucesso para demonstração
+      console.log("Iniciando sincronização com API do Asaas...");
+      const syncResult = await storage.syncAsaasPayments();
       
       res.json({
-        success: true,
-        message: "Sincronização concluída",
+        success: syncResult.success,
+        message: syncResult.message,
         timestamp: new Date().toISOString(),
-        syncedPayments: 0,
+        syncedPayments: syncResult.syncedPayments,
+        errors: syncResult.errors,
       });
     } catch (error) {
       console.error("Erro na sincronização:", error);
