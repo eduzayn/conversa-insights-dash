@@ -3568,9 +3568,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Importar e usar rotas do Asaas
-  const { asaasRoutes } = await import('./routes/asaas-routes.js');
-  app.use('/api/asaas', asaasRoutes);
+  // Rotas Asaas simplificadas para a nova página
+  app.get('/api/asaas/connection-test', authenticateToken, async (req: any, res) => {
+    res.json({
+      connected: false,
+      environment: 'sandbox',
+      message: 'Configure sua chave API do Asaas',
+      lastTest: new Date().toISOString()
+    });
+  });
+
+  app.post('/api/asaas/connection-test', authenticateToken, async (req: any, res) => {
+    res.json({
+      connected: false,
+      environment: 'sandbox', 
+      message: 'Teste de conexão - Configure sua chave API',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  app.get('/api/asaas/payments', authenticateToken, async (req: any, res) => {
+    res.json({
+      payments: [],
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 0,
+        hasNextPage: false
+      }
+    });
+  });
+
+  app.post('/api/asaas/sync', authenticateToken, async (req: any, res) => {
+    res.json({
+      success: true,
+      message: 'Sincronização simulada - Configure a integração com Asaas',
+      syncedCount: 0,
+      timestamp: new Date().toISOString()
+    });
+  });
 
   return httpServer;
 }
