@@ -63,6 +63,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Separator } from '@/components/ui/separator';
 import { Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { Header } from '@/components/Header';
+import { Sidebar } from '@/components/Sidebar';
 
 // Interfaces para tipagem do TypeScript
 interface AsaasPayment {
@@ -385,7 +387,9 @@ const ChargesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="lg:pl-6">
+      <Sidebar />
+      <div className="lg:pl-64">
+        <Header />
         <main className="p-6">
           {/* Cabeçalho da página */}
           <div className="flex items-center justify-between mb-6">
