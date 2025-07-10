@@ -19,8 +19,8 @@ import Crm from "./pages/admin/Crm";
 import Certificacoes from "./pages/admin/Certificacoes";
 import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
+import IntegracaoAsaas from "./pages/admin/IntegracaoAsaas";
 
-import Cobrancas from "./pages/admin/Cobrancas";
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
 import StudentLogin from "./pages/portal/StudentLogin";
 import LoginRouter from "./components/LoginRouter";
@@ -52,8 +52,8 @@ const App = () => (
             <Route path="/certificacoes" element={<Certificacoes />} />
             <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
+            <Route path="/integracao-asaas" element={<IntegracaoAsaas />} />
 
-            <Route path="/cobrancas" element={<Cobrancas />} />
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
