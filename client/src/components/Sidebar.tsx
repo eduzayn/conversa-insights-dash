@@ -24,6 +24,7 @@ const menuSections = [
     items: [
       { label: 'Dashboard', path: '/' },
       { label: 'Produtividade', path: '/produtividade' },
+      { label: 'Presença', path: '/presenca' },
       { label: 'Metas & Engajamento', path: '/metas' },
     ]
   },
@@ -43,7 +44,6 @@ const menuSections = [
     items: [
       { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
       { label: 'Certificações', path: '/certificacoes' },
-      { label: 'Presença', path: '/presenca' },
     ]
   },
   {
