@@ -330,14 +330,17 @@ export class UnifiedAsaasService {
   }
 
   /**
-   * Busca a URL da fatura para pagamento
+   * Busca a URL da fatura para pagamento (usa getPayment pois invoiceUrl vem nos detalhes)
    */
   async getPaymentInvoiceUrl(paymentId: string): Promise<any> {
     try {
-      const response = await this.api.get(`/payments/${paymentId}/invoiceUrl`);
-      return response.data;
+      const payment = await this.getPayment(paymentId);
+      if (!payment.invoiceUrl) {
+        throw new Error('URL da fatura não disponível para esta cobrança');
+      }
+      return { invoiceUrl: payment.invoiceUrl };
     } catch (error: any) {
-      throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao buscar URL da fatura');
+      throw new Error(error.message || 'Erro ao buscar URL da fatura');
     }
   }
 
