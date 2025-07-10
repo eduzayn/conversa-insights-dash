@@ -482,6 +482,17 @@ Changelog:
      - Interface responsiva exibindo dados reais sem necessidade de recarregar
    * ✅ Navegação disponível tanto por `/cobrancas` quanto `/integracao-asaas`
    * Status: Página de integração Asaas 100% funcional e acessível
+- Correção Definitiva: Regressões na Página de Cobranças (10 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Status de cobranças corrigidos e sincronizados com Asaas
+   * ✅ Mapeamento de status unificado: RECEIVED/CONFIRMED → 'paid', PENDING → 'pending', OVERDUE → 'overdue'
+   * ✅ Tooltips em português implementados: "Aguardando pagamento", "Pagamento confirmado", "Vencido", "Estornado"
+   * ✅ IDs reais do Asaas exibidos corretamente (últimos 3 dígitos na listagem)
+   * ✅ Nome do cliente extraído corretamente da propriedade customer.name do Asaas
+   * ✅ Sistema de fallback robusto para casos onde dados não estão disponíveis
+   * ✅ Badge de status com tooltips padronizados em português
+   * ✅ Funções auxiliares criadas: getStatusBadge(), getCustomerName(), getPaymentId()
+   * ✅ Sincronização automática de customer.name e customer.email do Asaas
+   * Status: Página de cobranças totalmente corrigida, sem regressões
 ```
 
 ## User Preferences

@@ -597,11 +597,12 @@ export class AsaasService {
   mapAsaasStatusToInternal(asaasStatus: string): string {
     const statusMap: Record<string, string> = {
       'PENDING': 'pending',
-      'RECEIVED': 'received',
-      'CONFIRMED': 'confirmed',
+      'RECEIVED': 'paid',
+      'RECEIVED_IN_CASH': 'paid',
+      'CONFIRMED': 'paid',
       'OVERDUE': 'overdue',
+      'CANCELLED': 'failed',
       'REFUNDED': 'refunded',
-      'RECEIVED_IN_CASH': 'received',
       'REFUND_REQUESTED': 'refunded'
     };
 

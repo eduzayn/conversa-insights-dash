@@ -248,6 +248,110 @@ export default function Cobrancas() {
     }
   };
 
+  // Função para obter badge de status com tooltip em português
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; tooltip: string; variant: 'default' | 'destructive' | 'secondary' | 'outline' }> = {
+      'PENDING': { 
+        label: 'Pendente', 
+        tooltip: 'Aguardando pagamento', 
+        variant: 'secondary' 
+      },
+      'pending': { 
+        label: 'Pendente', 
+        tooltip: 'Aguardando pagamento', 
+        variant: 'secondary' 
+      },
+      'RECEIVED': { 
+        label: 'Pago', 
+        tooltip: 'Pagamento confirmado', 
+        variant: 'default' 
+      },
+      'paid': { 
+        label: 'Pago', 
+        tooltip: 'Pagamento confirmado', 
+        variant: 'default' 
+      },
+      'CONFIRMED': { 
+        label: 'Pago', 
+        tooltip: 'Pagamento confirmado', 
+        variant: 'default' 
+      },
+      'OVERDUE': { 
+        label: 'Vencido', 
+        tooltip: 'Pagamento em atraso', 
+        variant: 'destructive' 
+      },
+      'overdue': { 
+        label: 'Vencido', 
+        tooltip: 'Pagamento em atraso', 
+        variant: 'destructive' 
+      },
+      'CANCELLED': { 
+        label: 'Cancelado', 
+        tooltip: 'Pagamento cancelado', 
+        variant: 'outline' 
+      },
+      'failed': { 
+        label: 'Cancelado', 
+        tooltip: 'Pagamento cancelado', 
+        variant: 'outline' 
+      },
+      'REFUNDED': { 
+        label: 'Estornado', 
+        tooltip: 'Pagamento estornado', 
+        variant: 'outline' 
+      },
+      'refunded': { 
+        label: 'Estornado', 
+        tooltip: 'Pagamento estornado', 
+        variant: 'outline' 
+      }
+    };
+
+    const config = statusConfig[status] || { 
+      label: 'Desconhecido', 
+      tooltip: 'Status não identificado', 
+      variant: 'outline' as const 
+    };
+
+    return (
+      <Badge 
+        variant={config.variant}
+        title={config.tooltip}
+        className="cursor-help"
+      >
+        {config.label}
+      </Badge>
+    );
+  };
+
+  // Função para extrair nome do cliente corretamente
+  const getCustomerName = (payment: AsaasPayment) => {
+    // Primeiro tentar customer.name (objeto completo do Asaas)
+    if (payment.customer && typeof payment.customer === 'object' && (payment.customer as any).name) {
+      return (payment.customer as any).name;
+    }
+    
+    // Depois tentar customerName (campo salvo)
+    if (payment.customerName && payment.customerName !== 'Administrador') {
+      return payment.customerName;
+    }
+    
+    // Se customer for uma string (ID), mostrar apenas o ID parcial
+    if (typeof payment.customer === 'string' && payment.customer.startsWith('cus_')) {
+      return `Cliente ${payment.customer.slice(-8)}`;
+    }
+    
+    // Fallback para customer string ou email
+    return payment.customer || payment.customerEmail || 'Cliente não identificado';
+  };
+
+  // Função para obter ID da cobrança (sempre mostrar ID real do Asaas)
+  const getPaymentId = (payment: AsaasPayment) => {
+    // Sempre mostrar o ID real do Asaas (últimos 3 caracteres para visualização)
+    return payment.id ? payment.id.slice(-3) : 'N/A';
+  };
+
   // Usar apenas dados reais da API do Asaas
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const filteredPayments = payments.filter((payment: AsaasPayment) => {
@@ -544,17 +648,17 @@ export default function Cobrancas() {
             ) : (
               filteredPayments.map((payment: AsaasPayment) => (
                 <TableRow key={payment.id} className="hover:bg-gray-50">
-                  <TableCell className="font-mono text-sm">{payment.id.slice(-3)}</TableCell>
+                  <TableCell className="font-mono text-sm">{getPaymentId(payment)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 text-sm font-medium">
-                          {(payment.customerName || payment.customer)?.charAt(0)?.toUpperCase() || 'A'}
+                          {getCustomerName(payment).charAt(0)?.toUpperCase() || 'A'}
                         </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="font-medium">
-                          {payment.customerName || payment.customer || 'Cliente'}
+                          {getCustomerName(payment)}
                         </span>
                         {payment.customerEmail && (
                           <span className="text-xs text-gray-500">
@@ -568,16 +672,7 @@ export default function Cobrancas() {
                   <TableCell className="font-semibold">{formatCurrency(payment.value)}</TableCell>
                   <TableCell>{formatDate(payment.dueDate)}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      payment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      payment.status === 'RECEIVED' ? 'bg-green-100 text-green-800' :
-                      payment.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {payment.status === 'PENDING' ? 'Pendente' :
-                       payment.status === 'RECEIVED' ? 'Recebido' :
-                       payment.status === 'OVERDUE' ? 'Vencido' : payment.status}
-                    </span>
+                    {getStatusBadge(payment.status)}
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
@@ -697,15 +792,7 @@ export default function Cobrancas() {
                   <div>
                     <label className="text-sm font-medium text-gray-500">Status</label>
                     <div>
-                      <Badge variant={
-                        selectedPayment.status === 'PENDING' ? 'secondary' :
-                        selectedPayment.status === 'RECEIVED' ? 'default' :
-                        selectedPayment.status === 'OVERDUE' ? 'destructive' : 'outline'
-                      }>
-                        {selectedPayment.status === 'PENDING' ? 'Pendente' :
-                         selectedPayment.status === 'RECEIVED' ? 'Recebido' :
-                         selectedPayment.status === 'OVERDUE' ? 'Vencido' : selectedPayment.status}
-                      </Badge>
+                      {getStatusBadge(selectedPayment.status)}
                     </div>
                   </div>
                   <div>
@@ -731,7 +818,7 @@ export default function Cobrancas() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Nome</label>
-                    <div className="text-sm">{selectedPayment.customerName || 'Não informado'}</div>
+                    <div className="text-sm">{getCustomerName(selectedPayment)}</div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Email</label>

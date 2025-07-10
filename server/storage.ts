@@ -1278,8 +1278,8 @@ export class DatabaseStorage implements IStorage {
         .set({
           status: this.mapAsaasStatus(asaasPayment.status),
           value: Math.round(asaasPayment.value * 100), // converter para centavos
-          customerName: asaasPayment.customerName || asaasPayment.customer,
-          customerEmail: asaasPayment.customerEmail,
+          customerName: asaasPayment.customer?.name || asaasPayment.customerName || asaasPayment.customer,
+          customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
           billingType: asaasPayment.billingType,
           paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl,
           dueDate: new Date(asaasPayment.dueDate),
@@ -1304,8 +1304,8 @@ export class DatabaseStorage implements IStorage {
           paymentMethod: asaasPayment.billingType?.toLowerCase(),
           externalId: asaasPayment.id,
           description: asaasPayment.description || 'Cobrança Asaas',
-          customerName: asaasPayment.customerName || asaasPayment.customer,
-          customerEmail: asaasPayment.customerEmail,
+          customerName: asaasPayment.customer?.name || asaasPayment.customerName || asaasPayment.customer,
+          customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
           billingType: asaasPayment.billingType,
           paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl,
           dueDate: new Date(asaasPayment.dueDate),
@@ -1343,9 +1343,12 @@ export class DatabaseStorage implements IStorage {
     const statusMap: Record<string, string> = {
       'PENDING': 'pending',
       'RECEIVED': 'paid',
-      'OVERDUE': 'pending',
+      'RECEIVED_IN_CASH': 'paid',
+      'CONFIRMED': 'paid',
+      'OVERDUE': 'overdue',
       'CANCELLED': 'failed',
       'REFUNDED': 'refunded',
+      'REFUND_REQUESTED': 'refunded',
     };
     return statusMap[asaasStatus] || 'pending';
   }
