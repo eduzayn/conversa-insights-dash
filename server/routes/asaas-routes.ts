@@ -275,8 +275,35 @@ router.get('/payments', auth, async (req, res) => {
       filters.offset = (filters.page - 1) * limit;
     }
     
-    const payments = await asaas.getPayments(filters);
-    res.json(payments);
+    const paymentsResponse = await asaas.getPayments(filters);
+    const payments = paymentsResponse.data || [];
+    
+    // Buscar dados dos clientes para enriquecer a resposta
+    const customersMap = new Map();
+    
+    for (const payment of payments) {
+      if (payment.customer && !customersMap.has(payment.customer)) {
+        try {
+          const customerData = await asaas.getCustomer(payment.customer);
+          customersMap.set(payment.customer, customerData);
+        } catch (error) {
+          // Se não conseguir buscar o cliente, continua sem erro
+          console.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
+          customersMap.set(payment.customer, null);
+        }
+      }
+      
+      // Adicionar customerData ao pagamento
+      payment.customerData = customersMap.get(payment.customer);
+    }
+    
+    // Retornar resposta original com dados enriquecidos
+    const enrichedResponse = {
+      ...paymentsResponse,
+      data: payments
+    };
+    
+    res.json(enrichedResponse);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
