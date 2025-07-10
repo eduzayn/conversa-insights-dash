@@ -45,7 +45,7 @@ const menuSections = [
       { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
       { label: 'Análise Certificação', path: '/certificacoes' },
       { label: 'Certificados Acadêmicos', path: '/certificados-pos' },
-      { label: 'Gestão Acadêmica', path: '/matrizes-curriculares' },
+      { label: 'Gestão de Cursos', path: '/matrizes-curriculares' },
     ]
   },
   {

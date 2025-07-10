@@ -572,6 +572,15 @@ Changelog:
    * ✅ Compatibilidade total com modo colapsado e responsive mobile
    * ✅ Design mais limpo e navegação contextualizada
    * Status: Sidebar modernizada e organizada conforme solicitado
+- Renomeação do Módulo "Gestão Acadêmica" para "Gestão de Cursos" (10 Jul 2025):
+   * ✅ Sidebar atualizada: "Gestão Acadêmica" alterado para "Gestão de Cursos"
+   * ✅ Título principal da página alterado para "Gestão de Cursos"
+   * ✅ Descrição atualizada: "Gestão completa de cursos, disciplinas e corpo docente"
+   * ✅ Correção de erro SQL: coluna "periodo" removida do schema academic_disciplines
+   * ✅ Sistema de carregamento de disciplinas funcionando corretamente
+   * ✅ Todas as funcionalidades mantidas: relacionamento muitos-para-muitos, CRUD completo
+   * ✅ 12 disciplinas ativas, 3 cursos ativos e 9 professores ativos confirmados no banco
+   * Status: Renomeação completa e sistema 100% funcional
 ```
 
 ## User Preferences

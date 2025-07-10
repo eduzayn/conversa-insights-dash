@@ -968,7 +968,7 @@ const MatrizesCurriculares = () => {
             Voltar ao Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Gestão Acadêmica</h1>
+            <h1 className="text-3xl font-bold">Gestão de Cursos</h1>
             <p className="text-muted-foreground">Administração completa de cursos e disciplinas</p>
           </div>
         </div>
@@ -997,7 +997,7 @@ const MatrizesCurriculares = () => {
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Cursos Acadêmicos</h2>
-              <p className="text-muted-foreground">Gestão completa dos cursos da instituição</p>
+              <p className="text-muted-foreground">Gestão completa de cursos, disciplinas e corpo docente</p>
             </div>
             <Dialog open={isCourseCreateModalOpen} onOpenChange={setIsCourseCreateModalOpen}>
               <DialogTrigger asChild>
