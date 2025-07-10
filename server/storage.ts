@@ -85,7 +85,7 @@ import {
   type InsertEvaluationSubmission
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, count } from "drizzle-orm";
+import { eq, and, desc, asc, like, count, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -1233,6 +1233,90 @@ export class DatabaseStorage implements IStorage {
       .from(payments)
       .where(eq(payments.userId, userId))
       .orderBy(desc(payments.createdAt));
+  }
+
+  // Métodos para sincronização com Asaas
+  async upsertAsaasPayment(asaasPayment: any): Promise<Payment> {
+    // Buscar pagamento existente pelo externalId
+    const existingPayment = await this.getPaymentByExternalId(asaasPayment.id);
+    
+    if (existingPayment) {
+      // Atualizar pagamento existente
+      const [updatedPayment] = await db
+        .update(payments)
+        .set({
+          status: this.mapAsaasStatus(asaasPayment.status),
+          value: Math.round(asaasPayment.value * 100), // converter para centavos
+          customerName: asaasPayment.customerName || asaasPayment.customer,
+          customerEmail: asaasPayment.customerEmail,
+          billingType: asaasPayment.billingType,
+          paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl,
+          dueDate: new Date(asaasPayment.dueDate),
+          paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
+          lastSyncedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(payments.id, existingPayment.id))
+        .returning();
+      
+      return updatedPayment;
+    } else {
+      // Criar novo pagamento
+      const [newPayment] = await db
+        .insert(payments)
+        .values({
+          tenantId: 1,
+          userId: 1, // Usuário padrão para cobranças do Asaas
+          amount: Math.round(asaasPayment.value * 100), // converter para centavos
+          value: Math.round(asaasPayment.value * 100),
+          status: this.mapAsaasStatus(asaasPayment.status),
+          paymentMethod: asaasPayment.billingType?.toLowerCase(),
+          externalId: asaasPayment.id,
+          description: asaasPayment.description || 'Cobrança Asaas',
+          customerName: asaasPayment.customerName || asaasPayment.customer,
+          customerEmail: asaasPayment.customerEmail,
+          billingType: asaasPayment.billingType,
+          paymentUrl: asaasPayment.invoiceUrl || asaasPayment.bankSlipUrl,
+          dueDate: new Date(asaasPayment.dueDate),
+          paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
+          lastSyncedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      
+      return newPayment;
+    }
+  }
+
+  async getLastSyncDate(): Promise<Date | null> {
+    const [lastPayment] = await db
+      .select({ lastSyncedAt: payments.lastSyncedAt })
+      .from(payments)
+      .where(isNotNull(payments.lastSyncedAt))
+      .orderBy(desc(payments.lastSyncedAt))
+      .limit(1);
+    
+    return lastPayment?.lastSyncedAt || null;
+  }
+
+  async getAllSyncedPayments(): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(isNotNull(payments.externalId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  private mapAsaasStatus(asaasStatus: string): string {
+    const statusMap: Record<string, string> = {
+      'PENDING': 'pending',
+      'RECEIVED': 'paid',
+      'OVERDUE': 'pending',
+      'CANCELLED': 'failed',
+      'REFUNDED': 'refunded',
+    };
+    return statusMap[asaasStatus] || 'pending';
   }
 
   // Integração Portal Professor-Aluno

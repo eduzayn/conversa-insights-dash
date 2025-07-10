@@ -2988,6 +2988,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sincronizar pagamentos com persistência
+  app.post("/api/admin/asaas/sync-persistent", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const result = await asaasService.importAllPayments();
+      
+      res.json({
+        success: true,
+        message: `Sincronização persistente concluída: ${result.imported} novos, ${result.updated} atualizados`,
+        data: result
+      });
+    } catch (error) {
+      console.error("Erro na sincronização persistente:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Erro na sincronização" 
+      });
+    }
+  });
+
   // ===== ENDPOINTS AÇÕES DOS PAGAMENTOS =====
   
   // Buscar detalhes de um pagamento específico

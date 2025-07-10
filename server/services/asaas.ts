@@ -243,12 +243,15 @@ export class AsaasService {
     }
   }
 
-  async importAllPayments(): Promise<{ imported: number; errors: string[]; payments: any[] }> {
+  async importAllPayments(): Promise<{ imported: number; updated: number; errors: string[] }> {
+    const { storage } = await import('../storage');
     try {
-      const result = { imported: 0, errors: [] as string[], payments: [] as any[] };
+      const result = { imported: 0, updated: 0, errors: [] as string[] };
       let offset = 0;
       const limit = 100;
       let hasMore = true;
+
+      console.log('Iniciando importação de pagamentos do Asaas...');
 
       while (hasMore) {
         try {
@@ -260,32 +263,24 @@ export class AsaasService {
             break;
           }
 
+          console.log(`Processando lote de ${payments.length} pagamentos (offset: ${offset})`);
+
           for (const payment of payments) {
             try {
-              // Mapear dados do Asaas para formato interno
-              const mappedPayment = {
-                id: payment.id,
-                customer: payment.customer,
-                description: payment.description,
-                value: payment.value,
-                dueDate: payment.dueDate,
-                status: payment.status,
-                billingType: payment.billingType,
-                invoiceUrl: payment.invoiceUrl,
-                dateCreated: payment.dateCreated,
-                paymentDate: payment.paymentDate,
-                originalValue: payment.originalValue,
-                interestValue: payment.interestValue,
-                fineValue: payment.fineValue,
-                netValue: payment.netValue,
-                bankSlipUrl: payment.bankSlipUrl,
-                pixTransaction: payment.pixTransaction
-              };
+              const syncedPayment = await storage.upsertAsaasPayment(payment);
               
-              result.payments.push(mappedPayment);
-              result.imported++;
+              // Verificar se foi criado ou atualizado
+              if (syncedPayment && syncedPayment.createdAt && syncedPayment.lastSyncedAt) {
+                const isNew = syncedPayment.createdAt.getTime() === syncedPayment.lastSyncedAt.getTime();
+                if (isNew) {
+                  result.imported++;
+                } else {
+                  result.updated++;
+                }
+              }
             } catch (error: any) {
-              result.errors.push(`Erro ao processar pagamento ${payment.id}: ${error.message}`);
+              console.error(`Erro ao importar pagamento ${payment.id}:`, error);
+              result.errors.push(`Pagamento ${payment.id}: ${error.message}`);
             }
           }
 
@@ -299,6 +294,8 @@ export class AsaasService {
           break;
         }
       }
+
+      console.log(`Importação concluída: ${result.imported} novos, ${result.updated} atualizados, ${result.errors.length} erros`);
 
       return result;
     } catch (error: any) {
@@ -532,11 +529,43 @@ export class AsaasService {
   }
 
   async syncAllPayments(): Promise<{ synced: number; errors: string[] }> {
+    const { storage } = await import('../storage');
     try {
       const result = { synced: 0, errors: [] as string[] };
       
-      // Aqui você buscaria os pagamentos do seu banco de dados
-      // e sincronizaria com o status no Asaas
+      // Obter data da última sincronização
+      const lastSyncDate = await storage.getLastSyncDate();
+      
+      // Configurar filtros para buscar apenas pagamentos novos/atualizados
+      const filters: any = {
+        limit: 100 // Sincronizar até 100 pagamentos por vez
+      };
+      
+      // Se existe sincronização anterior, buscar apenas pagamentos atualizados
+      if (lastSyncDate) {
+        filters.dateCreatedGe = lastSyncDate.toISOString().split('T')[0];
+      }
+      
+      console.log('Iniciando sincronização com filtros:', filters);
+      
+      // Buscar pagamentos do Asaas
+      const response = await this.client.get('/payments', { params: filters });
+      const asaasPayments = response.data.data || [];
+      
+      console.log(`Encontrados ${asaasPayments.length} pagamentos para sincronizar`);
+      
+      // Sincronizar cada pagamento
+      for (const asaasPayment of asaasPayments) {
+        try {
+          await storage.upsertAsaasPayment(asaasPayment);
+          result.synced++;
+        } catch (error: any) {
+          console.error(`Erro ao sincronizar pagamento ${asaasPayment.id}:`, error);
+          result.errors.push(`Pagamento ${asaasPayment.id}: ${error.message}`);
+        }
+      }
+      
+      console.log(`Sincronização concluída: ${result.synced} pagamentos sincronizados, ${result.errors.length} erros`);
       
       return result;
     } catch (error: any) {

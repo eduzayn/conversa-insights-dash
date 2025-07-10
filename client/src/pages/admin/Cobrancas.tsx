@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Search, Plus, Eye, Copy, FileText, Link as LinkIcon, X, AlertTriangle, RefreshCw, Trash2 } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Eye, Copy, FileText, Link as LinkIcon, X, AlertTriangle, RefreshCw, Trash2, Database } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -62,6 +62,33 @@ export default function Cobrancas() {
     onSuccess: () => {
       // Invalidar cache do React Query também
       queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/payments'] });
+    }
+  });
+
+  // Mutation para sincronização persistente
+  const syncPersistentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('/api/admin/asaas/sync-persistent', {
+        method: 'POST'
+      });
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Sincronização concluída",
+        description: data.message || "Dados salvos no banco com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/payments'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro na sincronização",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -180,6 +207,10 @@ export default function Cobrancas() {
     clearCacheMutation.mutate();
   };
 
+  const handleSyncPersistent = () => {
+    syncPersistentMutation.mutate();
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -237,6 +268,19 @@ export default function Cobrancas() {
               <Trash2 className="h-4 w-4 mr-2" />
             )}
             Limpar Cache
+          </Button>
+          <Button 
+            variant="outline" 
+            className="text-green-600 border-green-600"
+            onClick={handleSyncPersistent}
+            disabled={syncPersistentMutation.isPending}
+          >
+            {syncPersistentMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Database className="h-4 w-4 mr-2" />
+            )}
+            Sincronizar Persistente
           </Button>
           <Button 
             variant="outline" 

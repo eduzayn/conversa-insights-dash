@@ -358,6 +358,12 @@ export const payments = pgTable("payments", {
   description: text("description"),
   dueDate: timestamp("due_date"),
   paymentUrl: text("payment_url"),
+  // Campos para integração com API Asaas
+  customerName: text("customer_name"), // Nome do cliente do Asaas
+  customerEmail: text("customer_email"), // Email do cliente do Asaas
+  billingType: text("billing_type"), // PIX, BOLETO, CREDIT_CARD
+  value: integer("value"), // Valor em centavos conforme API Asaas
+  lastSyncedAt: timestamp("last_synced_at"), // Data da última sincronização
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
