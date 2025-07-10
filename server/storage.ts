@@ -1171,13 +1171,18 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(payments.tenantId, filters.tenantId));
     }
     
-    let query = db.select().from(payments);
-    
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db
+        .select()
+        .from(payments)
+        .where(and(...conditions))
+        .orderBy(desc(payments.createdAt));
     }
     
-    return await query.orderBy(desc(payments.createdAt));
+    return await db
+      .select()
+      .from(payments)
+      .orderBy(desc(payments.createdAt));
   }
 
   // Buscar pagamentos com dados dos usuários (JOIN)
@@ -1190,7 +1195,42 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(payments.externalId, filters.externalId));
     }
     
-    let query = db
+    if (conditions.length > 0) {
+      return await db
+        .select({
+          // Campos do pagamento
+          id: payments.id,
+          tenantId: payments.tenantId,
+          userId: payments.userId,
+          courseId: payments.courseId,
+          amount: payments.amount,
+          status: payments.status,
+          paymentMethod: payments.paymentMethod,
+          transactionId: payments.transactionId,
+          paidAt: payments.paidAt,
+          externalId: payments.externalId,
+          description: payments.description,
+          dueDate: payments.dueDate,
+          paymentUrl: payments.paymentUrl,
+          customerName: payments.customerName,
+          customerEmail: payments.customerEmail,
+          billingType: payments.billingType,
+          value: payments.value,
+          lastSyncedAt: payments.lastSyncedAt,
+          createdAt: payments.createdAt,
+          updatedAt: payments.updatedAt,
+          // Campos do usuário
+          userName: users.name,
+          userEmail: users.email,
+          userCpf: users.cpf
+        })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .where(and(...conditions))
+        .orderBy(desc(payments.createdAt));
+    }
+    
+    return await db
       .select({
         // Campos do pagamento
         id: payments.id,
@@ -1219,13 +1259,8 @@ export class DatabaseStorage implements IStorage {
         userCpf: users.cpf
       })
       .from(payments)
-      .leftJoin(users, eq(payments.userId, users.id));
-    
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    return await query.orderBy(desc(payments.createdAt));
+      .leftJoin(users, eq(payments.userId, users.id))
+      .orderBy(desc(payments.createdAt));
   }
 
   async createPayment(payment: InsertPayment): Promise<Payment> {
@@ -1417,7 +1452,7 @@ export class DatabaseStorage implements IStorage {
         const customer = await asaasService.createCustomer(customerData);
         
         const asaasPayment = await asaasService.createPayment({
-          customer: typeof customer === 'string' ? customer : customer.id,
+          customer: customer as any,
           billingType: 'BOLETO',
           dueDate: dueDate.toISOString().split('T')[0],
           value: amount,
