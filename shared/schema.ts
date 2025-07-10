@@ -367,24 +367,30 @@ export const asaasPayments = pgTable("asaas_payments", {
   id: serial("id").primaryKey(),
   asaasId: text("asaas_id").notNull().unique(), // ID único do pagamento no Asaas
   customerId: text("customer_id").notNull(), // ID do cliente no Asaas
-  customerName: text("customer_name"), // Nome do cliente (enriquecido)
-  customerEmail: text("customer_email"), // Email do cliente (enriquecido)
   value: integer("value").notNull(), // Valor em centavos
   description: text("description"),
-  status: text("status").notNull(), // pending, received, overdue, etc.
   billingType: text("billing_type"), // BOLETO, PIX, CREDIT_CARD
+  status: text("status").notNull(), // pending, received, overdue, etc.
   dueDate: timestamp("due_date"),
-  originalDueDate: timestamp("original_due_date"),
+  dateCreated: timestamp("date_created"),
+  confirmedDate: timestamp("confirmed_date"),
   paymentDate: timestamp("payment_date"),
   clientPaymentDate: timestamp("client_payment_date"),
   invoiceUrl: text("invoice_url"),
   bankSlipUrl: text("bank_slip_url"),
-  pixTransaction: json("pix_transaction"), // Dados do PIX se aplicável
-  creditCard: json("credit_card"), // Dados do cartão se aplicável
-  discount: json("discount"), // Dados de desconto
-  fine: json("fine"), // Dados de multa
-  interest: json("interest"), // Dados de juros
-  deleted: boolean("deleted").default(false),
+  paymentUrl: text("payment_url"),
+  pixTransaction: text("pix_transaction"), // Dados do PIX como texto
+  externalReference: text("external_reference"),
+  installmentNumber: integer("installment_number"),
+  invoiceNumber: text("invoice_number"),
+  netValue: integer("net_value"),
+  originalValue: integer("original_value"),
+  interestValue: integer("interest_value"),
+  customerName: text("customer_name"), // Nome do cliente (enriquecido)
+  customerEmail: text("customer_email"), // Email do cliente (enriquecido)
+  customerCpfCnpj: text("customer_cpf_cnpj"),
+  customerPhone: text("customer_phone"),
+  customerMobilePhone: text("customer_mobile_phone"),
   lastSyncAt: timestamp("last_sync_at").defaultNow(), // Controle de sincronização
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -87,7 +87,6 @@ export interface AsaasWebhookEvent {
     invoiceNumber?: string;
     externalReference?: string;
     dueDate: string;
-    originalDueDate: string;
   };
 }
 

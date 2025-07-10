@@ -181,13 +181,14 @@ export default function IntegracaoAsaas() {
     }
   });
 
-  // Métricas calculadas
+  // Métricas calculadas - verificação de segurança
+  const safeCharges = allCharges || [];
   const metrics = {
-    total: allCharges.length,
-    received: allCharges.filter(c => c.status === 'received').length,
-    pending: allCharges.filter(c => c.status === 'pending').length,
-    overdue: allCharges.filter(c => c.status === 'overdue').length,
-    totalValue: allCharges.reduce((sum, c) => sum + (c.value || 0), 0) / 100
+    total: safeCharges.length,
+    received: safeCharges.filter(c => c.status === 'received').length,
+    pending: safeCharges.filter(c => c.status === 'pending').length,
+    overdue: safeCharges.filter(c => c.status === 'overdue').length,
+    totalValue: safeCharges.reduce((sum, c) => sum + (c.value || 0), 0) / 100
   };
 
   if (error) {
