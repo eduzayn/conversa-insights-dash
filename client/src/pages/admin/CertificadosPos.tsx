@@ -1282,46 +1282,7 @@ const CertificadosPos = () => {
               
               {selectedTemplate && (
                 <div className="space-y-4">
-                  {/* Informações básicas compactas */}
-                  <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-600">Nome do Modelo</Label>
-                      <p className="text-sm font-medium">{selectedTemplate.nome}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-600">Categoria</Label>
-                      <p className="text-sm">
-                        {selectedTemplate.categoria === 'pos_graduacao' ? 'Pós-Graduação' : 
-                         selectedTemplate.categoria === 'segunda_graduacao' ? 'Segunda Graduação' : 
-                         'Formação Pedagógica'}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-600">Tipo</Label>
-                      <p className="text-sm">
-                        {selectedTemplate.tipo.charAt(0).toUpperCase() + selectedTemplate.tipo.slice(1)}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-600">Status</Label>
-                      <Badge variant={selectedTemplate.isActive ? "default" : "secondary"} className="text-xs">
-                        {selectedTemplate.isActive ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-600">Instituição</Label>
-                      <p className="text-sm">{selectedTemplate.instituicaoNome}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-600">Posição QR Code</Label>
-                      <p className="text-sm">{selectedTemplate.qrCodePosition}</p>
-                    </div>
-                  </div>
-
-                  {/* Preview Visual PRINCIPAL - Maior destaque */}
+                  {/* Apenas o Preview Visual do Certificado */}
                   <div className="border-2 border-primary/20 rounded-lg p-6 bg-white">
                     <div className="flex items-center justify-between mb-4">
                       <Label className="text-lg font-semibold text-primary">Preview Visual do Certificado</Label>
