@@ -1,0 +1,82 @@
+TAREFA PARA O REPLIT
+Título: Correção de Regressões na Página de Cobranças – Sincronização de Status, Tooltips, IDs e Dados Reais
+
+🎯 Objetivo
+Corrigir definitivamente os problemas de regressão que estão acontecendo na página de cobranças, garantindo que:
+
+Os status das cobranças sejam sincronizados corretamente com o Asaas
+
+Os tooltips de status estejam padronizados e em idioma português
+
+Os IDs e nomes exibidos na tabela correspondam aos dados reais do Asaas
+
+As correções feitas anteriormente não voltem a regredir
+
+📌 Problemas que precisam ser corrigidos agora:
+1. ❌ Status incorretos ou desatualizados
+O campo status das cobranças muitas vezes não reflete o status real da cobrança no Asaas.
+
+Exemplo: cobranças pagas continuam como "pendente".
+
+✅ O que fazer:
+
+Corrigir o mapeamento do status entre a resposta do Asaas e o enum interno.
+
+Garantir que o status local seja atualizado corretamente na sincronização.
+
+Usar a propriedade correta da API do Asaas (payment.status).
+
+2. ❌ Tooltips de status com formatação ruim
+Os tooltips dos badges de status (como PAID, PENDING, etc.) não estão traduzidos ou padronizados.
+
+Em alguns casos aparece texto em inglês ou sem capitalização correta.
+
+✅ O que fazer:
+
+Padronizar todos os tooltips com idioma português.
+
+Exemplo:
+
+pending → “Aguardando pagamento”
+
+paid → “Pago”
+
+overdue → “Vencido”
+
+refunded → “Estornado”
+
+3. ❌ IDs de cobranças falsos ou irreais
+A tabela está exibindo códigos fictícios ou repetidos no campo de ID.
+
+✅ O que fazer:
+
+Mostrar sempre o ID real da cobrança do Asaas (campo payment.id)
+
+Se necessário, salvar esse ID como external_id no banco e usá-lo na listagem
+
+4. ❌ Nome dos alunos exibido incorretamente
+Nomes estão aparecendo como “Administrador” ou qualquer valor mock, mesmo que o Asaas retorne corretamente.
+
+✅ O que fazer:
+
+Garantir que o nome exibido na coluna "Aluno" seja o nome salvo no Asaas
+
+Validar se está vindo corretamente da propriedade customer.name ou do modelo User
+
+⚠️ Regras Obrigatórias:
+🚫 Não pode mais regredir nas correções já feitas anteriormente.
+
+✅ Validar que as correções estão aplicadas em ambiente real com dados reais
+
+✅ As correções devem ser persistentes, não podem sumir após deploy, merge ou mudança de branch
+
+✅ Aplicar testes manuais ou automáticos para garantir estabilidade
+
+✅ Resultado Esperado:
+Todos os status exibidos na listagem refletem exatamente o status atual no Asaas
+
+Tooltips padronizados em português com formatação correta
+
+IDs de cobrança são reais (do Asaas)
+
+Nome do cliente exibido corretamente e consistentemente
