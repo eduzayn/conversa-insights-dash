@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Search, Plus, Eye, Copy, FileText, Link as LinkIcon, X, AlertTriangle, RefreshCw, Trash2, Database } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, Search, Plus, Eye, Copy, FileText, Link as LinkIcon, X, AlertTriangle, RefreshCw, Trash2, Database, Calendar, TrendingUp, TrendingDown, Users, CreditCard } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from 'react-router-dom';
 import { apiRequest } from "@/lib/queryClient";
@@ -31,6 +32,7 @@ export default function Cobrancas() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<AsaasPayment | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('month'); // Período para métricas
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -46,6 +48,19 @@ export default function Cobrancas() {
       return response.json();
     },
     enabled: true // Carrega automaticamente as cobranças do banco de dados
+  });
+
+  // Buscar métricas por período
+  const { data: metricsData } = useQuery({
+    queryKey: ['/api/admin/asaas/metrics', selectedPeriod],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/admin/asaas/metrics?period=${selectedPeriod}`);
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: true
   });
 
   // Mutation para limpar cache
@@ -222,6 +237,17 @@ export default function Cobrancas() {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
+  // Função para obter nome do período em português
+  const getPeriodName = (period: string) => {
+    switch (period) {
+      case 'day': return 'Hoje';
+      case 'week': return 'Esta semana';
+      case 'month': return 'Este mês';
+      case '3months': return 'Últimos 3 meses';
+      default: return 'Este mês';
+    }
+  };
+
   // Usar apenas dados reais da API do Asaas
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const filteredPayments = payments.filter((payment: AsaasPayment) => {
@@ -326,24 +352,131 @@ export default function Cobrancas() {
         </Alert>
       )}
 
-      {/* Cards de estatísticas idênticos à imagem */}
-      <div className="grid grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-lg p-6 border">
-          <div className="text-sm text-gray-600 mb-1">Total de cobranças</div>
-          <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+      {/* Seletor de período e cards dinâmicos */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Dashboard - Métricas por Período</h2>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-48">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Hoje</SelectItem>
+              <SelectItem value="week">Esta semana</SelectItem>
+              <SelectItem value="month">Este mês</SelectItem>
+              <SelectItem value="3months">Últimos 3 meses</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="bg-white rounded-lg p-6 border">
-          <div className="text-sm text-gray-600 mb-1">Valores pagos</div>
-          <div className="text-3xl font-bold text-green-600">{formatCurrency(0)}</div>
+
+        {/* Cards de métricas dinâmicas */}
+        <div className="grid grid-cols-5 gap-4">
+          {/* Total */}
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-600 font-medium flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-blue-500" />
+                Total de Cobranças
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-gray-900">
+                {metricsData?.metrics?.total?.count || 0}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {formatCurrency(metricsData?.metrics?.total?.value || 0)}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recebidas */}
+          <Card className="border border-green-200 bg-green-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-green-700 font-medium flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                Recebidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-green-600">
+                {metricsData?.metrics?.received?.count || 0}
+              </div>
+              <div className="text-xs text-green-600 mt-1">
+                {formatCurrency(metricsData?.metrics?.received?.value || 0)}
+              </div>
+              <div className="text-xs text-gray-500">
+                {metricsData?.metrics?.received?.customers || 0} clientes
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pendentes */}
+          <Card className="border border-yellow-200 bg-yellow-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-yellow-700 font-medium flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-yellow-500" />
+                Pendentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-yellow-600">
+                {metricsData?.metrics?.pending?.count || 0}
+              </div>
+              <div className="text-xs text-yellow-600 mt-1">
+                {formatCurrency(metricsData?.metrics?.pending?.value || 0)}
+              </div>
+              <div className="text-xs text-gray-500">
+                {metricsData?.metrics?.pending?.customers || 0} clientes
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Vencidas */}
+          <Card className="border border-red-200 bg-red-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-red-700 font-medium flex items-center gap-2">
+                <TrendingDown className="h-4 w-4 text-red-500" />
+                Vencidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-red-600">
+                {metricsData?.metrics?.overdue?.count || 0}
+              </div>
+              <div className="text-xs text-red-600 mt-1">
+                {formatCurrency(metricsData?.metrics?.overdue?.value || 0)}
+              </div>
+              <div className="text-xs text-gray-500">
+                {metricsData?.metrics?.overdue?.customers || 0} clientes
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Clientes */}
+          <Card className="border border-blue-200 bg-blue-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-blue-700 font-medium flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-500" />
+                Clientes Únicos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-blue-600">
+                {metricsData?.metrics?.total?.customers || 0}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {getPeriodName(selectedPeriod)}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="bg-white rounded-lg p-6 border">
-          <div className="text-sm text-gray-600 mb-1">Valores pendentes</div>
-          <div className="text-3xl font-bold text-orange-600">{formatCurrency(stats.pendingValue)}</div>
-        </div>
-        <div className="bg-white rounded-lg p-6 border">
-          <div className="text-sm text-gray-600 mb-1">Vencidos</div>
-          <div className="text-3xl font-bold text-red-600">{formatCurrency(stats.overdueValue)}</div>
-        </div>
+
+        {!metricsData && (
+          <div className="text-center py-4 text-gray-500">
+            Carregando métricas...
+          </div>
+        )}
       </div>
 
       {/* Tabela principal - idêntica à imagem */}

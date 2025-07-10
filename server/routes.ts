@@ -2811,6 +2811,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para métricas de pagamentos por período
+  app.get("/api/admin/asaas/metrics", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const { period = 'month' } = req.query;
+      
+      // Definir filtros de data baseados no período
+      let dateFilter = '';
+      let dateParams: any[] = [];
+      
+      const now = new Date();
+      
+      switch (period) {
+        case 'day':
+          dateFilter = 'AND created_at >= CURRENT_DATE';
+          break;
+        case 'week':
+          dateFilter = 'AND created_at >= CURRENT_DATE - INTERVAL \'7 days\'';
+          break;
+        case 'month':
+          dateFilter = 'AND created_at >= DATE_TRUNC(\'month\', CURRENT_DATE)';
+          break;
+        case '3months':
+          dateFilter = 'AND created_at >= CURRENT_DATE - INTERVAL \'3 months\'';
+          break;
+        default:
+          dateFilter = 'AND created_at >= DATE_TRUNC(\'month\', CURRENT_DATE)';
+      }
+
+      // Buscar todos os pagamentos para processamento no JavaScript
+
+      const result = await storage.getPayments({});
+      
+      // Filtrar pagamentos por período
+      let filteredPayments = result;
+
+      switch (period) {
+        case 'day':
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          filteredPayments = result.filter(p => new Date(p.createdAt!) >= today);
+          break;
+        case 'week':
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          filteredPayments = result.filter(p => new Date(p.createdAt!) >= weekAgo);
+          break;
+        case 'month':
+          const currentDate = new Date();
+          const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+          filteredPayments = result.filter(p => new Date(p.createdAt!) >= startOfMonth);
+          break;
+        case '3months':
+          const threeMonthsAgo = new Date();
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          filteredPayments = result.filter(p => new Date(p.createdAt!) >= threeMonthsAgo);
+          break;
+      }
+
+      // Organizar dados por status
+      const metrics = {
+        received: { count: 0, value: 0, customers: 0 },
+        pending: { count: 0, value: 0, customers: 0 },
+        overdue: { count: 0, value: 0, customers: 0 },
+        cancelled: { count: 0, value: 0, customers: 0 },
+        total: { count: 0, value: 0, customers: 0 }
+      };
+
+      const uniqueCustomers = new Set();
+
+      filteredPayments.forEach((payment: any) => {
+        const status = payment.status.toLowerCase();
+        const value = (payment.value || payment.amount) / 100; // Converter centavos para reais
+        
+        uniqueCustomers.add(payment.userId);
+
+        if (status === 'paid' || status === 'received') {
+          metrics.received.count++;
+          metrics.received.value += value;
+        } else if (status === 'pending') {
+          metrics.pending.count++;
+          metrics.pending.value += value;
+        } else if (status === 'overdue') {
+          metrics.overdue.count++;
+          metrics.overdue.value += value;
+        } else if (status === 'cancelled') {
+          metrics.cancelled.count++;
+          metrics.cancelled.value += value;
+        }
+
+        metrics.total.count++;
+        metrics.total.value += value;
+      });
+
+      // Definir clientes únicos para cada status
+      metrics.received.customers = filteredPayments.filter(p => ['paid', 'received'].includes(p.status.toLowerCase())).map(p => p.userId).filter((v, i, a) => a.indexOf(v) === i).length;
+      metrics.pending.customers = filteredPayments.filter(p => p.status.toLowerCase() === 'pending').map(p => p.userId).filter((v, i, a) => a.indexOf(v) === i).length;
+      metrics.overdue.customers = filteredPayments.filter(p => p.status.toLowerCase() === 'overdue').map(p => p.userId).filter((v, i, a) => a.indexOf(v) === i).length;
+      metrics.cancelled.customers = filteredPayments.filter(p => p.status.toLowerCase() === 'cancelled').map(p => p.userId).filter((v, i, a) => a.indexOf(v) === i).length;
+      metrics.total.customers = uniqueCustomers.size;
+
+      res.json({
+        period,
+        metrics,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Erro ao buscar métricas:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar métricas de pagamentos",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
   // Buscar cobranças do banco de dados PostgreSQL
   app.get("/api/admin/asaas/payments-db", authenticateToken, async (req: any, res) => {
     try {
