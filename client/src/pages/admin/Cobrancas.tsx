@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from 'react-router-dom';
+import { apiRequest } from "@/lib/queryClient";
 
 interface AsaasPayment {
   id: string;
@@ -24,6 +25,13 @@ export default function Cobrancas() {
   // Buscar dados reais das cobranças do Asaas (DESABILITADA para não consumir cota automaticamente)
   const { data: paymentsData = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin/asaas/payments'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/admin/asaas/payments');
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: false // Desabilita execução automática - só executa quando clicar em "Sincronizar"
   });
 
