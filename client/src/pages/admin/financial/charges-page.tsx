@@ -393,22 +393,11 @@ const ChargesPage: React.FC = () => {
         <main className="p-6">
           {/* Cabeçalho da página */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => window.history.back()}
-                className="flex items-center space-x-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Voltar</span>
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Pagamentos Asaas</h1>
-                <p className="text-muted-foreground">
-                  Gerencie cobranças e pagamentos diretamente pelo Asaas
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Pagamentos Asaas</h1>
+              <p className="text-muted-foreground">
+                Gerencie cobranças e pagamentos diretamente pelo Asaas
+              </p>
             </div>
           </div>
 
