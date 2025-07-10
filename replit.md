@@ -462,6 +462,17 @@ Changelog:
    * ✅ Sistema de tabs reorganizado e botões de ação aprimorados
    * ✅ Aproveitamento de 95% do código existente conforme solicitado
    * ✅ Design responsivo e funcionalidade completa mantidos
+- Correção Crítica: Mapeamento de Clientes Asaas (10 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: IDs de cliente Asaas (cus_000123509407) substituídos por nomes reais
+   * ✅ Sistema de enriquecimento de dados implementado com método getCustomer()
+   * ✅ Cache otimizado para dados de clientes (evita requisições duplicadas)
+   * ✅ Interface atualizada para exibir nome e email do cliente na tabela
+   * ✅ Busca aprimorada para incluir nome e email do cliente nos filtros
+   * ✅ Botão "Limpar Cache" adicionado para limpeza manual do sistema
+   * ✅ Sistema de fallback implementado (mantém ID se nome não disponível)
+   * ✅ Performance otimizada com delay mínimo entre requisições (10ms)
+   * ✅ Loop infinito completamente eliminado com limitação rigorosa (máx 300 registros)
+   * Status: Sistema de cobranças operacional com dados reais dos clientes
 ```
 
 ## User Preferences

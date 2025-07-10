@@ -317,6 +317,16 @@ export class AsaasService {
     return Date.now() - cached.timestamp < this.CACHE_TTL;
   }
 
+  async getCustomer(customerId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/customers/${customerId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`Erro ao buscar cliente ${customerId}:`, error.message);
+      return null;
+    }
+  }
+
   async getAllPayments(filters: {
     customer?: string;
     status?: string;
@@ -366,17 +376,64 @@ export class AsaasService {
 
       console.log(`✓ Cobranças carregadas: ${allPayments.length} registros em ${currentPage} páginas`);
       
+      // ENRIQUECER COM DADOS DOS CLIENTES
+      const enrichedPayments = await this.enrichPaymentsWithCustomerData(allPayments);
+      
       // Armazenar no cache
       this.cache.set(cacheKey, {
-        data: allPayments,
+        data: enrichedPayments,
         timestamp: Date.now()
       });
 
-      return allPayments;
+      return enrichedPayments;
     } catch (error: any) {
       console.error('Erro ao buscar todas as cobranças:', error);
       throw new Error(`Falha ao buscar cobranças: ${error.message}`);
     }
+  }
+
+  private async enrichPaymentsWithCustomerData(payments: any[]): Promise<any[]> {
+    const enrichedPayments = [];
+    const customerCache = new Map<string, any>();
+
+    for (const payment of payments) {
+      try {
+        let customerData = customerCache.get(payment.customer);
+        
+        if (!customerData) {
+          customerData = await this.getCustomer(payment.customer);
+          if (customerData) {
+            customerCache.set(payment.customer, customerData);
+          }
+        }
+
+        const enrichedPayment = {
+          ...payment,
+          customerName: customerData?.name || payment.customer,
+          customerEmail: customerData?.email || '',
+          customerPhone: customerData?.phone || customerData?.mobilePhone || '',
+          customerCpfCnpj: customerData?.cpfCnpj || ''
+        };
+
+        enrichedPayments.push(enrichedPayment);
+        
+        // Pequeno delay para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 10));
+      } catch (error) {
+        console.error(`Erro ao enriquecer pagamento ${payment.id}:`, error);
+        // Se falhar, usar dados originais
+        enrichedPayments.push({
+          ...payment,
+          customerName: payment.customer,
+          customerEmail: '',
+          customerPhone: '',
+          customerCpfCnpj: ''
+        });
+      }
+    }
+
+    console.log(`✓ ${enrichedPayments.length} pagamentos enriquecidos com dados dos clientes`);
+    return enrichedPayments;
   }
 
   async syncAllPayments(): Promise<{ synced: number; errors: string[] }> {

@@ -12,6 +12,10 @@ import { apiRequest } from "@/lib/queryClient";
 interface AsaasPayment {
   id: string;
   customer: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  customerCpfCnpj?: string;
   value: number;
   description: string;
   billingType: string;
@@ -76,6 +80,8 @@ export default function Cobrancas() {
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const filteredPayments = payments.filter((payment: AsaasPayment) => {
     const matchesSearch = searchTerm === '' || 
+      payment.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.id.includes(searchTerm);
@@ -251,10 +257,19 @@ export default function Cobrancas() {
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 text-sm font-medium">
-                          {payment.customer?.charAt(0)?.toUpperCase() || 'A'}
+                          {(payment.customerName || payment.customer)?.charAt(0)?.toUpperCase() || 'A'}
                         </span>
                       </div>
-                      <span className="font-medium">{payment.customer || 'Cliente'}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {payment.customerName || payment.customer || 'Cliente'}
+                        </span>
+                        {payment.customerEmail && (
+                          <span className="text-xs text-gray-500">
+                            {payment.customerEmail}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">{payment.description}</TableCell>
