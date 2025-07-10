@@ -391,11 +391,11 @@ const ChargesPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      <div className="lg:pl-64">
+      <div className="flex-1 flex flex-col">
         <Header />
-        <main className="p-6">
+        <main className="flex-1 p-6">
           {/* Cabeçalho da página */}
           <div className="flex items-center justify-between mb-6">
             <div>
