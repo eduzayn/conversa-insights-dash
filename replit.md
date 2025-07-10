@@ -412,6 +412,26 @@ Changelog:
    * ✅ Portal do Professor confirmado: já usava exclusivamente React Router DOM
    * ✅ Dependência wouter removida do package.json (4 pacotes desinstalados)
    * ✅ Projeto 100% limpo: zero referências ao Wouter em todo o código
+- Integração Completa com Gateway de Pagamento Asaas (10 Jul 2025):
+   * ✅ Interface administrativa IntegracaoAsaas.tsx implementada com dashboard completo
+   * ✅ Endpoints da API Asaas implementados: /api/admin/asaas/* (status, payments, sync, create)
+   * ✅ Rota /integracao-asaas adicionada ao App.tsx e Sidebar administrativo
+   * ✅ Portal do Aluno: Integração Asaas na página Pagamentos.tsx existente (evitada duplicação)
+   * ✅ Sistema de status de inadimplência implementado para controle de acesso
+   * ✅ Funcionalidades implementadas:
+     - Teste de conexão com credenciais de produção
+     - Criação de cobranças (PIX, Boleto, Cartão)
+     - Sincronização automática de status de pagamentos
+     - Notificações via webhook configuradas
+     - Dashboard com métricas e filtros avançados
+     - Lista completa de pagamentos com ações (visualizar, pagar)
+   * ✅ Portal do Aluno aprimorado:
+     - Abas separadas: "Pagamentos do Sistema" e "Gateway de Pagamento"
+     - Status financeiro em tempo real com alertas de inadimplência
+     - Integração com botões de pagamento direto do Asaas
+     - Controle de acesso baseado em status de pagamento
+   * ✅ Componentes criados: AsaasPaymentsList para visualização de cobranças
+   * ✅ Sistema pronto para uso em produção com credenciais reais do Asaas
 ```
 
 ## User Preferences
