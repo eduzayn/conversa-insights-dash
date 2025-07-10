@@ -18,7 +18,8 @@ import {
   Settings,
   Award,
   CreditCard,
-  UserPlus
+  UserPlus,
+  Key
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ const menuItems = [
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
   { icon: CreditCard, label: "Cobranças Asaas", path: "/cobrancas" },
   { icon: Settings, label: "Integração BotConversa", path: "/integracao-botconversa" },
-
+  { icon: Key, label: "Gerenciar Tokens", path: "/gerenciar-tokens" },
   { icon: UserPlus, label: "Matrícula Simplificada", path: "/matricula-simplificada" },
 ];
 

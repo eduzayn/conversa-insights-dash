@@ -21,6 +21,7 @@ import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
 import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
 import ChargesPage from "./pages/admin/financial/charges-page";
 import IntegracaoAsaas from "./pages/admin/IntegracaoAsaas";
+import GerenciarTokens from "./pages/admin/GerenciarTokens";
 
 
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/charges" element={<ChargesPage />} />
             <Route path="/cobrancas" element={<ChargesPage />} />
             <Route path="/integracao-asaas" element={<IntegracaoAsaas />} />
+            <Route path="/gerenciar-tokens" element={<GerenciarTokens />} />
 
 
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />

@@ -9,6 +9,7 @@ import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
+import { v4 as uuidv4 } from 'uuid';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -291,6 +292,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json({ token: regToken.token, expiresAt: regToken.expiresAt });
+    } catch (error) {
+      console.error("Erro ao criar token:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== GESTÃO DE TOKENS DE REGISTRO =====
+  
+  // Buscar todos os tokens de registro
+  app.get("/api/registration-tokens", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const tokens = await storage.getAllRegistrationTokens();
+      res.json(tokens);
+    } catch (error) {
+      console.error("Erro ao buscar tokens:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar novo token de registro
+  app.post("/api/registration-tokens", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { role } = req.body;
+      
+      if (!role || !['admin', 'agent'].includes(role)) {
+        return res.status(400).json({ message: "Role deve ser 'admin' ou 'agent'" });
+      }
+
+      // Gerar token único
+      const token = uuidv4();
+      
+      // Token expira em 7 dias
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const newToken = await storage.createRegistrationToken({
+        token,
+        role,
+        createdBy: req.user.id,
+        expiresAt,
+        isUsed: false
+      });
+
+      res.status(201).json(newToken);
     } catch (error) {
       console.error("Erro ao criar token:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
