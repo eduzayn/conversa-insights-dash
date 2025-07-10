@@ -32,6 +32,9 @@ interface AsaasPayment {
 interface CacheMetrics {
   totalPayments: number;
   totalValue: number;
+  receivedValue: number;
+  pendingValue: number;
+  overdueValue: number;
   receivedPayments: number;
   uniqueCustomers: number;
 }
@@ -69,6 +72,12 @@ export default function Cobrancas() {
 
   const payments = paymentsData?.payments || [];
   const totalPayments = paymentsData?.total || 0;
+
+  // Função para criar nova cobrança
+  const handleNewPayment = () => {
+    // Redirecionar para página de integração Asaas ou abrir modal
+    window.location.href = '/integracao-asaas';
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -141,7 +150,10 @@ export default function Cobrancas() {
               <RotateCcw className={cn("h-4 w-4", syncMutation.isPending && "animate-spin")} />
               <span>Sincronizar com Asaas</span>
             </Button>
-            <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700">
+            <Button 
+              onClick={handleNewPayment}
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+            >
               <Plus className="h-4 w-4" />
               <span>Nova cobrança</span>
             </Button>
@@ -167,7 +179,7 @@ export default function Cobrancas() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(metrics?.totalValue || 0)}
+                {formatCurrency(metrics?.receivedValue || 0)}
               </div>
             </CardContent>
           </Card>
@@ -178,7 +190,7 @@ export default function Cobrancas() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                R$ 29.180,75
+                {formatCurrency(metrics?.pendingValue || 0)}
               </div>
             </CardContent>
           </Card>
@@ -189,7 +201,7 @@ export default function Cobrancas() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                R$ 1.230,00
+                {formatCurrency(metrics?.overdueValue || 0)}
               </div>
             </CardContent>
           </Card>
@@ -223,7 +235,11 @@ export default function Cobrancas() {
               <div className="text-sm text-gray-600">
                 {totalPayments} Ações em lote ▼
               </div>
-              <Button variant="outline" className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={handleNewPayment}
+                className="flex items-center space-x-2"
+              >
                 <Plus className="h-4 w-4" />
                 <span>Adicionar cobrança</span>
               </Button>

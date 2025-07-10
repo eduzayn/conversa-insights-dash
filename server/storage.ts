@@ -1493,6 +1493,46 @@ export class DatabaseStorage implements IStorage {
     return lastSync?.lastSyncDate || null;
   }
 
+  async getCachedAsaasMetrics(): Promise<{
+    totalPayments: number;
+    totalValue: number;
+    receivedValue: number;
+    pendingValue: number;
+    overdueValue: number;
+    receivedPayments: number;
+    uniqueCustomers: number;
+  }> {
+    // Buscar todas as cobranças do cache
+    const allPayments = await db.select().from(asaasPayments);
+    
+    // Calcular métricas
+    const totalPayments = allPayments.length;
+    const receivedPayments = allPayments.filter(p => p.status === 'RECEIVED').length;
+    const uniqueCustomers = new Set(allPayments.map(p => p.customerEmail)).size;
+    
+    // Calcular valores por status (convertendo de centavos para reais)
+    const totalValue = allPayments.reduce((sum, p) => sum + (p.value || 0), 0) / 100;
+    const receivedValue = allPayments
+      .filter(p => p.status === 'RECEIVED')
+      .reduce((sum, p) => sum + (p.value || 0), 0) / 100;
+    const pendingValue = allPayments
+      .filter(p => p.status === 'PENDING')
+      .reduce((sum, p) => sum + (p.value || 0), 0) / 100;
+    const overdueValue = allPayments
+      .filter(p => p.status === 'OVERDUE')
+      .reduce((sum, p) => sum + (p.value || 0), 0) / 100;
+    
+    return {
+      totalPayments,
+      totalValue,
+      receivedValue,
+      pendingValue,
+      overdueValue,
+      receivedPayments,
+      uniqueCustomers,
+    };
+  }
+
   async createSyncControl(syncData: InsertAsaasSyncControl): Promise<AsaasSyncControl> {
     const [newSync] = await db
       .insert(asaasSyncControl)

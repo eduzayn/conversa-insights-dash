@@ -3298,14 +3298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
-      // Métricas básicas simuladas - implementar conforme necessário
-      const metrics = {
-        totalPayments: 0,
-        totalValue: 0,
-        receivedPayments: 0,
-        uniqueCustomers: 0,
-      };
-
+      const metrics = await storage.getCachedAsaasMetrics();
       res.json(metrics);
     } catch (error) {
       console.error("Erro ao buscar métricas do cache:", error);
