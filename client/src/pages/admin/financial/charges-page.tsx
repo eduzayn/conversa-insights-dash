@@ -116,7 +116,7 @@ const ChargesPage: React.FC = () => {
   const [endDate, setEndDate] = useState('');
 
   // Query para buscar cobranças do Asaas
-  const { data: paymentsData, isLoading: isLoadingPayments, refetch: refetchPayments } = useQuery({
+  const { data: paymentsData, isLoading: isLoadingPayments, refetch: refetchPayments, error: paymentsError } = useQuery({
     queryKey: ['/api/asaas/payments', currentPage, statusFilter, billingTypeFilter, searchTerm, startDate, endDate],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -130,25 +130,33 @@ const ChargesPage: React.FC = () => {
       });
 
       return apiRequest(`/api/asaas/payments?${params}`);
-    }
+    },
+    retry: false,
+    enabled: true
   });
 
   // Query para estatísticas
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
+  const { data: stats, isLoading: isLoadingStats, error: statsError } = useQuery({
     queryKey: ['/api/asaas/payments/stats'],
-    queryFn: () => apiRequest('/api/asaas/payments/stats')
+    queryFn: () => apiRequest('/api/asaas/payments/stats'),
+    retry: false,
+    enabled: true
   });
 
   // Query para status de sincronização
-  const { data: syncStatus, isLoading: isLoadingSyncStatus } = useQuery({
+  const { data: syncStatus, isLoading: isLoadingSyncStatus, error: syncError } = useQuery({
     queryKey: ['/api/asaas/sync/status'],
-    queryFn: () => apiRequest('/api/asaas/sync/status')
+    queryFn: () => apiRequest('/api/asaas/sync/status'),
+    retry: false,
+    enabled: true
   });
 
   // Query para testar conexão
-  const { data: connectionTest, isLoading: isTestingConnection } = useQuery({
+  const { data: connectionTest, isLoading: isTestingConnection, error: connectionError } = useQuery({
     queryKey: ['/api/asaas/test-connection'],
-    queryFn: () => apiRequest('/api/asaas/test-connection')
+    queryFn: () => apiRequest('/api/asaas/test-connection'),
+    retry: false,
+    enabled: true
   });
 
   // Mutation para importar cobranças
@@ -395,9 +403,9 @@ const ChargesPage: React.FC = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total.count}</div>
+              <div className="text-2xl font-bold">{stats.total?.count || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {formatCurrency(stats.total.value)}
+                {formatCurrency(stats.total?.value || 0)}
               </p>
             </CardContent>
           </Card>
@@ -410,9 +418,9 @@ const ChargesPage: React.FC = () => {
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pending.count}</div>
+              <div className="text-2xl font-bold">{stats.pending?.count || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {formatCurrency(stats.pending.value)}
+                {formatCurrency(stats.pending?.value || 0)}
               </p>
             </CardContent>
           </Card>
@@ -425,9 +433,9 @@ const ChargesPage: React.FC = () => {
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.confirmed.count}</div>
+              <div className="text-2xl font-bold">{stats.confirmed?.count || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {formatCurrency(stats.confirmed.value)}
+                {formatCurrency(stats.confirmed?.value || 0)}
               </p>
             </CardContent>
           </Card>
@@ -440,9 +448,9 @@ const ChargesPage: React.FC = () => {
               <AlertCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.overdue.count}</div>
+              <div className="text-2xl font-bold">{stats.overdue?.count || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {formatCurrency(stats.overdue.value)}
+                {formatCurrency(stats.overdue?.value || 0)}
               </p>
             </CardContent>
           </Card>
