@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Key, Users, ShieldCheck, Copy, Plus, Calendar, User } from "lucide-react";
+import { Key, Users, ShieldCheck, Copy, Plus, Calendar, User, ArrowLeft } from "lucide-react";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 interface RegistrationToken {
   id: number;
@@ -27,6 +28,7 @@ const GerenciarTokens: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<'admin' | 'agent'>('agent');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Buscar tokens
   const { data: tokens = [], isLoading, error } = useQuery({
@@ -124,6 +126,18 @@ const GerenciarTokens: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6">
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Button>
+      </div>
+      
       <div className="flex items-center gap-3">
         <Key className="w-8 h-8 text-blue-500" />
         <div>
