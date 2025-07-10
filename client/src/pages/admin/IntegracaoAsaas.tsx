@@ -137,7 +137,7 @@ export default function IntegracaoAsaas() {
   });
 
   // Calcular estatísticas
-  const payments = paymentsData || [];
+  const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const stats = {
     total: payments.length,
     totalValue: payments.reduce((sum: number, p: Payment) => sum + p.amount, 0),

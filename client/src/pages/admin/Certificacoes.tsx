@@ -187,7 +187,7 @@ export default function Certificacoes() {
   };
 
   // Query para buscar cursos pré-cadastrados para criação
-  const { data: preRegisteredCourses = [] } = useQuery({
+  const { data: preRegisteredCoursesData = [] } = useQuery({
     queryKey: ['/api/cursos-pre-cadastrados', { categoria: getCategoriaFromModalidade(newCertification.modalidade), modalidade: newCertification.modalidade }],
     queryFn: async () => {
       const categoria = getCategoriaFromModalidade(newCertification.modalidade);
@@ -203,9 +203,10 @@ export default function Certificacoes() {
       return response;
     }
   });
+  const preRegisteredCourses = Array.isArray(preRegisteredCoursesData) ? preRegisteredCoursesData : [];
 
   // Query para buscar cursos pré-cadastrados para edição
-  const { data: editPreRegisteredCourses = [] } = useQuery({
+  const { data: editPreRegisteredCoursesData = [] } = useQuery({
     queryKey: ['/api/cursos-pre-cadastrados-edit', { categoria: getCategoriaFromModalidade(selectedCertification?.modalidade || ''), modalidade: selectedCertification?.modalidade }],
     queryFn: async () => {
       const categoria = getCategoriaFromModalidade(selectedCertification?.modalidade || '');
@@ -222,6 +223,7 @@ export default function Certificacoes() {
     },
     enabled: !!selectedCertification
   });
+  const editPreRegisteredCourses = Array.isArray(editPreRegisteredCoursesData) ? editPreRegisteredCoursesData : [];
 
   const { data: certifications = [], isLoading } = useQuery({
     queryKey: ['/api/certificacoes', { 

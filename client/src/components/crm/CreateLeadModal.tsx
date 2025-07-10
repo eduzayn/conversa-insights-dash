@@ -27,12 +27,14 @@ export const CreateLeadModal = ({ open, onOpenChange, onCreateLead }: CreateLead
     assignedToName: ''
   });
 
-  const courses = ['Engenharia', 'Medicina', 'Direito', 'Administração', 'Psicologia'];
-  const attendants = [
+  const coursesData = ['Engenharia', 'Medicina', 'Direito', 'Administração', 'Psicologia'];
+  const courses = Array.isArray(coursesData) ? coursesData : [];
+  const attendantsData = [
     { id: 'user1', name: 'Ana Costa' },
     { id: 'user2', name: 'Carlos Lima' },
     { id: 'user3', name: 'Maria Silva' }
   ];
+  const attendants = Array.isArray(attendantsData) ? attendantsData : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
