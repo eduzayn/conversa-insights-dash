@@ -337,11 +337,26 @@ export default function Certificacoes() {
       toast.error('Por favor, preencha os campos obrigatórios');
       return;
     }
-    createMutation.mutate(newCertification);
+    
+    // Converter cargaHoraria para número antes de enviar
+    const certificationData = {
+      ...newCertification,
+      cargaHoraria: newCertification.cargaHoraria ? parseInt(newCertification.cargaHoraria, 10) : null
+    };
+    
+    createMutation.mutate(certificationData);
   };
 
   const handleUpdateCertification = (certification: Certification) => {
-    updateMutation.mutate(certification);
+    // Converter cargaHoraria para número antes de enviar
+    const certificationData = {
+      ...certification,
+      cargaHoraria: certification.cargaHoraria ? 
+        (typeof certification.cargaHoraria === 'string' ? parseInt(certification.cargaHoraria, 10) : certification.cargaHoraria) 
+        : null
+    };
+    
+    updateMutation.mutate(certificationData);
   };
 
   const handleDeleteCertification = (id: number) => {
