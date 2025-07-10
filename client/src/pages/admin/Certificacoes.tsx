@@ -663,17 +663,17 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
-                <TabsTrigger value="pos">Pós-graduação</TabsTrigger>
-                <TabsTrigger value="segunda">Segunda licenciatura</TabsTrigger>
-                <TabsTrigger value="formacao_pedagogica">Formação Pedagógica</TabsTrigger>
-                <TabsTrigger value="formacao_livre">Formação livre</TabsTrigger>
-                <TabsTrigger value="diplomacao">Diplomação por competência</TabsTrigger>
-                <TabsTrigger value="eja">EJA</TabsTrigger>
-                <TabsTrigger value="graduacao">Graduação</TabsTrigger>
-                <TabsTrigger value="capacitacao">Capacitação</TabsTrigger>
-                <TabsTrigger value="sequencial">Sequencial</TabsTrigger>
-              </TabsList>
+              <div className="flex flex-wrap gap-1 p-1 bg-muted rounded-lg">
+                <TabsTrigger value="pos" className="flex-1 min-w-[120px] text-xs lg:text-sm">Pós-graduação</TabsTrigger>
+                <TabsTrigger value="segunda" className="flex-1 min-w-[140px] text-xs lg:text-sm">Segunda licenciatura</TabsTrigger>
+                <TabsTrigger value="formacao_pedagogica" className="flex-1 min-w-[130px] text-xs lg:text-sm">Form. Pedagógica</TabsTrigger>
+                <TabsTrigger value="formacao_livre" className="flex-1 min-w-[110px] text-xs lg:text-sm">Form. Livre</TabsTrigger>
+                <TabsTrigger value="diplomacao" className="flex-1 min-w-[140px] text-xs lg:text-sm">Diplom. Competência</TabsTrigger>
+                <TabsTrigger value="eja" className="flex-1 min-w-[60px] text-xs lg:text-sm">EJA</TabsTrigger>
+                <TabsTrigger value="graduacao" className="flex-1 min-w-[90px] text-xs lg:text-sm">Graduação</TabsTrigger>
+                <TabsTrigger value="capacitacao" className="flex-1 min-w-[100px] text-xs lg:text-sm">Capacitação</TabsTrigger>
+                <TabsTrigger value="sequencial" className="flex-1 min-w-[90px] text-xs lg:text-sm">Sequencial</TabsTrigger>
+              </div>
 
               <TabsContent value={activeTab} className="space-y-4">
                 <Card>
