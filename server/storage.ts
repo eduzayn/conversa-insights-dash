@@ -97,6 +97,7 @@ export interface IStorage {
   
   // Registration Tokens
   getRegistrationToken(token: string): Promise<RegistrationToken | undefined>;
+  getAllRegistrationTokens(): Promise<RegistrationToken[]>;
   createRegistrationToken(token: InsertRegistrationToken): Promise<RegistrationToken>;
   markTokenAsUsed(token: string, userId: number): Promise<void>;
   
@@ -294,6 +295,13 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return regToken;
+  }
+
+  async getAllRegistrationTokens(): Promise<RegistrationToken[]> {
+    return await db
+      .select()
+      .from(registrationTokens)
+      .orderBy(desc(registrationTokens.createdAt));
   }
 
   async markTokenAsUsed(token: string, userId: number): Promise<void> {

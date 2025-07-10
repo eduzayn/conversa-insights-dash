@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
         email,
         name,
-        role: role || "agent",
+        role: regToken.role, // Usar o role do token
         companyAccount,
         department,
         multiCompanyAccess

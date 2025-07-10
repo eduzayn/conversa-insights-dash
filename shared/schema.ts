@@ -34,6 +34,7 @@ export const users = pgTable("users", {
 export const registrationTokens = pgTable("registration_tokens", {
   id: serial("id").primaryKey(),
   token: text("token").notNull().unique(),
+  role: text("role").notNull().default("agent"), // admin, agent
   createdBy: integer("created_by").notNull().references(() => users.id),
   isUsed: boolean("is_used").notNull().default(false),
   usedBy: integer("used_by").references(() => users.id),
