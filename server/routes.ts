@@ -3290,5 +3290,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== NOVOS ENDPOINTS PARA PERSISTÊNCIA ASAAS =====
+  
+  // Buscar cobranças Asaas com scroll infinito
+  app.get("/api/admin/asaas/charges", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const {
+        page = 1,
+        limit = 20,
+        status = 'all',
+        search = ''
+      } = req.query;
+
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+
+      const result = await storage.getAsaasPayments({
+        limit: parseInt(limit),
+        offset,
+        status: status === 'all' ? undefined : status,
+        search: search || undefined
+      });
+
+      res.json({
+        charges: result.payments,
+        hasMore: result.hasMore,
+        total: result.total,
+        page: parseInt(page),
+        limit: parseInt(limit)
+      });
+    } catch (error) {
+      console.error("Erro ao buscar cobranças Asaas:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar cobranças", 
+        error: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
+    }
+  });
+
+  // Sincronizar cobranças do Asaas para o banco local
+  app.post("/api/admin/asaas/sync-charges", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const asaasService = (await import('./services/asaas')).default;
+      
+      // Buscar cobranças do Asaas (últimas 100)
+      const asaasCharges = await asaasService.getPayments({ limit: 100 });
+      
+      let syncedCount = 0;
+      let errorCount = 0;
+
+      for (const charge of asaasCharges.data || []) {
+        try {
+          // Buscar informações do cliente
+          const customer = await asaasService.getCustomer(charge.customer);
+          
+          const chargeData = {
+            asaasId: charge.id,
+            customerId: charge.customer,
+            customerName: customer?.name || 'Cliente não encontrado',
+            customerEmail: customer?.email || '',
+            value: parseFloat(charge.value),
+            netValue: parseFloat(charge.netValue || charge.value),
+            description: charge.description || '',
+            billingType: charge.billingType,
+            status: charge.status,
+            dueDate: charge.dueDate ? new Date(charge.dueDate) : new Date(),
+            paymentDate: charge.paymentDate ? new Date(charge.paymentDate) : null,
+            invoiceUrl: charge.invoiceUrl || null,
+            bankSlipUrl: charge.bankSlipUrl || null,
+            pixQrCode: charge.qrCode || null,
+            externalReference: charge.externalReference || null,
+            createdAt: charge.dateCreated ? new Date(charge.dateCreated) : new Date(),
+            updatedAt: new Date()
+          };
+
+          await storage.upsertAsaasPayment(chargeData);
+          syncedCount++;
+        } catch (chargeError) {
+          console.error(`Erro ao sincronizar cobrança ${charge.id}:`, chargeError);
+          errorCount++;
+        }
+      }
+
+      // Atualizar controle de sincronização
+      const syncControl = {
+        syncType: 'charges',
+        lastSyncAt: new Date(),
+        recordsProcessed: syncedCount,
+        recordsSuccess: syncedCount,
+        recordsError: errorCount,
+        lastStatus: errorCount === 0 ? 'success' : 'partial',
+        metadata: {
+          totalFromAsaas: asaasCharges.data?.length || 0,
+          synced: syncedCount,
+          errors: errorCount
+        }
+      };
+
+      await storage.createAsaasSyncControl(syncControl);
+
+      res.json({
+        success: true,
+        message: `Sincronização concluída. ${syncedCount} cobranças sincronizadas, ${errorCount} erros.`,
+        syncedCount,
+        errorCount,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Erro na sincronização das cobranças:", error);
+      res.status(500).json({
+        message: "Erro na sincronização",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Buscar cobrança específica por ID do Asaas
+  app.get("/api/admin/asaas/charges/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const { id } = req.params;
+      const charge = await storage.getAsaasPaymentById(id);
+
+      if (!charge) {
+        return res.status(404).json({ message: "Cobrança não encontrada" });
+      }
+
+      res.json(charge);
+    } catch (error) {
+      console.error("Erro ao buscar cobrança:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar cobrança", 
+        error: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
+    }
+  });
+
+  // Status da sincronização
+  app.get("/api/admin/asaas/sync-status", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const syncStatus = await storage.getAsaasSyncControl('charges');
+      
+      res.json({
+        lastSync: syncStatus?.lastSyncAt || null,
+        lastStatus: syncStatus?.lastStatus || 'never',
+        recordsProcessed: syncStatus?.recordsProcessed || 0,
+        metadata: syncStatus?.metadata || {}
+      });
+    } catch (error) {
+      console.error("Erro ao buscar status de sincronização:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar status", 
+        error: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
+    }
+  });
+
   return httpServer;
 }

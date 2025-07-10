@@ -1,0 +1,98 @@
+ TAREFA PARA O REPLIT
+Título: Persistência de Cobranças Sincronizadas com Asaas + Scroll Infinito com Paginação no Front e Back
+
+🎯 Objetivo
+Persistir todas as cobranças sincronizadas com o Asaas no banco de dados, evitando perda de dados ao sair da tela.
+
+Implementar scroll infinito com paginação real no back-end e no front-end da listagem de cobranças.
+
+📌 Parte 1 – Persistência da Sincronização com o Asaas
+Problema Atual:
+Atualmente, ao clicar em "Sincronizar com Asaas", o sistema carrega os dados diretamente da API e exibe na tela, mas não salva no banco de dados. Ao sair da página e voltar, os dados são perdidos e a sincronização precisa ser refeita manualmente.
+
+O que precisa ser feito:
+No momento em que o botão "Sincronizar com Asaas" for clicado:
+
+Buscar as cobranças da API do Asaas.
+
+Salvar ou atualizar essas cobranças no banco de dados da aplicação.
+
+Armazenar a data e hora da última sincronização para referência futura.
+
+Quando a página /cobrancas for carregada:
+
+Listar as cobranças salvas localmente, a partir do banco de dados.
+
+Executar a próxima sincronização apenas com as cobranças criadas ou alteradas após a última sincronização.
+
+Banco de dados:
+Criar ou atualizar a tabela payments com:
+
+ts
+Copiar
+Editar
+last_synced_at: timestamp
+Sugestão de lógica:
+ts
+Copiar
+Editar
+await fetchAsaasPayments({ since: lastSyncedAt }) // usar parâmetro "startDate" se disponível na API
+Benefícios:
+Evita chamadas desnecessárias ao Asaas
+
+Garante que as cobranças fiquem registradas de forma permanente
+
+Melhora o desempenho da tela
+
+📌 Parte 2 – Scroll Infinito com Paginação
+Problema Atual:
+A listagem de cobranças carrega tudo de uma vez, sem paginação ou scroll eficiente. Isso:
+
+Deixa o sistema mais lento conforme a base cresce
+
+É ruim para usabilidade e manutenção
+
+O que precisa ser feito:
+Back-end:
+Atualizar o endpoint GET /api/asaas/payments para aceitar parâmetros:
+
+ts
+Copiar
+Editar
+GET /api/asaas/payments?page=1&limit=30&status=pending
+A resposta deve incluir:
+
+ts
+Copiar
+Editar
+{
+  data: [array de cobranças],
+  total: número total de registros,
+  hasNextPage: boolean
+}
+Front-end:
+Implementar scroll infinito ou botão de "carregar mais" (preferência: scroll).
+
+Sempre que o usuário chegar ao final da lista:
+
+Disparar nova requisição com page++
+
+Concatenar os resultados no estado atual (setCharges([...charges, ...novosDados]))
+
+Exibir loader ou skeleton temporário durante carregamento
+
+🛡️ Regras Importantes
+Não quebrar a funcionalidade atual de listagem e filtros.
+
+A persistência e paginação devem funcionar juntas.
+
+O botão "Sincronizar com Asaas" continua visível, mas agora ele atualiza o banco em vez de apenas preencher a tela.
+
+✅ Resultado Esperado
+Ao clicar em “Sincronizar com Asaas”, os dados são salvos no banco
+
+Ao acessar novamente a página de cobranças, os dados já aparecem carregados do banco
+
+A sincronização futura pega apenas as novas cobranças
+
+A listagem suporta scroll infinito real, com paginação back-end
