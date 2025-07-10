@@ -28,7 +28,10 @@ import {
   DollarSign,
   Users,
   CreditCard,
-  Calendar
+  Calendar,
+  X,
+  FileText,
+  Link as LinkIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "@/lib/queryClient";
