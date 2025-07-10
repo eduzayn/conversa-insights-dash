@@ -1,0 +1,79 @@
+ TAREFA PARA O REPLIT
+Título: Integrar os botões de ação com a API do Asaas diretamente na página de cobranças existente (sem quebrar o que já está pronto)
+
+🎯 Objetivo
+Ativar todos os botões de ação (ícones azuis) já presentes na tabela da página de cobranças atual, permitindo executar ações reais através da API do Asaas, sem sair do sistema e sem criar nenhuma nova página.
+
+⚠️ Atenção:
+✅ Toda a implementação deve ser feita na página de cobranças que já está funcional (/cobrancas)
+🚫 Não pode criar nenhuma página paralela
+🚫 Não pode quebrar nenhuma funcionalidade existente
+
+📌 Funcionalidades que devem ser ativadas nos botões
+Ícone	Ação esperada	Ação via API do Asaas
+👁️ (visualizar)	Exibir os detalhes da cobrança em um modal	GET /v3/payments/:id
+📋 (copiar link)	Copiar o link do boleto	Usar invoiceUrl ou bankSlipUrl
+📄 (comprovante)	Abrir comprovante se o pagamento foi feito	transactionReceiptUrl
+🔗 (link externo)	Abrir link do boleto direto em nova aba	window.open(invoiceUrl)
+❌ (excluir)	Cancelar a cobrança no Asaas e remover do sistema	DELETE /v3/payments/:id + deletar no banco
+
+✅ Detalhes da Implementação
+1. Exibir detalhes da cobrança (👁️)
+Abrir um modal ou drawer com:
+
+Nome do aluno
+
+Valor
+
+Status
+
+Vencimento
+
+Descrição
+
+Método
+
+Links disponíveis
+
+2. Copiar link (📋)
+Copiar automaticamente o link de pagamento (invoiceUrl ou bankSlipUrl) para a área de transferência
+
+Exibir mensagem: “Link copiado com sucesso!”
+
+3. Visualizar comprovante (📄)
+Só ativar botão se a cobrança estiver como RECEIVED (ou equivalente)
+
+Abrir o link transactionReceiptUrl em nova aba
+
+4. Abrir boleto (🔗)
+Abrir o link de pagamento (invoiceUrl) em nova aba do navegador
+
+5. Excluir cobrança (❌)
+Confirmar a exclusão com alert
+
+Executar:
+
+DELETE no Asaas
+
+DELETE no banco de dados
+
+Atualizar a lista sem recarregar a página
+
+🔐 Regras e Restrições
+Toda essa lógica deve ser aplicada na mesma página atual /cobrancas
+
+Não pode quebrar os filtros, busca, contadores ou layout atual
+
+Usar try/catch com mensagens claras para falhas da API
+
+Tratar autenticação corretamente com o ASAAS_API_KEY configurado
+
+✅ Resultado Esperado
+O usuário pode executar todas as ações diretamente pela tabela
+
+Nenhum botão fica “morto” ou visual apenas
+
+A interface responde com fluidez e segurança
+
+Tudo é feito sem sair da página atual e sem impactar as funcionalidades já prontas
+

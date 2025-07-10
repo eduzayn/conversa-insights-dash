@@ -22,8 +22,6 @@ import {
   studentCertificates,
   studentCards,
   payments,
-  asaasPayments,
-  asaasSyncControl,
   simplifiedEnrollments,
   type User, 
   type InsertUser,
@@ -65,10 +63,6 @@ import {
   type InsertStudentCard,
   type Payment,
   type InsertPayment,
-  type AsaasPayment,
-  type InsertAsaasPayment,
-  type AsaasSyncControl,
-  type InsertAsaasSyncControl,
   type SimplifiedEnrollment,
   type InsertSimplifiedEnrollment,
   subjects,
@@ -91,7 +85,7 @@ import {
   type InsertEvaluationSubmission
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, count, or, ilike, sql } from "drizzle-orm";
+import { eq, and, desc, asc, like, count } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -1392,127 +1386,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(simplifiedEnrollments.id, id))
       .limit(1);
     return enrollment || null;
-  }
-
-  // Asaas Payments
-  async getAsaasPayments(options: {
-    limit?: number;
-    offset?: number;
-    status?: string;
-    search?: string;
-  } = {}): Promise<{ payments: AsaasPayment[]; hasMore: boolean; total: number }> {
-    const { limit = 20, offset = 0, status, search } = options;
-    
-    let query = db.select().from(asaasPayments);
-    
-    // Aplicar filtros
-    const conditions = [];
-    
-    if (status && status !== 'all') {
-      conditions.push(eq(asaasPayments.status, status));
-    }
-    
-    if (search) {
-      conditions.push(
-        or(
-          ilike(asaasPayments.customerName, `%${search}%`),
-          ilike(asaasPayments.customerEmail, `%${search}%`),
-          ilike(asaasPayments.description, `%${search}%`)
-        )
-      );
-    }
-    
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    // Buscar total de registros
-    const totalQuery = db
-      .select({ count: sql<number>`count(*)` })
-      .from(asaasPayments);
-      
-    if (conditions.length > 0) {
-      totalQuery.where(and(...conditions));
-    }
-    
-    const [totalResult] = await totalQuery;
-    const total = totalResult.count;
-    
-    // Buscar registros paginados
-    const result = await query
-      .orderBy(desc(asaasPayments.createdAt))
-      .limit(limit + 1) // Buscar um a mais para verificar se há próxima página
-      .offset(offset);
-    
-    const hasMore = result.length > limit;
-    const payments = hasMore ? result.slice(0, limit) : result;
-    
-    return { payments, hasMore, total };
-  }
-
-  async getAsaasPaymentById(id: string): Promise<AsaasPayment | null> {
-    const [payment] = await db
-      .select()
-      .from(asaasPayments)
-      .where(eq(asaasPayments.asaasId, id));
-    
-    return payment || null;
-  }
-
-  async createAsaasPayment(payment: InsertAsaasPayment): Promise<AsaasPayment> {
-    const [newPayment] = await db
-      .insert(asaasPayments)
-      .values(payment)
-      .returning();
-    return newPayment;
-  }
-
-  async updateAsaasPayment(asaasId: string, updates: Partial<AsaasPayment>): Promise<AsaasPayment> {
-    const [updatedPayment] = await db
-      .update(asaasPayments)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(asaasPayments.asaasId, asaasId))
-      .returning();
-    return updatedPayment;
-  }
-
-  async upsertAsaasPayment(payment: InsertAsaasPayment): Promise<AsaasPayment> {
-    const existing = await this.getAsaasPaymentById(payment.asaasId);
-    
-    if (existing) {
-      return this.updateAsaasPayment(payment.asaasId, payment);
-    } else {
-      return this.createAsaasPayment(payment);
-    }
-  }
-
-  // Asaas Sync Control
-  async getAsaasSyncControl(syncType: string): Promise<AsaasSyncControl | null> {
-    const [result] = await db
-      .select()
-      .from(asaasSyncControl)
-      .where(eq(asaasSyncControl.syncType, syncType))
-      .orderBy(desc(asaasSyncControl.lastSyncAt))
-      .limit(1);
-    
-    return result || null;
-  }
-
-  async createAsaasSyncControl(syncData: InsertAsaasSyncControl): Promise<AsaasSyncControl> {
-    const [newSync] = await db
-      .insert(asaasSyncControl)
-      .values(syncData)
-      .returning();
-    return newSync;
-  }
-
-  async updateAsaasSyncControl(syncType: string, updates: Partial<AsaasSyncControl>): Promise<AsaasSyncControl> {
-    const [updatedSync] = await db
-      .update(asaasSyncControl)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(asaasSyncControl.syncType, syncType))
-      .returning();
-    return updatedSync;
   }
 }
 

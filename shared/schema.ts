@@ -362,54 +362,6 @@ export const payments = pgTable("payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Tabela para cobranças sincronizadas do Asaas
-export const asaasPayments = pgTable("asaas_payments", {
-  id: serial("id").primaryKey(),
-  asaasId: text("asaas_id").notNull().unique(), // ID único do pagamento no Asaas
-  customerId: text("customer_id").notNull(), // ID do cliente no Asaas
-  value: integer("value").notNull(), // Valor em centavos
-  description: text("description"),
-  billingType: text("billing_type"), // BOLETO, PIX, CREDIT_CARD
-  status: text("status").notNull(), // pending, received, overdue, etc.
-  dueDate: timestamp("due_date"),
-  dateCreated: timestamp("date_created"),
-  confirmedDate: timestamp("confirmed_date"),
-  paymentDate: timestamp("payment_date"),
-  clientPaymentDate: timestamp("client_payment_date"),
-  invoiceUrl: text("invoice_url"),
-  bankSlipUrl: text("bank_slip_url"),
-  paymentUrl: text("payment_url"),
-  pixTransaction: text("pix_transaction"), // Dados do PIX como texto
-  externalReference: text("external_reference"),
-  installmentNumber: integer("installment_number"),
-  invoiceNumber: text("invoice_number"),
-  netValue: integer("net_value"),
-  originalValue: integer("original_value"),
-  interestValue: integer("interest_value"),
-  customerName: text("customer_name"), // Nome do cliente (enriquecido)
-  customerEmail: text("customer_email"), // Email do cliente (enriquecido)
-  customerCpfCnpj: text("customer_cpf_cnpj"),
-  customerPhone: text("customer_phone"),
-  customerMobilePhone: text("customer_mobile_phone"),
-  lastSyncAt: timestamp("last_sync_at").defaultNow(), // Controle de sincronização
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Tabela para controle de sincronização do Asaas
-export const asaasSyncControl = pgTable("asaas_sync_control", {
-  id: serial("id").primaryKey(),
-  syncType: text("sync_type").notNull(), // payments, customers, etc.
-  lastSyncAt: timestamp("last_sync_at").defaultNow(),
-  totalRecords: integer("total_records").default(0),
-  successCount: integer("success_count").default(0),
-  errorCount: integer("error_count").default(0),
-  status: text("status").default("completed"), // running, completed, failed
-  errorMessage: text("error_message"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 // Tabela para certificados dos alunos
 export const studentCertificates = pgTable("student_certificates", {
   id: serial("id").primaryKey(),
@@ -622,10 +574,6 @@ export const studentPaymentsRelations = relations(studentPayments, ({ one }) => 
 export const paymentsRelations = relations(payments, ({ one }) => ({
   user: one(users, { fields: [payments.userId], references: [users.id] }),
   course: one(preRegisteredCourses, { fields: [payments.courseId], references: [preRegisteredCourses.id] }),
-}));
-
-export const asaasPaymentsRelations = relations(asaasPayments, ({ one }) => ({
-  // Sem relações diretas por enquanto, pois usamos customerId do Asaas
 }));
 
 export const studentCertificatesRelations = relations(studentCertificates, ({ one }) => ({
@@ -1041,12 +989,6 @@ export type StudentCard = typeof studentCards.$inferSelect;
 
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type Payment = typeof payments.$inferSelect;
-
-// Tipos para as novas tabelas do Asaas
-export type AsaasPayment = typeof asaasPayments.$inferSelect;
-export type InsertAsaasPayment = typeof asaasPayments.$inferInsert;
-export type AsaasSyncControl = typeof asaasSyncControl.$inferSelect;
-export type InsertAsaasSyncControl = typeof asaasSyncControl.$inferInsert;
 
 // Schemas de inserção para Portal do Professor
 export const insertSubjectSchema = createInsertSchema(subjects).pick({

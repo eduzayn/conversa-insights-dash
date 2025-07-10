@@ -87,6 +87,7 @@ export interface AsaasWebhookEvent {
     invoiceNumber?: string;
     externalReference?: string;
     dueDate: string;
+    originalDueDate: string;
   };
 }
 
@@ -433,6 +434,101 @@ export class AsaasService {
 
     console.log(`✓ ${enrichedPayments.length} pagamentos enriquecidos com dados dos clientes`);
     return enrichedPayments;
+  }
+
+  // Buscar detalhes específicos de um pagamento
+  async getPaymentDetails(paymentId: string): Promise<any> {
+    try {
+      console.log(`Buscando detalhes do pagamento: ${paymentId}`);
+      
+      const response = await this.client.get(`/payments/${paymentId}`);
+      const payment = response.data;
+      
+      // Enriquecer com dados do cliente
+      let customerData = null;
+      if (payment.customer) {
+        try {
+          customerData = await this.getCustomer(payment.customer);
+        } catch (error) {
+          console.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
+        }
+      }
+      
+      return {
+        ...payment,
+        customerName: customerData?.name || payment.customer,
+        customerEmail: customerData?.email || '',
+        customerPhone: customerData?.phone || customerData?.mobilePhone || '',
+        customerCpfCnpj: customerData?.cpfCnpj || ''
+      };
+    } catch (error: any) {
+      console.error(`Erro ao buscar detalhes do pagamento ${paymentId}:`, error);
+      throw new Error(`Falha ao buscar detalhes: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+    }
+  }
+
+  // Reenviar cobrança por email
+  async resendPayment(paymentId: string): Promise<any> {
+    try {
+      console.log(`Reenviando cobrança: ${paymentId}`);
+      
+      const response = await this.client.post(`/payments/${paymentId}/paymentBook`);
+      
+      return {
+        success: true,
+        message: 'Cobrança reenviada com sucesso',
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error(`Erro ao reenviar cobrança ${paymentId}:`, error);
+      throw new Error(`Falha ao reenviar: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+    }
+  }
+
+  // Cancelar pagamento
+  async cancelPayment(paymentId: string): Promise<any> {
+    try {
+      console.log(`Cancelando pagamento: ${paymentId}`);
+      
+      const response = await this.client.delete(`/payments/${paymentId}`);
+      
+      return {
+        success: true,
+        message: 'Pagamento cancelado com sucesso',
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error(`Erro ao cancelar pagamento ${paymentId}:`, error);
+      throw new Error(`Falha ao cancelar: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+    }
+  }
+
+  // Estornar pagamento
+  async refundPayment(paymentId: string): Promise<any> {
+    try {
+      console.log(`Estornando pagamento: ${paymentId}`);
+      
+      // Primeiro buscar o pagamento para verificar se pode ser estornado
+      const paymentDetails = await this.client.get(`/payments/${paymentId}`);
+      
+      if (paymentDetails.data.status !== 'RECEIVED') {
+        throw new Error('Apenas pagamentos recebidos podem ser estornados');
+      }
+      
+      const response = await this.client.post(`/payments/${paymentId}/refund`, {
+        value: paymentDetails.data.value,
+        description: 'Estorno solicitado via sistema administrativo'
+      });
+      
+      return {
+        success: true,
+        message: 'Estorno processado com sucesso',
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error(`Erro ao estornar pagamento ${paymentId}:`, error);
+      throw new Error(`Falha ao estornar: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+    }
   }
 
   async syncAllPayments(): Promise<{ synced: number; errors: string[] }> {
