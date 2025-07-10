@@ -1272,7 +1272,7 @@ const CertificadosPos = () => {
 
           {/* Modal de Visualização de Modelo */}
           <Dialog open={isViewTemplateModalOpen} onOpenChange={setIsViewTemplateModalOpen}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Eye className="h-5 w-5" />
@@ -1281,55 +1281,50 @@ const CertificadosPos = () => {
               </DialogHeader>
               
               {selectedTemplate && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  {/* Informações básicas compactas */}
+                  <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <Label className="font-semibold">Nome do Modelo</Label>
-                      <p className="text-sm text-muted-foreground">{selectedTemplate.nome}</p>
+                      <Label className="text-xs font-semibold text-gray-600">Nome do Modelo</Label>
+                      <p className="text-sm font-medium">{selectedTemplate.nome}</p>
                     </div>
                     <div>
-                      <Label className="font-semibold">Categoria</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <Label className="text-xs font-semibold text-gray-600">Categoria</Label>
+                      <p className="text-sm">
                         {selectedTemplate.categoria === 'pos_graduacao' ? 'Pós-Graduação' : 
                          selectedTemplate.categoria === 'segunda_graduacao' ? 'Segunda Graduação' : 
                          'Formação Pedagógica'}
                       </p>
                     </div>
                     <div>
-                      <Label className="font-semibold">Tipo</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <Label className="text-xs font-semibold text-gray-600">Tipo</Label>
+                      <p className="text-sm">
                         {selectedTemplate.tipo.charAt(0).toUpperCase() + selectedTemplate.tipo.slice(1)}
                       </p>
                     </div>
                     <div>
-                      <Label className="font-semibold">Status</Label>
-                      <Badge variant={selectedTemplate.isActive ? "default" : "secondary"}>
+                      <Label className="text-xs font-semibold text-gray-600">Status</Label>
+                      <Badge variant={selectedTemplate.isActive ? "default" : "secondary"} className="text-xs">
                         {selectedTemplate.isActive ? "Ativo" : "Inativo"}
                       </Badge>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <Label className="font-semibold">Instituição</Label>
-                      <p className="text-sm text-muted-foreground">{selectedTemplate.instituicaoNome}</p>
+                      <Label className="text-xs font-semibold text-gray-600">Instituição</Label>
+                      <p className="text-sm">{selectedTemplate.instituicaoNome}</p>
                     </div>
                     <div>
-                      <Label className="font-semibold">Posição QR Code</Label>
-                      <p className="text-sm text-muted-foreground">{selectedTemplate.qrCodePosition}</p>
+                      <Label className="text-xs font-semibold text-gray-600">Posição QR Code</Label>
+                      <p className="text-sm">{selectedTemplate.qrCodePosition}</p>
                     </div>
                   </div>
 
-                  {selectedTemplate.instituicaoEndereco && (
-                    <div>
-                      <Label className="font-semibold">Endereço da Instituição</Label>
-                      <p className="text-sm text-muted-foreground">{selectedTemplate.instituicaoEndereco}</p>
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label className="font-semibold">Preview Visual do Certificado</Label>
+                  {/* Preview Visual PRINCIPAL - Maior destaque */}
+                  <div className="border-2 border-primary/20 rounded-lg p-6 bg-white">
+                    <div className="flex items-center justify-between mb-4">
+                      <Label className="text-lg font-semibold text-primary">Preview Visual do Certificado</Label>
                       <Button
                         size="sm"
                         variant="outline"
@@ -1345,7 +1340,7 @@ const CertificadosPos = () => {
                             .replace(/{{numeroRegistro}}/g, "001/2025")
                             .replace(/{{areaCurso}}/g, "Educação");
                             
-                          const previewWindow = window.open('', '_blank', 'width=800,height=600');
+                          const previewWindow = window.open('', '_blank', 'width=900,height=700');
                           if (previewWindow) {
                             previewWindow.document.write(`
                               <!DOCTYPE html>
@@ -1369,6 +1364,7 @@ const CertificadosPos = () => {
                                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                                     max-width: 800px;
                                     width: 100%;
+                                    border-radius: 8px;
                                   }
                                   @media print { 
                                     body { background: white; }
@@ -1392,7 +1388,9 @@ const CertificadosPos = () => {
                         Tela Cheia
                       </Button>
                     </div>
-                    <div className="border rounded-lg p-6 bg-white shadow-sm">
+                    
+                    {/* Preview do certificado com maior destaque */}
+                    <div className="border-2 border-gray-200 rounded-lg p-8 bg-white shadow-inner min-h-96">
                       <div 
                         dangerouslySetInnerHTML={{ 
                           __html: selectedTemplate.htmlTemplate
@@ -1409,70 +1407,19 @@ const CertificadosPos = () => {
                           fontFamily: 'Times New Roman, serif',
                           lineHeight: '1.6',
                           color: '#000',
-                          fontSize: '14px',
-                          textAlign: 'center'
+                          fontSize: '16px',
+                          textAlign: 'center',
+                          minHeight: '300px'
                         }}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      ℹ️ Preview com dados de exemplo. Clique em "Tela Cheia" para ver em tamanho real.
+                    <p className="text-xs text-muted-foreground text-center mt-3 italic">
+                      ℹ️ Preview com dados de exemplo para demonstração
                     </p>
                   </div>
 
-                  <div>
-                    <Label className="font-semibold">Código HTML</Label>
-                    <Textarea 
-                      value={selectedTemplate.htmlTemplate} 
-                      readOnly 
-                      className="min-h-32 font-mono text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="font-semibold">Texto Legal</Label>
-                    <Textarea 
-                      value={selectedTemplate.textoLegal} 
-                      readOnly 
-                      className="min-h-20"
-                    />
-                  </div>
-
-                  {selectedTemplate.variaveis && selectedTemplate.variaveis.length > 0 && (
-                    <div>
-                      <Label className="font-semibold">Variáveis ({selectedTemplate.variaveis.length})</Label>
-                      <Textarea 
-                        value={JSON.stringify(selectedTemplate.variaveis, null, 2)} 
-                        readOnly 
-                        className="min-h-20 font-mono text-xs"
-                      />
-                    </div>
-                  )}
-
-                  {(selectedTemplate.assinaturaDigital1 || selectedTemplate.assinaturaDigital2) && (
-                    <div className="grid grid-cols-2 gap-4">
-                      {selectedTemplate.assinaturaDigital1 && (
-                        <div>
-                          <Label className="font-semibold">Assinatura Digital 1</Label>
-                          <p className="text-sm text-muted-foreground break-all">{selectedTemplate.assinaturaDigital1}</p>
-                        </div>
-                      )}
-                      {selectedTemplate.assinaturaDigital2 && (
-                        <div>
-                          <Label className="font-semibold">Assinatura Digital 2</Label>
-                          <p className="text-sm text-muted-foreground break-all">{selectedTemplate.assinaturaDigital2}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {selectedTemplate.instituicaoLogo && (
-                    <div>
-                      <Label className="font-semibold">Logo da Instituição</Label>
-                      <p className="text-sm text-muted-foreground break-all">{selectedTemplate.instituicaoLogo}</p>
-                    </div>
-                  )}
-
-                  <div className="flex justify-end gap-2 pt-4">
+                  {/* Botões de ação principais */}
+                  <div className="flex justify-end gap-2 pt-4 border-t">
                     <Button
                       variant="outline"
                       onClick={() => handlePreviewTemplate(selectedTemplate)}
