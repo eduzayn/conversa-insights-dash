@@ -2800,7 +2800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (dateCreatedGe) filters.dateCreatedGe = dateCreatedGe;
       if (dateCreatedLe) filters.dateCreatedLe = dateCreatedLe;
 
-      const payments = await asaasService.getAllPayments(filters);
+      const payments = await asaasService.getAllPaymentsWithCustomers(filters);
       res.json(payments);
     } catch (error) {
       console.error("Erro ao buscar cobranças do Asaas:", error);

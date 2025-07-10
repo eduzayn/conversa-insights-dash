@@ -171,13 +171,44 @@ export class AsaasService {
     };
   }
 
-  async createCustomer(customerData: AsaasCustomer): Promise<string> {
+  async createCustomer(customerData: AsaasCustomer): Promise<any> {
     try {
       const response = await this.client.post('/customers', customerData);
-      return response.data.id;
+      return response.data;
     } catch (error: any) {
       console.error('Erro ao criar cliente:', error.response?.data || error.message);
       throw new Error(`Falha ao criar cliente: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+    }
+  }
+
+  async getCustomer(customerId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/customers/${customerId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao buscar cliente:', error.response?.data || error.message);
+      throw new Error(`Falha ao buscar cliente: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+    }
+  }
+
+  async listCustomers(filters: {
+    name?: string;
+    email?: string;
+    cpfCnpj?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value.toString());
+      });
+
+      const response = await this.client.get(`/customers?${params}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao listar clientes:', error.response?.data || error.message);
+      throw new Error(`Falha ao listar clientes: ${error.response?.data?.errors?.[0]?.description || error.message}`);
     }
   }
 
@@ -338,6 +369,68 @@ export class AsaasService {
     } catch (error: any) {
       console.error('Erro ao buscar todas as cobranças:', error);
       throw new Error(`Falha ao buscar cobranças: ${error.message}`);
+    }
+  }
+
+  async getAllPaymentsWithCustomers(filters: {
+    customer?: string;
+    status?: string;
+    dateCreatedGe?: string;
+    dateCreatedLe?: string;
+  } = {}): Promise<any[]> {
+    try {
+      const allPayments = await this.getAllPayments(filters);
+      const paymentsWithCustomers: any[] = [];
+      
+      // Cache para evitar buscar o mesmo cliente múltiplas vezes
+      const customerCache = new Map<string, any>();
+
+      for (const payment of allPayments) {
+        try {
+          let customerData = null;
+          
+          if (payment.customer && payment.customer.startsWith('cus_')) {
+            // Buscar dados do cliente se não estiver no cache
+            if (!customerCache.has(payment.customer)) {
+              try {
+                customerData = await this.getCustomer(payment.customer);
+                customerCache.set(payment.customer, customerData);
+              } catch (error) {
+                console.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
+                customerCache.set(payment.customer, null);
+              }
+            } else {
+              customerData = customerCache.get(payment.customer);
+            }
+          }
+
+          paymentsWithCustomers.push({
+            ...payment,
+            customerData: customerData ? {
+              name: customerData.name,
+              email: customerData.email,
+              cpfCnpj: customerData.cpfCnpj,
+              phone: customerData.phone,
+              mobilePhone: customerData.mobilePhone
+            } : null
+          });
+
+          // Delay menor para evitar rate limiting
+          await new Promise(resolve => setTimeout(resolve, 50));
+        } catch (error) {
+          console.warn(`Erro ao processar pagamento ${payment.id}:`, error);
+          // Adicionar pagamento mesmo sem dados do cliente
+          paymentsWithCustomers.push({
+            ...payment,
+            customerData: null
+          });
+        }
+      }
+
+      return paymentsWithCustomers;
+    } catch (error: any) {
+      console.error('Erro ao buscar cobranças com clientes:', error);
+      throw new Error(`Falha ao buscar cobranças com dados de clientes: ${error.message}`);
     }
   }
 

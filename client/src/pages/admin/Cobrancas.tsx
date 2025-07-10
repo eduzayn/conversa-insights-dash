@@ -17,6 +17,13 @@ interface AsaasPayment {
   billingType: string;
   dueDate: string;
   status: string;
+  customerData?: {
+    name?: string;
+    email?: string;
+    cpfCnpj?: string;
+    phone?: string;
+    mobilePhone?: string;
+  };
 }
 
 export default function Cobrancas() {
@@ -53,8 +60,11 @@ export default function Cobrancas() {
   // Usar apenas dados reais da API do Asaas
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const filteredPayments = payments.filter((payment: AsaasPayment) => {
+    const customerName = payment.customerData?.name || payment.customer || '';
+    const customerEmail = payment.customerData?.email || '';
     const matchesSearch = searchTerm === '' || 
-      payment.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.id.includes(searchTerm);
     return matchesSearch;
@@ -72,7 +82,7 @@ export default function Cobrancas() {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header idêntico à imagem */}
       <div className="flex items-center gap-4 mb-6">
-        <Link to="/integracao-asaas">
+        <Link to="/">
           <Button variant="ghost" size="sm" className="text-gray-600">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -216,10 +226,19 @@ export default function Cobrancas() {
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 text-sm font-medium">
-                          {payment.customer?.charAt(0)?.toUpperCase() || 'A'}
+                          {(payment.customerData?.name || payment.customer || 'Cliente')?.charAt(0)?.toUpperCase()}
                         </span>
                       </div>
-                      <span className="font-medium">{payment.customer || 'Cliente'}</span>
+                      <div>
+                        <div className="font-medium">
+                          {payment.customerData?.name || payment.customer || 'Cliente'}
+                        </div>
+                        {payment.customerData?.email && (
+                          <div className="text-xs text-gray-500">
+                            {payment.customerData.email}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">{payment.description}</TableCell>
