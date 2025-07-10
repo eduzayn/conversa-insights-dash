@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, Filter, Eye, Edit, Trash2, 
   BookOpen, Clock, GraduationCap, ArrowLeft, ChevronDown, ChevronRight,
-  School, Users, FileText
+  School, Users, FileText, Mail, Phone
 } from 'lucide-react';
 
 interface Disciplina {
@@ -76,6 +76,14 @@ const MatrizesCurriculares = () => {
   const [isCourseCreateModalOpen, setIsCourseCreateModalOpen] = useState(false);
   const [isCourseEditModalOpen, setIsCourseEditModalOpen] = useState(false);
   const [isCourseViewModalOpen, setIsCourseViewModalOpen] = useState(false);
+
+  // Estados para professores
+  const [professorSearchTerm, setProfessorSearchTerm] = useState('');
+  const [professorStatusFilter, setProfessorStatusFilter] = useState<string>('all');
+  const [selectedProfessor, setSelectedProfessor] = useState<any>(null);
+  const [isProfessorCreateModalOpen, setIsProfessorCreateModalOpen] = useState(false);
+  const [isProfessorEditModalOpen, setIsProfessorEditModalOpen] = useState(false);
+  const [isProfessorViewModalOpen, setIsProfessorViewModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -216,6 +224,59 @@ const MatrizesCurriculares = () => {
     }
   });
 
+  // Mutations para professores
+  const createProfessorMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/academic/professors', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/academic/professors'] });
+      setIsProfessorCreateModalOpen(false);
+      toast({ title: 'Sucesso', description: 'Professor cadastrado com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao cadastrar professor', variant: 'destructive' });
+    }
+  });
+
+  const updateProfessorMutation = useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      return apiRequest(`/api/academic/professors/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/academic/professors'] });
+      setIsProfessorEditModalOpen(false);
+      setSelectedProfessor(null);
+      toast({ title: 'Sucesso', description: 'Professor atualizado com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao atualizar professor', variant: 'destructive' });
+    }
+  });
+
+  const deleteProfessorMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/academic/professors/${id}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/academic/professors'] });
+      toast({ title: 'Sucesso', description: 'Professor removido com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao remover professor', variant: 'destructive' });
+    }
+  });
+
   // Filtrar disciplinas
   const filteredDisciplinas = React.useMemo(() => {
     return disciplinas.filter(disciplina => {
@@ -246,6 +307,20 @@ const MatrizesCurriculares = () => {
       return matchesSearch && matchesCategoria && matchesModalidade && matchesStatus;
     });
   }, [courses, courseSearchTerm, categoriaFilter, modalidadeFilter, statusFilter]);
+
+  // Filtrar professores
+  const filteredProfessors = React.useMemo(() => {
+    return professors.filter((professor: any) => {
+      const matchesSearch = !professorSearchTerm || 
+        professor.nome.toLowerCase().includes(professorSearchTerm.toLowerCase()) ||
+        professor.email.toLowerCase().includes(professorSearchTerm.toLowerCase()) ||
+        professor.especialidade?.toLowerCase().includes(professorSearchTerm.toLowerCase());
+
+      const matchesStatus = professorStatusFilter === 'all' || professor.status === professorStatusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [professors, professorSearchTerm, professorStatusFilter]);
 
   // Agrupar disciplinas por curso
   const disciplinasPorCurso = React.useMemo(() => {
@@ -300,17 +375,29 @@ const MatrizesCurriculares = () => {
 
   // Função para obter badge de status do curso
   const getStatusBadge = (status: string) => {
+    // Proteção contra valores undefined ou null
+    if (!status || typeof status !== 'string') {
+      return (
+        <Badge variant="outline">
+          Não definido
+        </Badge>
+      );
+    }
+
     const configs = {
       ativo: { variant: 'default' as const, color: 'text-green-600' },
       inativo: { variant: 'secondary' as const, color: 'text-gray-600' },
-      'em_desenvolvimento': { variant: 'outline' as const, color: 'text-yellow-600' }
+      'em_desenvolvimento': { variant: 'outline' as const, color: 'text-yellow-600' },
+      licenca: { variant: 'secondary' as const, color: 'text-orange-600' }
     };
 
     const config = configs[status as keyof typeof configs] || configs.ativo;
 
     return (
       <Badge variant={config.variant}>
-        {status === 'em_desenvolvimento' ? 'Em Desenvolvimento' : status.charAt(0).toUpperCase() + status.slice(1)}
+        {status === 'em_desenvolvimento' ? 'Em Desenvolvimento' : 
+         status === 'licenca' ? 'Em Licença' : 
+         status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
   };
@@ -641,6 +728,136 @@ const MatrizesCurriculares = () => {
     );
   };
 
+  const ProfessorForm = ({ professor, onSubmit, onCancel }: {
+    professor?: any;
+    onSubmit: (data: any) => void;
+    onCancel: () => void;
+  }) => {
+    const [formData, setFormData] = useState({
+      nome: professor?.nome || '',
+      email: professor?.email || '',
+      telefone: professor?.telefone || '',
+      titulacao: professor?.titulacao || '',
+      especialidade: professor?.especialidade || '',
+      lattes: professor?.lattes || '',
+      biografia: professor?.biografia || '',
+      status: professor?.status || 'ativo'
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onSubmit(formData);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="nome">Nome Completo</Label>
+            <Input
+              id="nome"
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="telefone">Telefone</Label>
+            <Input
+              id="telefone"
+              value={formData.telefone}
+              onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+              placeholder="(11) 99999-9999"
+            />
+          </div>
+          <div>
+            <Label htmlFor="titulacao">Titulação</Label>
+            <Select value={formData.titulacao} onValueChange={(value) => setFormData({ ...formData, titulacao: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a titulação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="graduacao">Graduação</SelectItem>
+                <SelectItem value="especializacao">Especialização</SelectItem>
+                <SelectItem value="mestre">Mestre</SelectItem>
+                <SelectItem value="doutor">Doutor</SelectItem>
+                <SelectItem value="pos_doutor">Pós-Doutor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="especialidade">Especialidade</Label>
+            <Input
+              id="especialidade"
+              value={formData.especialidade}
+              onChange={(e) => setFormData({ ...formData, especialidade: e.target.value })}
+              placeholder="Ex: Psicologia Cognitiva, Matemática Aplicada"
+            />
+          </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="inativo">Inativo</SelectItem>
+                <SelectItem value="licenca">Em Licença</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="lattes">Currículo Lattes</Label>
+          <Input
+            id="lattes"
+            value={formData.lattes}
+            onChange={(e) => setFormData({ ...formData, lattes: e.target.value })}
+            placeholder="http://lattes.cnpq.br/..."
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="biografia">Biografia</Label>
+          <Textarea
+            id="biografia"
+            value={formData.biografia}
+            onChange={(e) => setFormData({ ...formData, biografia: e.target.value })}
+            rows={4}
+            placeholder="Formação acadêmica, experiência profissional, áreas de pesquisa..."
+          />
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">
+            {professor ? 'Atualizar' : 'Cadastrar'} Professor
+          </Button>
+        </div>
+      </form>
+    );
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -664,7 +881,7 @@ const MatrizesCurriculares = () => {
 
       {/* Tabs de Navegação */}
       <Tabs defaultValue="courses" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="courses" className="flex items-center gap-2">
             <School className="h-4 w-4" />
             Cursos
@@ -672,6 +889,10 @@ const MatrizesCurriculares = () => {
           <TabsTrigger value="disciplines" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Disciplinas
+          </TabsTrigger>
+          <TabsTrigger value="professors" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Professores
           </TabsTrigger>
         </TabsList>
 
@@ -1221,6 +1442,213 @@ const MatrizesCurriculares = () => {
         </DialogContent>
       </Dialog>
         </TabsContent>
+
+        {/* Aba de Professores */}
+        <TabsContent value="professors" className="space-y-6">
+          {/* Header da Aba de Professores */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold">Corpo Docente</h2>
+              <p className="text-muted-foreground">Gestão completa do corpo docente da instituição</p>
+            </div>
+            <Dialog open={isProfessorCreateModalOpen} onOpenChange={setIsProfessorCreateModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Professor
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Cadastrar Novo Professor</DialogTitle>
+                </DialogHeader>
+                <ProfessorForm
+                  onSubmit={(data) => createProfessorMutation.mutate(data)}
+                  onCancel={() => setIsProfessorCreateModalOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Cards de Estatísticas dos Professores */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Professores</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{professors.length}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Professores Ativos</CardTitle>
+                <Users className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {professors.filter((p: any) => p.status === 'ativo').length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Doutores</CardTitle>
+                <GraduationCap className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {professors.filter((p: any) => p.titulacao === 'doutor').length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Mestres</CardTitle>
+                <BookOpen className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {professors.filter((p: any) => p.titulacao === 'mestre').length}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtros dos Professores */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filtros
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar professores..."
+                    value={professorSearchTerm}
+                    onChange={(e) => setProfessorSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={professorStatusFilter} onValueChange={setProfessorStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="ativo">Ativo</SelectItem>
+                    <SelectItem value="inativo">Inativo</SelectItem>
+                    <SelectItem value="licenca">Em Licença</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tabela de Professores */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Lista de Professores</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Carregando professores...</p>
+                  </div>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Titulação</TableHead>
+                      <TableHead>Especialidade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProfessors.map((professor: any) => (
+                      <TableRow key={professor.id}>
+                        <TableCell>
+                          <div className="font-medium">{professor.nome}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            {professor.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            {professor.telefone || 'Não informado'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {professor.titulacao ? professor.titulacao.charAt(0).toUpperCase() + professor.titulacao.slice(1) : 'Não informado'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-muted-foreground">
+                            {professor.especialidade || 'Não informado'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(professor.status)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedProfessor(professor);
+                                setIsProfessorViewModalOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedProfessor(professor);
+                                setIsProfessorEditModalOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteProfessorMutation.mutate(professor.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Modais para Cursos */}
@@ -1301,6 +1729,81 @@ const MatrizesCurriculares = () => {
             onCancel={() => {
               setIsCourseEditModalOpen(false);
               setSelectedCourse(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modais para Professores */}
+      {/* Modal de Visualização do Professor */}
+      <Dialog open={isProfessorViewModalOpen} onOpenChange={setIsProfessorViewModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Professor</DialogTitle>
+          </DialogHeader>
+          {selectedProfessor && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Nome Completo</Label>
+                  <p className="font-medium">{selectedProfessor.nome}</p>
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <p>{selectedProfessor.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label>Telefone</Label>
+                  <p>{selectedProfessor.telefone || 'Não informado'}</p>
+                </div>
+                <div>
+                  <Label>Titulação</Label>
+                  <p>{selectedProfessor.titulacao ? selectedProfessor.titulacao.charAt(0).toUpperCase() + selectedProfessor.titulacao.slice(1) : 'Não informado'}</p>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <p>{getStatusBadge(selectedProfessor.status)}</p>
+                </div>
+              </div>
+              {selectedProfessor.especialidade && (
+                <div>
+                  <Label>Especialidade</Label>
+                  <p>{selectedProfessor.especialidade}</p>
+                </div>
+              )}
+              {selectedProfessor.lattes && (
+                <div>
+                  <Label>Currículo Lattes</Label>
+                  <p className="text-blue-600 underline cursor-pointer" onClick={() => window.open(selectedProfessor.lattes, '_blank')}>
+                    {selectedProfessor.lattes}
+                  </p>
+                </div>
+              )}
+              {selectedProfessor.biografia && (
+                <div>
+                  <Label>Biografia</Label>
+                  <p className="text-sm text-muted-foreground">{selectedProfessor.biografia}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Edição do Professor */}
+      <Dialog open={isProfessorEditModalOpen} onOpenChange={setIsProfessorEditModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Editar Professor</DialogTitle>
+          </DialogHeader>
+          <ProfessorForm
+            professor={selectedProfessor}
+            onSubmit={(data) => updateProfessorMutation.mutate({ ...data, id: selectedProfessor!.id })}
+            onCancel={() => {
+              setIsProfessorEditModalOpen(false);
+              setSelectedProfessor(null);
             }}
           />
         </DialogContent>
