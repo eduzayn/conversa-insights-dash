@@ -113,6 +113,55 @@ const CertificadosPos = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  // Função para preview do template
+  const handlePreviewTemplate = (template: CertificateTemplate) => {
+    // Criar dados de exemplo para preview
+    const dadosExemplo = {
+      nomeAluno: "João Silva Santos",
+      nomeCurso: template.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia",
+      dataEmissao: new Date().toLocaleDateString('pt-BR'),
+      instituicao: template.instituicaoNome,
+      cargaHoraria: "420",
+      numeroRegistro: "001/2025"
+    };
+
+    // Substituir variáveis no template HTML
+    let htmlFinal = template.htmlTemplate;
+    Object.entries(dadosExemplo).forEach(([key, value]) => {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      htmlFinal = htmlFinal.replace(regex, value);
+    });
+
+    // Abrir nova janela com o preview
+    const previewWindow = window.open('', '_blank');
+    if (previewWindow) {
+      previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Preview - ${template.nome}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .preview-container { max-width: 800px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; }
+            .preview-header { text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; }
+            @media print { .preview-header { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="preview-header">
+            <h3>Preview do Template: ${template.nome}</h3>
+            <p>Este é um preview com dados de exemplo. Use Ctrl+P para imprimir.</p>
+          </div>
+          <div class="preview-container">
+            ${htmlFinal}
+          </div>
+        </body>
+        </html>
+      `);
+      previewWindow.document.close();
+    }
+  };
+
   // Buscar certificados acadêmicos
   const { data: certificates = [], isLoading: loadingCertificates } = useQuery({
     queryKey: ['/api/academic/certificates'],
@@ -1048,7 +1097,8 @@ const CertificadosPos = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => {/* Implementar preview */}}
+                              onClick={() => handlePreviewTemplate(template)}
+                              title="Preview PDF"
                             >
                               <Printer className="h-4 w-4" />
                             </Button>
@@ -1217,6 +1267,134 @@ const CertificadosPos = () => {
                   </div>
                 </div>
               </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Modal de Visualização de Modelo */}
+          <Dialog open={isViewTemplateModalOpen} onOpenChange={setIsViewTemplateModalOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Visualizar Modelo: {selectedTemplate?.nome}
+                </DialogTitle>
+              </DialogHeader>
+              
+              {selectedTemplate && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="font-semibold">Nome do Modelo</Label>
+                      <p className="text-sm text-muted-foreground">{selectedTemplate.nome}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Categoria</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedTemplate.categoria === 'pos_graduacao' ? 'Pós-Graduação' : 
+                         selectedTemplate.categoria === 'segunda_graduacao' ? 'Segunda Graduação' : 
+                         'Formação Pedagógica'}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Tipo</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedTemplate.tipo.charAt(0).toUpperCase() + selectedTemplate.tipo.slice(1)}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Status</Label>
+                      <Badge variant={selectedTemplate.isActive ? "default" : "secondary"}>
+                        {selectedTemplate.isActive ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="font-semibold">Instituição</Label>
+                      <p className="text-sm text-muted-foreground">{selectedTemplate.instituicaoNome}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Posição QR Code</Label>
+                      <p className="text-sm text-muted-foreground">{selectedTemplate.qrCodePosition}</p>
+                    </div>
+                  </div>
+
+                  {selectedTemplate.instituicaoEndereco && (
+                    <div>
+                      <Label className="font-semibold">Endereço da Instituição</Label>
+                      <p className="text-sm text-muted-foreground">{selectedTemplate.instituicaoEndereco}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label className="font-semibold">Template HTML</Label>
+                    <Textarea 
+                      value={selectedTemplate.htmlTemplate} 
+                      readOnly 
+                      className="min-h-32 font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-semibold">Texto Legal</Label>
+                    <Textarea 
+                      value={selectedTemplate.textoLegal} 
+                      readOnly 
+                      className="min-h-20"
+                    />
+                  </div>
+
+                  {selectedTemplate.variaveis && selectedTemplate.variaveis.length > 0 && (
+                    <div>
+                      <Label className="font-semibold">Variáveis ({selectedTemplate.variaveis.length})</Label>
+                      <Textarea 
+                        value={JSON.stringify(selectedTemplate.variaveis, null, 2)} 
+                        readOnly 
+                        className="min-h-20 font-mono text-xs"
+                      />
+                    </div>
+                  )}
+
+                  {(selectedTemplate.assinaturaDigital1 || selectedTemplate.assinaturaDigital2) && (
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedTemplate.assinaturaDigital1 && (
+                        <div>
+                          <Label className="font-semibold">Assinatura Digital 1</Label>
+                          <p className="text-sm text-muted-foreground break-all">{selectedTemplate.assinaturaDigital1}</p>
+                        </div>
+                      )}
+                      {selectedTemplate.assinaturaDigital2 && (
+                        <div>
+                          <Label className="font-semibold">Assinatura Digital 2</Label>
+                          <p className="text-sm text-muted-foreground break-all">{selectedTemplate.assinaturaDigital2}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTemplate.instituicaoLogo && (
+                    <div>
+                      <Label className="font-semibold">Logo da Instituição</Label>
+                      <p className="text-sm text-muted-foreground break-all">{selectedTemplate.instituicaoLogo}</p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => handlePreviewTemplate(selectedTemplate)}
+                      className="gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Preview PDF
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsViewTemplateModalOpen(false)}>
+                      Fechar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
 
