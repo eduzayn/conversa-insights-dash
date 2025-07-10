@@ -80,7 +80,7 @@ export default function IntegracaoAsaas() {
     queryFn: () => apiRequest('/api/admin/asaas/status'),
   });
 
-  // Query para pagamentos com filtros
+  // Query para pagamentos do Asaas com filtros
   const { data: paymentsData, isLoading: loadingPayments, refetch: refetchPayments } = useQuery({
     queryKey: ['/api/admin/asaas/payments', filters],
     queryFn: () => apiRequest('/api/admin/asaas/payments', {
@@ -89,6 +89,7 @@ export default function IntegracaoAsaas() {
         Object.entries(filters).filter(([_, value]) => value && value !== 'all')
       )
     }),
+    refetchOnWindowFocus: false,
   });
 
   // Query para estatísticas
@@ -117,32 +118,32 @@ export default function IntegracaoAsaas() {
     }
   });
 
-  // Mutation para sincronizar
+  // Mutation para sincronizar/importar todas as cobranças
   const syncMutation = useMutation({
-    mutationFn: () => apiRequest('/api/admin/asaas/payments/sync', { method: 'POST' }),
-    onSuccess: () => {
+    mutationFn: () => apiRequest('/api/admin/asaas/import-all', { method: 'POST' }),
+    onSuccess: (data) => {
       toast({
-        title: "Sincronização concluída",
-        description: "Pagamentos sincronizados com sucesso!"
+        title: "Importação concluída",
+        description: data.message || "Cobranças importadas com sucesso!"
       });
       refetchPayments();
     },
     onError: (error: any) => {
       toast({
-        title: "Erro na sincronização",
+        title: "Erro na importação",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  // Calcular estatísticas
+  // Calcular estatísticas usando dados do Asaas
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
   const stats = {
     total: payments.length,
-    totalValue: payments.reduce((sum: number, p: Payment) => sum + p.amount, 0),
-    pendingValue: payments.filter((p: Payment) => p.status === 'pending').reduce((sum: number, p: Payment) => sum + p.amount, 0),
-    overdueValue: payments.filter((p: Payment) => p.status === 'overdue').reduce((sum: number, p: Payment) => sum + p.amount, 0),
+    totalValue: payments.reduce((sum: number, p: AsaasPayment) => sum + (p.value || 0), 0),
+    pendingValue: payments.filter((p: AsaasPayment) => p.status === 'PENDING').reduce((sum: number, p: AsaasPayment) => sum + (p.value || 0), 0),
+    overdueValue: payments.filter((p: AsaasPayment) => p.status === 'OVERDUE').reduce((sum: number, p: AsaasPayment) => sum + (p.value || 0), 0),
   };
 
   // Funções auxiliares
@@ -177,11 +178,12 @@ export default function IntegracaoAsaas() {
     return methodMap[method as keyof typeof methodMap] || method;
   };
 
-  // Filtrar pagamentos
-  const filteredPayments = payments.filter((payment: Payment) => {
+  // Filtrar pagamentos do Asaas
+  const filteredPayments = payments.filter((payment: AsaasPayment) => {
     const matchesSearch = searchTerm === '' || 
-      payment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.userId.toString().includes(searchTerm);
+      payment.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.id.includes(searchTerm);
     
     return matchesSearch;
   });
@@ -270,83 +272,50 @@ export default function IntegracaoAsaas() {
 
         {/* Tab de Cobranças/Pagamentos */}
         <TabsContent value="payments" className="space-y-6">
-          {/* Cards de Estatísticas - Design igual à primeira imagem */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total de cobranças</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                  </div>
-                  <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="h-4 w-4 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Valores pagos</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(0)}</p>
-                  </div>
-                  <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Valores pendentes</p>
-                    <p className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.pendingValue)}</p>
-                  </div>
-                  <div className="h-8 w-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-4 w-4 text-yellow-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Vencidos</p>
-                    <p className="text-2xl font-bold text-red-600">{formatCurrency(stats.overdueValue)}</p>
-                  </div>
-                  <div className="h-8 w-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Cards de Estatísticas - Design idêntico ao Asaas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="text-sm font-medium text-gray-600 mb-1">Total de cobranças</div>
+              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="text-sm font-medium text-gray-600 mb-1">Valores pagos</div>
+              <div className="text-3xl font-bold text-green-600">{formatCurrency(0)}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="text-sm font-medium text-gray-600 mb-1">Valores pendentes</div>
+              <div className="text-3xl font-bold text-yellow-600">{formatCurrency(stats.pendingValue)}</div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="text-sm font-medium text-gray-600 mb-1">Vencidos</div>
+              <div className="text-3xl font-bold text-red-600">{formatCurrency(stats.overdueValue)}</div>
+            </div>
           </div>
 
-          {/* Filtros - Design igual à segunda imagem */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filtros
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label>Status</Label>
+          {/* Interface idêntica ao Asaas */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Procurar por nome ou email do cliente..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-80"
+                    />
+                  </div>
+                  
                   <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos os status" />
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="all">Filtros ▼</SelectItem>
                       <SelectItem value="pending">Pendente</SelectItem>
                       <SelectItem value="confirmed">Confirmado</SelectItem>
                       <SelectItem value="overdue">Vencido</SelectItem>
@@ -355,111 +324,116 @@ export default function IntegracaoAsaas() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>ID do Usuário</Label>
-                  <Input
-                    placeholder="ID do usuário"
-                    value={filters.userId}
-                    onChange={(e) => setFilters({...filters, userId: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Data Inicial</Label>
-                  <Input
-                    type="date"
-                    placeholder="dd/mm/aaaa"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Data Final</Label>
-                  <Input
-                    type="date"
-                    placeholder="dd/mm/aaaa"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-                  />
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">1 Ações em lote ▼</span>
+                  <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4" />
+                    Adicionar cobrança
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Tabela de Pagamentos - Design igual à primeira imagem */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Pagamentos</CardTitle>
-                <CardDescription>{filteredPayments.length} pagamento(s) encontrado(s)</CardDescription>
-              </div>
-              <Button 
-                onClick={() => syncMutation.mutate()}
-                disabled={syncMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {loadingPayments ? (
-                <div className="text-center py-8">
-                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-                  <p>Carregando pagamentos...</p>
-                </div>
-              ) : filteredPayments.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  Dados de pagamento inválidos
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Aluno</TableHead>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Vencimento</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Método</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPayments.map((payment: Payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="font-medium">{payment.id}</TableCell>
-                          <TableCell>{payment.userId}</TableCell>
-                          <TableCell>{payment.description}</TableCell>
-                          <TableCell>{formatCurrency(payment.amount)}</TableCell>
-                          <TableCell>{formatDate(payment.dueDate)}</TableCell>
-                          <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                          <TableCell>{getPaymentMethodText(payment.paymentMethod)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {payment.paymentUrl && (
-                                <Button variant="ghost" size="sm" asChild>
-                                  <a href={payment.paymentUrl} target="_blank" rel="noopener noreferrer">
-                                    <Eye className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              )}
-                              <Button variant="ghost" size="sm">
-                                <Copy className="h-4 w-4" />
-                              </Button>
+            {/* Tabela idêntica ao Asaas */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-semibold text-gray-700">Nome ↕</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Valor ↕</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Descrição</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Forma de pagamento ↕</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Data de vencimento ↕</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingPayments ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                        Carregando cobranças...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredPayments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        Nenhuma cobrança encontrada
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPayments.map((payment: AsaasPayment) => (
+                      <TableRow key={payment.id} className="hover:bg-gray-50">
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <span className="text-green-600 text-sm font-medium">
+                                {payment.customer?.charAt(0)?.toUpperCase() || 'C'}
+                              </span>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                            <span className="font-medium">{payment.customer || 'Cliente'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold">{formatCurrency(payment.value)}</TableCell>
+                        <TableCell className="max-w-xs truncate">{payment.description}</TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {payment.billingType === 'PIX' ? '🔴 Boleto Bancário / Pix' : 
+                             payment.billingType === 'BOLETO' ? '🏦 Boleto Bancário / Pix' : 
+                             payment.billingType === 'CREDIT_CARD' ? 'Pix' : 'Pix'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span>{formatDate(payment.dueDate)}</span>
+                          <span className="ml-2 text-orange-600">🔴</span>
+                          <span className="ml-1 text-orange-600">🟠</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-purple-600">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-purple-600">
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-purple-600">
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-purple-600">
+                              <LinkIcon className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Footer da tabela idêntico ao Asaas */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  {filteredPayments.length} cobranças no valor total de{' '}
+                  <span className="font-semibold">
+                    {formatCurrency(filteredPayments.reduce((sum, p: AsaasPayment) => sum + (p.value || 0), 0))}
+                  </span>{' '}
+                  das {stats.total} cobranças existentes
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">1</span>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-gray-500">Como posso ajudar?</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Outras tabs podem ser implementadas aqui */}

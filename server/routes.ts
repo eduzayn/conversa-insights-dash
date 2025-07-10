@@ -2811,6 +2811,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Importar todas as cobranças do Asaas
+  app.post("/api/admin/asaas/import-all", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const result = await asaasService.importAllPayments();
+      res.json({
+        success: true,
+        message: `Importação concluída. ${result.imported} cobranças importadas.`,
+        data: result
+      });
+    } catch (error) {
+      console.error("Erro ao importar cobranças:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao importar cobranças do Asaas",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
   // Criar nova cobrança
   app.post("/api/admin/asaas/payments", authenticateToken, async (req: any, res) => {
     try {
