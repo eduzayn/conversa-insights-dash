@@ -228,10 +228,12 @@ export default function IntegracaoAsaas() {
             )}
             Testar Conexão
           </Button>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Nova cobrança
-          </Button>
+          <Link to="/cobrancas">
+            <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+              <Eye className="h-4 w-4" />
+              Ver todas as cobranças
+            </Button>
+          </Link>
         </div>
       </div>
 
