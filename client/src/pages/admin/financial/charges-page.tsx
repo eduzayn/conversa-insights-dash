@@ -384,7 +384,31 @@ const ChargesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="lg:pl-64">
+        <main className="p-6">
+          {/* Cabeçalho da página */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => window.history.back()}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar</span>
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Pagamentos Asaas</h1>
+                <p className="text-muted-foreground">
+                  Gerencie cobranças e pagamentos diretamente pelo Asaas
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
       {/* Status da conexão */}
       {isTestingConnection ? (
         <Alert>
@@ -1074,6 +1098,9 @@ const ChargesPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
