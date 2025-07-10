@@ -11,8 +11,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   role: text("role").notNull().default("agent"), // admin, agent, aluno, professor, conteudista, coordenador
-  companyAccount: text("company_account"), // COMERCIAL, SUPORTE
-  department: text("department"), // Comercial, Cobrança, Suporte, etc.
+  companyAccount: text("company_account"), // COMERCIAL, SUPORTE (mantido para compatibilidade)
+  department: text("department"), // Comercial, Cobrança, Suporte, etc. (mantido para compatibilidade)
+  multiCompanyAccess: json("multi_company_access"), // {"COMERCIAL": {"active": true, "departments": ["comercial"]}, "SUPORTE": {"active": true, "departments": ["tutoria"]}}
   isActive: boolean("is_active").notNull().default(true),
   // Campos específicos para alunos
   cpf: text("cpf"),

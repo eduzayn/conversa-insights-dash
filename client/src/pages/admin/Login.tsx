@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { BarChart3, Eye, EyeOff, Users, Building } from "lucide-react";
+import { BarChart3, Eye, EyeOff, Users, Building, Network, CheckSquare } from "lucide-react";
 import { COMPANIES, getDepartmentsByCompany } from "@shared/company-config";
 
 const Login = () => {
@@ -20,6 +21,11 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [companyAccount, setCompanyAccount] = useState("");
   const [department, setDepartment] = useState("");
+  const [accessType, setAccessType] = useState("single"); // "single" ou "multi"
+  const [multiCompanyData, setMultiCompanyData] = useState({
+    COMERCIAL: { active: false, departments: [] as string[] },
+    SUPORTE: { active: false, departments: [] as string[] }
+  });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -28,6 +34,30 @@ const Login = () => {
   if (user) {
     return <Navigate to="/" replace />;
   }
+
+  // Funções auxiliares para multi-company access
+  const handleCompanyToggle = (companyId: 'COMERCIAL' | 'SUPORTE', checked: boolean) => {
+    setMultiCompanyData(prev => ({
+      ...prev,
+      [companyId]: {
+        ...prev[companyId],
+        active: checked,
+        departments: checked ? prev[companyId].departments : []
+      }
+    }));
+  };
+
+  const handleDepartmentToggle = (companyId: 'COMERCIAL' | 'SUPORTE', departmentId: string, checked: boolean) => {
+    setMultiCompanyData(prev => ({
+      ...prev,
+      [companyId]: {
+        ...prev[companyId],
+        departments: checked 
+          ? [...prev[companyId].departments, departmentId]
+          : prev[companyId].departments.filter(d => d !== departmentId)
+      }
+    }));
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,20 +95,46 @@ const Login = () => {
       return;
     }
 
-    if (!companyAccount) {
-      toast.error("Por favor, selecione uma companhia.");
-      setLoading(false);
-      return;
-    }
+    // Validações específicas por tipo de acesso
+    if (accessType === "single") {
+      if (!companyAccount) {
+        toast.error("Por favor, selecione uma companhia.");
+        setLoading(false);
+        return;
+      }
 
-    if (!department) {
-      toast.error("Por favor, selecione um departamento.");
-      setLoading(false);
-      return;
+      if (!department) {
+        toast.error("Por favor, selecione um departamento.");
+        setLoading(false);
+        return;
+      }
+    } else {
+      // Validação para acesso multi-companhia
+      const hasActiveCompany = multiCompanyData.COMERCIAL.active || multiCompanyData.SUPORTE.active;
+      if (!hasActiveCompany) {
+        toast.error("Por favor, ative pelo menos uma companhia.");
+        setLoading(false);
+        return;
+      }
+
+      // Validar se cada companhia ativa tem pelo menos um departamento selecionado
+      const activeCompanies = Object.entries(multiCompanyData).filter(([_, data]) => data.active);
+      for (const [companyId, data] of activeCompanies) {
+        if (data.departments.length === 0) {
+          toast.error(`Por favor, selecione pelo menos um departamento para ${companyId}.`);
+          setLoading(false);
+          return;
+        }
+      }
     }
     
     try {
-      await register(username, email, password, name, token, companyAccount, department);
+      // Preparar dados para envio
+      const registrationData = accessType === "single" 
+        ? { companyAccount, department, multiCompanyAccess: null }
+        : { companyAccount: null, department: null, multiCompanyAccess: multiCompanyData };
+      
+      await register(username, email, password, name, token, registrationData);
       toast.success("Cadastro realizado com sucesso!");
     } catch (error: any) {
       toast.error(error.message || "Erro ao realizar cadastro. Tente novamente.");
@@ -243,9 +299,58 @@ const Login = () => {
                   </div>
                 </div>
                 
+                {/* Tipo de Acesso */}
                 <div className="space-y-2">
-                  <Label htmlFor="company-account">Companhia *</Label>
-                  <Select value={companyAccount} onValueChange={(value) => {
+                  <Label htmlFor="access-type">Tipo de Acesso *</Label>
+                  <Select value={accessType} onValueChange={(value) => {
+                    setAccessType(value);
+                    // Reset dados quando mudar o tipo
+                    setCompanyAccount("");
+                    setDepartment("");
+                    setMultiCompanyData({
+                      COMERCIAL: { active: false, departments: [] },
+                      SUPORTE: { active: false, departments: [] }
+                    });
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de acesso">
+                        {accessType && (
+                          <div className="flex items-center gap-2">
+                            {accessType === "single" ? <Building className="h-4 w-4" /> : <Network className="h-4 w-4" />}
+                            {accessType === "single" ? "Acesso Único" : "Acesso Multi-Companhias"}
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          Acesso Único
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="multi">
+                        <div className="flex items-center gap-2">
+                          <Network className="h-4 w-4" />
+                          Acesso Multi-Companhias
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    {accessType === "single" 
+                      ? "Trabalhar em apenas uma companhia" 
+                      : "Trabalhar em múltiplas companhias simultaneamente"
+                    }
+                  </p>
+                </div>
+
+                {/* Acesso Único */}
+                {accessType === "single" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="company-account">Companhia *</Label>
+                      <Select value={companyAccount} onValueChange={(value) => {
                     setCompanyAccount(value);
                     setDepartment(""); // Reset department when company changes
                   }}>
@@ -313,6 +418,64 @@ const Login = () => {
                     Selecione o departamento/funil onde irá atuar
                   </p>
                 </div>
+                  </>
+                )}
+
+                {/* Acesso Multi-Companhias */}
+                {accessType === "multi" && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                        <Network className="h-4 w-4" />
+                        Configuração Multi-Companhias
+                      </h4>
+                      <p className="text-sm text-blue-700">
+                        Selecione as companhias e departamentos onde você irá trabalhar
+                      </p>
+                    </div>
+
+                    {COMPANIES.map(company => (
+                      <div key={company.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`company-${company.id}`}
+                            checked={multiCompanyData[company.id as 'COMERCIAL' | 'SUPORTE']?.active || false}
+                            onCheckedChange={(checked) => 
+                              handleCompanyToggle(company.id as 'COMERCIAL' | 'SUPORTE', checked as boolean)
+                            }
+                          />
+                          <Label htmlFor={`company-${company.id}`} className="font-medium flex items-center gap-2">
+                            <Building className="h-4 w-4" />
+                            {company.name}
+                          </Label>
+                        </div>
+                        
+                        {multiCompanyData[company.id as 'COMERCIAL' | 'SUPORTE']?.active && (
+                          <div className="ml-6 space-y-2">
+                            <Label className="text-sm text-gray-600">Departamentos:</Label>
+                            <div className="grid grid-cols-1 gap-2">
+                              {company.departments.map(dept => (
+                                <div key={dept.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`dept-${company.id}-${dept.id}`}
+                                    checked={multiCompanyData[company.id as 'COMERCIAL' | 'SUPORTE']?.departments.includes(dept.id) || false}
+                                    onCheckedChange={(checked) =>
+                                      handleDepartmentToggle(company.id as 'COMERCIAL' | 'SUPORTE', dept.id, checked as boolean)
+                                    }
+                                  />
+                                  <Label htmlFor={`dept-${company.id}-${dept.id}`} className="text-sm flex items-center gap-2">
+                                    <Users className="h-3 w-3" />
+                                    {dept.name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <Button 
                   type="submit" 

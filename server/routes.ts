@@ -60,6 +60,7 @@ const studentLoginSchema = z.object({
 // Schema para registro
 const registerSchema = insertUserSchema.extend({
   token: z.string().min(1, "Token de registro é obrigatório"),
+  multiCompanyAccess: z.any().optional(),
 }).partial({
   companyAccount: true,
   department: true,
@@ -125,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registro
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { username, password, email, name, role, token, companyAccount, department } = registerSchema.parse(req.body);
+      const { username, password, email, name, role, token, companyAccount, department, multiCompanyAccess } = registerSchema.parse(req.body);
       
       // Verificar token de registro
       const regToken = await storage.getRegistrationToken(token);
@@ -155,7 +156,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         role: role || "agent",
         companyAccount,
-        department
+        department,
+        multiCompanyAccess
       });
 
       // Marcar token como usado

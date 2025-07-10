@@ -92,7 +92,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByCpf(cpf: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: InsertUser & { multiCompanyAccess?: any }): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   
   // Registration Tokens
@@ -255,7 +255,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertUser & { multiCompanyAccess?: any }): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
