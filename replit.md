@@ -572,6 +572,24 @@ Changelog:
    * ✅ Compatibilidade total com modo colapsado e responsive mobile
    * ✅ Design mais limpo e navegação contextualizada
    * Status: Sidebar modernizada e organizada conforme solicitado
+- Módulo "Modelos de Certificados" - Implementação Completa (10 Jul 2025):
+   * ✅ Sistema de abas implementado na página Certificados Acadêmicos (/certificados-pos)
+   * ✅ Aba "Certificados" com funcionalidade existente mantida integralmente
+   * ✅ Nova aba "Modelos de Certificados" com interface completa:
+     - Cards de estatísticas: Total, Ativos, Pós-Graduação, Segunda Graduação
+     - Filtros avançados por nome, categoria (Pós-Graduação, Segunda Graduação, Formação Pedagógica) e tipo (Certificado, Diploma, Declaração)
+     - Visualização em grid cards responsivo com informações detalhadas
+     - Modal de criação completo com 15+ campos (nome, categoria, tipo, HTML template, variáveis JSON, dados instituição, QR Code, assinaturas digitais)
+     - Botões de ação: Ver detalhes, Preview PDF, Excluir modelo
+     - Estado vazio tratado com call-to-action "Criar Primeiro Modelo"
+   * ✅ Backend CRUD completo implementado:
+     - Tabela certificate_templates no schema PostgreSQL
+     - Endpoints: GET /api/certificate-templates, POST, PUT, DELETE
+     - Mutations React Query funcionais com invalidação de cache
+     - Tratamento de erros robusto com toasts informativos
+   * ✅ Integração frontend-backend 100% funcional e testada
+   * ✅ Página acessível via sidebar (Acadêmico > Certificados Acadêmicos)
+   * Status: Sistema completo para criação e gestão de templates de certificados implementado
 - Renomeação do Módulo "Gestão Acadêmica" para "Gestão de Cursos" (10 Jul 2025):
    * ✅ Sidebar atualizada: "Gestão Acadêmica" alterado para "Gestão de Cursos"
    * ✅ Título principal da página alterado para "Gestão de Cursos"
