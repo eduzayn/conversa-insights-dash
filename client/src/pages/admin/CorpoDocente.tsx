@@ -128,6 +128,8 @@ const CorpoDocente = () => {
 
   // Função para obter badge de status
   const getStatusBadge = (status: string) => {
+    if (!status) return <Badge variant="secondary">Indefinido</Badge>;
+    
     const configs = {
       ativo: { variant: 'default' as const, color: 'text-green-600' },
       inativo: { variant: 'secondary' as const, color: 'text-gray-600' },
