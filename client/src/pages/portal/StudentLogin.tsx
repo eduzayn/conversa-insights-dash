@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ const studentLoginSchema = z.object({
 type StudentLoginForm = z.infer<typeof studentLoginSchema>;
 
 export default function StudentLogin() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const form = useForm<StudentLoginForm>({
@@ -51,7 +51,7 @@ export default function StudentLogin() {
       localStorage.setItem('student_data', JSON.stringify(data.student));
       
       // Redirecionar diretamente para o portal
-      setLocation('/portal');
+      navigate('/portal');
     },
     onError: (error: Error) => {
       setError(error.message);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Route, useLocation, Switch } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { ModernStudentLayout } from "@/components/portal/ModernStudentLayout";
 import { StudentDashboard } from "@/components/portal/StudentDashboard";
 import MeusCursos from "./MeusCursos";
@@ -22,6 +23,7 @@ interface StudentData {
 
 export default function PortalLayout() {
   const [location, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function PortalLayout() {
     const data = localStorage.getItem('student_data');
     
     if (!token || !data) {
-      setLocation('/portal-aluno/login');
+      navigate('/portal-aluno/login');
       return;
     }
 
@@ -39,9 +41,9 @@ export default function PortalLayout() {
       setStudentData(parsedData);
     } catch (error) {
       console.error('Erro ao carregar dados do aluno:', error);
-      setLocation('/portal-aluno/login');
+      navigate('/portal-aluno/login');
     }
-  }, [setLocation]);
+  }, [navigate]);
 
   if (!studentData) {
     return (
