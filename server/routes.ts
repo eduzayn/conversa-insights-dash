@@ -3965,7 +3965,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Importar pagamentos do Asaas
+  // Sincronização COMPLETA com Asaas - substitui dados locais pelos dados do Asaas
+  app.post('/api/asaas/payments/full-sync', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      console.log('🔄 Iniciando sincronização COMPLETA com Asaas...');
+
+      // Usar o serviço real do Asaas
+      const { asaasService } = await import('./services/asaas');
+      
+      // Testar conexão primeiro
+      const connectionTest = await asaasService.testConnection();
+      if (!connectionTest.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Erro na conexão com Asaas: ' + connectionTest.message 
+        });
+      }
+
+      // PASSO 1: Limpar completamente a tabela local
+      console.log('🗑️ Limpando dados locais...');
+      await storage.clearAllPayments();
+
+      // PASSO 2: Buscar TODOS os pagamentos do Asaas (sem limitação)
+      console.log('📥 Buscando TODOS os pagamentos do Asaas...');
+      let allPayments = [];
+      let offset = 0;
+      const limit = 100;
+      let hasMore = true;
+      let totalPages = 0;
+
+      while (hasMore) {
+        try {
+          const response = await asaasService.listPayments({ limit, offset });
+          const payments = response.data || [];
+          
+          if (payments.length === 0) {
+            hasMore = false;
+            break;
+          }
+
+          allPayments.push(...payments);
+          offset += limit;
+          totalPages++;
+          hasMore = payments.length === limit;
+          
+          console.log(`📄 Página ${totalPages}: ${payments.length} pagamentos carregados`);
+          
+          // Delay pequeno para evitar rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error('Erro ao buscar página:', error);
+          break;
+        }
+      }
+
+      console.log(`✅ Total de pagamentos encontrados no Asaas: ${allPayments.length}`);
+
+      // PASSO 3: Enriquecer com dados dos clientes
+      console.log('👥 Enriquecendo dados com informações dos clientes...');
+      const enrichedPayments = [];
+      const customerCache = new Map();
+
+      for (let i = 0; i < allPayments.length; i++) {
+        const payment = allPayments[i];
+        try {
+          let customerData = customerCache.get(payment.customer);
+          
+          if (!customerData) {
+            customerData = await asaasService.getCustomer(payment.customer);
+            if (customerData) {
+              customerCache.set(payment.customer, customerData);
+            }
+          }
+
+          enrichedPayments.push({
+            ...payment,
+            customerName: customerData?.name || payment.customer,
+            customerEmail: customerData?.email || '',
+            customerPhone: customerData?.phone || customerData?.mobilePhone || '',
+            customerCpfCnpj: customerData?.cpfCnpj || ''
+          });
+
+          if ((i + 1) % 50 === 0) {
+            console.log(`👥 Processados ${i + 1}/${allPayments.length} pagamentos`);
+          }
+        } catch (error) {
+          console.error(`Erro ao enriquecer pagamento ${payment.id}:`, error);
+          enrichedPayments.push(payment);
+        }
+      }
+
+      // PASSO 4: Importar TODOS os pagamentos para o banco local
+      console.log('💾 Importando pagamentos para o banco local...');
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (const payment of enrichedPayments) {
+        try {
+          await storage.createOrUpdatePaymentFromAsaas(payment);
+          importedCount++;
+        } catch (error) {
+          console.error('Erro ao importar pagamento:', payment.id, error);
+          errorCount++;
+        }
+      }
+
+      console.log(`✅ Sincronização COMPLETA finalizada!`);
+      console.log(`📊 Estatísticas:`);
+      console.log(`   - Total no Asaas: ${allPayments.length}`);
+      console.log(`   - Importados: ${importedCount}`);
+      console.log(`   - Erros: ${errorCount}`);
+
+      res.json({
+        success: true,
+        message: `Sincronização COMPLETA realizada! ${importedCount} pagamentos sincronizados`,
+        statistics: {
+          totalAsaas: allPayments.length,
+          imported: importedCount,
+          errors: errorCount,
+          pages: totalPages
+        }
+      });
+
+    } catch (error) {
+      console.error('Erro na sincronização completa:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor: ' + error.message 
+      });
+    }
+  });
+
+  // Importar pagamentos do Asaas (método antigo - limitado)
   app.post('/api/asaas/payments/import', authenticateToken, async (req: any, res) => {
     try {
       if (req.user.role !== 'admin') {

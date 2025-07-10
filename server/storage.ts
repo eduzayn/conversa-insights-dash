@@ -1398,8 +1398,9 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
 
       // Converter valores decimais para centavos (multiplicar por 100)
-      const rawAmount = parseFloat(asaasPayment.value || asaasPayment.originalValue || '0');
+      const rawAmount = parseFloat(String(asaasPayment.value || asaasPayment.originalValue || '0'));
       const amountInCents = Math.round(rawAmount * 100);
+      const rawValue = parseFloat(String(asaasPayment.value || asaasPayment.originalValue || '0'));
 
       const paymentData = {
         tenantId: 1, // Tenant padrão
@@ -1416,7 +1417,7 @@ export class DatabaseStorage implements IStorage {
         customerName: asaasPayment.customer?.name || asaasPayment.customerName,
         customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
         billingType: asaasPayment.billingType,
-        value: rawAmount, // Valor original em reais
+        value: amountInCents, // Valor em centavos conforme schema
         paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
         lastSyncedAt: new Date(),
       };
@@ -1638,6 +1639,17 @@ export class DatabaseStorage implements IStorage {
       return updatedPayment;
     } catch (error) {
       console.error('Erro ao atualizar pagamento por external_id:', error);
+      throw error;
+    }
+  }
+
+  async clearAllPayments(): Promise<void> {
+    try {
+      console.log('🗑️ Limpando todos os pagamentos do banco local...');
+      await db.delete(payments);
+      console.log('✅ Todos os pagamentos foram removidos do banco local');
+    } catch (error) {
+      console.error('Erro ao limpar pagamentos:', error);
       throw error;
     }
   }

@@ -291,6 +291,43 @@ const ChargesPage: React.FC = () => {
     },
   });
 
+  // Mutation para sincronização COMPLETA
+  const fullSyncMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/asaas/payments/full-sync', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro na sincronização completa');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "🔄 Sincronização Completa Realizada",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/asaas/payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/asaas/payments/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/asaas/sync/status"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro na sincronização completa",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Função para formatar valores monetários
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -1098,11 +1135,22 @@ const ChargesPage: React.FC = () => {
                     <Button
                       onClick={() => syncPaymentsMutation.mutate()}
                       disabled={syncPaymentsMutation.isPending}
+                      variant="outline"
                     >
                       <RotateCcw
                         className={`w-4 h-4 mr-2 ${syncPaymentsMutation.isPending ? "animate-spin" : ""}`}
                       />
-                      Sincronizar Agora
+                      Sincronizar Parcial
+                    </Button>
+                    <Button
+                      onClick={() => fullSyncMutation.mutate()}
+                      disabled={fullSyncMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Download
+                        className={`w-4 h-4 mr-2 ${fullSyncMutation.isPending ? "animate-spin" : ""}`}
+                      />
+                      🔄 SINCRONIZAÇÃO COMPLETA
                     </Button>
                     <Button
                       onClick={() => importPaymentsMutation.mutate()}
@@ -1112,7 +1160,7 @@ const ChargesPage: React.FC = () => {
                       <Download
                         className={`w-4 h-4 mr-2 ${importPaymentsMutation.isPending ? "animate-spin" : ""}`}
                       />
-                      Importação Completa
+                      Importação Limitada
                     </Button>
                   </div>
                 </div>
