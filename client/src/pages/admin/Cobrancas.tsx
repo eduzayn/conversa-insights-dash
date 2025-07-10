@@ -1,26 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarDays, DollarSign, TrendingUp, Users, RefreshCw, Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { apiRequest } from '@/lib/queryClient';
-
-interface AsaasMetrics {
-  totalPayments: number;
-  totalValue: number;
-  receivedValue: number;
-  pendingValue: number;
-  overdueValue: number;
-  receivedPayments: number;
-  uniqueCustomers: number;
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, RefreshCw, Eye, DollarSign, Calendar, Users, TrendingUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AsaasPayment {
   id: number;
@@ -34,186 +21,222 @@ interface AsaasPayment {
   dateCreated: string;
   confirmedDate?: string;
   paymentDate?: string;
-  customerName: string;
-  customerEmail?: string;
-  customerCpfCnpj?: string;
-  customerPhone?: string;
+  clientPaymentDate?: string;
   invoiceUrl?: string;
   bankSlipUrl?: string;
   paymentUrl?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerCpfCnpj?: string;
+  customerPhone?: string;
+  customerMobilePhone?: string;
+  lastSyncAt: string;
 }
 
-interface AsaasPaymentsResponse {
+interface PaymentsResponse {
   payments: AsaasPayment[];
   total: number;
 }
 
 const statusColors = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  RECEIVED: 'bg-green-100 text-green-800',
-  OVERDUE: 'bg-red-100 text-red-800',
-  CONFIRMED: 'bg-blue-100 text-blue-800',
-  REFUNDED: 'bg-gray-100 text-gray-800',
+  'PENDING': 'bg-yellow-100 text-yellow-800',
+  'RECEIVED': 'bg-green-100 text-green-800',
+  'OVERDUE': 'bg-red-100 text-red-800',
+  'CONFIRMED': 'bg-blue-100 text-blue-800',
+  'AWAITING_RISK_ANALYSIS': 'bg-orange-100 text-orange-800',
+  'CANCELLED': 'bg-gray-100 text-gray-800',
+  'REFUNDED': 'bg-purple-100 text-purple-800',
 };
 
 const billingTypeLabels = {
-  BOLETO: 'Boleto',
-  PIX: 'PIX',
-  CREDIT_CARD: 'Cartão de Crédito',
-  UNDEFINED: 'Indefinido',
+  'PIX': 'PIX',
+  'BOLETO': 'Boleto',
+  'CREDIT_CARD': 'Cartão de Crédito',
+  'UNDEFINED': 'Não definido',
+};
+
+const statusLabels = {
+  'PENDING': 'Aguardando',
+  'RECEIVED': 'Recebida',
+  'OVERDUE': 'Vencida',
+  'CONFIRMED': 'Confirmada',
+  'AWAITING_RISK_ANALYSIS': 'Análise de Risco',
+  'CANCELLED': 'Cancelada',
+  'REFUNDED': 'Estornada',
 };
 
 export default function Cobrancas() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [billingTypeFilter, setBillingTypeFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    customerName: '',
+    limit: 50,
+    offset: 0,
+  });
+  const [searchInput, setSearchInput] = useState('');
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Buscar métricas do cache
-  const { data: metrics, isLoading: metricsLoading } = useQuery<AsaasMetrics>({
+  // Query para buscar dados do cache local
+  const { data: paymentsData, isLoading } = useQuery<PaymentsResponse>({
+    queryKey: ['/api/admin/asaas/cache/payments', filters],
+    queryFn: () => apiRequest(`/api/admin/asaas/cache/payments?${new URLSearchParams({
+      status: filters.status,
+      customerName: filters.customerName,
+      limit: filters.limit.toString(),
+      offset: filters.offset.toString(),
+    })}`),
+  });
+
+  // Query para métricas resumidas
+  const { data: metrics } = useQuery({
     queryKey: ['/api/admin/asaas/cache/metrics'],
     queryFn: () => apiRequest('/api/admin/asaas/cache/metrics'),
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
 
-  // Buscar cobranças do cache
-  const { data: paymentsData, isLoading: paymentsLoading } = useQuery<AsaasPaymentsResponse>({
-    queryKey: ['/api/admin/asaas/cache/payments', currentPage, statusFilter, billingTypeFilter, searchTerm],
-    queryFn: () => apiRequest('/api/admin/asaas/cache/payments', {
-      params: {
-        page: currentPage,
-        limit: 20,
-        status: statusFilter === 'all' ? undefined : statusFilter,
-        billingType: billingTypeFilter === 'all' ? undefined : billingTypeFilter,
-        search: searchTerm || undefined,
-      },
-    }),
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
-  });
-
-  // Mutation para sincronizar dados
+  // Mutation para sincronizar dados do Asaas
   const syncMutation = useMutation({
     mutationFn: () => apiRequest('/api/admin/asaas/cache/sync', { method: 'POST' }),
-    onSuccess: (data) => {
-      toast.success(data.message || 'Sincronização concluída com sucesso');
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/metrics'] });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/payments'] });
-      setIsSyncing(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/cache/metrics'] });
+      toast({
+        title: "Sincronização Concluída",
+        description: "Dados das cobranças foram atualizados com sucesso.",
+      });
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erro na sincronização');
-      setIsSyncing(false);
+    onError: (error) => {
+      toast({
+        title: "Erro na Sincronização",
+        description: "Não foi possível sincronizar com o Asaas. Tente novamente.",
+        variant: "destructive",
+      });
     },
   });
 
-  const handleSync = () => {
-    setIsSyncing(true);
-    syncMutation.mutate();
+  const handleSearch = () => {
+    setFilters(prev => ({
+      ...prev,
+      customerName: searchInput,
+      offset: 0,
+    }));
+  };
+
+  const handleStatusFilter = (status: string) => {
+    setFilters(prev => ({
+      ...prev,
+      status,
+      offset: 0,
+    }));
+  };
+
+  const handleLoadMore = () => {
+    setFilters(prev => ({
+      ...prev,
+      offset: prev.offset + prev.limit,
+    }));
   };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value);
+    }).format(value / 100);
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      PENDING: 'Pendente',
-      RECEIVED: 'Recebido',
-      OVERDUE: 'Vencido',
-      CONFIRMED: 'Confirmado',
-      REFUNDED: 'Reembolsado',
-    };
-    return labels[status as keyof typeof labels] || status;
+  const formatPhone = (phone?: string) => {
+    if (!phone) return '-';
+    return phone.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
   };
 
-  const totalPages = Math.ceil((paymentsData?.total || 0) / 20);
+  const maskCpfCnpj = (cpfCnpj?: string) => {
+    if (!cpfCnpj) return '-';
+    if (cpfCnpj.length <= 11) {
+      return cpfCnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
+    }
+    return cpfCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.***.***/****-$5');
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header com botão de sincronização */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Cobranças Asaas</h1>
-          <p className="text-gray-600">Gerencie e monitore suas cobranças</p>
+          <h1 className="text-3xl font-bold">Cobranças</h1>
+          <p className="text-gray-600">Gerencie suas cobranças do Asaas em cache local</p>
         </div>
         <Button
-          onClick={handleSync}
-          disabled={isSyncing}
+          onClick={() => syncMutation.mutate()}
+          disabled={syncMutation.isPending}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+          {syncMutation.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4 mr-2" />
+          )}
+          Sincronizar Asaas
         </Button>
       </div>
 
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Cobranças</CardTitle>
-            <CalendarDays className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metricsLoading ? '...' : metrics?.totalPayments || 0}
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600">Total de Cobranças</p>
+                <p className="text-2xl font-bold">{metrics?.totalPayments || 0}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-600">
-              {metricsLoading ? '...' : `${metrics?.receivedPayments || 0} recebidas`}
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metricsLoading ? '...' : formatCurrency(metrics?.totalValue || 0)}
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600">Valor Total</p>
+                <p className="text-2xl font-bold">{formatCurrency(metrics?.totalValue || 0)}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-600">
-              {metricsLoading ? '...' : `${formatCurrency(metrics?.receivedValue || 0)} recebidos`}
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metricsLoading ? '...' : formatCurrency(metrics?.pendingValue || 0)}
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600">Cobranças Pagas</p>
+                <p className="text-2xl font-bold">{metrics?.receivedPayments || 0}</p>
+              </div>
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-emerald-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-600">
-              {metricsLoading ? '...' : `${formatCurrency(metrics?.overdueValue || 0)} vencidos`}
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Únicos</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metricsLoading ? '...' : metrics?.uniqueCustomers || 0}
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600">Clientes Únicos</p>
+                <p className="text-2xl font-bold">{metrics?.uniqueCustomers || 0}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-600">
-              Clientes ativos
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -225,54 +248,48 @@ export default function Cobrancas() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="search">Buscar</Label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={filters.status} onValueChange={handleStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="PENDING">Aguardando</SelectItem>
+                  <SelectItem value="RECEIVED">Recebida</SelectItem>
+                  <SelectItem value="OVERDUE">Vencida</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmada</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Buscar Cliente</label>
               <Input
-                id="search"
-                placeholder="Nome do cliente ou descrição..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Nome do cliente"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="PENDING">Pendente</SelectItem>
-                  <SelectItem value="RECEIVED">Recebido</SelectItem>
-                  <SelectItem value="OVERDUE">Vencido</SelectItem>
-                  <SelectItem value="CONFIRMED">Confirmado</SelectItem>
-                  <SelectItem value="REFUNDED">Reembolsado</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">&nbsp;</label>
+              <Button onClick={handleSearch} className="w-full">
+                Buscar
+              </Button>
             </div>
-            <div>
-              <Label htmlFor="billingType">Tipo de Cobrança</Label>
-              <Select value={billingTypeFilter} onValueChange={setBillingTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os tipos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os tipos</SelectItem>
-                  <SelectItem value="BOLETO">Boleto</SelectItem>
-                  <SelectItem value="PIX">PIX</SelectItem>
-                  <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">&nbsp;</label>
               <Button
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('all');
-                  setBillingTypeFilter('all');
-                  setCurrentPage(1);
-                }}
                 variant="outline"
+                onClick={() => {
+                  setFilters({ status: 'all', customerName: '', limit: 50, offset: 0 });
+                  setSearchInput('');
+                }}
                 className="w-full"
               >
                 Limpar Filtros
@@ -288,103 +305,122 @@ export default function Cobrancas() {
           <CardTitle>Lista de Cobranças</CardTitle>
         </CardHeader>
         <CardContent>
-          {paymentsLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Carregando cobranças...</p>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Vencimento</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paymentsData?.payments?.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{payment.customerName}</div>
-                          <div className="text-sm text-gray-600">{payment.customerEmail}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{payment.description}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(payment.value / 100)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Cliente
+                      </th>
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Valor
+                      </th>
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Status
+                      </th>
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Tipo
+                      </th>
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Vencimento
+                      </th>
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Contato
+                      </th>
+                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700">
+                        Ações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentsData?.payments?.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-gray-50">
+                        <td className="border border-gray-200 px-4 py-3">
+                          <div>
+                            <p className="font-medium">{payment.customerName || 'Cliente não informado'}</p>
+                            <p className="text-sm text-gray-500">{maskCpfCnpj(payment.customerCpfCnpj)}</p>
+                          </div>
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 font-medium">
+                          {formatCurrency(payment.value)}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3">
+                          <Badge className={statusColors[payment.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                            {statusLabels[payment.status as keyof typeof statusLabels] || payment.status}
+                          </Badge>
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3">
                           {billingTypeLabels[payment.billingType as keyof typeof billingTypeLabels] || payment.billingType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusColors[payment.status as keyof typeof statusColors]}>
-                          {getStatusLabel(payment.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(payment.dueDate)}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          {payment.invoiceUrl && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => window.open(payment.invoiceUrl, '_blank')}
-                            >
-                              Ver Fatura
-                            </Button>
-                          )}
-                          {payment.bankSlipUrl && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => window.open(payment.bankSlipUrl, '_blank')}
-                            >
-                              Ver Boleto
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3">
+                          {formatDate(payment.dueDate)}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3">
+                          <div className="text-sm">
+                            {payment.customerEmail && (
+                              <p className="truncate max-w-32">{payment.customerEmail}</p>
+                            )}
+                            {payment.customerPhone && (
+                              <p>{formatPhone(payment.customerPhone)}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3">
+                          <div className="flex gap-2">
+                            {payment.invoiceUrl && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(payment.invoiceUrl, '_blank')}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {payment.bankSlipUrl && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(payment.bankSlipUrl, '_blank')}
+                              >
+                                Ver Boleto
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Paginação */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-gray-600">
-                    Mostrando {((currentPage - 1) * 20) + 1} a {Math.min(currentPage * 20, paymentsData?.total || 0)} de {paymentsData?.total || 0} resultados
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Próxima
-                    </Button>
-                  </div>
+              {paymentsData && paymentsData.payments && paymentsData.payments.length < paymentsData.total && (
+                <div className="flex justify-center">
+                  <Button
+                    onClick={handleLoadMore}
+                    variant="outline"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : null}
+                    Carregar Mais ({paymentsData.payments.length} de {paymentsData.total})
+                  </Button>
                 </div>
               )}
-            </>
+
+              {(!paymentsData?.payments || paymentsData.payments.length === 0) && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Nenhuma cobrança encontrada</p>
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
