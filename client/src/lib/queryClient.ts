@@ -40,6 +40,12 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
 
   const response = await fetch(url, config);
   
-  // Retornar a resposta inteira para que o código cliente possa decidir como processar
-  return response;
+  // Se a resposta não for ok, lançar erro com a mensagem
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Erro na requisição' }));
+    throw new Error(errorData.message || `Erro HTTP ${response.status}`);
+  }
+  
+  // Processar resposta JSON automaticamente
+  return response.json();
 };

@@ -1,26 +1,39 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { createAsaasService } from '../services/unified-asaas-service';
+import { storage } from '../storage';
 import { z } from 'zod';
 
 const router = Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 
-// Middleware de autenticação local
-const authenticateToken = (req: any, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+// Middleware de autenticação simplificado
+const auth = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) {
-    return res.status(401).json({ message: 'Token não fornecido' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err: any, user: any) => {
-    if (err) {
-      return res.status(403).json({ message: 'Token inválido' });
+    if (!token) {
+      return res.status(401).json({ message: 'Token de acesso requerido' });
     }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const user = await storage.getUser(decoded.userId);
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Usuário não encontrado' });
+    }
+    
+    if (!user.isActive) {
+      return res.status(401).json({ message: 'Conta desativada' });
+    }
+    
     req.user = user;
     next();
-  });
+  } catch (error) {
+    console.error('Erro na validação do token:', error);
+    return res.status(403).json({ message: 'Token inválido' });
+  }
 };
 
 // Função para obter a chave da API do Asaas
@@ -135,7 +148,7 @@ const handleAsaasError = (error: any, res: any) => {
 };
 
 // Rota para testar conexão
-router.get('/test-connection', authenticateToken, async (req, res) => {
+router.get('/test-connection', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const result = await asaas.testConnection();
@@ -146,7 +159,7 @@ router.get('/test-connection', authenticateToken, async (req, res) => {
 });
 
 // Rota para buscar informações da conta
-router.get('/account', authenticateToken, async (req, res) => {
+router.get('/account', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const accountInfo = await asaas.getAccountInfo();
@@ -159,7 +172,7 @@ router.get('/account', authenticateToken, async (req, res) => {
 // === ROTAS DE CLIENTES ===
 
 // Listar clientes
-router.get('/customers', authenticateToken, async (req, res) => {
+router.get('/customers', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const { name, email, cpfCnpj, offset, limit } = req.query;
@@ -179,7 +192,7 @@ router.get('/customers', authenticateToken, async (req, res) => {
 });
 
 // Buscar cliente por ID
-router.get('/customers/:id', authenticateToken, async (req, res) => {
+router.get('/customers/:id', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const customer = await asaas.getCustomer(req.params.id);
@@ -190,7 +203,7 @@ router.get('/customers/:id', authenticateToken, async (req, res) => {
 });
 
 // Criar cliente
-router.post('/customers', authenticateToken, async (req, res) => {
+router.post('/customers', auth, async (req, res) => {
   try {
     const customerData = createCustomerSchema.parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -208,7 +221,7 @@ router.post('/customers', authenticateToken, async (req, res) => {
 });
 
 // Atualizar cliente
-router.put('/customers/:id', authenticateToken, async (req, res) => {
+router.put('/customers/:id', auth, async (req, res) => {
   try {
     const customerData = createCustomerSchema.partial().parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -226,7 +239,7 @@ router.put('/customers/:id', authenticateToken, async (req, res) => {
 });
 
 // Remover cliente
-router.delete('/customers/:id', authenticateToken, async (req, res) => {
+router.delete('/customers/:id', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     await asaas.deleteCustomer(req.params.id);
@@ -238,8 +251,20 @@ router.delete('/customers/:id', authenticateToken, async (req, res) => {
 
 // === ROTAS DE PAGAMENTOS ===
 
+// Estatísticas de pagamentos (DEVE VIR ANTES da rota /:id)
+router.get('/payments/stats', auth, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
+    const stats = await asaas.getPaymentStats(startDate as string, endDate as string);
+    res.json(stats);
+  } catch (error) {
+    handleAsaasError(error, res);
+  }
+});
+
 // Listar pagamentos
-router.get('/payments', authenticateToken, async (req, res) => {
+router.get('/payments', auth, async (req, res) => {
   try {
     const filters = paymentFiltersSchema.parse(req.query);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -264,7 +289,7 @@ router.get('/payments', authenticateToken, async (req, res) => {
 });
 
 // Buscar pagamento por ID
-router.get('/payments/:id', authenticateToken, async (req, res) => {
+router.get('/payments/:id', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const payment = await asaas.getPayment(req.params.id);
@@ -275,7 +300,7 @@ router.get('/payments/:id', authenticateToken, async (req, res) => {
 });
 
 // Criar pagamento
-router.post('/payments', authenticateToken, async (req, res) => {
+router.post('/payments', auth, async (req, res) => {
   try {
     const paymentData = createPaymentSchema.parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -293,7 +318,7 @@ router.post('/payments', authenticateToken, async (req, res) => {
 });
 
 // Atualizar pagamento
-router.put('/payments/:id', authenticateToken, async (req, res) => {
+router.put('/payments/:id', auth, async (req, res) => {
   try {
     const paymentData = createPaymentSchema.partial().parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -311,7 +336,7 @@ router.put('/payments/:id', authenticateToken, async (req, res) => {
 });
 
 // Cancelar pagamento
-router.post('/payments/:id/cancel', authenticateToken, async (req, res) => {
+router.post('/payments/:id/cancel', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const result = await asaas.cancelPayment(req.params.id);
@@ -322,7 +347,7 @@ router.post('/payments/:id/cancel', authenticateToken, async (req, res) => {
 });
 
 // Remover pagamento
-router.delete('/payments/:id', authenticateToken, async (req, res) => {
+router.delete('/payments/:id', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     await asaas.deletePayment(req.params.id);
@@ -333,7 +358,7 @@ router.delete('/payments/:id', authenticateToken, async (req, res) => {
 });
 
 // Estornar pagamento
-router.post('/payments/:id/refund', authenticateToken, async (req, res) => {
+router.post('/payments/:id/refund', auth, async (req, res) => {
   try {
     const refundData = refundSchema.parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -351,7 +376,7 @@ router.post('/payments/:id/refund', authenticateToken, async (req, res) => {
 });
 
 // Enviar lembrete de pagamento
-router.post('/payments/:id/reminder', authenticateToken, async (req, res) => {
+router.post('/payments/:id/reminder', auth, async (req, res) => {
   try {
     const { type } = reminderSchema.parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -369,7 +394,7 @@ router.post('/payments/:id/reminder', authenticateToken, async (req, res) => {
 });
 
 // Gerar segunda via de boleto
-router.get('/payments/:id/bank-slip', authenticateToken, async (req, res) => {
+router.get('/payments/:id/bank-slip', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const result = await asaas.generateBankSlip(req.params.id);
@@ -380,7 +405,7 @@ router.get('/payments/:id/bank-slip', authenticateToken, async (req, res) => {
 });
 
 // Buscar QR Code PIX
-router.get('/payments/:id/pix-qrcode', authenticateToken, async (req, res) => {
+router.get('/payments/:id/pix-qrcode', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const result = await asaas.getPixQrCode(req.params.id);
@@ -393,7 +418,7 @@ router.get('/payments/:id/pix-qrcode', authenticateToken, async (req, res) => {
 // === ROTAS DE SINCRONIZAÇÃO ===
 
 // Sincronizar pagamentos
-router.post('/payments/sync', authenticateToken, async (req, res) => {
+router.post('/payments/sync', auth, async (req, res) => {
   try {
     const { lastSyncDate } = req.body;
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -409,7 +434,7 @@ router.post('/payments/sync', authenticateToken, async (req, res) => {
 });
 
 // Importar todos os pagamentos
-router.post('/payments/import', authenticateToken, async (req, res) => {
+router.post('/payments/import', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const result = await asaas.syncPayments();
@@ -424,7 +449,7 @@ router.post('/payments/import', authenticateToken, async (req, res) => {
 });
 
 // Status da sincronização
-router.get('/sync/status', authenticateToken, async (req, res) => {
+router.get('/sync/status', auth, async (req, res) => {
   try {
     // Aqui você pode implementar lógica para buscar o status da sincronização
     // Por exemplo, da base de dados local
@@ -443,22 +468,12 @@ router.get('/sync/status', authenticateToken, async (req, res) => {
 
 // === ROTAS DE ESTATÍSTICAS ===
 
-// Estatísticas de pagamentos
-router.get('/payments/stats', authenticateToken, async (req, res) => {
-  try {
-    const { startDate, endDate } = req.query;
-    const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
-    const stats = await asaas.getPaymentStats(startDate as string, endDate as string);
-    res.json(stats);
-  } catch (error) {
-    handleAsaasError(error, res);
-  }
-});
+// (Estatísticas de pagamentos movidas para cima para evitar conflito com /:id)
 
 // === ROTAS DE RELATÓRIOS ===
 
 // Gerar relatório financeiro
-router.get('/reports/financial', authenticateToken, async (req, res) => {
+router.get('/reports/financial', auth, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -472,7 +487,7 @@ router.get('/reports/financial', authenticateToken, async (req, res) => {
 // === ROTAS DE WEBHOOK ===
 
 // Configurar webhook
-router.post('/webhook/configure', authenticateToken, async (req, res) => {
+router.post('/webhook/configure', auth, async (req, res) => {
   try {
     const webhookConfig = webhookConfigSchema.parse(req.body);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
@@ -490,7 +505,7 @@ router.post('/webhook/configure', authenticateToken, async (req, res) => {
 });
 
 // Listar webhooks
-router.get('/webhook', authenticateToken, async (req, res) => {
+router.get('/webhook', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const webhooks = await asaas.getWebhooks();
@@ -503,7 +518,7 @@ router.get('/webhook', authenticateToken, async (req, res) => {
 // === ROTAS DE CONFIGURAÇÃO ===
 
 // Configurar notificações automáticas
-router.post('/notifications/configure', authenticateToken, async (req, res) => {
+router.post('/notifications/configure', auth, async (req, res) => {
   try {
     const { emailEnabled, smsEnabled, reminderDaysBefore, overdueReminderDays } = req.body;
     

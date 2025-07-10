@@ -379,15 +379,19 @@ export class UnifiedAsaasService {
    */
   async getPaymentStats(startDate?: string, endDate?: string): Promise<any> {
     try {
-      const filters: PaymentFilters = {};
+      const filters: PaymentFilters = {
+        limit: 100,
+        offset: 0
+      };
       if (startDate) filters.dateCreatedGe = startDate;
       if (endDate) filters.dateCreatedLe = endDate;
 
-      const response = await this.getPayments(filters);
-      const payments = response.data || [];
+      // Usar chamada direta à API para obter todos os pagamentos
+      const response = await this.api.get('/payments', { params: filters });
+      const payments = response.data.data || [];
 
       const stats = {
-        total: { count: 0, value: 0 },
+        total: { count: payments.length, value: 0 },
         pending: { count: 0, value: 0 },
         confirmed: { count: 0, value: 0 },
         overdue: { count: 0, value: 0 },
@@ -397,8 +401,6 @@ export class UnifiedAsaasService {
 
       payments.forEach((payment: any) => {
         const value = parseFloat(payment.value) || 0;
-        
-        stats.total.count++;
         stats.total.value += value;
 
         // Por status
@@ -431,7 +433,11 @@ export class UnifiedAsaasService {
         stats.byBillingType[billingType].value += value;
       });
 
-      return stats;
+      return {
+        ...stats,
+        totalCount: response.data.totalCount || 0,
+        hasMore: response.data.hasMore || false
+      };
     } catch (error: any) {
       throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao buscar estatísticas');
     }
