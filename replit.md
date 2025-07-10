@@ -432,6 +432,8 @@ Changelog:
      - Controle de acesso baseado em status de pagamento
    * ✅ Componentes criados: AsaasPaymentsList para visualização de cobranças
    * ✅ Sistema pronto para uso em produção com credenciais reais do Asaas
+   * ✅ CORREÇÃO: Bug SelectItem com valor vazio corrigido (substituído por "all")
+   * ✅ Validação de arrays implementada para evitar erros de renderização
 ```
 
 ## User Preferences

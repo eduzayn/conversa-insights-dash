@@ -100,7 +100,7 @@ export default function IntegracaoAsaas() {
     queryFn: () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
+        if (value && value !== 'all') params.append(key, value);
       });
       return apiRequest(`/api/admin/asaas/payments?${params}`) as Promise<Payment[]>;
     },
@@ -285,7 +285,7 @@ export default function IntegracaoAsaas() {
                       <SelectValue placeholder="Todos os status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="pending">Pendente</SelectItem>
                       <SelectItem value="received">Pago</SelectItem>
                       <SelectItem value="overdue">Vencido</SelectItem>
@@ -347,7 +347,7 @@ export default function IntegracaoAsaas() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {(payments || []).map((payment) => (
+                  {Array.isArray(payments) ? payments.map((payment) => (
                     <div key={payment.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
@@ -385,7 +385,11 @@ export default function IntegracaoAsaas() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Dados de pagamento inválidos
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
