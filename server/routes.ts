@@ -3588,25 +3588,274 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/asaas/payments', authenticateToken, async (req: any, res) => {
-    res.json({
-      payments: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 0,
-        hasNextPage: false
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
-    });
+
+      const { page = 1, limit = 20, status, billingType, search, startDate, endDate } = req.query;
+      
+      // Buscar pagamentos do banco local primeiro
+      const localPayments = await storage.getPaymentsWithUserData({
+        status: status !== 'all' ? status : undefined
+      });
+
+      // Aplicar filtros adicionais
+      let filteredPayments = localPayments;
+      
+      if (search) {
+        filteredPayments = filteredPayments.filter(payment => 
+          payment.description?.toLowerCase().includes(search.toLowerCase()) ||
+          payment.userName?.toLowerCase().includes(search.toLowerCase()) ||
+          payment.userEmail?.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      if (billingType && billingType !== 'all') {
+        filteredPayments = filteredPayments.filter(payment => 
+          payment.billingType === billingType
+        );
+      }
+
+      if (startDate) {
+        filteredPayments = filteredPayments.filter(payment => 
+          new Date(payment.createdAt) >= new Date(startDate)
+        );
+      }
+
+      if (endDate) {
+        filteredPayments = filteredPayments.filter(payment => 
+          new Date(payment.createdAt) <= new Date(endDate)
+        );
+      }
+
+      // Paginação
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      const paginatedPayments = filteredPayments.slice(offset, offset + parseInt(limit));
+      
+      res.json({
+        payments: paginatedPayments,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: filteredPayments.length,
+          totalPages: Math.ceil(filteredPayments.length / parseInt(limit)),
+          hasNextPage: offset + parseInt(limit) < filteredPayments.length
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao buscar pagamentos:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
   });
 
-  app.post('/api/asaas/sync', authenticateToken, async (req: any, res) => {
-    res.json({
-      success: true,
-      message: 'Sincronização simulada - Configure a integração com Asaas',
-      syncedCount: 0,
-      timestamp: new Date().toISOString()
-    });
+  // Adicionar rotas para estatísticas
+  app.get('/api/asaas/payments/stats', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const payments = await storage.getPaymentsWithUserData();
+      
+      const stats = {
+        total: { count: 0, value: 0 },
+        pending: { count: 0, value: 0 },
+        confirmed: { count: 0, value: 0 },
+        overdue: { count: 0, value: 0 },
+        thisMonth: { count: 0, value: 0 },
+        lastMonth: { count: 0, value: 0 },
+        byBillingType: {}
+      };
+
+      const now = new Date();
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      payments.forEach(payment => {
+        const value = payment.value || payment.amount || 0;
+        const createdAt = new Date(payment.createdAt);
+        
+        stats.total.count++;
+        stats.total.value += value;
+
+        // Status
+        if (payment.status === 'pending') {
+          stats.pending.count++;
+          stats.pending.value += value;
+        } else if (['paid', 'received', 'confirmed'].includes(payment.status)) {
+          stats.confirmed.count++;
+          stats.confirmed.value += value;
+        } else if (payment.status === 'overdue') {
+          stats.overdue.count++;
+          stats.overdue.value += value;
+        }
+
+        // Por período
+        if (createdAt >= thisMonthStart) {
+          stats.thisMonth.count++;
+          stats.thisMonth.value += value;
+        } else if (createdAt >= lastMonthStart && createdAt <= lastMonthEnd) {
+          stats.lastMonth.count++;
+          stats.lastMonth.value += value;
+        }
+
+        // Por tipo de pagamento
+        const billingType = payment.billingType || payment.paymentMethod || 'Não especificado';
+        if (!stats.byBillingType[billingType]) {
+          stats.byBillingType[billingType] = { count: 0, value: 0 };
+        }
+        stats.byBillingType[billingType].count++;
+        stats.byBillingType[billingType].value += value;
+      });
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Status de sincronização
+  app.get('/api/asaas/sync/status', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const totalPayments = await storage.getPayments();
+      const syncedPayments = await storage.getAllSyncedPayments();
+      const lastSyncDate = await storage.getLastSyncDate();
+
+      res.json({
+        isActive: true,
+        lastSync: lastSyncDate || null,
+        totalLocalPayments: totalPayments.length,
+        syncedPayments: syncedPayments.length,
+        syncFrequency: 'Manual',
+        nextSync: 'Sob demanda'
+      });
+    } catch (error) {
+      console.error('Erro ao buscar status de sincronização:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Importar pagamentos do Asaas
+  app.post('/api/asaas/payments/import', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      // Usar o serviço real do Asaas para importar
+      const { asaasService } = await import('./services/asaas');
+      
+      try {
+        const result = await asaasService.testConnection();
+        if (!result.success) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Erro na conexão com Asaas: ' + result.message 
+          });
+        }
+
+        const payments = await asaasService.getAllPayments();
+        let importedCount = 0;
+
+        for (const payment of payments) {
+          try {
+            await storage.createOrUpdatePaymentFromAsaas(payment);
+            importedCount++;
+          } catch (error) {
+            console.error('Erro ao importar pagamento:', payment.id, error);
+          }
+        }
+
+        res.json({
+          success: true,
+          message: `${importedCount} pagamentos importados com sucesso`,
+          importedCount,
+          totalPayments: payments.length
+        });
+      } catch (asaasError) {
+        console.error('Erro na API do Asaas:', asaasError);
+        res.status(500).json({
+          success: false,
+          message: 'Erro ao conectar com a API do Asaas',
+          details: asaasError.message
+        });
+      }
+    } catch (error) {
+      console.error('Erro na importação:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Sincronizar pagamentos
+  app.post('/api/asaas/payments/sync', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { asaasService } = await import('./services/asaas');
+      
+      try {
+        const result = await asaasService.testConnection();
+        if (!result.success) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Erro na conexão com Asaas: ' + result.message 
+          });
+        }
+
+        const localPayments = await storage.getAllSyncedPayments();
+        let syncedCount = 0;
+
+        for (const localPayment of localPayments) {
+          if (localPayment.externalId) {
+            try {
+              const asaasPayment = await asaasService.getPayment(localPayment.externalId);
+              if (asaasPayment) {
+                await storage.updatePayment(localPayment.id, {
+                  status: storage.mapAsaasStatus ? storage.mapAsaasStatus(asaasPayment.status) : asaasPayment.status.toLowerCase(),
+                  paymentUrl: asaasPayment.invoiceUrl,
+                  lastSyncedAt: new Date(),
+                });
+                syncedCount++;
+              }
+            } catch (error) {
+              console.error('Erro ao sincronizar pagamento:', localPayment.externalId, error);
+            }
+          }
+        }
+
+        res.json({
+          success: true,
+          message: `${syncedCount} pagamentos sincronizados com sucesso`,
+          syncedCount,
+          timestamp: new Date().toISOString()
+        });
+      } catch (asaasError) {
+        console.error('Erro na API do Asaas:', asaasError);
+        res.status(500).json({
+          success: false,
+          message: 'Erro ao conectar com a API do Asaas',
+          details: asaasError.message
+        });
+      }
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
   });
 
   return httpServer;

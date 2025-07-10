@@ -1374,7 +1374,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(payments.createdAt));
   }
 
-  private mapAsaasStatus(asaasStatus: string): string {
+  mapAsaasStatus(asaasStatus: string): string {
     const statusMap: Record<string, string> = {
       'PENDING': 'pending',
       'RECEIVED': 'paid',
@@ -1386,6 +1386,64 @@ export class DatabaseStorage implements IStorage {
       'REFUND_REQUESTED': 'refunded',
     };
     return statusMap[asaasStatus] || 'pending';
+  }
+
+  async createOrUpdatePaymentFromAsaas(asaasPayment: any): Promise<Payment> {
+    try {
+      // Verificar se já existe um pagamento com este externalId
+      const existingPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.externalId, asaasPayment.id))
+        .limit(1);
+
+      const paymentData = {
+        tenantId: 1, // Tenant padrão
+        userId: 1, // Usuário padrão para pagamentos importados
+        courseId: null,
+        amount: asaasPayment.value || asaasPayment.originalValue || 0,
+        status: this.mapAsaasStatus(asaasPayment.status),
+        paymentMethod: asaasPayment.billingType?.toLowerCase() || 'unknown',
+        transactionId: asaasPayment.id,
+        externalId: asaasPayment.id,
+        description: asaasPayment.description || 'Pagamento importado do Asaas',
+        dueDate: asaasPayment.dueDate ? new Date(asaasPayment.dueDate) : new Date(),
+        paymentUrl: asaasPayment.invoiceUrl,
+        customerName: asaasPayment.customer?.name || asaasPayment.customerName,
+        customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
+        billingType: asaasPayment.billingType,
+        value: asaasPayment.value || asaasPayment.originalValue || 0,
+        paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
+        lastSyncedAt: new Date(),
+      };
+
+      if (existingPayments.length > 0) {
+        // Atualizar pagamento existente
+        const [updatedPayment] = await db
+          .update(payments)
+          .set({
+            ...paymentData,
+            updatedAt: new Date(),
+          })
+          .where(eq(payments.id, existingPayments[0].id))
+          .returning();
+        return updatedPayment;
+      } else {
+        // Criar novo pagamento
+        const [newPayment] = await db
+          .insert(payments)
+          .values({
+            ...paymentData,
+            createdAt: asaasPayment.dateCreated ? new Date(asaasPayment.dateCreated) : new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        return newPayment;
+      }
+    } catch (error) {
+      console.error('Erro ao criar/atualizar pagamento do Asaas:', error);
+      throw error;
+    }
   }
 
   // Integração Portal Professor-Aluno

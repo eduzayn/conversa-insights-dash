@@ -145,8 +145,13 @@ const ChargesPage: React.FC = () => {
         ...(endDate && { endDate }),
       });
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/asaas/payments?${params}`, {
         credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -161,8 +166,13 @@ const ChargesPage: React.FC = () => {
   const { data: stats, isLoading: isLoadingStats } = useQuery({
     queryKey: ["/api/asaas/payments/stats"],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
       const response = await fetch("/api/asaas/payments/stats", {
         credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -177,8 +187,13 @@ const ChargesPage: React.FC = () => {
   const { data: syncStatus, isLoading: isLoadingSyncStatus } = useQuery({
     queryKey: ["/api/asaas/sync/status"],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
       const response = await fetch("/api/asaas/sync/status", {
         credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -192,9 +207,14 @@ const ChargesPage: React.FC = () => {
   // Mutation para importar cobranças
   const importPaymentsMutation = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('token');
       const response = await fetch("/api/asaas/payments/import", {
         method: "POST",
         credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -226,8 +246,13 @@ const ChargesPage: React.FC = () => {
   // Mutation para sincronizar cobranças
   const syncPaymentsMutation = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('token');
       const response = await fetch("/api/asaas/payments/sync", {
         method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
         credentials: "include",
       });
 
