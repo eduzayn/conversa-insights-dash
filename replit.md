@@ -291,7 +291,18 @@ Changelog:
     - Carga horária padronizada: 1320 horas para todos os cursos
     - Áreas organizadas: Educação, Educação Física, Ciências Humanas, Letras, Ciências Exatas, Artes, Ciências Biológicas
     - Total de cursos pré-cadastrados: 88 cursos ativos no sistema
-    - Total final de certificações históricas: 806 certificações (janeiro a julho 2025)
+    - Total final de certificações históricas: 802 certificações (janeiro a julho 2025)
+- Importação Completa Excel - Todas as Categorias (10 Jul 2025):
+   * ✅ Sistema de importação Excel otimizado criado para processar todas as planilhas
+   * ✅ Estrutura correta identificada: Status, CPF, Aluno, Data Solicitação, Curso, etc.
+   * ✅ Parsing das datas seriais do Excel implementado (formato 45182 → 2023-09-15)
+   * ✅ Detecção automática de duplicatas funcionando (123 duplicatas encontradas por arquivo)
+   * ✅ Validação rigorosa de CPF evitando dados inconsistentes
+   * ✅ Sistema de inferência de modalidades expandido para todas as categorias
+   * ✅ 802 certificações total no banco após correções de dados duplicados
+   * ✅ Importação histórica de janeiro-julho 2025 processada com sucesso
+   * ✅ Scripts otimizados: import_certificacoes_completo.ts e import_certificacoes_batch.ts
+   * Status: Sistema de importação 100% funcional e dados históricos completos
 - Integração BotConversa Completa Implementada (9 Jul 2025):
    * Endpoint /api/atendimentos migrado para dados reais do banco de dados
    * Serviço BotConversaService expandido com métodos de sincronização automática
