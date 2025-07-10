@@ -2811,6 +2811,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar cobranças do banco de dados PostgreSQL
+  app.get("/api/admin/asaas/payments-db", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      const { status, customer, dateCreatedGe, dateCreatedLe } = req.query;
+      const filters: any = {};
+      
+      if (status && status !== 'all') filters.status = status;
+      if (customer) filters.externalId = customer; // Buscar por externalId (ID do Asaas)
+      if (dateCreatedGe) filters.dateCreatedGe = dateCreatedGe;
+      if (dateCreatedLe) filters.dateCreatedLe = dateCreatedLe;
+
+      const payments = await storage.getPayments(filters);
+      
+      // Mapear para formato compatível com a interface
+      const formattedPayments = payments.map(payment => ({
+        id: payment.externalId || payment.transactionId || payment.id.toString(),
+        customer: payment.externalId || `customer_${payment.userId}`,
+        customerName: `Usuário ${payment.userId}`, // TODO: buscar nome real do usuário
+        customerEmail: null,
+        customerPhone: null,
+        customerCpfCnpj: null,
+        value: payment.amount,
+        description: payment.description || 'Cobrança do sistema',
+        billingType: payment.paymentMethod === 'pix' ? 'PIX' : payment.paymentMethod === 'boleto' ? 'BOLETO' : 'CREDIT_CARD',
+        dueDate: payment.dueDate,
+        status: payment.status.toUpperCase(),
+        paymentUrl: payment.paymentUrl,
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt
+      }));
+      
+      res.json(formattedPayments);
+    } catch (error) {
+      console.error("Erro ao buscar cobranças do banco:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar cobranças do banco de dados",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
   // Limpar cache das cobranças do Asaas
   app.post("/api/admin/asaas/payments/clear-cache", authenticateToken, async (req: any, res) => {
     try {

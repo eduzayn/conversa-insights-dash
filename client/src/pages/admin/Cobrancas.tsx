@@ -35,17 +35,17 @@ export default function Cobrancas() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar dados reais das cobranças do Asaas (DESABILITADA para não consumir cota automaticamente)
+  // Buscar cobranças do banco de dados (carrega automaticamente)
   const { data: paymentsData = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/admin/asaas/payments'],
+    queryKey: ['/api/admin/asaas/payments-db'],
     queryFn: async () => {
-      const response = await apiRequest('/api/admin/asaas/payments');
+      const response = await apiRequest('/api/admin/asaas/payments-db');
       if (!response.ok) {
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
       return response.json();
     },
-    enabled: false // Desabilita execução automática - só executa quando clicar em "Sincronizar"
+    enabled: true // Carrega automaticamente as cobranças do banco de dados
   });
 
   // Mutation para limpar cache
