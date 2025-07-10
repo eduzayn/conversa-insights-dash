@@ -361,6 +361,7 @@ export const certificateTemplates = pgTable("certificate_templates", {
   assinaturaDigital2: text("assinatura_digital_2"),
   textoLegal: text("texto_legal").notNull(),
   qrCodePosition: text("qr_code_position").notNull().default("bottom-right"), // bottom-right, bottom-left, bottom-center
+  orientation: text("orientation").notNull().default("portrait"), // portrait, landscape
   isActive: boolean("is_active").notNull().default(true),
   createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

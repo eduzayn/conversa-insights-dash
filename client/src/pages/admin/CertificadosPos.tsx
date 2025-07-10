@@ -1138,6 +1138,7 @@ const CertificadosPos = () => {
                   tipo: formData.get('tipo') as string,
                   htmlTemplate: formData.get('htmlTemplate') as string,
                   templateVerso: formData.get('templateVerso') as string,
+                  orientation: formData.get('orientation') as string,
                   variaveis: JSON.parse(formData.get('variaveis') as string || '[]'),
                   instituicaoNome: formData.get('instituicaoNome') as string,
                   instituicaoEndereco: formData.get('instituicaoEndereco') as string,
@@ -1184,10 +1185,22 @@ const CertificadosPos = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="instituicaoNome">Nome da Instituição *</Label>
                       <Input name="instituicaoNome" required placeholder="Ex: Universidade XYZ" />
+                    </div>
+                    <div>
+                      <Label htmlFor="orientation">Orientação do Certificado *</Label>
+                      <Select name="orientation" required defaultValue="landscape">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Orientação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="portrait">Retrato (Vertical)</SelectItem>
+                          <SelectItem value="landscape">Paisagem (Horizontal)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="qrCodePosition">Posição do QR Code *</Label>
