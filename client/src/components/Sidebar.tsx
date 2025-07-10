@@ -44,6 +44,7 @@ const menuSections = [
     items: [
       { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
       { label: 'Certificações', path: '/certificacoes' },
+      { label: 'Certificados de Pós', path: '/certificados-pos' },
     ]
   },
   {
