@@ -522,6 +522,18 @@ Changelog:
    * ✅ Rotas do Asaas conectadas ao banco PostgreSQL real
    * ✅ Sistema de estatísticas e sincronização funcional
    * Status: Página de cobranças totalmente operacional sem erros JavaScript
+- Sistema de Tokens Únicos para Autocadastro Administrativo (10 Jul 2025):
+   * ✅ Sistema completo de tokens de registro implementado com UUID único
+   * ✅ Página de gerenciamento de tokens criada em /gerenciar-tokens
+   * ✅ API endpoints configurados: GET/POST /api/registration-tokens
+   * ✅ Interface administrativa para gerar tokens por role (admin/agent)
+   * ✅ Tokens com expiração automática de 7 dias
+   * ✅ Validação de tokens integrada no processo de registro
+   * ✅ Sistema de marcação automática quando token é usado
+   * ✅ Navegação integrada na sidebar principal com ícone Key
+   * ✅ Funcionalidades: copiar token, visualizar status, histórico de uso
+   * ✅ Sistema testado e funcionando corretamente
+   * Status: Implementação completa e operacional
 ```
 
 ## User Preferences
