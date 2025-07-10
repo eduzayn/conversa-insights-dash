@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { 
   BarChart3, 
@@ -68,7 +68,22 @@ const menuSections = [
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<string[]>(['Geral', 'Relacionamento', 'Acadêmico', 'Financeiro', 'Integrações']);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+
+  // Carregar estado dos submenus do localStorage
+  useEffect(() => {
+    const savedExpandedSections = localStorage.getItem('sidebar-expanded-sections');
+    if (savedExpandedSections) {
+      try {
+        const parsed = JSON.parse(savedExpandedSections);
+        if (Array.isArray(parsed)) {
+          setExpandedSections(parsed);
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar estado dos submenus:', error);
+      }
+    }
+  }, []);
 
   const handleBotConversaAccess = () => {
     window.open("https://app.botconversa.com.br/login/", "_blank");
@@ -81,11 +96,16 @@ export const Sidebar = () => {
   const toggleSection = (sectionLabel: string) => {
     if (collapsed && !mobileOpen) return; // Não permite expandir/contrair quando sidebar está colapsada
     
-    setExpandedSections(prev => 
-      prev.includes(sectionLabel) 
+    setExpandedSections(prev => {
+      const newExpandedSections = prev.includes(sectionLabel) 
         ? prev.filter(s => s !== sectionLabel)
-        : [...prev, sectionLabel]
-    );
+        : [...prev, sectionLabel];
+      
+      // Salvar estado no localStorage
+      localStorage.setItem('sidebar-expanded-sections', JSON.stringify(newExpandedSections));
+      
+      return newExpandedSections;
+    });
   };
 
   return (
