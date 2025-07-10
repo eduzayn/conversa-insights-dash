@@ -78,6 +78,7 @@ export default function Certificacoes() {
     switch(tab) {
       case 'pos': return 'pos_graduacao';
       case 'segunda': return 'segunda_graduacao';
+      case 'formacao_pedagogica': return 'segunda_graduacao';
       case 'formacao_livre': return 'formacao_livre';
       case 'diplomacao': return 'diplomacao_competencia';
       case 'eja': return 'eja';
@@ -558,7 +559,7 @@ export default function Certificacoes() {
                         disabled={!!newCertification.curso}
                       />
                     </div>
-                    {activeTab === 'segunda' && (
+                    {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && (
                       <div>
                         <Label htmlFor="subcategoria">Subcategoria</Label>
                         <Select value={newCertification.subcategoria} onValueChange={(value) => setNewCertification({ ...newCertification, subcategoria: value })}>
@@ -662,9 +663,10 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
                 <TabsTrigger value="pos">Pós-graduação</TabsTrigger>
                 <TabsTrigger value="segunda">Segunda licenciatura</TabsTrigger>
+                <TabsTrigger value="formacao_pedagogica">Formação Pedagógica</TabsTrigger>
                 <TabsTrigger value="formacao_livre">Formação livre</TabsTrigger>
                 <TabsTrigger value="diplomacao">Diplomação por competência</TabsTrigger>
                 <TabsTrigger value="eja">EJA</TabsTrigger>
@@ -679,7 +681,7 @@ export default function Certificacoes() {
                     <CardTitle>Filtros</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`grid grid-cols-1 gap-4 ${activeTab === 'segunda' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+                    <div className={`grid grid-cols-1 gap-4 ${(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
                       <div>
                         <Label htmlFor="search">Buscar</Label>
                         <div className="relative">
@@ -728,7 +730,7 @@ export default function Certificacoes() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {activeTab === 'segunda' && (
+                      {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && (
                         <div>
                           <Label htmlFor="filter-subcategoria">Subcategoria</Label>
                           <Select value={filterSubcategoria} onValueChange={setFilterSubcategoria}>
@@ -804,7 +806,7 @@ export default function Certificacoes() {
                                 {certification.cargaHoraria && (
                                   <div className="text-sm text-gray-600">Carga Horária: {certification.cargaHoraria}h</div>
                                 )}
-                                {activeTab === 'segunda' && certification.subcategoria && (
+                                {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && certification.subcategoria && (
                                   <div className="text-xs text-blue-600 mt-1">
                                     {SUBCATEGORIA_LABELS[certification.subcategoria as keyof typeof SUBCATEGORIA_LABELS]}
                                   </div>
@@ -1045,7 +1047,7 @@ export default function Certificacoes() {
                   placeholder="Horas"
                 />
               </div>
-              {activeTab === 'segunda' && (
+              {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && (
                 <div>
                   <Label htmlFor="edit-subcategoria">Subcategoria</Label>
                   <Select value={selectedCertification.subcategoria || ''} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, subcategoria: value })}>
