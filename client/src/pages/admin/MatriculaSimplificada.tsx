@@ -191,7 +191,7 @@ export default function MatriculaSimplificada() {
   });
 
   // Filtrar matrículas
-  const filteredEnrollments = enrollments.filter((enrollment: SimplifiedEnrollment) => {
+  const filteredEnrollments = (enrollments || []).filter((enrollment: SimplifiedEnrollment) => {
     const matchesSearch = enrollment.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          enrollment.studentEmail.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
