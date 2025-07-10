@@ -1605,8 +1605,8 @@ const CertificadosPos = () => {
                         className="bg-white border border-gray-300 shadow-lg mx-auto" 
                         style={{
                           width: '100%',
-                          maxWidth: '700px',
-                          height: '350px',
+                          maxWidth: '900px',
+                          height: '450px',
                           aspectRatio: '1123/794'
                         }}
                       >
@@ -1626,7 +1626,7 @@ const CertificadosPos = () => {
                             fontFamily: 'Times New Roman, serif',
                             lineHeight: '1.4',
                             color: '#000',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             textAlign: 'center',
                             padding: '20px',
                             height: '100%',
@@ -1641,8 +1641,8 @@ const CertificadosPos = () => {
                         className="bg-white border border-gray-300 shadow-lg mx-auto" 
                         style={{
                           width: '100%',
-                          maxWidth: '700px',
-                          height: '350px',
+                          maxWidth: '900px',
+                          height: '450px',
                           aspectRatio: '1123/794'
                         }}
                       >
@@ -1662,7 +1662,7 @@ const CertificadosPos = () => {
                             fontFamily: 'Times New Roman, serif',
                             lineHeight: '1.3',
                             color: '#000',
-                            fontSize: '8px',
+                            fontSize: '10px',
                             textAlign: 'left',
                             padding: '20px',
                             height: '100%',
