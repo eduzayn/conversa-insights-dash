@@ -1,20 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  ArrowLeft,
-  Settings,
+  AlertCircle,
+  Check,
+  CreditCard,
+  FileText,
+  Plus,
+  Search,
+  Download,
   RefreshCw,
   Loader2,
-  AlertCircle,
-  CheckCircle,
+  ArrowUpDown,
+  Calendar as CalendarIcon,
   Filter,
-  Eye,
-  Copy,
-  Send,
+  ChevronRight,
   ChevronLeft,
-  ChevronRight
+  BarChart3,
+  TrendingUp,
+  Users,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+  RotateCcw,
+  Settings,
+  Mail,
+  MessageSquare,
+  X,
+  Edit,
+  Copy,
+  Files,
+  Send
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -35,7 +54,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -97,8 +116,7 @@ const ChargesPage: React.FC = () => {
   const [itemsPerPage] = useState(20);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
   const [activeTab, setActiveTab] = useState('payments');
 
   // Query para testar conexão
@@ -106,7 +124,9 @@ const ChargesPage: React.FC = () => {
     queryKey: ['/api/asaas/connection-test'],
     queryFn: async () => {
       const response = await fetch('/api/asaas/connection-test', {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       
       if (!response.ok) {
@@ -130,7 +150,9 @@ const ChargesPage: React.FC = () => {
       });
 
       const response = await fetch(`/api/asaas/payments?${params}`, {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       
       if (!response.ok) {
@@ -146,7 +168,9 @@ const ChargesPage: React.FC = () => {
     mutationFn: async () => {
       const response = await fetch('/api/asaas/connection-test', {
         method: 'POST',
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       
       if (!response.ok) {
@@ -177,7 +201,9 @@ const ChargesPage: React.FC = () => {
     mutationFn: async () => {
       const response = await fetch('/api/asaas/sync', {
         method: 'POST',
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       
       if (!response.ok) {
@@ -266,7 +292,7 @@ const ChargesPage: React.FC = () => {
           onClick={() => window.history.back()}
           className="flex items-center gap-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" />
           Voltar ao Dashboard
         </Button>
       </div>
@@ -369,8 +395,7 @@ const ChargesPage: React.FC = () => {
                   <Input
                     type="date"
                     placeholder="dd/mm/aaaa"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => setDateFilter(e.target.value)}
                   />
                 </div>
 
@@ -379,8 +404,6 @@ const ChargesPage: React.FC = () => {
                   <Input
                     type="date"
                     placeholder="dd/mm/aaaa"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -394,54 +417,72 @@ const ChargesPage: React.FC = () => {
               <Button
                 onClick={() => refetchPayments()}
                 disabled={isLoadingPayments}
+                variant="outline"
                 className="flex items-center gap-2"
               >
-                {isLoadingPayments ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
+                <RefreshCw className="h-4 w-4" />
                 Atualizar
               </Button>
             </CardHeader>
             <CardContent>
               {isLoadingPayments ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin" />
                   <span className="ml-2">Carregando pagamentos...</span>
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Vencimento</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paymentsData?.payments?.length ? (
-                      paymentsData.payments.map((payment: AsaasPayment) => (
+              ) : paymentsData?.payments?.length > 0 ? (
+                <div className="space-y-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Vencimento</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentsData.payments.map((payment: AsaasPayment) => (
                         <TableRow key={payment.id}>
                           <TableCell className="font-mono text-sm">
-                            {payment.id.slice(-8)}
+                            {payment.id}
                           </TableCell>
                           <TableCell>
-                            {payment.customerData?.name || payment.customer}
+                            <div>
+                              <div className="font-medium">
+                                {payment.customerData?.name || payment.customer}
+                              </div>
+                              {payment.customerData?.email && (
+                                <div className="text-sm text-gray-500">
+                                  {payment.customerData.email}
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="max-w-xs truncate">
                             {payment.description}
                           </TableCell>
-                          <TableCell className="font-semibold">
-                            {formatCurrency(payment.value)}
+                          <TableCell>
+                            <div className="font-medium">
+                              {formatCurrency(payment.value)}
+                            </div>
+                            {payment.netValue !== payment.value && (
+                              <div className="text-sm text-gray-500">
+                                Líquido: {formatCurrency(payment.netValue)}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             {formatDate(payment.dueDate)}
+                            {payment.paymentDate && (
+                              <div className="text-sm text-gray-500">
+                                Pago: {formatDate(payment.paymentDate)}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge className={getStatusColor(payment.status)}>
@@ -449,114 +490,97 @@ const ChargesPage: React.FC = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {getBillingTypeText(payment.billingType)}
+                            <Badge variant="outline">
+                              {getBillingTypeText(payment.billingType)}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-8 w-8 p-0"
-                                title="Ver detalhes"
-                              >
-                                <Eye className="h-4 w-4" />
+                              {payment.invoiceUrl && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => window.open(payment.invoiceUrl, '_blank')}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button size="sm" variant="ghost">
+                                <Mail className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-8 w-8 p-0"
-                                title="Copiar ID"
-                              >
+                              <Button size="sm" variant="ghost">
                                 <Copy className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-8 w-8 p-0"
-                                title="Enviar lembrete"
-                              >
-                                <Send className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                          Nenhum pagamento encontrado
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
+                      ))}
+                    </TableBody>
+                  </Table>
 
-              {/* Paginação */}
-              {paymentsData?.pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-gray-500">
-                    Página {paymentsData.pagination.page} de {paymentsData.pagination.totalPages}
+                  {/* Paginação */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500">
+                      {paymentsData.pagination && (
+                        <>
+                          Página {paymentsData.pagination.page} de {paymentsData.pagination.totalPages} 
+                          ({paymentsData.pagination.total} registros)
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Anterior
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        disabled={!paymentsData.pagination?.hasNextPage}
+                      >
+                        Próximo
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage <= 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={!paymentsData.pagination.hasNextPage}
-                    >
-                      Próxima
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhum pagamento encontrado
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Tab de Sincronização */}
+        {/* Outras tabs... */}
         <TabsContent value="sync" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5" />
-                Sincronização de Dados
-              </CardTitle>
+              <CardTitle>Sincronização</CardTitle>
               <CardDescription>
-                Sincronize os dados de pagamentos com a API do Asaas
+                Sincronize dados entre o sistema local e o Asaas
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <Button
-                  onClick={() => syncMutation.mutate()}
-                  disabled={syncMutation.isPending}
-                  className="flex items-center gap-2"
-                >
-                  {syncMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  Sincronizar Agora
-                </Button>
-                
-                {syncMutation.isPending && (
-                  <div className="text-sm text-gray-600">
-                    Sincronizando dados... Isso pode levar alguns minutos.
-                  </div>
+              <Button
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                {syncMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
                 )}
-              </div>
+                Iniciar Sincronização
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
