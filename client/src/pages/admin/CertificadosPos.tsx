@@ -1598,28 +1598,8 @@ const CertificadosPos = () => {
                       </Button>
                     </div>
                     
-                    {/* Abas para visualização separada */}
+                    {/* Preview do certificado simplificado */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                      <div className="flex space-x-2">
-                        <button
-                          type="button"
-                          className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                          onClick={() => {
-                            document.getElementById('preview-frente')?.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                        >
-                          Frente (Certificado)
-                        </button>
-                        <button
-                          type="button"
-                          className="px-4 py-2 text-sm font-medium rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors"
-                          onClick={() => {
-                            document.getElementById('preview-verso')?.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                        >
-                          Verso (Histórico)
-                        </button>
-                      </div>
                       
                       {/* Preview Frente */}
                       <div id="preview-frente" className="space-y-3">
