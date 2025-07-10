@@ -7,12 +7,13 @@ import { storage } from "./storage";
 import { insertUserSchema, insertRegistrationTokenSchema, insertCertificationSchema, insertStudentEnrollmentSchema, insertStudentDocumentSchema, insertStudentPaymentSchema } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
+import asaasRoutes from "./routes/asaas-routes";
 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
 // Middleware para validar JWT
-const authenticateToken = async (req: any, res: any, next: any) => {
+export const authenticateToken = async (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -2592,7 +2593,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
+  // Integração com Asaas
+  app.use("/api/asaas", asaasRoutes);
 
   return io; // return the Socket.IO server instance
 }
