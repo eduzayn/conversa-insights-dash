@@ -2800,12 +2800,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (dateCreatedGe) filters.dateCreatedGe = dateCreatedGe;
       if (dateCreatedLe) filters.dateCreatedLe = dateCreatedLe;
 
-      const payments = await asaasService.getAllPaymentsWithCustomers(filters);
+      const payments = await asaasService.getAllPayments(filters);
       res.json(payments);
     } catch (error) {
       console.error("Erro ao buscar cobranças do Asaas:", error);
       res.status(500).json({ 
         message: "Erro ao buscar cobranças do Asaas",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Limpar cache das cobranças do Asaas
+  app.post("/api/admin/asaas/payments/clear-cache", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+      }
+
+      asaasService.clearCache();
+      const cacheInfo = asaasService.getCacheInfo();
+      
+      res.json({
+        success: true,
+        message: "Cache das cobranças limpo com sucesso",
+        cacheInfo
+      });
+    } catch (error) {
+      console.error("Erro ao limpar cache:", error);
+      res.status(500).json({ 
+        message: "Erro ao limpar cache",
         details: error instanceof Error ? error.message : "Erro desconhecido"
       });
     }

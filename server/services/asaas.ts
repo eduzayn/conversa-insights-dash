@@ -94,12 +94,14 @@ export interface AsaasWebhookEvent {
 const ASAAS_CONFIG: AsaasConfig = {
   baseURL: 'https://api.asaas.com/v3',
   apiKey: process.env.ASAAS_API_KEY || '',
-  timeout: 30000,
-  retryAttempts: 3
+  timeout: 15000, // Reduzido para 15 segundos
+  retryAttempts: 2 // Reduzido tentativas
 };
 
 export class AsaasService {
   private client: AxiosInstance;
+  private cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private readonly CACHE_TTL = 2 * 60 * 1000; // 2 minutos
 
   constructor() {
     this.client = axios.create({
@@ -171,44 +173,13 @@ export class AsaasService {
     };
   }
 
-  async createCustomer(customerData: AsaasCustomer): Promise<any> {
+  async createCustomer(customerData: AsaasCustomer): Promise<string> {
     try {
       const response = await this.client.post('/customers', customerData);
-      return response.data;
+      return response.data.id;
     } catch (error: any) {
       console.error('Erro ao criar cliente:', error.response?.data || error.message);
       throw new Error(`Falha ao criar cliente: ${error.response?.data?.errors?.[0]?.description || error.message}`);
-    }
-  }
-
-  async getCustomer(customerId: string): Promise<any> {
-    try {
-      const response = await this.client.get(`/customers/${customerId}`);
-      return response.data;
-    } catch (error: any) {
-      console.error('Erro ao buscar cliente:', error.response?.data || error.message);
-      throw new Error(`Falha ao buscar cliente: ${error.response?.data?.errors?.[0]?.description || error.message}`);
-    }
-  }
-
-  async listCustomers(filters: {
-    name?: string;
-    email?: string;
-    cpfCnpj?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<any> {
-    try {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value.toString());
-      });
-
-      const response = await this.client.get(`/customers?${params}`);
-      return response.data;
-    } catch (error: any) {
-      console.error('Erro ao listar clientes:', error.response?.data || error.message);
-      throw new Error(`Falha ao listar clientes: ${error.response?.data?.errors?.[0]?.description || error.message}`);
     }
   }
 
@@ -336,6 +307,16 @@ export class AsaasService {
     }
   }
 
+  private getCacheKey(filters: any): string {
+    return `payments_${JSON.stringify(filters)}`;
+  }
+
+  private isValidCache(cacheKey: string): boolean {
+    const cached = this.cache.get(cacheKey);
+    if (!cached) return false;
+    return Date.now() - cached.timestamp < this.CACHE_TTL;
+  }
+
   async getAllPayments(filters: {
     customer?: string;
     status?: string;
@@ -343,12 +324,26 @@ export class AsaasService {
     dateCreatedLe?: string;
   } = {}): Promise<any[]> {
     try {
+      const cacheKey = this.getCacheKey(filters);
+      
+      // Verificar cache primeiro
+      if (this.isValidCache(cacheKey)) {
+        console.log('Retornando cobranças do cache');
+        return this.cache.get(cacheKey)!.data;
+      }
+
+      // CORREÇÃO: Limitação máxima para evitar loop infinito
+      // Buscar apenas os últimos 300 pagamentos (3 páginas) para evitar timeout
       const allPayments: any[] = [];
       let offset = 0;
       const limit = 100;
+      const maxPages = 3; // Reduzido para 3 páginas (300 registros máximo)
+      let currentPage = 0;
       let hasMore = true;
 
-      while (hasMore) {
+      console.log('Buscando cobranças do Asaas...');
+
+      while (hasMore && currentPage < maxPages) {
         const response = await this.listPayments({ ...filters, limit, offset });
         const payments = response.data || [];
         
@@ -359,78 +354,28 @@ export class AsaasService {
 
         allPayments.push(...payments);
         offset += limit;
+        currentPage++;
         hasMore = payments.length === limit;
         
-        // Delay para evitar rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Log de progresso
+        console.log(`Página ${currentPage} carregada: ${payments.length} cobranças`);
+        
+        // Delay reduzido para melhor performance
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
+
+      console.log(`✓ Cobranças carregadas: ${allPayments.length} registros em ${currentPage} páginas`);
+      
+      // Armazenar no cache
+      this.cache.set(cacheKey, {
+        data: allPayments,
+        timestamp: Date.now()
+      });
 
       return allPayments;
     } catch (error: any) {
       console.error('Erro ao buscar todas as cobranças:', error);
       throw new Error(`Falha ao buscar cobranças: ${error.message}`);
-    }
-  }
-
-  async getAllPaymentsWithCustomers(filters: {
-    customer?: string;
-    status?: string;
-    dateCreatedGe?: string;
-    dateCreatedLe?: string;
-  } = {}): Promise<any[]> {
-    try {
-      const allPayments = await this.getAllPayments(filters);
-      const paymentsWithCustomers: any[] = [];
-      
-      // Cache para evitar buscar o mesmo cliente múltiplas vezes
-      const customerCache = new Map<string, any>();
-
-      for (const payment of allPayments) {
-        try {
-          let customerData = null;
-          
-          if (payment.customer && payment.customer.startsWith('cus_')) {
-            // Buscar dados do cliente se não estiver no cache
-            if (!customerCache.has(payment.customer)) {
-              try {
-                customerData = await this.getCustomer(payment.customer);
-                customerCache.set(payment.customer, customerData);
-              } catch (error) {
-                console.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
-                customerCache.set(payment.customer, null);
-              }
-            } else {
-              customerData = customerCache.get(payment.customer);
-            }
-          }
-
-          paymentsWithCustomers.push({
-            ...payment,
-            customerData: customerData ? {
-              name: customerData.name,
-              email: customerData.email,
-              cpfCnpj: customerData.cpfCnpj,
-              phone: customerData.phone,
-              mobilePhone: customerData.mobilePhone
-            } : null
-          });
-
-          // Delay menor para evitar rate limiting
-          await new Promise(resolve => setTimeout(resolve, 50));
-        } catch (error) {
-          console.warn(`Erro ao processar pagamento ${payment.id}:`, error);
-          // Adicionar pagamento mesmo sem dados do cliente
-          paymentsWithCustomers.push({
-            ...payment,
-            customerData: null
-          });
-        }
-      }
-
-      return paymentsWithCustomers;
-    } catch (error: any) {
-      console.error('Erro ao buscar cobranças com clientes:', error);
-      throw new Error(`Falha ao buscar cobranças com dados de clientes: ${error.message}`);
     }
   }
 
@@ -480,6 +425,20 @@ export class AsaasService {
     };
 
     return statusMap[asaasStatus] || 'pending';
+  }
+
+  // Método para limpar cache manualmente
+  clearCache(): void {
+    this.cache.clear();
+    console.log('Cache do Asaas limpo');
+  }
+
+  // Método para obter informações do cache
+  getCacheInfo(): { entries: number; keys: string[] } {
+    return {
+      entries: this.cache.size,
+      keys: Array.from(this.cache.keys())
+    };
   }
 }
 
