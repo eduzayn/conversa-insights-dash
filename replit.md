@@ -434,6 +434,14 @@ Changelog:
    * ✅ Sistema pronto para uso em produção com credenciais reais do Asaas
    * ✅ CORREÇÃO: Bug SelectItem com valor vazio corrigido (substituído por "all")
    * ✅ Validação de arrays implementada para evitar erros de renderização
+   * ✅ NOVA FUNCIONALIDADE: Integração automática de cobrança Asaas durante matrícula implementada
+   * ✅ Função createStudentEnrollment modificada para criar cobrança automática no Asaas
+   * ✅ Endpoint /api/admin/test-matricula criado para testes de integração
+   * ✅ Endpoint /api/portal/aluno/matricula criado para matrículas reais
+   * ✅ Aba "Teste Matrícula" adicionada na interface administrativa do Asaas
+   * ✅ Sistema completo: matrícula → cobrança local → tentativa de criação no Asaas
+   * ✅ Função createEnrollmentPayment implementada com tratamento de erros robusto
+   * ✅ Integração não bloqueia matrícula se falhar na criação do pagamento no Asaas
 ```
 
 ## User Preferences

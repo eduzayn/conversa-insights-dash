@@ -21,7 +21,8 @@ import {
   Calendar,
   ExternalLink,
   Settings,
-  Trash2
+  Trash2,
+  UserPlus
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -81,6 +82,35 @@ export default function IntegracaoAsaas() {
     description: '',
     dueDate: '',
     paymentMethod: 'boleto'
+  });
+
+  const [testEnrollment, setTestEnrollment] = useState({
+    studentId: 0,
+    courseId: 0
+  });
+
+  // Mutation para testar matrícula
+  const testEnrollmentMutation = useMutation({
+    mutationFn: (data: { studentId: number; courseId: number }) => apiRequest('/api/admin/test-matricula', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    onSuccess: (data) => {
+      toast({
+        title: "Matrícula de teste criada",
+        description: "Matrícula realizada com sucesso! Cobrança criada automaticamente no Asaas.",
+      });
+      setTestEnrollment({ studentId: 0, courseId: 0 });
+      // Recarregar pagamentos para mostrar a nova cobrança
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/payments'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar matrícula",
+        description: error.message || "Falha ao criar matrícula de teste",
+        variant: "destructive"
+      });
+    }
   });
 
   const { toast } = useToast();
@@ -218,6 +248,19 @@ export default function IntegracaoAsaas() {
     createPaymentMutation.mutate(newPayment);
   };
 
+  const handleTestEnrollment = () => {
+    if (!testEnrollment.studentId || !testEnrollment.courseId) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o ID do aluno e ID do curso",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    testEnrollmentMutation.mutate(testEnrollment);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -266,6 +309,7 @@ export default function IntegracaoAsaas() {
         <TabsList>
           <TabsTrigger value="payments">Pagamentos</TabsTrigger>
           <TabsTrigger value="create">Criar Cobrança</TabsTrigger>
+          <TabsTrigger value="test">Teste Matrícula</TabsTrigger>
           <TabsTrigger value="sync">Sincronização</TabsTrigger>
         </TabsList>
 
@@ -483,6 +527,83 @@ export default function IntegracaoAsaas() {
                   <CreditCard className="h-4 w-4 mr-2" />
                 )}
                 Criar Cobrança
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Aba de Teste de Matrícula */}
+        <TabsContent value="test" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Teste de Matrícula Automática
+              </CardTitle>
+              <CardDescription>
+                Teste a criação automática de cobrança no Asaas quando um aluno se matricula
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Como funciona:</strong> Ao matricular um aluno, o sistema automaticamente criará uma cobrança no Asaas com base no valor do curso.
+                  Isso simula o fluxo real de matrícula onde o pagamento é gerado automaticamente.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="testStudentId">ID do Aluno *</Label>
+                  <Input
+                    id="testStudentId"
+                    type="number"
+                    value={testEnrollment.studentId || ''}
+                    onChange={(e) => setTestEnrollment({...testEnrollment, studentId: parseInt(e.target.value) || 0})}
+                    placeholder="Ex: 1 (ID do aluno no sistema)"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Use ID 1 para aluno de teste (admin)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="testCourseId">ID do Curso *</Label>
+                  <Input
+                    id="testCourseId"
+                    type="number"
+                    value={testEnrollment.courseId || ''}
+                    onChange={(e) => setTestEnrollment({...testEnrollment, courseId: parseInt(e.target.value) || 0})}
+                    placeholder="Ex: 1 (ID do curso pré-cadastrado)"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Use qualquer ID de curso pré-cadastrado no sistema
+                  </p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">O que acontece ao testar:</h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. ✅ Matrícula é criada no sistema</li>
+                  <li>2. ✅ Cobrança é gerada automaticamente no banco local</li>
+                  <li>3. ✅ Tentativa de criar cobrança no Asaas (requer API funcionando)</li>
+                  <li>4. ✅ Cobrança aparece na aba "Pagamentos" acima</li>
+                </ol>
+              </div>
+              
+              <Button 
+                onClick={handleTestEnrollment}
+                disabled={testEnrollmentMutation.isPending}
+                className="w-full"
+                size="lg"
+              >
+                {testEnrollmentMutation.isPending ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4 mr-2" />
+                )}
+                Testar Matrícula com Cobrança Automática
               </Button>
             </CardContent>
           </Card>

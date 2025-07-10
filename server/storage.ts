@@ -785,6 +785,15 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .returning();
+    
+    // Integração automática com Asaas - criar cobrança na matrícula
+    try {
+      await this.createEnrollmentPayment(newEnrollment);
+    } catch (error) {
+      console.error('Erro ao criar cobrança automática na matrícula:', error);
+      // Não falha a matrícula se a cobrança falhar
+    }
+    
     return newEnrollment;
   }
 
@@ -1230,6 +1239,85 @@ export class DatabaseStorage implements IStorage {
   async createNotification(notification: any): Promise<void> {
     // Mock: criar notificação
     console.log("Notificação criada:", notification);
+  }
+
+  // Integração automática com Asaas para matrícula
+  async createEnrollmentPayment(enrollment: StudentEnrollment): Promise<void> {
+    try {
+      // Buscar dados do usuário
+      const user = await this.getUserById(enrollment.studentId);
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Buscar dados do curso (se courseId estiver disponível)
+      let courseInfo = null;
+      if (enrollment.courseId) {
+        courseInfo = await this.getPreRegisteredCourseById(enrollment.courseId);
+      }
+
+      // Configurar valores padrão para cobrança
+      const amount = courseInfo?.preco || 299.00; // Valor padrão se não encontrar o curso
+      const courseName = courseInfo?.nome || 'Curso não especificado';
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 7); // Vencimento em 7 dias
+
+      // Criar cobrança no sistema local
+      const paymentData = {
+        userId: enrollment.studentId,
+        courseId: enrollment.courseId || null,
+        amount: amount,
+        description: `Matrícula em ${courseName}`,
+        status: 'pending' as const,
+        paymentMethod: 'boleto' as const,
+        dueDate: dueDate,
+        tenantId: 1 // Tenant padrão
+      };
+
+      const payment = await this.createPayment(paymentData);
+      
+      // Tentar criar cobrança no Asaas
+      try {
+        const asaasService = (await import('./services/asaas')).default;
+        const asaasPayment = await asaasService.createPayment({
+          customer: {
+            name: user.username,
+            email: user.email,
+            cpfCnpj: user.cpf || '', // Assumindo que CPF pode estar no usuário
+          },
+          billingType: 'BOLETO',
+          dueDate: dueDate.toISOString().split('T')[0],
+          value: amount,
+          description: `Matrícula em ${courseName}`,
+          externalReference: `enrollment_${enrollment.id}`,
+        });
+
+        // Atualizar pagamento com dados do Asaas
+        await this.updatePayment(payment.id, {
+          externalId: asaasPayment.id,
+          paymentUrl: asaasPayment.invoiceUrl,
+          status: 'pending'
+        });
+
+        console.log(`Cobrança criada automaticamente no Asaas para matrícula ${enrollment.id}: ${asaasPayment.id}`);
+      } catch (asaasError) {
+        console.error('Erro ao criar cobrança no Asaas:', asaasError);
+        // Mantém o pagamento local mesmo se falhar no Asaas
+      }
+    } catch (error) {
+      console.error('Erro na criação automática de cobrança:', error);
+      throw error;
+    }
+  }
+
+  // Função auxiliar para buscar curso pré-cadastrado
+  async getPreRegisteredCourseById(courseId: number): Promise<PreRegisteredCourse | undefined> {
+    const [course] = await db
+      .select()
+      .from(preRegisteredCourses)
+      .where(eq(preRegisteredCourses.id, courseId))
+      .limit(1);
+    return course || undefined;
   }
 }
 

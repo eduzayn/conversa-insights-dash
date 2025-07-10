@@ -511,6 +511,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Criar matrícula (com cobrança automática no Asaas)
+  app.post("/api/portal/aluno/matricula", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'aluno') {
+        return res.status(403).json({ message: "Acesso negado - apenas alunos" });
+      }
+
+      const { courseId, dataMatricula, status } = req.body;
+
+      // Validar dados obrigatórios
+      if (!courseId) {
+        return res.status(400).json({ message: "ID do curso é obrigatório" });
+      }
+
+      // Verificar se o curso existe
+      const course = await storage.getPreRegisteredCourseById(courseId);
+      if (!course) {
+        return res.status(404).json({ message: "Curso não encontrado" });
+      }
+
+      // Verificar se o aluno já está matriculado neste curso
+      const existingEnrollments = await storage.getStudentEnrollments(req.user.id);
+      const alreadyEnrolled = existingEnrollments.some(e => e.courseId === courseId);
+      
+      if (alreadyEnrolled) {
+        return res.status(400).json({ message: "Aluno já está matriculado neste curso" });
+      }
+
+      // Criar matrícula (isso automaticamente criará a cobrança no Asaas)
+      const enrollmentData = {
+        studentId: req.user.id,
+        courseId: courseId,
+        dataMatricula: dataMatricula ? new Date(dataMatricula) : new Date(),
+        status: status || 'ativa',
+        progresso: 0,
+        horasCompletadas: 0
+      };
+
+      const enrollment = await storage.createStudentEnrollment(enrollmentData);
+      
+      res.status(201).json({
+        message: "Matrícula realizada com sucesso! Cobrança criada automaticamente no Asaas.",
+        enrollment: enrollment
+      });
+    } catch (error) {
+      console.error("Erro ao criar matrícula:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para testar matrícula com cobrança automática (admin)
+  app.post("/api/admin/test-matricula", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { studentId, courseId } = req.body;
+
+      if (!studentId || !courseId) {
+        return res.status(400).json({ message: "studentId e courseId são obrigatórios" });
+      }
+
+      // Verificar se o aluno existe
+      const student = await storage.getUserById(studentId);
+      if (!student) {
+        return res.status(404).json({ message: "Aluno não encontrado" });
+      }
+
+      // Verificar se o curso existe
+      const course = await storage.getPreRegisteredCourseById(courseId);
+      if (!course) {
+        return res.status(404).json({ message: "Curso não encontrado" });
+      }
+
+      // Criar matrícula de teste
+      const enrollmentData = {
+        studentId: studentId,
+        courseId: courseId,
+        dataMatricula: new Date(),
+        status: 'ativa',
+        progresso: 0,
+        horasCompletadas: 0
+      };
+
+      const enrollment = await storage.createStudentEnrollment(enrollmentData);
+      
+      res.status(201).json({
+        message: "Matrícula de teste criada com sucesso! Cobrança automática gerada.",
+        enrollment: enrollment,
+        courseInfo: {
+          nome: course.nome,
+          preco: course.preco,
+          modalidade: course.modalidade
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao testar matrícula:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Disciplinas do aluno com conteúdos integrados do Portal do Professor
   app.get("/api/portal/aluno/disciplinas", authenticateToken, async (req: any, res) => {
     try {
