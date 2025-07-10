@@ -1415,7 +1415,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(academicDisciplines)
-      .where(eq(academicDisciplines.status, 'ativa'))
+      .where(eq(academicDisciplines.isActive, true))
       .orderBy(asc(academicDisciplines.nome));
   }
 
@@ -1424,7 +1424,7 @@ export class DatabaseStorage implements IStorage {
       .insert(academicDisciplines)
       .values({
         ...discipline,
-        status: discipline.status || 'ativa',
+        isActive: discipline.isActive ?? true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1450,11 +1450,11 @@ export class DatabaseStorage implements IStorage {
         codigo: academicDisciplines.codigo,
         professorId: academicDisciplines.professorId,
         cargaHoraria: academicDisciplines.cargaHoraria,
-        periodo: academicDisciplines.periodo,
-        tipo: academicDisciplines.tipo,
         ementa: academicDisciplines.ementa,
-        prerequeisitos: academicDisciplines.prerequeisitos,
-        status: academicDisciplines.status,
+        objetivos: academicDisciplines.objetivos,
+        courseId: academicDisciplines.courseId,
+        ordem: academicDisciplines.ordem,
+        isActive: academicDisciplines.isActive,
         createdAt: academicDisciplines.createdAt,
         updatedAt: academicDisciplines.updatedAt,
       })
