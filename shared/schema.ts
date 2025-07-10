@@ -345,7 +345,26 @@ export const studentPayments = pgTable("student_payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
+// Tabela para modelos de certificados acadêmicos
+export const certificateTemplates = pgTable("certificate_templates", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  categoria: text("categoria").notNull(), // pos_graduacao, segunda_licenciatura, formacao_pedagogica
+  tipo: text("tipo").notNull().default("completo"), // completo, frente, verso
+  htmlTemplate: text("html_template").notNull(), // Template HTML/CSS
+  variaveis: json("variaveis").notNull().default([]), // Array de variáveis disponíveis
+  instituicaoNome: text("instituicao_nome").notNull().default("Instituição de Ensino Superior"),
+  instituicaoEndereco: text("instituicao_endereco"),
+  instituicaoLogo: text("instituicao_logo"),
+  assinaturaDigital1: text("assinatura_digital_1"),
+  assinaturaDigital2: text("assinatura_digital_2"),
+  textoLegal: text("texto_legal").notNull(),
+  qrCodePosition: text("qr_code_position").notNull().default("bottom-right"), // bottom-right, bottom-left, bottom-center
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Tabela para certificados dos alunos
 export const studentCertificates = pgTable("student_certificates", {
@@ -809,6 +828,10 @@ export const academicCertificatesRelations = relations(academicCertificates, ({ 
   issuedBy: one(users, { fields: [academicCertificates.emitidoPor], references: [users.id] }),
 }));
 
+export const certificateTemplatesRelations = relations(certificateTemplates, ({ one }) => ({
+  createdBy: one(users, { fields: [certificateTemplates.createdBy], references: [users.id] }),
+}));
+
 // Schemas de inserção
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -1128,6 +1151,23 @@ export const insertAcademicCertificateSchema = createInsertSchema(academicCertif
   emitidoPor: true,
 });
 
+export const insertCertificateTemplateSchema = createInsertSchema(certificateTemplates).pick({
+  nome: true,
+  categoria: true,
+  tipo: true,
+  htmlTemplate: true,
+  variaveis: true,
+  instituicaoNome: true,
+  instituicaoEndereco: true,
+  instituicaoLogo: true,
+  assinaturaDigital1: true,
+  assinaturaDigital2: true,
+  textoLegal: true,
+  qrCodePosition: true,
+  isActive: true,
+  createdBy: true,
+});
+
 
 
 // Tipos
@@ -1303,3 +1343,6 @@ export type AcademicGrade = typeof academicGrades.$inferSelect;
 
 export type InsertAcademicCertificate = z.infer<typeof insertAcademicCertificateSchema>;
 export type AcademicCertificate = typeof academicCertificates.$inferSelect;
+
+export type InsertCertificateTemplate = z.infer<typeof insertCertificateTemplateSchema>;
+export type CertificateTemplate = typeof certificateTemplates.$inferSelect;
