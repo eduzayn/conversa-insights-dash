@@ -11,10 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, Filter, Download, Eye, FileText, 
   User, GraduationCap, Calendar, Award, Settings, Printer,
-  CheckCircle, Clock, XCircle, AlertCircle
+  CheckCircle, Clock, XCircle, AlertCircle, ArrowLeft
 } from 'lucide-react';
 
 // Tipos baseados no schema atualizado
@@ -80,6 +81,7 @@ const CertificadosPos = () => {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Buscar certificados acadêmicos
   const { data: certificates = [], isLoading: loadingCertificates } = useQuery({
@@ -235,9 +237,20 @@ const CertificadosPos = () => {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Certificados Acadêmicos</h1>
-          <p className="text-muted-foreground">Gestão de certificados de Pós-Graduação e Segunda Licenciatura</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Certificados Acadêmicos</h1>
+            <p className="text-muted-foreground">Gestão de certificados de Pós-Graduação e Segunda Licenciatura</p>
+          </div>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
