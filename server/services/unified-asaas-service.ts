@@ -330,6 +330,18 @@ export class UnifiedAsaasService {
   }
 
   /**
+   * Busca a URL da fatura para pagamento
+   */
+  async getPaymentInvoiceUrl(paymentId: string): Promise<any> {
+    try {
+      const response = await this.api.get(`/payments/${paymentId}/invoiceUrl`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao buscar URL da fatura');
+    }
+  }
+
+  /**
    * Sincroniza cobranças (busca todas as cobranças atualizadas)
    */
   async syncPayments(lastSyncDate?: string): Promise<{ payments: any[]; total: number; hasMore: boolean }> {

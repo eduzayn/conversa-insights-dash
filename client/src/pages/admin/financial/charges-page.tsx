@@ -58,6 +58,10 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 // Interfaces para tipagem do TypeScript
@@ -114,6 +118,11 @@ const ChargesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  // Estados para modais
+  const [selectedPayment, setSelectedPayment] = useState<AsaasPayment | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Query para buscar cobranças do Asaas
   const { data: paymentsData, isLoading: isLoadingPayments, refetch: refetchPayments, error: paymentsError } = useQuery({
@@ -201,6 +210,28 @@ const ChargesPage: React.FC = () => {
     }
   });
 
+  // Mutation para excluir cobrança
+  const deletePaymentMutation = useMutation({
+    mutationFn: (paymentId: string) => apiRequest(`/api/asaas/payments/${paymentId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      toast({
+        title: 'Cobrança excluída',
+        description: 'A cobrança foi excluída com sucesso no Asaas',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments/stats'] });
+      setIsDeleteModalOpen(false);
+      setSelectedPayment(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao excluir',
+        description: error.message || 'Não foi possível excluir a cobrança',
+        variant: 'destructive',
+      });
+    }
+  });
+
   // Função para formatar valores monetários
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -268,89 +299,65 @@ const ChargesPage: React.FC = () => {
     return typeMap[type] || type;
   };
 
-  // Função para copiar ID para clipboard
-  const handleCopyId = async (paymentId: string) => {
+  // Funções de manipulação de cobranças - Padrão Asaas
+  const handleCopyPaymentLink = async (paymentId: string) => {
     try {
-      await navigator.clipboard.writeText(paymentId);
+      const invoiceData = await apiRequest(`/api/asaas/payments/${paymentId}/invoice-url`);
+      await navigator.clipboard.writeText(invoiceData.invoiceUrl);
       toast({
-        title: 'Sucesso',
-        description: 'ID copiado para a área de transferência!'
+        title: 'Link copiado!',
+        description: 'Link da cobrança copiado para a área de transferência',
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: 'Falha ao copiar ID',
-        variant: 'destructive'
+        title: 'Erro ao copiar link',
+        description: error.message || 'Não foi possível obter o link da cobrança',
+        variant: 'destructive',
       });
     }
   };
 
-  // Função para visualizar cobrança
-  const handleViewCharge = async (paymentId: string) => {
+  const handleViewPaymentDetails = async (paymentId: string) => {
     try {
       const payment = await apiRequest(`/api/asaas/payments/${paymentId}`);
-      
-      // Exibir modal ou navegar para página de detalhes
-      toast({
-        title: 'Detalhes da Cobrança',
-        description: `Cobrança ${paymentId} - Valor: ${formatCurrency(payment.value)}`
-      });
+      setSelectedPayment(payment);
+      setIsDetailsModalOpen(true);
     } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao visualizar cobrança',
-        variant: 'destructive'
+        title: 'Erro ao carregar detalhes',
+        description: error.message || 'Não foi possível carregar os detalhes da cobrança',
+        variant: 'destructive',
       });
     }
   };
 
-  // Função para cancelar cobrança
-  const handleCancelCharge = async (paymentId: string) => {
-    try {
-      if (!confirm('Tem certeza que deseja cancelar esta cobrança?')) {
-        return;
-      }
+  const handleDeletePayment = (payment: AsaasPayment) => {
+    setSelectedPayment(payment);
+    setIsDeleteModalOpen(true);
+  };
 
-      await apiRequest(`/api/asaas/payments/${paymentId}/cancel`, { method: 'POST' });
-      
-      toast({
-        title: 'Sucesso',
-        description: 'Cobrança cancelada com sucesso!'
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments/stats'] });
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao cancelar cobrança',
-        variant: 'destructive'
-      });
+  const confirmDeletePayment = () => {
+    if (selectedPayment) {
+      deletePaymentMutation.mutate(selectedPayment.id);
     }
   };
 
-  // Função para enviar lembrete
   const handleSendReminder = async (paymentId: string) => {
     try {
-      const reminderType = prompt('Tipo de lembrete:\n1 - Email\n2 - SMS\n3 - Ambos\n\nDigite o número:');
-      
-      let type = 'email';
-      if (reminderType === '2') type = 'sms';
-      if (reminderType === '3') type = 'both';
-
       await apiRequest(`/api/asaas/payments/${paymentId}/reminder`, {
         method: 'POST',
-        body: JSON.stringify({ type })
+        body: JSON.stringify({ type: 'email' })
       });
 
       toast({
-        title: 'Sucesso',
-        description: 'Lembrete enviado com sucesso!'
+        title: 'Lembrete enviado',
+        description: 'Lembrete por email enviado com sucesso!',
       });
     } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao enviar lembrete',
-        variant: 'destructive'
+        title: 'Erro ao enviar lembrete',
+        description: error.message || 'Não foi possível enviar o lembrete',
+        variant: 'destructive',
       });
     }
   };
@@ -653,30 +660,66 @@ const ChargesPage: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex space-x-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCopyId(payment.id)}
-                                  title="Copiar ID"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewCharge(payment.id)}
-                                  title="Visualizar"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleSendReminder(payment.id)}
-                                  title="Enviar lembrete"
-                                >
-                                  <Mail className="h-4 w-4" />
-                                </Button>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleCopyPaymentLink(payment.id)}
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Copiar link da cobrança</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleViewPaymentDetails(payment.id)}
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Visualizar detalhes</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleSendReminder(payment.id)}
+                                      >
+                                        <Mail className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Enviar lembrete</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeletePayment(payment)}
+                                        className="text-red-600 hover:text-red-700"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Excluir cobrança</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -842,6 +885,185 @@ const ChargesPage: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Detalhes da Cobrança */}
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Cobrança</DialogTitle>
+            <DialogDescription>
+              Informações completas da cobrança {selectedPayment?.id.slice(-8)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPayment && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Informações Básicas */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Informações Básicas</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">ID da Cobrança</label>
+                      <p className="font-mono text-sm">{selectedPayment.id}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Valor</label>
+                      <p className="text-lg font-semibold">{formatCurrency(selectedPayment.value)}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Status</label>
+                      <div className="mt-1">
+                        <Badge className={getStatusColor(selectedPayment.status)}>
+                          {getStatusText(selectedPayment.status)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Tipo de Cobrança</label>
+                      <div className="mt-1">
+                        <Badge className={getBillingTypeColor(selectedPayment.billingType)}>
+                          {getBillingTypeText(selectedPayment.billingType)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Vencimento</label>
+                      <p>{formatDate(selectedPayment.dueDate)}</p>
+                    </div>
+                    {selectedPayment.paymentDate && (
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Data do Pagamento</label>
+                        <p>{formatDate(selectedPayment.paymentDate)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Informações do Cliente */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Informações do Cliente</h3>
+                  <div className="space-y-3">
+                    {selectedPayment.customerData ? (
+                      <>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Nome</label>
+                          <p>{selectedPayment.customerData.name}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Email</label>
+                          <p>{selectedPayment.customerData.email}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">CPF/CNPJ</label>
+                          <p>{selectedPayment.customerData.cpfCnpj}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">ID do Cliente</label>
+                        <p className="font-mono text-sm">{selectedPayment.customer}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Descrição */}
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Descrição</h3>
+                <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                  {selectedPayment.description || 'Sem descrição'}
+                </p>
+              </div>
+
+              {/* Ações */}
+              <div className="flex space-x-3 pt-4">
+                <Button
+                  onClick={() => handleCopyPaymentLink(selectedPayment.id)}
+                  variant="outline"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Link
+                </Button>
+                <Button
+                  onClick={() => handleSendReminder(selectedPayment.id)}
+                  variant="outline"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Enviar Lembrete
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsDetailsModalOpen(false);
+                    handleDeletePayment(selectedPayment);
+                  }}
+                  variant="destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Cobrança
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir Cobrança</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir esta cobrança? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPayment && (
+            <div className="space-y-4">
+              <div className="bg-muted p-4 rounded-md">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">ID:</span> {selectedPayment.id.slice(-8)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Valor:</span> {formatCurrency(selectedPayment.value)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Cliente:</span> {selectedPayment.customerData?.name || selectedPayment.customer}
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span> {getStatusText(selectedPayment.status)}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDeletePayment}
+                  disabled={deletePaymentMutation.isPending}
+                >
+                  {deletePaymentMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Excluir Definitivamente
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

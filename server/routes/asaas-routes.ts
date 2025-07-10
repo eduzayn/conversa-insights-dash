@@ -442,6 +442,17 @@ router.get('/payments/:id/pix-qrcode', auth, async (req, res) => {
   }
 });
 
+// Buscar URL da fatura
+router.get('/payments/:id/invoice-url', auth, async (req, res) => {
+  try {
+    const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
+    const result = await asaas.getPaymentInvoiceUrl(req.params.id);
+    res.json(result);
+  } catch (error) {
+    handleAsaasError(error, res);
+  }
+});
+
 // === ROTAS DE SINCRONIZAÇÃO ===
 
 // Sincronizar pagamentos
