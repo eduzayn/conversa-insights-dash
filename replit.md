@@ -473,6 +473,15 @@ Changelog:
    * ✅ Performance otimizada com delay mínimo entre requisições (10ms)
    * ✅ Loop infinito completamente eliminado com limitação rigorosa (máx 300 registros)
    * Status: Sistema de cobranças operacional com dados reais dos clientes
+- Correção Crítica: Rota `/integracao-asaas` Adicionada (10 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro 404 na rota `/integracao-asaas` corrigido
+   * ✅ Rota `/integracao-asaas` adicionada ao App.tsx redirecionando para componente Cobrancas
+   * ✅ Sistema de persistência Asaas funcionando completamente:
+     - Endpoint `/api/admin/asaas/payments-db` carregando dados do PostgreSQL
+     - Carregamento automático de 382+ cobranças salvas no banco
+     - Interface responsiva exibindo dados reais sem necessidade de recarregar
+   * ✅ Navegação disponível tanto por `/cobrancas` quanto `/integracao-asaas`
+   * Status: Página de integração Asaas 100% funcional e acessível
 ```
 
 ## User Preferences

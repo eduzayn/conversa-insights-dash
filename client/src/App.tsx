@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
 
             <Route path="/cobrancas" element={<Cobrancas />} />
+            <Route path="/integracao-asaas" element={<Cobrancas />} />
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
