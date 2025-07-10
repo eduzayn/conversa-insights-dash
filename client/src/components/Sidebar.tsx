@@ -33,6 +33,7 @@ const menuItems = [
   { icon: TrendingUp, label: "Produtividade", path: "/produtividade" },
   { icon: Clock, label: "Presença", path: "/presenca" },
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
+  { icon: CreditCard, label: "Cobranças Asaas", path: "/cobrancas" },
   { icon: Settings, label: "Integração BotConversa", path: "/integracao-botconversa" },
 
   { icon: UserPlus, label: "Matrícula Simplificada", path: "/matricula-simplificada" },

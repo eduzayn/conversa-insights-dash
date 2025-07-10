@@ -37,7 +37,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  console.log("Iniciando servidor...");
+  let server;
+  
+  try {
+    server = await registerRoutes(app);
+    console.log("Rotas registradas com sucesso");
+  } catch (error) {
+    console.error("Erro ao registrar rotas:", error);
+    process.exit(1);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -51,8 +60,11 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "development") {
+    console.log("Configurando Vite para desenvolvimento...");
     await setupVite(app, server);
+    console.log("Vite configurado com sucesso!");
   } else {
+    console.log("Configurando servidor estático para produção...");
     serveStatic(app);
   }
 
@@ -60,11 +72,12 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
     log(`serving on port ${port}`);
   });
-})();
+})().catch(error => {
+  console.error("Erro fatal no servidor:", error);
+  process.exit(1);
+});

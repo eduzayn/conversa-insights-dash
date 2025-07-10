@@ -1,9 +1,27 @@
-import { Router } from 'express';
-import { authenticateToken } from '../routes';
+import { Router, Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import { createAsaasService } from '../services/unified-asaas-service';
 import { z } from 'zod';
 
 const router = Router();
+
+// Middleware de autenticação local
+const authenticateToken = (req: any, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token não fornecido' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err: any, user: any) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token inválido' });
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // Função para obter a chave da API do Asaas
 const getAsaasApiKey = (): string => {

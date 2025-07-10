@@ -2596,6 +2596,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Integração com Asaas
   app.use("/api/asaas", asaasRoutes);
 
-  return io; // return the Socket.IO server instance
+  // Rotas de debug/teste
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "OK", timestamp: new Date().toISOString() });
+  });
+
+  app.get("/api/ping", (req, res) => {
+    res.json({ message: "pong", server: "running" });
+  });
+
+  return httpServer; // return the HTTP server instance
 }
 
