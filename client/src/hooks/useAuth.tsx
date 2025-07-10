@@ -28,14 +28,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check for existing session
     const token = localStorage.getItem("token");
-    if (token) {
-      // Verificar se o token é válido
+    if (token && token.trim() && token !== 'undefined' && token !== 'null') {
+      // Verificar se o token é válido apenas se não estiver vazio
       fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            // Token inválido ou expirado
+            localStorage.removeItem("token");
+            setUser(null);
+            return;
+          }
+          return res.json();
+        })
         .then(data => {
-          if (data.user) {
+          if (data && data.user) {
             setUser({
               id: data.user.id.toString(),
               email: data.user.email,
@@ -47,21 +55,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
           } else {
             localStorage.removeItem("token");
+            setUser(null);
           }
         })
         .catch(() => {
           localStorage.removeItem("token");
+          setUser(null);
         })
         .finally(() => {
           setLoading(false);
         });
     } else {
+      // Sem token ou token inválido
+      if (token) {
+        localStorage.removeItem("token");
+      }
       setLoading(false);
     }
   }, []);
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
+      // Limpar tokens anteriores antes de tentar novo login
+      localStorage.removeItem("token");
+      localStorage.removeItem("student_token");
+      localStorage.removeItem("professor_token");
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -79,6 +98,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await response.json();
+      
+      // Verificar se o token foi recebido corretamente
+      if (!data.token || !data.user) {
+        throw new Error("Dados de autenticação inválidos");
+      }
       
       // Salvar token JWT
       localStorage.setItem("token", data.token);
@@ -146,6 +170,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("token");
+    // Limpar todos os dados de sessão
+    localStorage.removeItem("student_token");
+    localStorage.removeItem("professor_token");
   };
 
   return (

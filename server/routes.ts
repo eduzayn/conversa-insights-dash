@@ -25,9 +25,13 @@ const authenticateToken = async (req: any, res: any, next: any) => {
     if (!user) {
       return res.status(401).json({ message: 'Usuário não encontrado' });
     }
+    if (!user.isActive) {
+      return res.status(401).json({ message: 'Conta desativada' });
+    }
     req.user = user;
     next();
   } catch (error) {
+    console.error('Erro na validação do token:', error);
     return res.status(403).json({ message: 'Token inválido' });
   }
 };
