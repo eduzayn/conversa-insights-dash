@@ -404,8 +404,12 @@ router.post('/payments/:id/cancel', auth, async (req, res) => {
 router.delete('/payments/:id', auth, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
-    await asaas.deletePayment(req.params.id);
-    res.status(204).send();
+    const result = await asaas.deletePayment(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: 'Cobrança excluída com sucesso',
+      data: result
+    });
   } catch (error) {
     handleAsaasError(error, res);
   }
