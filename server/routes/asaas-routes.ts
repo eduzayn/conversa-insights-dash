@@ -251,12 +251,18 @@ router.delete('/customers/:id', auth, async (req, res) => {
 
 // === ROTAS DE PAGAMENTOS ===
 
-// Estatísticas de pagamentos (DEVE VIR ANTES da rota /:id)
+// Estatísticas de pagamentos com filtros (DEVE VIR ANTES da rota /:id)
 router.get('/payments/stats', auth, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const validatedFilters = paymentFiltersSchema.parse(req.query);
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
-    const stats = await asaas.getPaymentStats(startDate as string, endDate as string);
+    const stats = await asaas.getPaymentStats(
+      validatedFilters.startDate,
+      validatedFilters.endDate,
+      validatedFilters.status,
+      validatedFilters.billingType,
+      validatedFilters.search
+    );
     res.json(stats);
   } catch (error) {
     handleAsaasError(error, res);

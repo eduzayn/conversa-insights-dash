@@ -390,23 +390,60 @@ export class UnifiedAsaasService {
   }
 
   /**
-   * Busca estatísticas de pagamentos
+   * Busca estatísticas de pagamentos com filtros dinâmicos
    */
-  async getPaymentStats(startDate?: string, endDate?: string): Promise<any> {
+  async getPaymentStats(startDate?: string, endDate?: string, status?: string, billingType?: string, search?: string): Promise<any> {
     try {
       const filters: PaymentFilters = {
         limit: 100,
         offset: 0
       };
+      
+      // Aplicar filtros de data
       if (startDate) filters.dateCreatedGe = startDate;
       if (endDate) filters.dateCreatedLe = endDate;
+      
+      // Aplicar filtros de status e tipo
+      if (status && status !== 'all') filters.status = status;
+      if (billingType && billingType !== 'all') filters.billingType = billingType;
 
-      // Usar chamada direta à API para obter todos os pagamentos
-      const response = await this.api.get('/payments', { params: filters });
-      const payments = response.data.data || [];
+      // Buscar todos os pagamentos que atendem aos filtros
+      let allPayments: any[] = [];
+      let hasMore = true;
+      let offset = 0;
 
+      while (hasMore) {
+        filters.offset = offset;
+        const response = await this.api.get('/payments', { params: filters });
+        
+        let payments = response.data.data || [];
+        
+        // Aplicar filtro de busca no frontend se necessário
+        if (search && search.trim()) {
+          payments = payments.filter((payment: any) => {
+            const searchLower = search.toLowerCase();
+            return (
+              payment.id?.toLowerCase().includes(searchLower) ||
+              payment.description?.toLowerCase().includes(searchLower) ||
+              payment.customer?.toLowerCase().includes(searchLower)
+            );
+          });
+        }
+        
+        allPayments = allPayments.concat(payments);
+        hasMore = response.data.hasMore || false;
+        offset += 100;
+
+        // Limite de segurança
+        if (offset > 1000) {
+          console.warn('[Asaas Stats] Limite de 1.000 registros atingido para estatísticas');
+          break;
+        }
+      }
+
+      // Calcular estatísticas baseadas nos resultados filtrados
       const stats = {
-        total: { count: payments.length, value: 0 },
+        total: { count: allPayments.length, value: 0 },
         pending: { count: 0, value: 0 },
         confirmed: { count: 0, value: 0 },
         overdue: { count: 0, value: 0 },
@@ -414,7 +451,7 @@ export class UnifiedAsaasService {
         byBillingType: {} as Record<string, { count: number; value: number }>
       };
 
-      payments.forEach((payment: any) => {
+      allPayments.forEach((payment: any) => {
         const value = parseFloat(payment.value) || 0;
         stats.total.value += value;
 
@@ -450,8 +487,8 @@ export class UnifiedAsaasService {
 
       return {
         ...stats,
-        totalCount: response.data.totalCount || 0,
-        hasMore: response.data.hasMore || false
+        totalCount: allPayments.length,
+        hasMore: false
       };
     } catch (error: any) {
       throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao buscar estatísticas');

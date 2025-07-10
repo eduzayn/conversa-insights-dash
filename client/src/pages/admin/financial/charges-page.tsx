@@ -144,10 +144,20 @@ const ChargesPage: React.FC = () => {
     enabled: true
   });
 
-  // Query para estatísticas
+  // Query para estatísticas com filtros dinâmicos
   const { data: stats, isLoading: isLoadingStats, error: statsError } = useQuery({
-    queryKey: ['/api/asaas/payments/stats'],
-    queryFn: () => apiRequest('/api/asaas/payments/stats'),
+    queryKey: ['/api/asaas/payments/stats', statusFilter, billingTypeFilter, searchTerm, startDate, endDate],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        ...(statusFilter && statusFilter !== 'all' && { status: statusFilter }),
+        ...(billingTypeFilter && billingTypeFilter !== 'all' && { billingType: billingTypeFilter }),
+        ...(searchTerm && { search: searchTerm }),
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate })
+      });
+
+      return apiRequest(`/api/asaas/payments/stats?${params}`);
+    },
     retry: false,
     enabled: true
   });
@@ -399,64 +409,64 @@ const ChargesPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Cards de estatísticas */}
+      {/* Cards de estatísticas dinâmicas */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-600">
                 Total de Cobranças
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-5 w-5 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total?.count || 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-gray-900">{stats.total?.count || 0}</div>
+              <p className="text-sm text-gray-500 mt-1">
                 {formatCurrency(stats.total?.value || 0)}
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-l-4 border-l-yellow-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Pendentes
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Aguardando Pagamento
               </CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <Clock className="h-5 w-5 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pending?.count || 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-gray-900">{stats.pending?.count || 0}</div>
+              <p className="text-sm text-gray-500 mt-1">
                 {formatCurrency(stats.pending?.value || 0)}
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-l-4 border-l-green-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-600">
                 Confirmadas
               </CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.confirmed?.count || 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-gray-900">{stats.confirmed?.count || 0}</div>
+              <p className="text-sm text-gray-500 mt-1">
                 {formatCurrency(stats.confirmed?.value || 0)}
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-l-4 border-l-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-600">
                 Vencidas
               </CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
+              <XCircle className="h-5 w-5 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.overdue?.count || 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-gray-900">{stats.overdue?.count || 0}</div>
+              <p className="text-sm text-gray-500 mt-1">
                 {formatCurrency(stats.overdue?.value || 0)}
               </p>
             </CardContent>
