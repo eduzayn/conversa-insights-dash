@@ -3568,5 +3568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Importar e usar rotas do Asaas
+  const { asaasRoutes } = await import('./routes/asaas-routes.js');
+  app.use('/api/asaas', asaasRoutes);
+
   return httpServer;
 }
