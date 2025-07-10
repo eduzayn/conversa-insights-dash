@@ -21,10 +21,10 @@ interface AsaasPayment {
 export default function Cobrancas() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Buscar dados reais das cobranças do Asaas
+  // Buscar dados reais das cobranças do Asaas (DESABILITADA para não consumir cota automaticamente)
   const { data: paymentsData = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin/asaas/payments'],
-    enabled: true
+    enabled: false // Desabilita execução automática - só executa quando clicar em "Sincronizar"
   });
 
   const handleRefresh = () => {
@@ -99,8 +99,21 @@ export default function Cobrancas() {
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Erro ao conectar com a API do Asaas. Verifique suas credenciais e tente novamente.
-            {error.message && ` (${error.message})`}
+            {error.message?.includes('429') || error.message?.includes('cota') ? 
+              'Cota de requisições da API Asaas esgotada. Aguarde alguns minutos e tente novamente.' :
+              `Erro ao conectar com a API do Asaas. Verifique suas credenciais e tente novamente. ${error.message ? `(${error.message})` : ''}`
+            }
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Aviso sobre uso de dados reais */}
+      {!error && !isLoading && Array.isArray(paymentsData) && paymentsData.length === 0 && (
+        <Alert className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Clique em "Sincronizar com Asaas" para carregar as cobranças reais da sua conta. 
+            O sistema usa exclusivamente dados reais da API do Asaas.
           </AlertDescription>
         </Alert>
       )}

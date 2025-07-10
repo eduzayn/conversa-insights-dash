@@ -77,13 +77,14 @@ export default function IntegracaoAsaas() {
   // Estado para busca
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Query para status da conexão
+  // Query para status da conexão (DESABILITADA para não consumir cota automaticamente)
   const { data: connectionStatus, refetch: refetchConnection } = useQuery({
     queryKey: ['/api/admin/asaas/status'],
     queryFn: () => apiRequest('/api/admin/asaas/status'),
+    enabled: false, // Desabilita execução automática
   });
 
-  // Query para pagamentos do Asaas com filtros
+  // Query para pagamentos do Asaas com filtros (DESABILITADA para não consumir cota automaticamente)
   const { data: paymentsData, isLoading: loadingPayments, refetch: refetchPayments } = useQuery({
     queryKey: ['/api/admin/asaas/payments', filters],
     queryFn: () => apiRequest('/api/admin/asaas/payments', {
@@ -92,6 +93,7 @@ export default function IntegracaoAsaas() {
         Object.entries(filters).filter(([_, value]) => value && value !== 'all')
       )
     }),
+    enabled: false, // Desabilita execução automática
     refetchOnWindowFocus: false,
   });
 
