@@ -395,6 +395,55 @@ export const studentCards = pgTable("student_cards", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ===== CACHE DE COBRANÇAS ASAAS =====
+
+// Tabela para cache das cobranças sincronizadas do Asaas
+export const asaasPayments = pgTable("asaas_payments", {
+  id: serial("id").primaryKey(),
+  asaasId: text("asaas_id").notNull().unique(), // ID da cobrança no Asaas
+  customerId: text("customer_id").notNull(), // ID do cliente no Asaas
+  value: integer("value").notNull(), // valor em centavos
+  description: text("description"),
+  billingType: text("billing_type").notNull(), // PIX, BOLETO, CREDIT_CARD
+  status: text("status").notNull(), // PENDING, RECEIVED, OVERDUE, etc.
+  dueDate: timestamp("due_date").notNull(),
+  dateCreated: timestamp("date_created").notNull(),
+  confirmedDate: timestamp("confirmed_date"),
+  paymentDate: timestamp("payment_date"),
+  clientPaymentDate: timestamp("client_payment_date"),
+  invoiceUrl: text("invoice_url"),
+  bankSlipUrl: text("bank_slip_url"),
+  paymentUrl: text("payment_url"),
+  pixTransaction: text("pix_transaction"),
+  externalReference: text("external_reference"),
+  installmentNumber: integer("installment_number"),
+  invoiceNumber: text("invoice_number"),
+  netValue: integer("net_value"), // valor líquido em centavos
+  originalValue: integer("original_value"), // valor original em centavos
+  interestValue: integer("interest_value"), // juros em centavos
+  // Cache dos dados do cliente
+  customerName: text("customer_name"),
+  customerEmail: text("customer_email"),
+  customerCpfCnpj: text("customer_cpf_cnpj"),
+  customerPhone: text("customer_phone"),
+  customerMobilePhone: text("customer_mobile_phone"),
+  // Metadados de sincronização
+  lastSyncAt: timestamp("last_sync_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para controle de sincronização
+export const asaasSyncControl = pgTable("asaas_sync_control", {
+  id: serial("id").primaryKey(),
+  lastSyncDate: timestamp("last_sync_date").notNull(),
+  totalPayments: integer("total_payments").default(0),
+  syncedPayments: integer("synced_payments").default(0),
+  errorCount: integer("error_count").default(0),
+  status: text("status").notNull().default("completed"), // running, completed, error
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // ===== TABELAS DO PORTAL DO PROFESSOR =====
 
 // Disciplinas que os professores podem ministrar
@@ -484,6 +533,15 @@ export const evaluationSubmissions = pgTable("evaluation_submissions", {
   finalizadaEm: timestamp("finalizada_em"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Tipos para as tabelas de cache Asaas
+export const insertAsaasPaymentSchema = createInsertSchema(asaasPayments);
+export const insertAsaasSyncControlSchema = createInsertSchema(asaasSyncControl);
+
+export type AsaasPayment = typeof asaasPayments.$inferSelect;
+export type InsertAsaasPayment = z.infer<typeof insertAsaasPaymentSchema>;
+export type AsaasSyncControl = typeof asaasSyncControl.$inferSelect;
+export type InsertAsaasSyncControl = z.infer<typeof insertAsaasSyncControlSchema>;
 
 // Relações
 export const usersRelations = relations(users, ({ many, one }) => ({

@@ -82,10 +82,16 @@ import {
   type EvaluationQuestion,
   type InsertEvaluationQuestion,
   type EvaluationSubmission,
-  type InsertEvaluationSubmission
+  type InsertEvaluationSubmission,
+  asaasPayments,
+  asaasSyncControl,
+  type AsaasPayment,
+  type InsertAsaasPayment,
+  type AsaasSyncControl,
+  type InsertAsaasSyncControl
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, count } from "drizzle-orm";
+import { eq, and, desc, asc, like, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -237,6 +243,20 @@ export interface IStorage {
   updateSimplifiedEnrollment(id: number, enrollment: Partial<SimplifiedEnrollment>): Promise<SimplifiedEnrollment>;
   deleteSimplifiedEnrollment(id: number): Promise<void>;
   getSimplifiedEnrollmentById(id: number): Promise<SimplifiedEnrollment | null>;
+
+  // Cache de Cobranças Asaas com Paginação
+  getCachedAsaasPayments(filters?: {
+    status?: string;
+    customerName?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ payments: AsaasPayment[]; total: number }>;
+  cacheAsaasPayment(payment: InsertAsaasPayment): Promise<AsaasPayment>;
+  updateCachedAsaasPayment(asaasId: string, payment: Partial<AsaasPayment>): Promise<AsaasPayment | undefined>;
+  getLastSyncDate(): Promise<Date | null>;
+  createSyncControl(syncData: InsertAsaasSyncControl): Promise<AsaasSyncControl>;
+  updateSyncControl(id: number, syncData: Partial<AsaasSyncControl>): Promise<AsaasSyncControl | undefined>;
+  bulkUpsertAsaasPayments(payments: InsertAsaasPayment[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1386,6 +1406,144 @@ export class DatabaseStorage implements IStorage {
       .where(eq(simplifiedEnrollments.id, id))
       .limit(1);
     return enrollment || null;
+  }
+
+  // Cache de Cobranças Asaas com Paginação
+  async getCachedAsaasPayments(filters?: {
+    status?: string;
+    customerName?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ payments: AsaasPayment[]; total: number }> {
+    const { status, customerName, limit = 50, offset = 0 } = filters || {};
+    
+    // Construir condições de filtro
+    const conditions = [];
+    if (status && status !== 'all') {
+      conditions.push(eq(asaasPayments.status, status));
+    }
+    if (customerName) {
+      conditions.push(like(asaasPayments.customerName, `%${customerName}%`));
+    }
+    
+    // Query para buscar dados
+    let paymentsQuery = db.select().from(asaasPayments);
+    if (conditions.length > 0) {
+      paymentsQuery = paymentsQuery.where(and(...conditions));
+    }
+    
+    // Query para contar total
+    let countQuery = db.select({ count: count() }).from(asaasPayments);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
+    }
+    
+    // Buscar dados com paginação
+    const [payments, totalResult] = await Promise.all([
+      paymentsQuery.orderBy(desc(asaasPayments.dateCreated)).limit(limit).offset(offset),
+      countQuery
+    ]);
+    
+    return {
+      payments,
+      total: totalResult[0]?.count || 0
+    };
+  }
+
+  async cacheAsaasPayment(payment: InsertAsaasPayment): Promise<AsaasPayment> {
+    const [cachedPayment] = await db
+      .insert(asaasPayments)
+      .values({
+        ...payment,
+        lastSyncAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: asaasPayments.asaasId,
+        set: {
+          ...payment,
+          lastSyncAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return cachedPayment;
+  }
+
+  async updateCachedAsaasPayment(asaasId: string, payment: Partial<AsaasPayment>): Promise<AsaasPayment | undefined> {
+    const [updatedPayment] = await db
+      .update(asaasPayments)
+      .set({
+        ...payment,
+        lastSyncAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(asaasPayments.asaasId, asaasId))
+      .returning();
+    return updatedPayment || undefined;
+  }
+
+  async getLastSyncDate(): Promise<Date | null> {
+    const [lastSync] = await db
+      .select({ lastSyncDate: asaasSyncControl.lastSyncDate })
+      .from(asaasSyncControl)
+      .orderBy(desc(asaasSyncControl.createdAt))
+      .limit(1);
+    return lastSync?.lastSyncDate || null;
+  }
+
+  async createSyncControl(syncData: InsertAsaasSyncControl): Promise<AsaasSyncControl> {
+    const [newSync] = await db
+      .insert(asaasSyncControl)
+      .values({
+        ...syncData,
+        createdAt: new Date(),
+      })
+      .returning();
+    return newSync;
+  }
+
+  async updateSyncControl(id: number, syncData: Partial<AsaasSyncControl>): Promise<AsaasSyncControl | undefined> {
+    const [updatedSync] = await db
+      .update(asaasSyncControl)
+      .set(syncData)
+      .where(eq(asaasSyncControl.id, id))
+      .returning();
+    return updatedSync || undefined;
+  }
+
+  async bulkUpsertAsaasPayments(payments: InsertAsaasPayment[]): Promise<void> {
+    if (payments.length === 0) return;
+    
+    const now = new Date();
+    const paymentsWithTimestamps = payments.map(payment => ({
+      ...payment,
+      lastSyncAt: now,
+      createdAt: now,
+      updatedAt: now,
+    }));
+
+    await db
+      .insert(asaasPayments)
+      .values(paymentsWithTimestamps)
+      .onConflictDoUpdate({
+        target: asaasPayments.asaasId,
+        set: {
+          value: sql`excluded.value`,
+          status: sql`excluded.status`,
+          confirmedDate: sql`excluded.confirmed_date`,
+          paymentDate: sql`excluded.payment_date`,
+          clientPaymentDate: sql`excluded.client_payment_date`,
+          customerName: sql`excluded.customer_name`,
+          customerEmail: sql`excluded.customer_email`,
+          customerCpfCnpj: sql`excluded.customer_cpf_cnpj`,
+          customerPhone: sql`excluded.customer_phone`,
+          customerMobilePhone: sql`excluded.customer_mobile_phone`,
+          lastSyncAt: now,
+          updatedAt: now,
+        },
+      });
   }
 }
 
