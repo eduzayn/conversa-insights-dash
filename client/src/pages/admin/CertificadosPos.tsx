@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, Filter, Download, Eye, FileText, 
   User, GraduationCap, Calendar, Award, Settings, Printer,
-  CheckCircle, Clock, XCircle, AlertCircle, ArrowLeft
+  CheckCircle, Clock, XCircle, AlertCircle, ArrowLeft, Edit
 } from 'lucide-react';
 
 // Tipos baseados no schema atualizado
@@ -106,6 +106,7 @@ const CertificadosPos = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<CertificateTemplate | null>(null);
   const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false);
   const [isViewTemplateModalOpen, setIsViewTemplateModalOpen] = useState(false);
+  const [isEditTemplateModalOpen, setIsEditTemplateModalOpen] = useState(false);
   const [templateSearchTerm, setTemplateSearchTerm] = useState('');
   const [templateCategoriaFilter, setTemplateCategoriaFilter] = useState<string>('all');
   const [templateTipoFilter, setTemplateTipoFilter] = useState<string>('all');
@@ -265,7 +266,7 @@ const CertificadosPos = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/certificate-templates'] });
-      setIsViewTemplateModalOpen(false);
+      setIsEditTemplateModalOpen(false);
       toast({ title: 'Sucesso', description: 'Modelo de certificado atualizado com sucesso' });
     },
     onError: () => {
@@ -1090,10 +1091,20 @@ const CertificadosPos = () => {
                                 setSelectedTemplate(template);
                                 setIsViewTemplateModalOpen(true);
                               }}
-                              className="flex-1"
+                              title="Ver detalhes"
                             >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Ver
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedTemplate(template);
+                                setIsEditTemplateModalOpen(true);
+                              }}
+                              title="Editar modelo"
+                            >
+                              <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               size="sm"
@@ -1106,7 +1117,12 @@ const CertificadosPos = () => {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => deleteTemplateMutation.mutate(template.id)}
+                              onClick={() => {
+                                if (confirm(`Tem certeza que deseja excluir o modelo "${template.nome}"?`)) {
+                                  deleteTemplateMutation.mutate(template.id);
+                                }
+                              }}
+                              title="Excluir modelo"
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>
@@ -1540,6 +1556,229 @@ const CertificadosPos = () => {
           </Dialog>
 
         </TabsContent>
+
+        {/* Modal de Edição de Modelo */}
+        <Dialog open={isEditTemplateModalOpen} onOpenChange={setIsEditTemplateModalOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit className="h-5 w-5" />
+                Editar Modelo de Certificado
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedTemplate && (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const data = {
+                  nome: formData.get('nome') as string,
+                  categoria: formData.get('categoria') as string,
+                  tipo: formData.get('tipo') as string,
+                  htmlTemplate: formData.get('htmlTemplate') as string,
+                  templateVerso: formData.get('templateVerso') as string,
+                  orientation: formData.get('orientation') as string,
+                  variaveis: JSON.parse(formData.get('variaveis') as string || '[]'),
+                  instituicaoNome: formData.get('instituicaoNome') as string,
+                  instituicaoEndereco: formData.get('instituicaoEndereco') as string,
+                  instituicaoLogo: formData.get('instituicaoLogo') as string,
+                  assinaturaDigital1: formData.get('assinaturaDigital1') as string,
+                  assinaturaDigital2: formData.get('assinaturaDigital2') as string,
+                  textoLegal: formData.get('textoLegal') as string,
+                  qrCodePosition: formData.get('qrCodePosition') as string,
+                  isActive: formData.get('isActive') === 'on'
+                };
+                updateTemplateMutation.mutate({ id: selectedTemplate.id, data });
+              }}>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="nome">Nome do Modelo *</Label>
+                      <Input name="nome" required placeholder="Ex: Certificado Pós-Graduação Padrão" 
+                        defaultValue={selectedTemplate.nome} />
+                    </div>
+                    <div>
+                      <Label htmlFor="categoria">Categoria *</Label>
+                      <Select name="categoria" required defaultValue={selectedTemplate.categoria}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
+                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="tipo">Tipo *</Label>
+                      <Select name="tipo" required defaultValue={selectedTemplate.tipo}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="certificado">Certificado</SelectItem>
+                          <SelectItem value="diploma">Diploma</SelectItem>
+                          <SelectItem value="declaracao">Declaração</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="instituicaoNome">Nome da Instituição *</Label>
+                      <Input name="instituicaoNome" required placeholder="Ex: Universidade XYZ" 
+                        defaultValue={selectedTemplate.instituicaoNome} />
+                    </div>
+                    <div>
+                      <Label htmlFor="orientation">Orientação do Certificado *</Label>
+                      <Select name="orientation" required defaultValue="landscape">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Orientação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="portrait">Retrato (Vertical)</SelectItem>
+                          <SelectItem value="landscape">Paisagem (Horizontal)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="qrCodePosition">Posição do QR Code *</Label>
+                      <Select name="qrCodePosition" required defaultValue={selectedTemplate.qrCodePosition}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Posição do QR Code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="inferior_esquerdo">Inferior Esquerdo</SelectItem>
+                          <SelectItem value="inferior_direito">Inferior Direito</SelectItem>
+                          <SelectItem value="superior_esquerdo">Superior Esquerdo</SelectItem>
+                          <SelectItem value="superior_direito">Superior Direito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instituicaoEndereco">Endereço da Instituição</Label>
+                    <Input name="instituicaoEndereco" placeholder="Rua, número, cidade, estado" 
+                      defaultValue={selectedTemplate.instituicaoEndereco || ''} />
+                  </div>
+
+                  {/* Sistema de Abas para Template HTML */}
+                  <div className="space-y-4">
+                    <Label className="text-lg font-semibold">Templates HTML *</Label>
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex space-x-1 mb-4">
+                        <button
+                          type="button"
+                          className="px-3 py-1 text-sm font-medium rounded-md bg-blue-600 text-white"
+                          onClick={() => document.getElementById('edit-tab-frente')?.scrollIntoView()}
+                        >
+                          Frente (Certificado)
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1 text-sm font-medium rounded-md bg-orange-600 text-white"
+                          onClick={() => document.getElementById('edit-tab-verso')?.scrollIntoView()}
+                        >
+                          Verso (Histórico)
+                        </button>
+                      </div>
+                      
+                      <div id="edit-tab-frente" className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                          <Label htmlFor="htmlTemplate" className="font-medium">Template HTML - Frente do Certificado *</Label>
+                        </div>
+                        <Textarea
+                          name="htmlTemplate"
+                          required
+                          className="min-h-32 bg-white"
+                          placeholder="Cole aqui o código HTML da frente do certificado..."
+                          defaultValue={selectedTemplate.htmlTemplate}
+                        />
+                      </div>
+                      
+                      <div id="edit-tab-verso" className="space-y-3 mt-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
+                          <Label htmlFor="templateVerso" className="font-medium">Template HTML - Verso do Certificado (Histórico) *</Label>
+                        </div>
+                        <Textarea
+                          name="templateVerso"
+                          required
+                          className="min-h-32 bg-white"
+                          placeholder="Cole aqui o código HTML do verso do certificado (histórico escolar completo)..."
+                          defaultValue={selectedTemplate.templateVerso}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="textoLegal">Texto Legal *</Label>
+                    <Textarea
+                      name="textoLegal"
+                      required
+                      placeholder="Texto legal para validação do certificado..."
+                      defaultValue={selectedTemplate.textoLegal}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="variaveis">Variáveis do Template (JSON)</Label>
+                    <Textarea
+                      name="variaveis"
+                      placeholder='[{"nome": "nomeAluno", "tipo": "texto"}, {"nome": "nomeCurso", "tipo": "texto"}]'
+                      className="min-h-20"
+                      defaultValue={JSON.stringify(selectedTemplate.variaveis || [], null, 2)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="assinaturaDigital1">URL Assinatura Digital 1</Label>
+                      <Input name="assinaturaDigital1" placeholder="https://..." 
+                        defaultValue={selectedTemplate.assinaturaDigital1 || ''} />
+                    </div>
+                    <div>
+                      <Label htmlFor="assinaturaDigital2">URL Assinatura Digital 2</Label>
+                      <Input name="assinaturaDigital2" placeholder="https://..." 
+                        defaultValue={selectedTemplate.assinaturaDigital2 || ''} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instituicaoLogo">URL da Logo da Instituição</Label>
+                    <Input name="instituicaoLogo" placeholder="https://exemplo.com/logo.png" 
+                      defaultValue={selectedTemplate.instituicaoLogo || ''} />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      name="isActive" 
+                      defaultChecked={selectedTemplate.isActive}
+                      className="rounded"
+                    />
+                    <Label htmlFor="isActive">Modelo ativo (disponível para uso)</Label>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditTemplateModalOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={updateTemplateMutation.isPending}>
+                      {updateTemplateMutation.isPending ? 'Atualizando...' : 'Atualizar Modelo'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
       </Tabs>
     </div>
   );
