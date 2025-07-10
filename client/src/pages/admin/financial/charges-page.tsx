@@ -126,6 +126,11 @@ const ChargesPage: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Forçar scroll ao topo quando a página carregar
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Query para buscar cobranças do Asaas
   const { data: paymentsData, isLoading: isLoadingPayments, refetch: refetchPayments, error: paymentsError } = useQuery({
     queryKey: ['/api/asaas/payments', currentPage, statusFilter, billingTypeFilter, searchTerm, startDate, endDate],
