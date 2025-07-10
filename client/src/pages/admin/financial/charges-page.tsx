@@ -1,40 +1,20 @@
-// client/src/pages/admin/financial/charges-page.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  AlertCircle,
-  Check,
-  CreditCard,
-  FileText,
-  Plus,
-  Search,
-  Download,
+  ArrowLeft,
+  Settings,
   RefreshCw,
   Loader2,
-  ArrowUpDown,
-  Calendar as CalendarIcon,
-  Filter,
-  ChevronRight,
-  ChevronLeft,
-  BarChart3,
-  TrendingUp,
-  Users,
-  DollarSign,
-  Clock,
+  AlertCircle,
   CheckCircle,
-  XCircle,
+  Filter,
   Eye,
-  RotateCcw,
-  Settings,
-  Mail,
-  MessageSquare,
-  X,
-  Edit,
   Copy,
-  Files,
-  Send
+  Send,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -55,7 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -117,7 +97,8 @@ const ChargesPage: React.FC = () => {
   const [itemsPerPage] = useState(20);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [activeTab, setActiveTab] = useState('payments');
 
   // Query para testar conexão
@@ -285,7 +266,7 @@ const ChargesPage: React.FC = () => {
           onClick={() => window.history.back()}
           className="flex items-center gap-2"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           Voltar ao Dashboard
         </Button>
       </div>
@@ -338,7 +319,7 @@ const ChargesPage: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="payments">Pagamentos</TabsTrigger>
           <TabsTrigger value="create">Criar Cobrança</TabsTrigger>
           <TabsTrigger value="enrollments">Teste Matrícula</TabsTrigger>
@@ -388,7 +369,8 @@ const ChargesPage: React.FC = () => {
                   <Input
                     type="date"
                     placeholder="dd/mm/aaaa"
-                    onChange={(e) => setDateFilter(e.target.value)}
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
                   />
                 </div>
 
@@ -397,6 +379,8 @@ const ChargesPage: React.FC = () => {
                   <Input
                     type="date"
                     placeholder="dd/mm/aaaa"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
                   />
                 </div>
               </div>
