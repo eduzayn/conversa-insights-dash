@@ -17,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 // Configuração do serviço Asaas
 const asaasService = new UnifiedAsaasService({
   baseURL: 'https://api.asaas.com/v3',
-  apiKey: process.env.ASAAS_API_KEY || '$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDk5OTQ1ODg6OiRhYWNoXzc5ZGVhYzMzLTFhNDctNDE1My1hODI5LTZlY2Q3ZGE4MmMzYQ=='
+  apiKey: process.env.ASAAS_API_KEY!
 });
 
 // Middleware para validar JWT
