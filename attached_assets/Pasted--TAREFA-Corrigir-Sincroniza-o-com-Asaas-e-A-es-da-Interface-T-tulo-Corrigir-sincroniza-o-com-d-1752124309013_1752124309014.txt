@@ -1,0 +1,70 @@
+ TAREFA – Corrigir Sincronização com Asaas e Ações da Interface
+Título: Corrigir sincronização com dados reais do Asaas e ativar ações diretamente pela interface (sem dados mockados)
+
+🎯 Objetivo
+Corrigir a sincronização de cobranças com o Asaas garantindo que os dados exibidos na interface sejam reais e usáveis. Ativar os botões de ação (visualizar, copiar, editar, enviar, excluir) para funcionarem de forma nativa pela interface.
+
+📌 Problemas atuais
+Nomes de cliente, valores e IDs não são reais
+
+Está aparecendo “Cliente não encontrado” e valores genéricos como R$ 10.990,00.
+
+O ID de cobrança também parece estar sendo gerado localmente, e não vindo do Asaas.
+
+Campo “Líquido” aparece como NaN.
+
+Ações dos botões não funcionam
+
+Os botões de ação na coluna “Ações” (olho, lápis, cópia, link, envio, X) não executam nada ou estão quebrados.
+
+Esses botões precisam ser conectados às rotas da API do Asaas para que a ação (ex: envio de cobrança, edição, cancelamento, etc.) funcione diretamente pela interface.
+
+🛠 O que precisa ser feito
+1. Corrigir dados da sincronização
+Verificar se a API Key e o token estão corretos.
+
+Garantir que o endpoint usado para listar as cobranças esteja realmente puxando as cobranças reais do Asaas da conta conectada.
+
+Para cada cobrança, salvar/exibir corretamente:
+
+customer.name
+
+customer.email
+
+amount
+
+dueDate
+
+paymentLink
+
+status (em português: “Pendente”, “Pago”, “Cancelado” etc.)
+
+netValue no campo “Líquido”
+
+2. Ativar os botões de ação
+Conectar os botões existentes da interface às funcionalidades da API do Asaas:
+
+Botão (ícone)	Ação Esperada
+👁️ Visualizar	Abrir modal com detalhes completos da cobrança
+✏️ Editar	Abrir modal para editar dados permitidos pela API (antes do pagamento)
+📋 Copiar	Copiar o link de pagamento (campo invoiceUrl ou bankSlipUrl)
+🔗 Link	Abrir cobrança em nova aba com link de pagamento
+📤 Enviar	Disparar envio da cobrança por e-mail ou WhatsApp (usando rota do Asaas)
+❌ Excluir	Cancelar cobrança via endpoint do Asaas (se status permitir)
+
+📌 Observações Técnicas
+Todas as ações devem respeitar o status da cobrança (por exemplo, não pode cancelar uma já paga).
+
+O sistema não pode usar dados simulados (mock) na interface.
+
+A sincronização precisa usar os dados reais do ambiente de produção da conta Asaas conectada.
+
+✅ Resultado Esperado
+A sincronização traz dados reais de clientes e cobranças da conta Asaas.
+
+Os botões de ação funcionam diretamente via interface, sem precisar usar o painel externo do Asaas.
+
+O campo “Líquido” é exibido corretamente.
+
+O sistema para de regredir para dados falsos em novas atualizações.
+

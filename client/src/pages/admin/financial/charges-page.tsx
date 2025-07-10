@@ -62,6 +62,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Interfaces para tipagem do TypeScript
 interface AsaasPayment {
@@ -117,6 +124,8 @@ const ChargesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Query para buscar cobranças do Asaas
   const {
@@ -347,6 +356,33 @@ const ChargesPage: React.FC = () => {
       DEBIT_CARD: "Cartão de Débito",
     };
     return typeMap[type] || type;
+  };
+
+  // Função para visualizar detalhes da cobrança
+  const handleViewDetails = async (payment: AsaasPayment) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/asaas/payments/${payment.id}/details`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setSelectedPayment(result.payment);
+        setShowDetailsModal(true);
+      } else {
+        throw new Error("Erro ao carregar detalhes da cobrança");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar detalhes da cobrança",
+        variant: "destructive",
+      });
+    }
   };
 
   // Função para cancelar cobrança
@@ -839,10 +875,8 @@ const ChargesPage: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() =>
-                                  console.log("Editar cobrança", payment.id)
-                                }
-                                title="Editar cobrança"
+                                onClick={() => handleViewDetails(payment)}
+                                title="Ver/Editar cobrança"
                                 className="h-8 w-8 p-0 text-gray-600 hover:text-gray-800"
                               >
                                 <Edit className="w-4 h-4" />
@@ -1087,6 +1121,150 @@ const ChargesPage: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Detalhes da Cobrança */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Cobrança</DialogTitle>
+            <DialogDescription>
+              Visualize e gerencie os detalhes completos da cobrança
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPayment && (
+            <div className="space-y-6">
+              {/* Informações Básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">ID da Cobrança</label>
+                  <p className="text-sm bg-gray-100 p-2 rounded font-mono">
+                    {selectedPayment.id}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <Badge 
+                    variant="outline" 
+                    className={getStatusColor(selectedPayment.status)}
+                  >
+                    {getStatusText(selectedPayment.status)}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Valor</label>
+                  <p className="text-lg font-bold">
+                    {formatCurrency(selectedPayment.value)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Valor Líquido</label>
+                  <p className="text-lg font-semibold text-green-600">
+                    {formatCurrency(selectedPayment.netValue)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Informações do Cliente */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Dados do Cliente</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Nome</label>
+                    <p className="text-sm">{selectedPayment.customerName || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Email</label>
+                    <p className="text-sm">{selectedPayment.customerEmail || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">CPF/CNPJ</label>
+                    <p className="text-sm">{selectedPayment.customerCpfCnpj || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Telefone</label>
+                    <p className="text-sm">{selectedPayment.customerPhone || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detalhes da Cobrança */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Detalhes da Cobrança</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Descrição</label>
+                    <p className="text-sm">{selectedPayment.description || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Tipo de Cobrança</label>
+                    <Badge variant="outline" className={getBillingTypeColor(selectedPayment.billingType)}>
+                      {getBillingTypeText(selectedPayment.billingType)}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Data de Vencimento</label>
+                    <p className="text-sm">{formatDate(selectedPayment.dueDate)}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Data de Criação</label>
+                    <p className="text-sm">{formatDate(selectedPayment.dateCreated)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Links e Ações */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Links e Ações</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPayment.invoiceUrl && (
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(selectedPayment.invoiceUrl, '_blank')}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver Fatura
+                    </Button>
+                  )}
+                  {selectedPayment.invoiceUrl && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedPayment.invoiceUrl);
+                        toast({ title: "Link copiado!" });
+                      }}
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copiar Link
+                    </Button>
+                  )}
+                  {selectedPayment.status !== 'CONFIRMED' && selectedPayment.status !== 'CANCELLED' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleSendReminder(selectedPayment.id)}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar Lembrete
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          handleCancelCharge(selectedPayment.id);
+                          setShowDetailsModal(false);
+                        }}
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancelar Cobrança
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

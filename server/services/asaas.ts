@@ -496,7 +496,74 @@ export class AsaasService {
       };
     } catch (error: any) {
       console.error(`Erro ao cancelar pagamento ${paymentId}:`, error);
-      throw new Error(`Falha ao cancelar: ${error.response?.data?.errors?.[0]?.description || error.message}`);
+      return {
+        success: false,
+        message: error.response?.data?.errors?.[0]?.description || error.message
+      };
+    }
+  }
+
+  // Enviar lembrete de pagamento
+  async sendPaymentReminder(paymentId: string, type: 'email' | 'sms' | 'both' = 'email'): Promise<any> {
+    try {
+      console.log(`Enviando lembrete ${type} para pagamento: ${paymentId}`);
+      
+      let endpoint = `/payments/${paymentId}/paymentBook`;
+      
+      // Se for SMS ou ambos, usar endpoint específico
+      if (type === 'sms') {
+        endpoint = `/payments/${paymentId}/sendSMS`;
+      } else if (type === 'both') {
+        // Enviar email primeiro
+        await this.client.post(`/payments/${paymentId}/paymentBook`);
+        // Depois enviar SMS
+        endpoint = `/payments/${paymentId}/sendSMS`;
+      }
+      
+      const response = await this.client.post(endpoint);
+      
+      return {
+        success: true,
+        message: `Lembrete ${type} enviado com sucesso`,
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error(`Erro ao enviar lembrete ${type} para pagamento ${paymentId}:`, error);
+      return {
+        success: false,
+        message: error.response?.data?.errors?.[0]?.description || error.message
+      };
+    }
+  }
+
+  // Obter detalhes de um pagamento específico
+  async getPayment(paymentId: string): Promise<any> {
+    try {
+      console.log(`Buscando pagamento: ${paymentId}`);
+      
+      const response = await this.client.get(`/payments/${paymentId}`);
+      const payment = response.data;
+      
+      // Enriquecer com dados do cliente
+      let customerData = null;
+      if (payment.customer) {
+        try {
+          customerData = await this.getCustomer(payment.customer);
+        } catch (error) {
+          console.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
+        }
+      }
+      
+      return {
+        ...payment,
+        customerName: customerData?.name || payment.customer,
+        customerEmail: customerData?.email || '',
+        customerPhone: customerData?.phone || customerData?.mobilePhone || '',
+        customerCpfCnpj: customerData?.cpfCnpj || ''
+      };
+    } catch (error: any) {
+      console.error(`Erro ao buscar pagamento ${paymentId}:`, error);
+      return null;
     }
   }
 

@@ -3353,6 +3353,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== AÇÕES DE COBRANÇA ASAAS =====
+  
+  // Enviar lembrete de cobrança
+  app.post("/api/asaas/payments/:id/reminder", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      const { type = 'email' } = req.body;
+
+      const result = await asaasService.sendPaymentReminder(id, type);
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          message: `Lembrete enviado via ${type === 'both' ? 'email e SMS' : type} com sucesso`
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Erro ao enviar lembrete'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao enviar lembrete:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  });
+
+  // Cancelar cobrança
+  app.post("/api/asaas/payments/:id/cancel", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+
+      const result = await asaasService.cancelPayment(id);
+      
+      if (result.success) {
+        // Atualizar status no banco local
+        await storage.updatePaymentByExternalId(id, {
+          status: 'cancelled',
+          lastSyncedAt: new Date()
+        });
+
+        res.json({
+          success: true,
+          message: 'Cobrança cancelada com sucesso'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Erro ao cancelar cobrança'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao cancelar cobrança:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  });
+
+  // Obter detalhes completos da cobrança
+  app.get("/api/asaas/payments/:id/details", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+
+      const payment = await asaasService.getPayment(id);
+      
+      if (payment) {
+        res.json({
+          success: true,
+          payment
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Cobrança não encontrada'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao obter detalhes da cobrança:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  });
+
   // ===== WEBHOOK ASAAS =====
   // Endpoint para receber notificações do Asaas
   app.post("/api/webhooks/asaas", async (req, res) => {
@@ -3564,6 +3666,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(enrollment);
     } catch (error) {
       console.error('Erro ao buscar matrícula simplificada:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Detalhes de uma cobrança específica
+  app.get('/api/asaas/payments/:id/details', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const paymentId = req.params.id;
+      
+      // Buscar primeiro no banco local
+      const localPayments = await storage.getPaymentsWithUserData();
+      const localPayment = localPayments.find(p => 
+        p.externalId === paymentId || 
+        String(p.id) === paymentId ||
+        p.transactionId === paymentId
+      );
+
+      if (localPayment) {
+        res.json({ payment: localPayment });
+        return;
+      }
+
+      // Se não encontrou localmente, buscar no Asaas
+      try {
+        const { asaasService } = await import('./services/asaas');
+        const asaasPayment = await asaasService.getPaymentDetails(paymentId);
+        
+        if (asaasPayment) {
+          res.json({ payment: asaasPayment });
+        } else {
+          res.status(404).json({ error: 'Cobrança não encontrada' });
+        }
+      } catch (asaasError) {
+        console.error('Erro ao buscar detalhes no Asaas:', asaasError);
+        res.status(404).json({ error: 'Cobrança não encontrada' });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detalhes da cobrança:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Editar cobrança
+  app.put('/api/asaas/payments/:id', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const paymentId = req.params.id;
+      const { amount, dueDate, description } = req.body;
+
+      const { asaasService } = await import('./services/asaas');
+      
+      // Atualizar no Asaas
+      const updatedPayment = await asaasService.updatePayment(paymentId, {
+        value: amount,
+        dueDate,
+        description
+      });
+
+      // Atualizar no banco local
+      await storage.updatePaymentByExternalId(paymentId, {
+        amount: Math.round(amount * 100), // Converter para centavos
+        dueDate: new Date(dueDate),
+        description
+      });
+
+      res.json({ success: true, payment: updatedPayment });
+    } catch (error) {
+      console.error('Erro ao editar cobrança:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Enviar lembrete
+  app.post('/api/asaas/payments/:id/reminder', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const paymentId = req.params.id;
+      const { type = 'email' } = req.body;
+
+      const { asaasService } = await import('./services/asaas');
+      
+      const result = await asaasService.sendPaymentReminder(paymentId, type);
+      
+      res.json({ success: true, message: 'Lembrete enviado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao enviar lembrete:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Cancelar cobrança
+  app.post('/api/asaas/payments/:id/cancel', authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const paymentId = req.params.id;
+
+      const { asaasService } = await import('./services/asaas');
+      
+      const result = await asaasService.cancelPayment(paymentId);
+      
+      // Atualizar no banco local
+      await storage.updatePaymentByExternalId(paymentId, {
+        status: 'failed'
+      });
+
+      res.json({ success: true, message: 'Cobrança cancelada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao cancelar cobrança:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

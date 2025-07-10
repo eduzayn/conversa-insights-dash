@@ -1397,11 +1397,15 @@ export class DatabaseStorage implements IStorage {
         .where(eq(payments.externalId, asaasPayment.id))
         .limit(1);
 
+      // Converter valores decimais para centavos (multiplicar por 100)
+      const rawAmount = parseFloat(asaasPayment.value || asaasPayment.originalValue || '0');
+      const amountInCents = Math.round(rawAmount * 100);
+
       const paymentData = {
         tenantId: 1, // Tenant padrão
         userId: 1, // Usuário padrão para pagamentos importados
         courseId: null,
-        amount: asaasPayment.value || asaasPayment.originalValue || 0,
+        amount: amountInCents, // Valor em centavos
         status: this.mapAsaasStatus(asaasPayment.status),
         paymentMethod: asaasPayment.billingType?.toLowerCase() || 'unknown',
         transactionId: asaasPayment.id,
@@ -1412,7 +1416,7 @@ export class DatabaseStorage implements IStorage {
         customerName: asaasPayment.customer?.name || asaasPayment.customerName,
         customerEmail: asaasPayment.customer?.email || asaasPayment.customerEmail,
         billingType: asaasPayment.billingType,
-        value: asaasPayment.value || asaasPayment.originalValue || 0,
+        value: rawAmount, // Valor original em reais
         paidAt: asaasPayment.paymentDate ? new Date(asaasPayment.paymentDate) : null,
         lastSyncedAt: new Date(),
       };
@@ -1602,6 +1606,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(simplifiedEnrollments.id, id))
       .limit(1);
     return enrollment || null;
+  }
+
+  async updatePaymentByExternalId(externalId: string, updateData: any): Promise<any> {
+    try {
+      const existingPayment = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.externalId, externalId))
+        .limit(1);
+
+      if (existingPayment.length === 0) {
+        throw new Error(`Pagamento com external_id ${externalId} não encontrado`);
+      }
+
+      // Converter valores decimais para centavos se necessário
+      if (updateData.amount && typeof updateData.amount === 'string') {
+        updateData.amount = Math.round(parseFloat(updateData.amount) * 100);
+      }
+
+      const [updatedPayment] = await db
+        .update(payments)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+          lastSyncedAt: new Date()
+        })
+        .where(eq(payments.externalId, externalId))
+        .returning();
+
+      return updatedPayment;
+    } catch (error) {
+      console.error('Erro ao atualizar pagamento por external_id:', error);
+      throw error;
+    }
   }
 }
 
