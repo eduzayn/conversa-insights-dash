@@ -17,7 +17,8 @@ import {
   Kanban,
   Settings,
   Award,
-  CreditCard
+  CreditCard,
+  UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const menuItems = [
   { icon: Target, label: "Metas & Engajamento", path: "/metas" },
   { icon: Settings, label: "Integração BotConversa", path: "/integracao-botconversa" },
   { icon: CreditCard, label: "Integração Asaas", path: "/integracao-asaas" },
+  { icon: UserPlus, label: "Matrícula Simplificada", path: "/matricula-simplificada" },
 ];
 
 export const Sidebar = () => {

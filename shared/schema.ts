@@ -589,6 +589,57 @@ export const preRegisteredCoursesRelations = relations(preRegisteredCourses, ({ 
   enrollments: many(studentEnrollments),
 }));
 
+// Sistema de Matrícula Simplificada
+export const simplifiedEnrollments = pgTable('simplified_enrollments', {
+  id: serial('id').primaryKey(),
+  tenantId: integer('tenant_id').references(() => teams.id).notNull(), // Usando teams como tenants
+  courseId: integer('course_id').references(() => preRegisteredCourses.id).notNull(),
+  studentId: integer('student_id').references(() => users.id), // Nullable até criar usuário
+  studentName: text('student_name').notNull(),
+  studentEmail: text('student_email').notNull(),
+  studentCpf: text('student_cpf').notNull(),
+  studentPhone: text('student_phone'),
+  consultantId: integer('consultant_id').references(() => users.id).notNull(),
+  amount: integer('amount').notNull(), // Valor em centavos
+  installments: integer('installments').default(1).notNull(),
+  paymentMethod: text('payment_method').default('BOLETO').notNull(),
+  externalReference: text('external_reference'),
+  paymentUrl: text('payment_url'),
+  asaasCustomerId: text('asaas_customer_id'),
+  asaasPaymentId: text('asaas_payment_id'),
+  status: text('status').default('pending').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+});
+
+// Relações da matrícula simplificada
+export const simplifiedEnrollmentsRelations = relations(simplifiedEnrollments, ({ one }) => ({
+  tenant: one(teams, { fields: [simplifiedEnrollments.tenantId], references: [teams.id] }),
+  course: one(preRegisteredCourses, { fields: [simplifiedEnrollments.courseId], references: [preRegisteredCourses.id] }),
+  student: one(users, { fields: [simplifiedEnrollments.studentId], references: [users.id] }),
+  consultant: one(users, { fields: [simplifiedEnrollments.consultantId], references: [users.id] }),
+}));
+
+// Schemas Zod para validação
+export const insertSimplifiedEnrollmentSchema = createInsertSchema(simplifiedEnrollments)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    completedAt: true,
+    cancelledAt: true,
+    studentId: true,
+    asaasCustomerId: true,
+    asaasPaymentId: true,
+    paymentUrl: true,
+    externalReference: true,
+  });
+
+export type SimplifiedEnrollment = typeof simplifiedEnrollments.$inferSelect;
+export type InsertSimplifiedEnrollment = z.infer<typeof insertSimplifiedEnrollmentSchema>;
+
 // Relações do Portal do Professor
 export const subjectsRelations = relations(subjects, ({ many }) => ({
   professorSubjects: many(professorSubjects),

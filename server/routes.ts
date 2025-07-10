@@ -3105,5 +3105,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== ROTAS DO SISTEMA DE MATRÍCULA SIMPLIFICADA =====
+
+  // Listar matrículas simplificadas
+  app.get('/api/simplified-enrollments', authenticateToken, async (req: any, res) => {
+    try {
+      const tenantId = req.query.tenantId ? Number(req.query.tenantId) : undefined;
+      const enrollments = await storage.getSimplifiedEnrollments(tenantId);
+      res.json(enrollments);
+    } catch (error) {
+      console.error('Erro ao buscar matrículas simplificadas:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Criar nova matrícula simplificada
+  app.post('/api/simplified-enrollments', authenticateToken, async (req: any, res) => {
+    try {
+      const enrollmentData = insertSimplifiedEnrollmentSchema.parse(req.body);
+      
+      // Verificar se já existe usuário com este email
+      const existingUser = await storage.getUserByEmail(enrollmentData.studentEmail);
+      
+      // Criar matrícula
+      const enrollment = await storage.createSimplifiedEnrollment(enrollmentData);
+      
+      // Integração com Asaas
+      try {
+        const AsaasService = (await import('./services/asaas')).default;
+        
+        // Criar/recuperar cliente no Asaas
+        const customer = await AsaasService.createCustomer({
+          name: enrollmentData.studentName,
+          email: enrollmentData.studentEmail,
+          cpfCnpj: enrollmentData.studentCpf,
+          phone: enrollmentData.studentPhone,
+        });
+        
+        // Criar pagamento no Asaas
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 7); // 7 dias
+        
+        const asaasPayment = await AsaasService.createPayment({
+          customer: customer.id,
+          billingType: enrollmentData.paymentMethod.toUpperCase(),
+          value: enrollmentData.amount / 100, // Converter centavos para reais
+          dueDate: dueDate.toISOString().split('T')[0],
+          description: `Matrícula simplificada - ${enrollmentData.studentName}`,
+          externalReference: `simplified_enrollment_${enrollment.id}`,
+          installmentCount: enrollmentData.installments > 1 ? enrollmentData.installments : undefined,
+        });
+        
+        // Atualizar matrícula com dados do Asaas
+        await storage.updateSimplifiedEnrollment(enrollment.id, {
+          asaasCustomerId: customer.id,
+          asaasPaymentId: asaasPayment.id,
+          paymentUrl: asaasPayment.invoiceUrl,
+          externalReference: `simplified_enrollment_${enrollment.id}`,
+          status: 'waiting_payment',
+        });
+        
+        // Criar usuário se não existir
+        if (!existingUser) {
+          const newUser = await storage.createUser({
+            username: enrollmentData.studentEmail,
+            email: enrollmentData.studentEmail,
+            password: enrollmentData.studentCpf.replace(/\D/g, ''), // CPF como senha
+            role: 'student',
+            nome: enrollmentData.studentName,
+            cpf: enrollmentData.studentCpf,
+            telefone: enrollmentData.studentPhone,
+          });
+          
+          // Associar usuário à matrícula
+          await storage.updateSimplifiedEnrollment(enrollment.id, {
+            studentId: newUser.id,
+          });
+        } else {
+          // Associar usuário existente à matrícula
+          await storage.updateSimplifiedEnrollment(enrollment.id, {
+            studentId: existingUser.id,
+          });
+        }
+        
+        const updatedEnrollment = await storage.getSimplifiedEnrollmentById(enrollment.id);
+        res.json(updatedEnrollment);
+        
+      } catch (asaasError) {
+        console.error('Erro na integração com Asaas:', asaasError);
+        // Marcar como falha, mas não impedir a criação da matrícula
+        await storage.updateSimplifiedEnrollment(enrollment.id, {
+          status: 'failed',
+        });
+        res.status(500).json({ error: 'Erro na integração com gateway de pagamento' });
+      }
+    } catch (error) {
+      console.error('Erro ao criar matrícula simplificada:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Atualizar status de matrícula simplificada
+  app.patch('/api/simplified-enrollments/:id/status', authenticateToken, async (req: any, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!['pending', 'waiting_payment', 'payment_confirmed', 'completed', 'cancelled', 'failed'].includes(status)) {
+        return res.status(400).json({ error: 'Status inválido' });
+      }
+      
+      const enrollment = await storage.updateSimplifiedEnrollment(id, { status });
+      res.json(enrollment);
+    } catch (error) {
+      console.error('Erro ao atualizar status da matrícula:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Buscar matrícula simplificada por ID
+  app.get('/api/simplified-enrollments/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const id = Number(req.params.id);
+      const enrollment = await storage.getSimplifiedEnrollmentById(id);
+      
+      if (!enrollment) {
+        return res.status(404).json({ error: 'Matrícula não encontrada' });
+      }
+      
+      res.json(enrollment);
+    } catch (error) {
+      console.error('Erro ao buscar matrícula simplificada:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   return httpServer;
 }

@@ -227,6 +227,13 @@ export interface IStorage {
   getEvaluationSubmissions(evaluationId: number): Promise<EvaluationSubmission[]>;
   createEvaluationSubmission(submission: InsertEvaluationSubmission): Promise<EvaluationSubmission>;
   updateEvaluationSubmission(id: number, submission: Partial<EvaluationSubmission>): Promise<EvaluationSubmission | undefined>;
+
+  // Sistema de Matrícula Simplificada
+  getSimplifiedEnrollments(tenantId?: number): Promise<SimplifiedEnrollment[]>;
+  createSimplifiedEnrollment(enrollment: InsertSimplifiedEnrollment): Promise<SimplifiedEnrollment>;
+  updateSimplifiedEnrollment(id: number, enrollment: Partial<SimplifiedEnrollment>): Promise<SimplifiedEnrollment>;
+  deleteSimplifiedEnrollment(id: number): Promise<void>;
+  getSimplifiedEnrollmentById(id: number): Promise<SimplifiedEnrollment | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1318,6 +1325,64 @@ export class DatabaseStorage implements IStorage {
       .where(eq(preRegisteredCourses.id, courseId))
       .limit(1);
     return course || undefined;
+  }
+
+  // Sistema de Matrícula Simplificada
+  async getSimplifiedEnrollments(tenantId?: number): Promise<SimplifiedEnrollment[]> {
+    const query = db
+      .select()
+      .from(simplifiedEnrollments)
+      .orderBy(simplifiedEnrollments.createdAt);
+    
+    if (tenantId) {
+      query.where(eq(simplifiedEnrollments.tenantId, tenantId));
+    }
+    
+    return await query;
+  }
+
+  async createSimplifiedEnrollment(enrollment: InsertSimplifiedEnrollment): Promise<SimplifiedEnrollment> {
+    const [newEnrollment] = await db
+      .insert(simplifiedEnrollments)
+      .values({
+        ...enrollment,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newEnrollment;
+  }
+
+  async updateSimplifiedEnrollment(id: number, enrollment: Partial<SimplifiedEnrollment>): Promise<SimplifiedEnrollment> {
+    const [updatedEnrollment] = await db
+      .update(simplifiedEnrollments)
+      .set({
+        ...enrollment,
+        updatedAt: new Date(),
+      })
+      .where(eq(simplifiedEnrollments.id, id))
+      .returning();
+    
+    if (!updatedEnrollment) {
+      throw new Error('Simplified enrollment not found');
+    }
+    
+    return updatedEnrollment;
+  }
+
+  async deleteSimplifiedEnrollment(id: number): Promise<void> {
+    await db
+      .delete(simplifiedEnrollments)
+      .where(eq(simplifiedEnrollments.id, id));
+  }
+
+  async getSimplifiedEnrollmentById(id: number): Promise<SimplifiedEnrollment | null> {
+    const [enrollment] = await db
+      .select()
+      .from(simplifiedEnrollments)
+      .where(eq(simplifiedEnrollments.id, id))
+      .limit(1);
+    return enrollment || null;
   }
 }
 
