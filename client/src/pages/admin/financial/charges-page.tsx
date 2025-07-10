@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+// client/src/pages/admin/financial/charges-page.tsx
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   AlertCircle,
   Check,
@@ -33,11 +34,11 @@ import {
   Edit,
   Copy,
   Files,
-  Send
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+  Send,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -45,18 +46,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Interfaces
 interface AsaasPayment {
@@ -110,169 +117,177 @@ interface ConnectionStatus {
 const ChargesPage: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Estados
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [activeTab, setActiveTab] = useState('payments');
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [activeTab, setActiveTab] = useState("payments");
 
   // Query para testar conexão
-  const { data: connectionStatus, isLoading: isLoadingConnection, refetch: refetchConnection } = useQuery({
-    queryKey: ['/api/asaas/connection-test'],
+  const {
+    data: connectionStatus,
+    isLoading: isLoadingConnection,
+    refetch: refetchConnection,
+  } = useQuery({
+    queryKey: ["/api/asaas/connection-test"],
     queryFn: async () => {
-      const response = await fetch('/api/asaas/connection-test', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await fetch("/api/asaas/connection-test", {
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Erro ao testar conexão');
+        throw new Error("Erro ao testar conexão");
       }
-      
+
       return response.json();
-    }
+    },
   });
 
   // Query para buscar pagamentos
-  const { data: paymentsData, isLoading: isLoadingPayments, refetch: refetchPayments } = useQuery({
-    queryKey: ['/api/asaas/payments', currentPage, statusFilter, searchTerm, dateFilter],
+  const {
+    data: paymentsData,
+    isLoading: isLoadingPayments,
+    refetch: refetchPayments,
+  } = useQuery({
+    queryKey: [
+      "/api/asaas/payments",
+      currentPage,
+      statusFilter,
+      searchTerm,
+      dateFilter,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
-        ...(statusFilter && statusFilter !== 'all' && { status: statusFilter }),
+        ...(statusFilter && statusFilter !== "all" && { status: statusFilter }),
         ...(searchTerm && { search: searchTerm }),
-        ...(dateFilter && { dateFilter })
+        ...(dateFilter && { dateFilter }),
       });
 
       const response = await fetch(`/api/asaas/payments?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Erro ao carregar pagamentos');
+        throw new Error("Erro ao carregar pagamentos");
       }
-      
+
       return response.json();
-    }
+    },
   });
 
   // Mutation para teste de conexão
   const testConnectionMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/asaas/connection-test', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await fetch("/api/asaas/connection-test", {
+        method: "POST",
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Erro no teste de conexão');
+        throw new Error("Erro no teste de conexão");
       }
-      
+
       return response.json();
     },
     onSuccess: (result) => {
       toast({
-        title: result.connected ? 'Conexão bem-sucedida' : 'Falha na conexão',
+        title: result.connected ? "Conexão bem-sucedida" : "Falha na conexão",
         description: result.message,
-        variant: result.connected ? 'default' : 'destructive'
+        variant: result.connected ? "default" : "destructive",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/asaas/connection-test'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/asaas/connection-test"],
+      });
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro no teste',
+        title: "Erro no teste",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Mutation para sincronização
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/asaas/sync', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await fetch("/api/asaas/sync", {
+        method: "POST",
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Erro na sincronização');
+        throw new Error("Erro na sincronização");
       }
-      
+
       return response.json();
     },
     onSuccess: (result) => {
       toast({
-        title: 'Sincronização concluída',
+        title: "Sincronização concluída",
         description: result.message,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/asaas/payments'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/asaas/payments"] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro na sincronização',
+        title: "Erro na sincronização",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Funções auxiliares
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+    return format(new Date(dateString), "dd/MM/yyyy", { locale: ptBR });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
-      case 'RECEIVED':
-        return 'bg-green-100 text-green-800';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'OVERDUE':
-        return 'bg-red-100 text-red-800';
-      case 'CANCELLED':
-        return 'bg-gray-100 text-gray-800';
+      case "CONFIRMED":
+      case "RECEIVED":
+        return "bg-green-100 text-green-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "OVERDUE":
+        return "bg-red-100 text-red-800";
+      case "CANCELLED":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-blue-100 text-blue-800';
+        return "bg-blue-100 text-blue-800";
     }
   };
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
-      'PENDING': 'Pendente',
-      'CONFIRMED': 'Confirmado',
-      'RECEIVED': 'Recebido',
-      'OVERDUE': 'Vencido',
-      'CANCELLED': 'Cancelado'
+      PENDING: "Pendente",
+      CONFIRMED: "Confirmado",
+      RECEIVED: "Recebido",
+      OVERDUE: "Vencido",
+      CANCELLED: "Cancelado",
     };
     return statusMap[status] || status;
   };
 
   const getBillingTypeText = (type: string) => {
     const typeMap: Record<string, string> = {
-      'CREDIT_CARD': 'Cartão de Crédito',
-      'PIX': 'PIX',
-      'BOLETO': 'Boleto',
-      'DEBIT_CARD': 'Cartão de Débito'
+      CREDIT_CARD: "Cartão de Crédito",
+      PIX: "PIX",
+      BOLETO: "Boleto",
+      DEBIT_CARD: "Cartão de Débito",
     };
     return typeMap[type] || type;
   };
@@ -287,8 +302,8 @@ const ChargesPage: React.FC = () => {
             Gerencie pagamentos e cobranças através do gateway Asaas
           </p>
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => window.history.back()}
           className="flex items-center gap-2"
         >
@@ -345,7 +360,7 @@ const ChargesPage: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="payments">Pagamentos</TabsTrigger>
           <TabsTrigger value="create">Criar Cobrança</TabsTrigger>
           <TabsTrigger value="enrollments">Teste Matrícula</TabsTrigger>
@@ -401,10 +416,7 @@ const ChargesPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Data Final</label>
-                  <Input
-                    type="date"
-                    placeholder="dd/mm/aaaa"
-                  />
+                  <Input type="date" placeholder="dd/mm/aaaa" />
                 </div>
               </div>
             </CardContent>
@@ -416,7 +428,6 @@ const ChargesPage: React.FC = () => {
               <CardTitle>Pagamentos</CardTitle>
               <Button
                 onClick={() => refetchPayments()}
-                disabled={isLoadingPayments}
                 variant="outline"
                 className="flex items-center gap-2"
               >
@@ -437,10 +448,9 @@ const ChargesPage: React.FC = () => {
                       <TableRow>
                         <TableHead>ID</TableHead>
                         <TableHead>Cliente</TableHead>
-                        <TableHead>Descrição</TableHead>
                         <TableHead>Valor</TableHead>
-                        <TableHead>Vencimento</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Vencimento</TableHead>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Ações</TableHead>
                       </TableRow>
@@ -463,9 +473,6 @@ const ChargesPage: React.FC = () => {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {payment.description}
-                          </TableCell>
                           <TableCell>
                             <div className="font-medium">
                               {formatCurrency(payment.value)}
@@ -477,17 +484,17 @@ const ChargesPage: React.FC = () => {
                             )}
                           </TableCell>
                           <TableCell>
+                            <Badge className={getStatusColor(payment.status)}>
+                              {getStatusText(payment.status)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
                             {formatDate(payment.dueDate)}
                             {payment.paymentDate && (
                               <div className="text-sm text-gray-500">
                                 Pago: {formatDate(payment.paymentDate)}
                               </div>
                             )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(payment.status)}>
-                              {getStatusText(payment.status)}
-                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">
@@ -500,7 +507,9 @@ const ChargesPage: React.FC = () => {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => window.open(payment.invoiceUrl, '_blank')}
+                                  onClick={() =>
+                                    window.open(payment.invoiceUrl, "_blank")
+                                  }
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
@@ -523,8 +532,9 @@ const ChargesPage: React.FC = () => {
                     <div className="text-sm text-gray-500">
                       {paymentsData.pagination && (
                         <>
-                          Página {paymentsData.pagination.page} de {paymentsData.pagination.totalPages} 
-                          ({paymentsData.pagination.total} registros)
+                          Página {paymentsData.pagination.page} de{" "}
+                          {paymentsData.pagination.totalPages}(
+                          {paymentsData.pagination.total} registros)
                         </>
                       )}
                     </div>
@@ -532,7 +542,9 @@ const ChargesPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
                         disabled={currentPage === 1}
                       >
                         <ChevronLeft className="h-4 w-4" />
@@ -541,7 +553,7 @@ const ChargesPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        onClick={() => setCurrentPage((prev) => prev + 1)}
                         disabled={!paymentsData.pagination?.hasNextPage}
                       >
                         Próximo
@@ -552,7 +564,7 @@ const ChargesPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  Nenhum pagamento encontrado
+                  Dados de pagamento inválidos
                 </div>
               )}
             </CardContent>
