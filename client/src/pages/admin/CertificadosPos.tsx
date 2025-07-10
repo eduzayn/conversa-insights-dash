@@ -1495,7 +1495,7 @@ const CertificadosPos = () => {
 
           {/* Modal de Visualização de Modelo */}
           <Dialog open={isViewTemplateModalOpen} onOpenChange={setIsViewTemplateModalOpen}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+            <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Eye className="h-5 w-5" />
@@ -1605,8 +1605,8 @@ const CertificadosPos = () => {
                         className="bg-white border border-gray-300 shadow-lg mx-auto" 
                         style={{
                           width: '100%',
-                          maxWidth: '900px',
-                          height: '450px',
+                          maxWidth: '1200px',
+                          height: '600px',
                           aspectRatio: '1123/794'
                         }}
                       >
@@ -1626,9 +1626,9 @@ const CertificadosPos = () => {
                             fontFamily: 'Times New Roman, serif',
                             lineHeight: '1.4',
                             color: '#000',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             textAlign: 'center',
-                            padding: '20px',
+                            padding: '30px',
                             height: '100%',
                             boxSizing: 'border-box',
                             overflow: 'hidden'
@@ -1641,8 +1641,8 @@ const CertificadosPos = () => {
                         className="bg-white border border-gray-300 shadow-lg mx-auto" 
                         style={{
                           width: '100%',
-                          maxWidth: '900px',
-                          height: '450px',
+                          maxWidth: '1200px',
+                          height: '600px',
                           aspectRatio: '1123/794'
                         }}
                       >
@@ -1662,9 +1662,9 @@ const CertificadosPos = () => {
                             fontFamily: 'Times New Roman, serif',
                             lineHeight: '1.3',
                             color: '#000',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             textAlign: 'left',
-                            padding: '20px',
+                            padding: '30px',
                             height: '100%',
                             boxSizing: 'border-box',
                             overflow: 'hidden'
