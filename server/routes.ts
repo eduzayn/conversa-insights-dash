@@ -575,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se o aluno existe
-      const student = await storage.getUserById(studentId);
+      const student = await storage.getUser(studentId);
       if (!student) {
         return res.status(404).json({ message: "Aluno não encontrado" });
       }
@@ -609,6 +609,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Erro ao testar matrícula:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para testar webhook manualmente
+  app.post("/api/admin/test-webhook", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { event, paymentId, value } = req.body;
+      
+      if (!event || !paymentId) {
+        return res.status(400).json({ message: "event e paymentId são obrigatórios" });
+      }
+
+      // Criar payload simulado do webhook
+      const mockPayload = {
+        event: event,
+        payment: {
+          id: paymentId,
+          value: value || 100,
+          paymentDate: new Date().toISOString(),
+          invoiceUrl: `https://sandbox.asaas.com/invoice/${paymentId}`
+        }
+      };
+
+      // Fazer chamada interna para o webhook
+      const webhookResponse = await fetch('http://localhost:5000/api/webhooks/asaas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(mockPayload)
+      });
+
+      const webhookResult = await webhookResponse.json();
+
+      res.status(200).json({
+        success: true,
+        message: "Webhook testado com sucesso",
+        mockPayload,
+        webhookResult
+      });
+    } catch (error) {
+      console.error("Erro ao testar webhook:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2975,6 +3022,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao verificar status de pagamento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== WEBHOOK ASAAS =====
+  // Endpoint para receber notificações do Asaas
+  app.post("/api/webhooks/asaas", async (req, res) => {
+    try {
+      console.log("Webhook Asaas recebido:", req.body);
+      
+      const { event, payment } = req.body;
+      
+      if (!event || !payment) {
+        console.log("Webhook inválido - faltando event ou payment");
+        return res.status(400).json({ error: "Payload inválido" });
+      }
+      
+      console.log(`Processando webhook: ${event} para pagamento ${payment.id}`);
+      
+      // Buscar pagamento no sistema local pelo external_id
+      const localPayment = await storage.getPaymentByExternalId(payment.id);
+      
+      if (!localPayment) {
+        console.log(`Pagamento não encontrado no sistema local: ${payment.id}`);
+        return res.status(404).json({ error: "Pagamento não encontrado" });
+      }
+      
+      // Mapear eventos do Asaas para status interno
+      const statusMapping = {
+        'PAYMENT_CREATED': 'pending',
+        'PAYMENT_AWAITING_PAYMENT': 'pending',
+        'PAYMENT_RECEIVED': 'received',
+        'PAYMENT_CONFIRMED': 'confirmed',
+        'PAYMENT_OVERDUE': 'overdue',
+        'PAYMENT_DELETED': 'cancelled',
+        'PAYMENT_RESTORED': 'pending',
+        'PAYMENT_REFUNDED': 'refunded',
+        'PAYMENT_RECEIVED_IN_CASH': 'received',
+        'PAYMENT_CHARGEBACK_REQUESTED': 'disputed',
+        'PAYMENT_CHARGEBACK_DISPUTE': 'disputed',
+        'PAYMENT_AWAITING_CHARGEBACK_REVERSAL': 'disputed',
+        'PAYMENT_DUNNING_RECEIVED': 'received',
+        'PAYMENT_DUNNING_REQUESTED': 'overdue',
+        'PAYMENT_BANK_SLIP_VIEWED': 'pending',
+        'PAYMENT_CHECKOUT_VIEWED': 'pending'
+      };
+      
+      const newStatus = statusMapping[event] || localPayment.status;
+      
+      // Atualizar status no sistema local
+      const updateData: any = {
+        status: newStatus,
+        updatedAt: new Date()
+      };
+      
+      // Adicionar data de pagamento se foi pago
+      if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
+        updateData.paidAt = new Date(payment.paymentDate || payment.dateCreated);
+      }
+      
+      // Atualizar URL de pagamento se disponível
+      if (payment.invoiceUrl) {
+        updateData.paymentUrl = payment.invoiceUrl;
+      }
+      
+      await storage.updatePayment(localPayment.id, updateData);
+      
+      console.log(`Pagamento ${localPayment.id} atualizado: ${localPayment.status} → ${newStatus}`);
+      
+      // Responder com sucesso
+      res.status(200).json({ 
+        success: true,
+        message: `Evento ${event} processado com sucesso para pagamento ${payment.id}`,
+        paymentId: localPayment.id,
+        event: event,
+        newStatus: newStatus
+      });
+      
+    } catch (error) {
+      console.error("Erro ao processar webhook Asaas:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
     }
   });
 

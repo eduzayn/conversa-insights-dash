@@ -22,8 +22,10 @@ import {
   ExternalLink,
   Settings,
   Trash2,
-  UserPlus
+  UserPlus,
+  ArrowLeft
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -89,6 +91,12 @@ export default function IntegracaoAsaas() {
     courseId: 0
   });
 
+  const [testWebhook, setTestWebhook] = useState({
+    event: '',
+    paymentId: '',
+    value: ''
+  });
+
   // Mutation para testar matrícula
   const testEnrollmentMutation = useMutation({
     mutationFn: (data: { studentId: number; courseId: number }) => apiRequest('/api/admin/test-matricula', {
@@ -108,6 +116,30 @@ export default function IntegracaoAsaas() {
       toast({
         title: "Erro ao criar matrícula",
         description: error.message || "Falha ao criar matrícula de teste",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation para testar webhook
+  const testWebhookMutation = useMutation({
+    mutationFn: (data: { event: string; paymentId: string; value: string }) => apiRequest('/api/admin/test-webhook', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    onSuccess: (data) => {
+      toast({
+        title: "Webhook testado com sucesso",
+        description: "Notificação processada corretamente!"
+      });
+      setTestWebhook({ event: '', paymentId: '', value: '' });
+      // Recarregar pagamentos para mostrar atualizações
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/asaas/payments'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao testar webhook",
+        description: error.message || "Falha ao testar webhook",
         variant: "destructive"
       });
     }
@@ -263,11 +295,19 @@ export default function IntegracaoAsaas() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Integração Asaas</h1>
-        <p className="text-muted-foreground">
-          Gerencie pagamentos e cobranças através do gateway Asaas
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center space-x-4 mb-2">
+            <Link to="/admin" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Dashboard
+            </Link>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Integração Asaas</h1>
+          <p className="text-muted-foreground">
+            Gerencie pagamentos e cobranças através do gateway Asaas
+          </p>
+        </div>
       </div>
 
       {/* Status da Conexão */}
@@ -310,6 +350,7 @@ export default function IntegracaoAsaas() {
           <TabsTrigger value="payments">Pagamentos</TabsTrigger>
           <TabsTrigger value="create">Criar Cobrança</TabsTrigger>
           <TabsTrigger value="test">Teste Matrícula</TabsTrigger>
+          <TabsTrigger value="webhook">Teste Webhook</TabsTrigger>
           <TabsTrigger value="sync">Sincronização</TabsTrigger>
         </TabsList>
 
@@ -604,6 +645,83 @@ export default function IntegracaoAsaas() {
                   <UserPlus className="h-4 w-4 mr-2" />
                 )}
                 Testar Matrícula com Cobrança Automática
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Aba de Teste de Webhook */}
+        <TabsContent value="webhook" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Teste de Webhook</CardTitle>
+              <CardDescription>
+                Simule notificações do Asaas para testar o processamento de webhooks
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="webhookEvent">Evento *</Label>
+                  <Select value={testWebhook.event} onValueChange={(value) => setTestWebhook({...testWebhook, event: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o evento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PAYMENT_CREATED">Cobrança Criada</SelectItem>
+                      <SelectItem value="PAYMENT_RECEIVED">Pagamento Recebido</SelectItem>
+                      <SelectItem value="PAYMENT_CONFIRMED">Pagamento Confirmado</SelectItem>
+                      <SelectItem value="PAYMENT_OVERDUE">Pagamento Vencido</SelectItem>
+                      <SelectItem value="PAYMENT_REFUNDED">Pagamento Estornado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="webhookPaymentId">ID do Pagamento *</Label>
+                  <Input 
+                    id="webhookPaymentId" 
+                    value={testWebhook.paymentId} 
+                    onChange={(e) => setTestWebhook({...testWebhook, paymentId: e.target.value})}
+                    placeholder="Ex: pay_123456789"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Use um ID de pagamento existente no sistema
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="webhookValue">Valor (R$)</Label>
+                  <Input 
+                    id="webhookValue" 
+                    type="number" 
+                    value={testWebhook.value} 
+                    onChange={(e) => setTestWebhook({...testWebhook, value: e.target.value})}
+                    placeholder="Ex: 100.00"
+                  />
+                </div>
+              </div>
+              
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">Como funciona:</h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. ✅ Webhook é enviado para /api/webhooks/asaas</li>
+                  <li>2. ✅ Sistema busca o pagamento pelo ID externo</li>
+                  <li>3. ✅ Status é atualizado automaticamente no banco</li>
+                  <li>4. ✅ Logs são gerados para acompanhamento</li>
+                </ol>
+              </div>
+              
+              <Button 
+                onClick={() => testWebhookMutation.mutate(testWebhook)}
+                disabled={testWebhookMutation.isPending || !testWebhook.event || !testWebhook.paymentId}
+                className="w-full"
+                size="lg"
+              >
+                {testWebhookMutation.isPending ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                )}
+                Testar Webhook
               </Button>
             </CardContent>
           </Card>

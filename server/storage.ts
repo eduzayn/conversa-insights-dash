@@ -1245,7 +1245,7 @@ export class DatabaseStorage implements IStorage {
   async createEnrollmentPayment(enrollment: StudentEnrollment): Promise<void> {
     try {
       // Buscar dados do usuário
-      const user = await this.getUserById(enrollment.studentId);
+      const user = await this.getUser(enrollment.studentId);
       if (!user) {
         throw new Error('Usuário não encontrado');
       }
