@@ -645,7 +645,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Certificações
-  async getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; subcategoria?: string }): Promise<Certification[]> {
+  async getCertifications(filters?: { 
+    modalidade?: string; 
+    curso?: string; 
+    status?: string; 
+    categoria?: string; 
+    subcategoria?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<Certification[]> {
     let conditions = [];
     
     if (filters) {
@@ -664,20 +673,36 @@ export class DatabaseStorage implements IStorage {
       if (filters.subcategoria) {
         conditions.push(eq(certifications.subcategoria, filters.subcategoria));
       }
+      
+      // Busca por nome, CPF ou curso
+      if (filters.search && filters.search.trim()) {
+        const searchTerm = `%${filters.search.trim()}%`;
+        conditions.push(
+          or(
+            like(certifications.aluno, searchTerm),
+            like(certifications.cpf, searchTerm),
+            like(certifications.curso, searchTerm)
+          )
+        );
+      }
     }
     
+    let query = db
+      .select()
+      .from(certifications)
+      .orderBy(desc(certifications.createdAt));
+    
     if (conditions.length > 0) {
-      return await db
-        .select()
-        .from(certifications)
-        .where(and(...conditions))
-        .orderBy(desc(certifications.createdAt));
-    } else {
-      return await db
-        .select()
-        .from(certifications)
-        .orderBy(desc(certifications.createdAt));
+      query = query.where(and(...conditions));
     }
+    
+    // Aplicar paginação
+    if (filters?.page && filters?.limit) {
+      const offset = (filters.page - 1) * filters.limit;
+      query = query.limit(filters.limit).offset(offset);
+    }
+    
+    return await query;
   }
 
   async createCertification(certification: InsertCertification): Promise<Certification> {

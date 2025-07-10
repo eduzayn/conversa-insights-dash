@@ -234,16 +234,19 @@ export default function Certificacoes() {
       subcategoria: filterSubcategoria,
       periodo: filterPeriodo,
       dataInicio,
-      dataFim
+      dataFim,
+      search: searchTerm
     }],
     queryFn: async () => {
       const params = new URLSearchParams({
-        categoria: getCategoriaFromTab(activeTab)
+        categoria: getCategoriaFromTab(activeTab),
+        limit: '200' // Aumentar limite para mostrar mais registros
       });
       
       if (filterStatus && filterStatus !== 'todos') params.append('status', filterStatus);
       if (filterModalidade && filterModalidade !== 'todas') params.append('modalidade', filterModalidade);
       if (filterSubcategoria && filterSubcategoria !== 'todas') params.append('subcategoria', filterSubcategoria);
+      if (searchTerm && searchTerm.trim()) params.append('search', searchTerm.trim());
       
       // Adicionar filtros de período
       if (filterPeriodo && filterPeriodo !== 'todos') {
@@ -366,17 +369,8 @@ export default function Certificacoes() {
     }
   };
 
-  const filteredCertifications = certifications.filter((cert: Certification) => {
-    const matchesSearch = 
-      (cert.aluno && cert.aluno.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (cert.cpf && cert.cpf.includes(searchTerm)) ||
-      (cert.curso && cert.curso.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = !filterStatus || filterStatus === 'all' || cert.status === filterStatus;
-    const matchesModalidade = !filterModalidade || filterModalidade === 'all' || cert.modalidade === filterModalidade;
-    
-    return matchesSearch && matchesStatus && matchesModalidade;
-  });
+  // Agora a busca é feita no backend, então usamos diretamente os dados retornados
+  const filteredCertifications = certifications;
 
   const formatDate = (date: string | null) => {
     if (!date) return '-';
@@ -663,7 +657,7 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex flex-wrap gap-1 p-1 bg-muted rounded-lg">
+              <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[40px]">
                 <TabsTrigger value="pos" className="flex-1 min-w-[120px] text-xs lg:text-sm">Pós-graduação</TabsTrigger>
                 <TabsTrigger value="segunda" className="flex-1 min-w-[140px] text-xs lg:text-sm">Segunda licenciatura</TabsTrigger>
                 <TabsTrigger value="formacao_pedagogica" className="flex-1 min-w-[130px] text-xs lg:text-sm">Form. Pedagógica</TabsTrigger>
@@ -673,7 +667,7 @@ export default function Certificacoes() {
                 <TabsTrigger value="graduacao" className="flex-1 min-w-[90px] text-xs lg:text-sm">Graduação</TabsTrigger>
                 <TabsTrigger value="capacitacao" className="flex-1 min-w-[100px] text-xs lg:text-sm">Capacitação</TabsTrigger>
                 <TabsTrigger value="sequencial" className="flex-1 min-w-[90px] text-xs lg:text-sm">Sequencial</TabsTrigger>
-              </div>
+              </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
                 <Card>
@@ -787,6 +781,28 @@ export default function Certificacoes() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Contador de Resultados */}
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    {isLoading ? (
+                      "Carregando..."
+                    ) : (
+                      <>
+                        Exibindo <strong>{filteredCertifications.length}</strong> certificação{filteredCertifications.length !== 1 ? 'ões' : ''} 
+                        {searchTerm && ` para "${searchTerm}"`}
+                        {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
+                        {filterModalidade && filterModalidade !== 'todas' && ` da modalidade "${filterModalidade}"`}
+                      </>
+                    )}
+                  </div>
+                  
+                  {filteredCertifications.length >= 200 && (
+                    <div className="text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded-lg border border-orange-200">
+                      ⚠️ Limite de 200 registros atingido. Use filtros para refinar a busca.
+                    </div>
+                  )}
+                </div>
 
                 {isLoading ? (
                   <div className="flex justify-center p-8">
