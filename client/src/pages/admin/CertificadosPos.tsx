@@ -1328,8 +1328,71 @@ const CertificadosPos = () => {
                   )}
 
                   <div>
-                    <Label className="font-semibold">Preview Visual</Label>
-                    <div className="border rounded-lg p-4 bg-white min-h-48 max-h-64 overflow-auto">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="font-semibold">Preview Visual do Certificado</Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          // Abrir preview em tela cheia
+                          const previewHtml = selectedTemplate.htmlTemplate
+                            .replace(/{{nomeAluno}}/g, "João Silva Santos")
+                            .replace(/{{nomeCurso}}/g, selectedTemplate.categoria === 'pos_graduacao' ? "Pós-Graduação em Psicopedagogia" : "Segunda Licenciatura em Pedagogia")
+                            .replace(/{{cpfAluno}}/g, "123.456.789-00")
+                            .replace(/{{dataEmissao}}/g, new Date().toLocaleDateString('pt-BR'))
+                            .replace(/{{instituicao}}/g, selectedTemplate.instituicaoNome)
+                            .replace(/{{cargaHoraria}}/g, "420")
+                            .replace(/{{numeroRegistro}}/g, "001/2025")
+                            .replace(/{{areaCurso}}/g, "Educação");
+                            
+                          const previewWindow = window.open('', '_blank', 'width=800,height=600');
+                          if (previewWindow) {
+                            previewWindow.document.write(`
+                              <!DOCTYPE html>
+                              <html>
+                              <head>
+                                <title>Preview - ${selectedTemplate.nome}</title>
+                                <style>
+                                  body { 
+                                    font-family: 'Times New Roman', serif; 
+                                    margin: 0; 
+                                    padding: 20px; 
+                                    background: #f5f5f5;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    min-height: 100vh;
+                                  }
+                                  .certificate-container { 
+                                    background: white;
+                                    padding: 40px;
+                                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                    max-width: 800px;
+                                    width: 100%;
+                                  }
+                                  @media print { 
+                                    body { background: white; }
+                                    .certificate-container { box-shadow: none; }
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                <div class="certificate-container">
+                                  ${previewHtml}
+                                </div>
+                              </body>
+                              </html>
+                            `);
+                            previewWindow.document.close();
+                          }
+                        }}
+                        className="gap-1"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Tela Cheia
+                      </Button>
+                    </div>
+                    <div className="border rounded-lg p-6 bg-white shadow-sm">
                       <div 
                         dangerouslySetInnerHTML={{ 
                           __html: selectedTemplate.htmlTemplate
@@ -1342,14 +1405,18 @@ const CertificadosPos = () => {
                             .replace(/{{numeroRegistro}}/g, "001/2025")
                             .replace(/{{areaCurso}}/g, "Educação")
                         }} 
-                        className="certificate-preview"
                         style={{
                           fontFamily: 'Times New Roman, serif',
                           lineHeight: '1.6',
-                          color: '#000'
+                          color: '#000',
+                          fontSize: '14px',
+                          textAlign: 'center'
                         }}
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ℹ️ Preview com dados de exemplo. Clique em "Tela Cheia" para ver em tamanho real.
+                    </p>
                   </div>
 
                   <div>
