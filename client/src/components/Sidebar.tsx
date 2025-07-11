@@ -81,7 +81,15 @@ export const Sidebar = () => {
         }
       } catch (error) {
         console.warn('Erro ao carregar estado dos submenus:', error);
+        // Manter todos colapsados por padrão em caso de erro
+        setExpandedSections([]);
       }
+    }
+    // Se não houver dados salvos, mantém todos colapsados (array vazio)
+    // Força reset para garantir que todos iniciem colapsados
+    else {
+      // Remove qualquer estado anterior que possa estar causando expansão
+      localStorage.removeItem('sidebar-expanded-sections');
     }
   }, []);
 
