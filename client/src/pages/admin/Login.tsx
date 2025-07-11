@@ -151,9 +151,7 @@ const Login = () => {
             <BarChart3 className="w-8 h-8 text-white" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              BotConversa Analytics
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-900">ERP EdunexIA</CardTitle>
             <p className="text-gray-600 mt-1">Sistema de Relatórios e Gamificação</p>
           </div>
         </CardHeader>
