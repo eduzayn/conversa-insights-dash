@@ -572,11 +572,31 @@ const ChargesPage: React.FC = () => {
 
       {/* Abas principais */}
       <Tabs defaultValue="payments" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-          <TabsTrigger value="create">Criar Cobrança</TabsTrigger>
-          <TabsTrigger value="sync">Sincronização</TabsTrigger>
-          <TabsTrigger value="reports">Relatórios</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-gray-100 rounded-lg">
+          <TabsTrigger 
+            value="payments" 
+            className="px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
+            Pagamentos
+          </TabsTrigger>
+          <TabsTrigger 
+            value="create" 
+            className="px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
+            Criar Cobrança
+          </TabsTrigger>
+          <TabsTrigger 
+            value="sync" 
+            className="px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
+            Sincronização
+          </TabsTrigger>
+          <TabsTrigger 
+            value="reports" 
+            className="px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
+            Relatórios
+          </TabsTrigger>
         </TabsList>
 
         {/* Aba de Pagamentos */}
