@@ -1093,7 +1093,6 @@ export const insertAcademicProfessorSchema = createInsertSchema(academicProfesso
 
 export const insertAcademicDisciplineSchema = createInsertSchema(academicDisciplines).pick({
   nome: true,
-  codigo: true,
   professorId: true,
   cargaHoraria: true,
   ementa: true,

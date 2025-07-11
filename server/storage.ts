@@ -1464,7 +1464,18 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .returning();
-    return newDiscipline;
+    
+    // Gerar código automaticamente baseado no ID
+    const codigo = `DISC${newDiscipline.id.toString().padStart(3, '0')}`;
+    
+    // Atualizar a disciplina com o código gerado
+    const [updatedDiscipline] = await db
+      .update(academicDisciplines)
+      .set({ codigo, updatedAt: new Date() })
+      .where(eq(academicDisciplines.id, newDiscipline.id))
+      .returning();
+    
+    return updatedDiscipline;
   }
 
   async updateAcademicDiscipline(id: number, discipline: Partial<AcademicDiscipline>): Promise<AcademicDiscipline | undefined> {

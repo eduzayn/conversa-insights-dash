@@ -700,9 +700,11 @@ const MatrizesCurriculares = () => {
     onSubmit: (data: Partial<Disciplina>) => void;
     onCancel: () => void;
   }) => {
+    // Gerar código automaticamente baseado no ID
+    const codigoGerado = disciplina?.id ? `DISC${disciplina.id.toString().padStart(3, '0')}` : 'Será gerado automaticamente';
+    
     const [formData, setFormData] = useState({
       nome: disciplina?.nome || '',
-      codigo: disciplina?.codigo || '',
       cargaHoraria: disciplina?.cargaHoraria || 0,
       professorId: disciplina?.professorId || 0,
       ementa: disciplina?.ementa || '',
@@ -732,14 +734,15 @@ const MatrizesCurriculares = () => {
             />
           </div>
           <div>
-            <Label htmlFor="codigo">Código</Label>
-            <Input
-              id="codigo"
-              value={formData.codigo}
-              onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-              placeholder="Ex: PSI101, PED201"
-              required
-            />
+            <Label>Código da Disciplina</Label>
+            <div className="flex items-center h-10 px-3 py-2 border rounded-md bg-muted">
+              <span className="text-sm font-medium">
+                {codigoGerado}
+              </span>
+              <span className="text-xs text-muted-foreground ml-2">
+                (gerado automaticamente)
+              </span>
+            </div>
           </div>
         </div>
 
