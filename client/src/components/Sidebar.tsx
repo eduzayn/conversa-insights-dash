@@ -70,27 +70,27 @@ export const Sidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
-  // Carregar estado dos submenus do localStorage
+  // Força todos os submenus colapsados por padrão (sem persistência por enquanto)
   useEffect(() => {
-    const savedExpandedSections = localStorage.getItem('sidebar-expanded-sections');
-    if (savedExpandedSections) {
-      try {
-        const parsed = JSON.parse(savedExpandedSections);
-        if (Array.isArray(parsed)) {
-          setExpandedSections(parsed);
-        }
-      } catch (error) {
-        console.warn('Erro ao carregar estado dos submenus:', error);
-        // Manter todos colapsados por padrão em caso de erro
-        setExpandedSections([]);
-      }
-    }
-    // Se não houver dados salvos, mantém todos colapsados (array vazio)
-    // Força reset para garantir que todos iniciem colapsados
-    else {
-      // Remove qualquer estado anterior que possa estar causando expansão
-      localStorage.removeItem('sidebar-expanded-sections');
-    }
+    // SEMPRE inicia com todos os submenus colapsados
+    setExpandedSections([]);
+    
+    // Limpa qualquer estado salvo anterior
+    localStorage.removeItem('sidebar-expanded-sections');
+    
+    // TODO: Reativar persistência após confirmar comportamento correto
+    // const savedExpandedSections = localStorage.getItem('sidebar-expanded-sections');
+    // if (savedExpandedSections) {
+    //   try {
+    //     const parsed = JSON.parse(savedExpandedSections);
+    //     if (Array.isArray(parsed)) {
+    //       setExpandedSections(parsed);
+    //     }
+    //   } catch (error) {
+    //     console.warn('Erro ao carregar estado dos submenus:', error);
+    //     setExpandedSections([]);
+    //   }
+    // }
   }, []);
 
   const handleBotConversaAccess = () => {
@@ -109,8 +109,8 @@ export const Sidebar = () => {
         ? prev.filter(s => s !== sectionLabel)
         : [...prev, sectionLabel];
       
-      // Salvar estado no localStorage
-      localStorage.setItem('sidebar-expanded-sections', JSON.stringify(newExpandedSections));
+      // TEMPORARIAMENTE DESABILITADO: Não salva estado no localStorage para garantir comportamento correto
+      // localStorage.setItem('sidebar-expanded-sections', JSON.stringify(newExpandedSections));
       
       return newExpandedSections;
     });
