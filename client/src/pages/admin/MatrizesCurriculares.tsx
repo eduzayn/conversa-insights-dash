@@ -24,8 +24,6 @@ interface Disciplina {
   nome: string;
   codigo: string;
   cargaHoraria: number;
-  periodo: number;
-  tipo: string; // obrigatoria, optativa, eletiva
   prerequeisitos?: string[];
   ementa?: string;
   professorId?: number;
@@ -33,8 +31,8 @@ interface Disciplina {
     id: number;
     nome: string;
   };
-  courseId: number;
   status: string;
+  isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -58,9 +56,7 @@ interface Curso {
 const MatrizesCurriculares = () => {
   // Estados para disciplinas
   const [searchTerm, setSearchTerm] = useState('');
-  const [cursoFilter, setCursoFilter] = useState<string>('all');
-  const [periodoFilter, setPeriodoFilter] = useState<string>('all');
-  const [tipoFilter, setTipoFilter] = useState<string>('all');
+  const [statusDisciplinaFilter, setStatusDisciplinaFilter] = useState<string>('all');
   const [selectedDisciplina, setSelectedDisciplina] = useState<Disciplina | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -330,16 +326,14 @@ const MatrizesCurriculares = () => {
     return disciplinas.filter(disciplina => {
       const matchesSearch = !searchTerm || 
         disciplina.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        disciplina.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        disciplina.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         disciplina.professor?.nome.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCurso = cursoFilter === 'all' || disciplina.courseId.toString() === cursoFilter;
-      const matchesPeriodo = periodoFilter === 'all' || disciplina.periodo.toString() === periodoFilter;
-      const matchesTipo = tipoFilter === 'all' || disciplina.tipo === tipoFilter;
+      const matchesStatus = statusDisciplinaFilter === 'all' || disciplina.status === statusDisciplinaFilter;
 
-      return matchesSearch && matchesCurso && matchesPeriodo && matchesTipo;
+      return matchesSearch && matchesStatus;
     });
-  }, [disciplinas, searchTerm, cursoFilter, periodoFilter, tipoFilter]);
+  }, [disciplinas, searchTerm, statusDisciplinaFilter]);
 
   // Filtrar cursos
   const filteredCourses = React.useMemo(() => {
@@ -370,48 +364,18 @@ const MatrizesCurriculares = () => {
     });
   }, [professors, professorSearchTerm, professorStatusFilter]);
 
-  // Agrupar disciplinas por curso
-  const disciplinasPorCurso = React.useMemo(() => {
-    const groups: { [key: number]: { curso: Curso; disciplinas: Disciplina[] } } = {};
-    
-    filteredDisciplinas.forEach(disciplina => {
-      const curso = courses.find(c => c.id === disciplina.courseId);
-      if (curso) {
-        if (!groups[curso.id]) {
-          groups[curso.id] = { curso, disciplinas: [] };
-        }
-        groups[curso.id].disciplinas.push(disciplina);
-      }
+  // Mostrar disciplinas em lista simples (não agrupadas por curso)
+  const disciplinasComProfessor = React.useMemo(() => {
+    return filteredDisciplinas.map(disciplina => {
+      const professor = professors.find(p => p.id === disciplina.professorId);
+      return {
+        ...disciplina,
+        professor: professor || null
+      };
     });
+  }, [filteredDisciplinas, professors]);
 
-    return Object.values(groups).sort((a, b) => a.curso.nome.localeCompare(b.curso.nome));
-  }, [filteredDisciplinas, courses]);
 
-  // Função para obter badge de tipo
-  const getTipoBadge = (tipo: string) => {
-    // Proteção contra valores undefined ou null
-    if (!tipo || typeof tipo !== 'string') {
-      return (
-        <Badge variant="outline">
-          Não definido
-        </Badge>
-      );
-    }
-
-    const configs = {
-      obrigatoria: { variant: 'default' as const, color: 'text-blue-600' },
-      optativa: { variant: 'secondary' as const, color: 'text-green-600' },
-      eletiva: { variant: 'outline' as const, color: 'text-purple-600' }
-    };
-
-    const config = configs[tipo as keyof typeof configs] || configs.obrigatoria;
-
-    return (
-      <Badge variant={config.variant}>
-        {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
-      </Badge>
-    );
-  };
 
   const toggleCourseExpansion = (courseId: number) => {
     setExpandedCourses(prev => 
@@ -666,7 +630,7 @@ const MatrizesCurriculares = () => {
                         <Badge variant="outline" className="text-xs">
                           {disciplina.cargaHoraria}h
                         </Badge>
-                        {getTipoBadge(disciplina.tipo)}
+                        {getStatusBadge(disciplina.status)}
                       </div>
                     </div>
                   </label>
@@ -1253,24 +1217,24 @@ const MatrizesCurriculares = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Obrigatórias</CardTitle>
+            <CardTitle className="text-sm font-medium">Ativas</CardTitle>
             <GraduationCap className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {disciplinas.filter(d => d.tipo === 'obrigatoria').length}
+              {disciplinas.filter(d => d.status === 'ativo').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Optativas</CardTitle>
+            <CardTitle className="text-sm font-medium">Com Professor</CardTitle>
             <BookOpen className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {disciplinas.filter(d => d.tipo === 'optativa').length}
+              {disciplinas.filter(d => d.professorId && d.professorId > 0).length}
             </div>
           </CardContent>
         </Card>
@@ -1297,7 +1261,7 @@ const MatrizesCurriculares = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
               <Input
@@ -1308,152 +1272,107 @@ const MatrizesCurriculares = () => {
               />
             </div>
 
-            <Select value={cursoFilter} onValueChange={setCursoFilter}>
+            <Select value={statusDisciplinaFilter} onValueChange={setStatusDisciplinaFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Curso" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os Cursos</SelectItem>
-                {courses.map(course => (
-                  <SelectItem key={course.id} value={course.id.toString()}>
-                    {course.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={periodoFilter} onValueChange={setPeriodoFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Períodos</SelectItem>
-                {[1,2,3,4,5,6,7,8].map(p => (
-                  <SelectItem key={p} value={p.toString()}>{p}º Período</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={tipoFilter} onValueChange={setTipoFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Tipos</SelectItem>
-                <SelectItem value="obrigatoria">Obrigatória</SelectItem>
-                <SelectItem value="optativa">Optativa</SelectItem>
-                <SelectItem value="eletiva">Eletiva</SelectItem>
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="inativo">Inativo</SelectItem>
+                <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Lista de Disciplinas por Curso */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          disciplinasPorCurso.map(({ curso, disciplinas }) => (
-            <Card key={curso.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div 
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => toggleCourseExpansion(curso.id)}
-                  >
-                    {expandedCourses.includes(curso.id) ? 
-                      <ChevronDown className="h-5 w-5" /> : 
-                      <ChevronRight className="h-5 w-5" />
-                    }
-                    <CardTitle className="text-lg">{curso.nome}</CardTitle>
-                    <Badge variant="outline">{disciplinas.length} disciplinas</Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {disciplinas.reduce((total, d) => total + d.cargaHoraria, 0)}h total
-                  </div>
-                </div>
-              </CardHeader>
-              {expandedCourses.includes(curso.id) && (
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Código</TableHead>
-                        <TableHead>Disciplina</TableHead>
-                        <TableHead>Período</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Carga Horária</TableHead>
-                        <TableHead>Professor</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {disciplinas
-                        .sort((a, b) => a.periodo - b.periodo)
-                        .map((disciplina) => (
-                        <TableRow key={disciplina.id}>
-                          <TableCell>
-                            <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                              {disciplina.codigo}
-                            </code>
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium">{disciplina.nome}</div>
-                          </TableCell>
-                          <TableCell>{disciplina.periodo}º</TableCell>
-                          <TableCell>{getTipoBadge(disciplina.tipo)}</TableCell>
-                          <TableCell>{disciplina.cargaHoraria}h</TableCell>
-                          <TableCell>
-                            {disciplina.professor?.nome || 'Não definido'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedDisciplina(disciplina);
-                                  setIsViewModalOpen(true);
-                                }}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedDisciplina(disciplina);
-                                  setIsEditModalOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => {
-                                  if (confirm('Tem certeza que deseja remover esta disciplina?')) {
-                                    deleteDisciplinaMutation.mutate(disciplina.id);
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              )}
-            </Card>
-          ))
-        )}
-      </div>
+      {/* Lista de Disciplinas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Disciplinas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : disciplinasComProfessor.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Nenhuma disciplina encontrada</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Disciplina</TableHead>
+                  <TableHead>Carga Horária</TableHead>
+                  <TableHead>Professor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {disciplinasComProfessor.map((disciplina) => (
+                  <TableRow key={disciplina.id}>
+                    <TableCell>
+                      <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                        {disciplina.codigo || 'N/A'}
+                      </code>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{disciplina.nome}</div>
+                    </TableCell>
+                    <TableCell>{disciplina.cargaHoraria || 0}h</TableCell>
+                    <TableCell>
+                      {disciplina.professor?.nome || 'Não definido'}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(disciplina.status)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedDisciplina(disciplina);
+                            setIsViewModalOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedDisciplina(disciplina);
+                            setIsEditModalOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja remover esta disciplina?')) {
+                              deleteDisciplinaMutation.mutate(disciplina.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Modal de Visualização */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
@@ -1473,18 +1392,14 @@ const MatrizesCurriculares = () => {
                   <p>{selectedDisciplina.codigo}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>Período</Label>
-                  <p>{selectedDisciplina.periodo}º</p>
-                </div>
-                <div>
-                  <Label>Tipo</Label>
-                  <p>{getTipoBadge(selectedDisciplina.tipo)}</p>
-                </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Carga Horária</Label>
-                  <p>{selectedDisciplina.cargaHoraria}h</p>
+                  <p>{selectedDisciplina.cargaHoraria || 0}h</p>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <p>{getStatusBadge(selectedDisciplina.status)}</p>
                 </div>
               </div>
               {selectedDisciplina.professor && (
