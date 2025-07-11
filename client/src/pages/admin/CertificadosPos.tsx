@@ -523,13 +523,39 @@ const CertificadosPos = () => {
   };
 
   // Função para preview de certificado real
-  const handlePreviewCertificate = (certificate: AcademicCertificate) => {
-    // Para certificados emitidos, vamos usar o template padrão (ID 2 está disponível no banco)
-    // Em uma implementação real, você pode associar cada certificado a um template específico
-    const templateId = 2; // ID do template disponível no banco
-    
-    const previewUrl = `/api/certificates/${certificate.id}/preview/${templateId}`;
-    window.open(previewUrl, '_blank', 'width=1200,height=800');
+  const handlePreviewCertificate = async (certificate: AcademicCertificate) => {
+    try {
+      // Usar o templateId do certificado ou padrão
+      const templateId = certificate.templateId || 2;
+      
+      const response = await fetch(`/api/certificates/${certificate.id}/preview/${templateId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'text/html'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar preview do certificado');
+      }
+
+      const htmlContent = await response.text();
+      
+      // Abrir nova janela com o conteúdo HTML
+      const previewWindow = window.open('', '_blank', 'width=1200,height=800');
+      if (previewWindow) {
+        previewWindow.document.write(htmlContent);
+        previewWindow.document.close();
+      }
+    } catch (error) {
+      console.error('Erro ao abrir preview:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar o preview do certificado',
+        variant: 'destructive'
+      });
+    }
   };
 
   // Função para download do PDF do certificado
