@@ -438,7 +438,6 @@ const MatrizesCurriculares = () => {
       categoria: course?.categoria || '',
       areaConhecimento: course?.areaConhecimento || '',
       modalidade: course?.modalidade || '',
-      cargaHoraria: course?.cargaHoraria || 0,
       duracao: course?.duracao || '',
       preco: course?.preco || 0,
       status: course?.status || 'ativo',
@@ -468,9 +467,22 @@ const MatrizesCurriculares = () => {
       }
     }, [course]);
 
+    // Calcular carga horária automaticamente baseada nas disciplinas selecionadas
+    const cargaHorariaCalculada = React.useMemo(() => {
+      return selectedDisciplines.reduce((total, disciplinaId) => {
+        const disciplina = disciplinas.find(d => d.id === disciplinaId);
+        return total + (disciplina?.cargaHoraria || 0);
+      }, 0);
+    }, [selectedDisciplines, disciplinas]);
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      onSubmit({ ...formData, selectedDisciplines });
+      // Incluir a carga horária calculada no envio
+      onSubmit({ 
+        ...formData, 
+        cargaHoraria: cargaHorariaCalculada,
+        selectedDisciplines 
+      });
     };
 
     return (
@@ -534,14 +546,15 @@ const MatrizesCurriculares = () => {
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="cargaHoraria">Carga Horária</Label>
-            <Input
-              id="cargaHoraria"
-              type="number"
-              value={formData.cargaHoraria}
-              onChange={(e) => setFormData({ ...formData, cargaHoraria: parseInt(e.target.value) || 0 })}
-              required
-            />
+            <Label>Carga Horária Total</Label>
+            <div className="flex items-center h-10 px-3 py-2 border rounded-md bg-muted">
+              <span className="text-sm font-medium">
+                {cargaHorariaCalculada}h
+              </span>
+              <span className="text-xs text-muted-foreground ml-2">
+                (calculada automaticamente)
+              </span>
+            </div>
           </div>
           <div>
             <Label htmlFor="duracao">Duração</Label>
@@ -661,8 +674,11 @@ const MatrizesCurriculares = () => {
             )}
           </div>
           {selectedDisciplines.length > 0 && (
-            <div className="text-sm text-muted-foreground">
-              {selectedDisciplines.length} de 20 disciplinas selecionadas
+            <div className="flex justify-between items-center text-sm text-muted-foreground">
+              <span>{selectedDisciplines.length} de 20 disciplinas selecionadas</span>
+              <span className="font-medium">
+                Total: {cargaHorariaCalculada}h
+              </span>
             </div>
           )}
         </div>
@@ -1707,8 +1723,8 @@ const MatrizesCurriculares = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>Carga Horária</Label>
-                  <p>{selectedCourse.cargaHoraria}h</p>
+                  <Label>Carga Horária Total</Label>
+                  <p>{selectedCourse.cargaHoraria}h <span className="text-xs text-muted-foreground">(calculada automaticamente)</span></p>
                 </div>
                 <div>
                   <Label>Duração</Label>
