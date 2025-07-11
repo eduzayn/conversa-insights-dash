@@ -1641,11 +1641,63 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(academicCertificates.status, filters.status));
     }
     
+    // Fazer JOIN com as tabelas relacionadas para incluir dados do aluno e curso
+    const query = db.select({
+      // Campos do certificado
+      id: academicCertificates.id,
+      studentId: academicCertificates.studentId,
+      courseId: academicCertificates.courseId,
+      templateId: academicCertificates.templateId,
+      numeroRegistro: academicCertificates.numeroRegistro,
+      dataEmissao: academicCertificates.dataEmissao,
+      dataValidade: academicCertificates.dataValidade,
+      dataSolicitacao: academicCertificates.dataSolicitacao,
+      status: academicCertificates.status,
+      observacoes: academicCertificates.observacoes,
+      qrCodeHash: academicCertificates.qrCodeHash,
+      linkValidacao: academicCertificates.linkValidacao,
+      pdfUrl: academicCertificates.pdfUrl,
+      registroId: academicCertificates.registroId,
+      livro: academicCertificates.livro,
+      folha: academicCertificates.folha,
+      solicitadoPor: academicCertificates.solicitadoPor,
+      autorizadoPor: academicCertificates.autorizadoPor,
+      emitidoPor: academicCertificates.emitidoPor,
+      createdAt: academicCertificates.createdAt,
+      updatedAt: academicCertificates.updatedAt,
+      // Dados do aluno
+      student: {
+        id: academicStudents.id,
+        nome: academicStudents.nome,
+        email: academicStudents.email,
+        cpf: academicStudents.cpf,
+        telefone: academicStudents.telefone,
+        courseId: academicStudents.courseId,
+        status: academicStudents.status,
+        notaFinal: academicStudents.notaFinal,
+        dataMatricula: academicStudents.dataMatricula
+      },
+      // Dados do curso
+      course: {
+        id: academicCourses.id,
+        nome: academicCourses.nome,
+        categoria: academicCourses.categoria,
+        areaConhecimento: academicCourses.areaConhecimento,
+        modalidade: academicCourses.modalidade,
+        cargaHoraria: academicCourses.cargaHoraria,
+        status: academicCourses.status
+      }
+    })
+    .from(academicCertificates)
+    .leftJoin(academicStudents, eq(academicCertificates.studentId, academicStudents.id))
+    .leftJoin(academicCourses, eq(academicCertificates.courseId, academicCourses.id))
+    .orderBy(desc(academicCertificates.createdAt));
+    
     if (conditions.length > 0) {
-      return await db.select().from(academicCertificates).where(and(...conditions)).orderBy(desc(academicCertificates.createdAt));
+      return await query.where(and(...conditions));
     }
     
-    return await db.select().from(academicCertificates).orderBy(desc(academicCertificates.createdAt));
+    return await query;
   }
 
   async getAcademicCertificateById(id: number): Promise<AcademicCertificate | undefined> {
