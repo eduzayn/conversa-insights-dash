@@ -101,9 +101,9 @@ export default function Certificacoes() {
     modalidade: '',
     curso: '',
     cargaHoraria: '',
-    financeiro: '',
-    documentacao: '',
-    plataforma: '',
+    financeiro: 'em_dia',
+    documentacao: 'pendente',
+    plataforma: 'pendente',
     tutoria: '',
     observacao: '',
     inicioCertificacao: '',
@@ -732,7 +732,95 @@ export default function Certificacoes() {
                       />
                     </div>
 
-                    {/* Novos campos adicionais */}
+                    {/* Campos de status acadêmico */}
+                    <div>
+                      <Label htmlFor="documentacao">Documentação</Label>
+                      <Select value={newCertification.documentacao} onValueChange={(value) => setNewCertification({ ...newCertification, documentacao: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status da Documentação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Pendente
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovada">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              Aprovada
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="reprovada">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Reprovada
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="plataforma">Atividades Plataforma</Label>
+                      <Select value={newCertification.plataforma} onValueChange={(value) => setNewCertification({ ...newCertification, plataforma: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status das Atividades" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Pendente
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovada">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              Aprovada
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="financeiro">Financeiro</Label>
+                      <Select value={newCertification.financeiro} onValueChange={(value) => setNewCertification({ ...newCertification, financeiro: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status Financeiro" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="em_dia">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              Em dia
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="quitado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                              Quitado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="inadimplente">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Inadimplente
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="expirado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                              Expirado
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Campos acadêmicos existentes */}
                     <div>
                       <Label htmlFor="tcc">TCC</Label>
                       <Select value={newCertification.tcc} onValueChange={(value) => setNewCertification({ ...newCertification, tcc: value })}>
@@ -1349,7 +1437,95 @@ export default function Certificacoes() {
                 />
               </div>
 
-              {/* Novos campos no modal de edição */}
+              {/* Campos de status acadêmico */}
+              <div>
+                <Label htmlFor="edit-documentacao">Documentação</Label>
+                <Select value={selectedCertification.documentacao || 'pendente'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, documentacao: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Pendente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovada">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Aprovada
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="reprovada">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Reprovada
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-plataforma">Atividades Plataforma</Label>
+                <Select value={selectedCertification.plataforma || 'pendente'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, plataforma: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Pendente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovada">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Aprovada
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-financeiro">Financeiro</Label>
+                <Select value={selectedCertification.financeiro || 'em_dia'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, financeiro: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="em_dia">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Em dia
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="quitado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        Quitado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="inadimplente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Inadimplente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="expirado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                        Expirado
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Campos acadêmicos existentes */}
               <div>
                 <Label htmlFor="edit-tcc">TCC</Label>
                 <Select value={selectedCertification.tcc || 'nao_possui'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, tcc: value })}>
