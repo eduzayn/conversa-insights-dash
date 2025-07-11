@@ -652,7 +652,7 @@ export default function Certificacoes() {
                       </div>
                     )}
                     <div>
-                      <Label htmlFor="dataPrevista">Data Prevista</Label>
+                      <Label htmlFor="dataPrevista">Data Prevista Certificação</Label>
                       <Input
                         id="dataPrevista"
                         type="date"
@@ -918,7 +918,7 @@ export default function Certificacoes() {
                                 <div className="text-sm">{certification.financeiro}</div>
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-gray-700">Data Prevista</div>
+                                <div className="text-sm font-medium text-gray-700">Data Prevista Certificação</div>
                                 <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
                                 <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega</div>
                                 <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
