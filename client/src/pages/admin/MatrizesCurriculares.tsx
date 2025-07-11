@@ -247,8 +247,9 @@ const MatrizesCurriculares = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/academic/courses'] });
       toast({ title: 'Sucesso', description: 'Curso removido com sucesso' });
     },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Erro ao remover curso', variant: 'destructive' });
+    onError: (error: any) => {
+      const errorMessage = error?.message || 'Erro ao remover curso';
+      toast({ title: 'Aviso', description: errorMessage, variant: 'destructive' });
     }
   });
 
