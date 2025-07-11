@@ -108,7 +108,7 @@ import {
   type InsertCertificateTemplate
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, count, isNotNull } from "drizzle-orm";
+import { eq, and, or, desc, asc, like, count, isNotNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {

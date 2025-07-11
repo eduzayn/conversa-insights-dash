@@ -1141,7 +1141,7 @@ const CertificadosPos = () => {
                                   selectedStudentName === student.nome ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {student.nome} {student.cpf && `- ${student.cpf}`}
+                              {student.nome}
                             </CommandItem>
                           ))}
                       </CommandGroup>
