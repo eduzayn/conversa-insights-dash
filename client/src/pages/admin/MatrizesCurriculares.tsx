@@ -1814,7 +1814,7 @@ const MatrizesCurriculares = () => {
 
       {/* Modal de Edição do Curso */}
       <Dialog open={isCourseEditModalOpen} onOpenChange={setIsCourseEditModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Curso</DialogTitle>
           </DialogHeader>
