@@ -61,6 +61,8 @@ const MatrizesCurriculares = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [disciplinaToDelete, setDisciplinaToDelete] = useState<Disciplina | null>(null);
   const [expandedCourses, setExpandedCourses] = useState<number[]>([]);
 
   // Estados para cursos
@@ -1357,9 +1359,8 @@ const MatrizesCurriculares = () => {
                           size="sm"
                           variant="destructive"
                           onClick={() => {
-                            if (confirm('Tem certeza que deseja remover esta disciplina?')) {
-                              deleteDisciplinaMutation.mutate(disciplina.id);
-                            }
+                            setDisciplinaToDelete(disciplina);
+                            setIsDeleteModalOpen(true);
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1810,6 +1811,52 @@ const MatrizesCurriculares = () => {
               setSelectedProfessor(null);
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Exclusão de Disciplina */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="space-y-3">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <Trash2 className="h-6 w-6 text-red-600" />
+            </div>
+            <DialogTitle className="text-center text-lg font-semibold">
+              Confirmar Exclusão
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center text-sm text-muted-foreground mt-2">
+            Tem certeza que deseja remover a disciplina{' '}
+            <span className="font-medium text-foreground">
+              "{disciplinaToDelete?.nome}"
+            </span>
+            ? Esta ação não pode ser desfeita.
+          </div>
+          <div className="flex gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setDisciplinaToDelete(null);
+              }}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (disciplinaToDelete) {
+                  deleteDisciplinaMutation.mutate(disciplinaToDelete.id);
+                  setIsDeleteModalOpen(false);
+                  setDisciplinaToDelete(null);
+                }
+              }}
+              className="flex-1"
+            >
+              Confirmar Exclusão
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
