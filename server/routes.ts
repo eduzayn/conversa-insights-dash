@@ -2941,6 +2941,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Erro ao deletar curso acadêmico:", error);
+      
+      // Se o erro contém informação sobre alunos matriculados, retornar erro 400 com mensagem amigável
+      if (error instanceof Error && error.message.includes('aluno(s) matriculado(s)')) {
+        return res.status(400).json({ message: error.message });
+      }
+      
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

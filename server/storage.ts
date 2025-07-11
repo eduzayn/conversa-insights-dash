@@ -108,7 +108,7 @@ import {
   type InsertCertificateTemplate
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, like, count, isNotNull } from "drizzle-orm";
+import { eq, and, or, desc, asc, like, count, isNotNull, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -1399,6 +1399,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAcademicCourse(id: number): Promise<void> {
+    // Verificar se existem alunos associados ao curso
+    const studentsInCourse = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(academicStudents)
+      .where(eq(academicStudents.courseId, id));
+    
+    const studentCount = Number(studentsInCourse[0]?.count || 0);
+    
+    if (studentCount > 0) {
+      throw new Error(`Não é possível remover este curso pois existem ${studentCount} aluno(s) matriculado(s) nele. Remova ou transfira os alunos antes de deletar o curso.`);
+    }
+    
     await db.delete(academicCourses).where(eq(academicCourses.id, id));
   }
 
