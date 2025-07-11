@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hub de Login - Conceito</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f8ff; }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        .title { color: #2563eb; font-size: 24px; margin-bottom: 30px; }
+        .cards-container { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .login-card { 
+            background: white; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 12px; 
+            padding: 20px; 
+            width: 200px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .login-card:hover { 
+            transform: translateY(-5px); 
+            border-color: #3b82f6; 
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+        .icon { font-size: 48px; margin-bottom: 10px; }
+        .card-title { font-weight: bold; color: #1f2937; margin-bottom: 8px; }
+        .card-desc { color: #6b7280; font-size: 14px; }
+        .arrow { margin: 20px 0; font-size: 24px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎯 Hub Central de Login</h1>
+        
+        <div class="cards-container">
+            <div class="login-card">
+                <div class="icon">👨‍💼</div>
+                <div class="card-title">Portal Administrativo</div>
+                <div class="card-desc">Gestão completa do sistema<br>/admin/login</div>
+            </div>
+            
+            <div class="login-card">
+                <div class="icon">🎓</div>
+                <div class="card-title">Portal do Aluno</div>
+                <div class="card-desc">Cursos e certificados<br>/portal-aluno/login</div>
+            </div>
+            
+            <div class="login-card">
+                <div class="icon">👨‍🏫</div>
+                <div class="card-title">Portal do Professor</div>
+                <div class="card-desc">Disciplinas e conteúdos<br>/professor/login</div>
+            </div>
+        </div>
+        
+        <div class="arrow">⬇️</div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; border: 2px dashed #d1d5db;">
+            <strong>Conceito:</strong> Uma página inicial (/login) que funciona como "painel de controle" onde você clica no card do tipo de acesso desejado e é redirecionado para a página específica.
+        </div>
+    </div>
+</body>
+</html>
