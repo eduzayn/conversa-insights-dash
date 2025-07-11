@@ -723,7 +723,7 @@ export default function Certificacoes() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="dataEntrega">Data de Entrega</Label>
+                      <Label htmlFor="dataEntrega">Data Entrega Certificação</Label>
                       <Input
                         id="dataEntrega"
                         type="date"
@@ -1124,7 +1124,7 @@ export default function Certificacoes() {
                               <div>
                                 <div className="text-sm font-medium text-gray-700">Data Inicio Certificação</div>
                                 <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
-                                <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega</div>
+                                <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega Certificação</div>
                                 <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
                               </div>
                               <div>
@@ -1428,7 +1428,7 @@ export default function Certificacoes() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-dataEntrega">Data de Entrega</Label>
+                <Label htmlFor="edit-dataEntrega">Data Entrega Certificação</Label>
                 <Input
                   id="edit-dataEntrega"
                   type="date"
