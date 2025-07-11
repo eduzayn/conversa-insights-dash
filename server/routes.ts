@@ -3039,6 +3039,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/academic/disciplines/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteAcademicDiscipline(parseInt(id));
+      res.json({ message: "Disciplina removida com sucesso" });
+    } catch (error) {
+      console.error("Erro ao remover disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Relacionamento Curso-Disciplina
   app.get("/api/academic/courses/:courseId/disciplines", authenticateToken, async (req: any, res) => {
     try {

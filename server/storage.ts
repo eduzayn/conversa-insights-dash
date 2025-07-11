@@ -275,6 +275,7 @@ export interface IStorage {
   getAcademicDisciplines(): Promise<AcademicDiscipline[]>;
   createAcademicDiscipline(discipline: InsertAcademicDiscipline): Promise<AcademicDiscipline>;
   updateAcademicDiscipline(id: number, discipline: Partial<AcademicDiscipline>): Promise<AcademicDiscipline | undefined>;
+  deleteAcademicDiscipline(id: number): Promise<void>;
   
   // Sistema de Certificados Acadêmicos - Relacionamento Curso-Disciplina
   getCourseDisciplines(courseId: number): Promise<AcademicDiscipline[]>;
@@ -1461,6 +1462,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(academicDisciplines.id, id))
       .returning();
     return updatedDiscipline || undefined;
+  }
+
+  async deleteAcademicDiscipline(id: number): Promise<void> {
+    // Primeiro, remove todos os relacionamentos curso-disciplina
+    await db.delete(courseDisciplines).where(eq(courseDisciplines.disciplineId, id));
+    
+    // Depois, remove a disciplina
+    await db.delete(academicDisciplines).where(eq(academicDisciplines.id, id));
   }
 
   // Sistema de Certificados Acadêmicos - Relacionamento Curso-Disciplina
