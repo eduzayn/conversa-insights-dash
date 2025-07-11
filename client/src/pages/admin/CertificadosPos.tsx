@@ -341,19 +341,28 @@ const CertificadosPos = () => {
   // Mutation para criar certificado
   const createCertificateMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Enviando dados do certificado:', data);
       return apiRequest('/api/academic/certificates', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' }
       });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log('Certificado criado com sucesso:', response);
       queryClient.invalidateQueries({ queryKey: ['/api/academic/certificates'] });
       setIsCreateModalOpen(false);
+      setSelectedStudentName('');
       toast({ title: 'Sucesso', description: 'Certificado criado com sucesso' });
     },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Erro ao criar certificado', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('Erro detalhado ao criar certificado:', error);
+      const message = error?.message || error?.response?.data?.message || 'Erro ao criar certificado';
+      toast({ 
+        title: 'Erro', 
+        description: message,
+        variant: 'destructive' 
+      });
     }
   });
 
@@ -1057,13 +1066,34 @@ const CertificadosPos = () => {
             const selectedStudent = certificationStudents.find(s => s.nome === selectedStudentName);
             const formData = new FormData(e.currentTarget);
             
+            const courseId = formData.get('courseId') as string;
+            const templateId = formData.get('templateId') as string;
+            
+            if (!selectedStudentName) {
+              toast({ title: 'Erro', description: 'Selecione um aluno', variant: 'destructive' });
+              return;
+            }
+            
+            if (!courseId) {
+              toast({ title: 'Erro', description: 'Selecione um curso', variant: 'destructive' });
+              return;
+            }
+            
+            if (!templateId) {
+              toast({ title: 'Erro', description: 'Selecione um modelo de certificado', variant: 'destructive' });
+              return;
+            }
+            
             const data = {
               studentName: selectedStudentName,
               studentCpf: selectedStudent?.cpf || '',
-              courseId: parseInt(formData.get('courseId') as string),
-              observacoes: formData.get('observacoes') as string,
+              courseId: parseInt(courseId),
+              templateId: parseInt(templateId),
+              observacoes: formData.get('observacoes') as string || '',
               status: 'solicitado'
             };
+            
+            console.log('Dados do formulário:', data);
             createCertificateMutation.mutate(data);
           }}>
             <div className="space-y-4">
@@ -1131,6 +1161,22 @@ const CertificadosPos = () => {
                     {courses.map((course) => (
                       <SelectItem key={course.id} value={course.id.toString()}>
                         {course.nome} - {course.categoria.replace('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="templateId">Modelo de Certificado *</Label>
+                <Select name="templateId" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o modelo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.filter(t => t.isActive).map((template) => (
+                      <SelectItem key={template.id} value={template.id.toString()}>
+                        {template.nome} - {template.categoria.replace('_', ' ')}
                       </SelectItem>
                     ))}
                   </SelectContent>

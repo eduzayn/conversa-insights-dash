@@ -495,6 +495,7 @@ export const academicCertificates = pgTable("academic_certificates", {
   id: serial("id").primaryKey(),
   studentId: integer("studentid").notNull().references(() => academicStudents.id),
   courseId: integer("courseid").notNull().references(() => academicCourses.id),
+  templateId: integer("templateid").references(() => certificateTemplates.id),
   numeroRegistro: text("numeroregistro"),
   dataEmissao: date("dataemissao"),
   dataValidade: date("datavalidade"),

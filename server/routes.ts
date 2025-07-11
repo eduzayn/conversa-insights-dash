@@ -3213,16 +3213,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
-      const { studentName, studentCpf, courseId, observacoes, status = 'solicitado' } = req.body;
+      const { studentName, studentCpf, courseId, templateId, observacoes, status = 'solicitado' } = req.body;
       
-      if (!studentName || !courseId) {
-        return res.status(400).json({ message: "Nome do aluno e curso são obrigatórios" });
+      if (!studentName || !courseId || !templateId) {
+        return res.status(400).json({ 
+          message: "Nome do aluno, curso e modelo de certificado são obrigatórios",
+          missingFields: {
+            studentName: !studentName,
+            courseId: !courseId,
+            templateId: !templateId
+          }
+        });
       }
 
-      // 1. Verificar se já existe aluno acadêmico com este nome/CPF
+      // 1. Verificar se o curso existe e buscar seus dados completos
+      const courseData = await storage.getAcademicCourseById(parseInt(courseId));
+      if (!courseData) {
+        return res.status(404).json({ message: "Curso não encontrado" });
+      }
+
+      // 2. Verificar se o template existe
+      const templateData = await storage.getCertificateTemplateById(parseInt(templateId));
+      if (!templateData) {
+        return res.status(404).json({ message: "Modelo de certificado não encontrado" });
+      }
+
+      // 3. Verificar se já existe aluno acadêmico com este nome/CPF
       let existingStudent = await storage.getAcademicStudentByNameOrCpf(studentName, studentCpf);
       
-      // 2. Se não existe, criar novo aluno acadêmico
+      // 4. Se não existe, criar novo aluno acadêmico
       if (!existingStudent) {
         const newStudentData = {
           nome: studentName,
@@ -3234,10 +3253,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         existingStudent = await storage.createAcademicStudent(newStudentData);
       }
 
-      // 3. Criar certificado acadêmico
+      // 5. Criar certificado acadêmico com dados completos
       const certificateData = {
         studentId: existingStudent.id,
         courseId: parseInt(courseId),
+        templateId: parseInt(templateId),
         observacoes: observacoes || '',
         status: status,
         dataSolicitacao: new Date(),
