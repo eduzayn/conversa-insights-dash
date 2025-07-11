@@ -704,7 +704,6 @@ const MatrizesCurriculares = () => {
       cargaHoraria: disciplina?.cargaHoraria || 0,
       periodo: disciplina?.periodo || 1,
       tipo: disciplina?.tipo || 'obrigatoria',
-      courseId: disciplina?.courseId || 0,
       professorId: disciplina?.professorId || 0,
       ementa: disciplina?.ementa || '',
       prerequeisitos: disciplina?.prerequeisitos?.join(', ') || '',
@@ -746,21 +745,6 @@ const MatrizesCurriculares = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="courseId">Curso</Label>
-            <Select value={formData.courseId.toString()} onValueChange={(value) => setFormData({ ...formData, courseId: parseInt(value) })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o curso" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map(course => (
-                  <SelectItem key={course.id} value={course.id.toString()}>
-                    {course.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
             <Label htmlFor="professorId">Professor</Label>
             <Select value={formData.professorId.toString()} onValueChange={(value) => setFormData({ ...formData, professorId: parseInt(value) })}>
               <SelectTrigger>
@@ -773,6 +757,19 @@ const MatrizesCurriculares = () => {
                     {professor.nome}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="inativo">Inativo</SelectItem>
+                <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -438,12 +438,13 @@ export const academicDisciplines = pgTable("academic_disciplines", {
   id: serial("id").primaryKey(),
   nome: text("nome").notNull(),
   codigo: text("codigo"),
-  courseId: integer("courseid").notNull().references(() => academicCourses.id),
   professorId: integer("professorid").references(() => academicProfessors.id),
   cargaHoraria: integer("cargahoraria"),
+  periodo: integer("periodo").default(1), // período sugerido
+  tipo: text("tipo").default("obrigatoria"), // obrigatoria, optativa, eletiva
   ementa: text("ementa"),
-  objetivos: text("objetivos"),
-  ordem: integer("ordem"),
+  prerequeisitos: text("prerequeisitos").array(), // array de strings com pré-requisitos
+  status: text("status").default("ativo"), // ativo, inativo, em_desenvolvimento
   isActive: boolean("isactive").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1095,13 +1096,13 @@ export const insertAcademicProfessorSchema = createInsertSchema(academicProfesso
 export const insertAcademicDisciplineSchema = createInsertSchema(academicDisciplines).pick({
   nome: true,
   codigo: true,
-  courseId: true,
   professorId: true,
   cargaHoraria: true,
+  periodo: true,
+  tipo: true,
   ementa: true,
-  objetivos: true,
-  ordem: true,
-  isActive: true,
+  prerequeisitos: true,
+  status: true,
 });
 
 export const insertCourseDisciplineSchema = createInsertSchema(courseDisciplines).pick({
