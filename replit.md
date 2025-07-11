@@ -616,6 +616,20 @@ Changelog:
    * ✅ Responsividade mantida: página de certificações com 9 abas flexíveis
    * ✅ Ícones preservados para identificação visual (FileText, Settings, School, BookOpen, Users)
    * Status: Padronização visual completa aplicada em todo o sistema
+- Hub Central de Login Implementado (11 Jul 2025):
+   * ✅ Página LoginHub.tsx criada com interface moderna e elegante
+   * ✅ 3 cards principais com cores específicas e ícones representativos:
+     - Portal Administrativo (azul) com ícone Shield → /admin/login
+     - Portal do Aluno (verde) com ícone GraduationCap → /portal-aluno/login
+     - Portal do Professor (roxo) com ícone BookOpen → /professor/login
+   * ✅ Design responsivo com gradient de fundo e efeitos hover
+   * ✅ Cards com elevação e sombra ao passar o mouse
+   * ✅ Rota /login redirecionada para o novo hub centralizado
+   * ✅ Rota /login-antigo preserva componente LoginRouter anterior
+   * ✅ Header com logo ERP EdunexIA e descrição do sistema
+   * ✅ Footer informativo sobre sistema integrado
+   * ✅ Navegação automática funcionando para todos os portais
+   * Status: Hub centralizado implementado e totalmente funcional
 ```
 
 ## User Preferences
