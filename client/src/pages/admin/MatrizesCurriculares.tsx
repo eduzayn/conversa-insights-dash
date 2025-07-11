@@ -976,16 +976,25 @@ const MatrizesCurriculares = () => {
 
       {/* Tabs de Navegação */}
       <Tabs defaultValue="courses" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="courses" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-3 h-12 p-1 bg-gray-100 rounded-lg">
+          <TabsTrigger 
+            value="courses" 
+            className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
             <School className="h-4 w-4" />
             Cursos
           </TabsTrigger>
-          <TabsTrigger value="disciplines" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="disciplines" 
+            className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
             <BookOpen className="h-4 w-4" />
             Disciplinas
           </TabsTrigger>
-          <TabsTrigger value="professors" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="professors" 
+            className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
             <Users className="h-4 w-4" />
             Professores
           </TabsTrigger>
