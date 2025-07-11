@@ -527,7 +527,7 @@ export default function Certificacoes() {
                   Dashboard
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold">Certificações</h1>
+                  <h1 className="text-2xl font-bold">Análises Certificações</h1>
                   <p className="text-gray-600">Gerencie certificações e processos de documentação</p>
                 </div>
               </div>
@@ -1166,7 +1166,6 @@ export default function Certificacoes() {
           </div>
         </main>
       </div>
-
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -1417,7 +1416,6 @@ export default function Certificacoes() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal para criar novo curso */}
       <Dialog open={isNewCourseDialogOpen} onOpenChange={setIsNewCourseDialogOpen}>
         <DialogContent className="max-w-md">
