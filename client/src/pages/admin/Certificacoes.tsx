@@ -69,6 +69,8 @@ export default function Certificacoes() {
   const [editCourseSearchOpen, setEditCourseSearchOpen] = useState(false);
   const [isNewCourseDialogOpen, setIsNewCourseDialogOpen] = useState(false);
   const [newCourseData, setNewCourseData] = useState({ nome: '', cargaHoraria: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -228,7 +230,7 @@ export default function Certificacoes() {
   });
   const editPreRegisteredCourses = Array.isArray(editPreRegisteredCoursesData) ? editPreRegisteredCoursesData : [];
 
-  const { data: certifications = [], isLoading } = useQuery({
+  const { data: certificationsData, isLoading } = useQuery({
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
       status: filterStatus,
@@ -237,12 +239,15 @@ export default function Certificacoes() {
       periodo: filterPeriodo,
       dataInicio,
       dataFim,
-      search: searchTerm
+      search: searchTerm,
+      page: currentPage,
+      limit: pageSize
     }],
     queryFn: async () => {
       const params = new URLSearchParams({
         categoria: getCategoriaFromTab(activeTab),
-        limit: '200' // Aumentar limite para mostrar mais registros
+        page: currentPage.toString(),
+        limit: pageSize.toString()
       });
       
       if (filterStatus && filterStatus !== 'todos') params.append('status', filterStatus);
@@ -263,6 +268,55 @@ export default function Certificacoes() {
       return response;
     }
   });
+
+  // Resetar página quando filtros mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, filterStatus, filterModalidade, filterSubcategoria, filterPeriodo, searchTerm]);
+
+  const certifications = certificationsData?.data || [];
+  const totalCertifications = certificationsData?.total || 0;
+  const totalPages = certificationsData?.totalPages || 1;
+
+  // Função para gerar números de página
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+      const end = Math.min(totalPages, start + maxPagesToShow - 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (start > 1) {
+        pages.unshift('...');
+        pages.unshift(1);
+      }
+      
+      if (end < totalPages) {
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: string) => {
+    setPageSize(parseInt(newPageSize));
+    setCurrentPage(1);
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -865,14 +919,14 @@ export default function Certificacoes() {
                   </CardContent>
                 </Card>
 
-                {/* Contador de Resultados */}
+                {/* Contador de Resultados e Controles de Paginação */}
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-600">
                     {isLoading ? (
                       "Carregando..."
                     ) : (
                       <>
-                        Exibindo <strong>{filteredCertifications.length}</strong> certificação{filteredCertifications.length !== 1 ? 'ões' : ''} 
+                        Exibindo <strong>{(currentPage - 1) * pageSize + 1}</strong> a <strong>{Math.min(currentPage * pageSize, totalCertifications)}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
                         {searchTerm && ` para "${searchTerm}"`}
                         {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
                         {filterModalidade && filterModalidade !== 'todas' && ` da modalidade "${filterModalidade}"`}
@@ -880,11 +934,19 @@ export default function Certificacoes() {
                     )}
                   </div>
                   
-                  {filteredCertifications.length >= 200 && (
-                    <div className="text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded-lg border border-orange-200">
-                      ⚠️ Limite de 200 registros atingido. Use filtros para refinar a busca.
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="page-size" className="text-sm">Mostrar:</Label>
+                    <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                      <SelectTrigger className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {isLoading ? (
@@ -893,7 +955,7 @@ export default function Certificacoes() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredCertifications.map((certification: Certification) => (
+                    {certifications.map((certification: Certification) => (
                       <Card key={certification.id} className="hover:shadow-md transition-shadow">
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between">
@@ -986,7 +1048,7 @@ export default function Certificacoes() {
                       </Card>
                     ))}
                     
-                    {filteredCertifications.length === 0 && (
+                    {certifications.length === 0 && (
                       <Card>
                         <CardContent className="p-8 text-center">
                           <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -995,6 +1057,54 @@ export default function Certificacoes() {
                         </CardContent>
                       </Card>
                     )}
+                  </div>
+                )}
+
+                {/* Componente de Paginação */}
+                {!isLoading && totalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+                    <div className="text-sm text-gray-600">
+                      Página {currentPage} de {totalPages}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Anterior
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {getPageNumbers().map((pageNum, index) => (
+                          <div key={index}>
+                            {pageNum === '...' ? (
+                              <span className="px-2 py-1 text-gray-500">...</span>
+                            ) : (
+                              <Button
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                size="sm"
+                                className="min-w-[40px]"
+                                onClick={() => handlePageChange(pageNum as number)}
+                              >
+                                {pageNum}
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Próxima
+                      </Button>
+                    </div>
                   </div>
                 )}
               </TabsContent>

@@ -728,7 +728,9 @@ export class DatabaseStorage implements IStorage {
     search?: string;
     page?: number;
     limit?: number;
-  }): Promise<Certification[]> {
+    dataInicio?: string;
+    dataFim?: string;
+  }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }> {
     let conditions = [];
     
     if (filters) {
@@ -759,8 +761,29 @@ export class DatabaseStorage implements IStorage {
           )
         );
       }
+
+      // Filtros de data
+      if (filters.dataInicio) {
+        conditions.push(gte(certifications.dataPrevista, filters.dataInicio));
+      }
+      if (filters.dataFim) {
+        conditions.push(lte(certifications.dataPrevista, filters.dataFim));
+      }
     }
     
+    // Primeiro, contar o total
+    let countQuery = db
+      .select({ count: sql<number>`count(*)` })
+      .from(certifications);
+    
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
+    }
+    
+    const [countResult] = await countQuery;
+    const total = countResult.count;
+    
+    // Então, buscar os dados paginados
     let query = db
       .select()
       .from(certifications)
@@ -771,12 +794,22 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Aplicar paginação
-    if (filters?.page && filters?.limit) {
-      const offset = (filters.page - 1) * filters.limit;
-      query = query.limit(filters.limit).offset(offset);
-    }
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 50;
+    const offset = (page - 1) * limit;
     
-    return await query;
+    query = query.limit(limit).offset(offset);
+    
+    const data = await query;
+    const totalPages = Math.ceil(total / limit);
+    
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages
+    };
   }
 
   async createCertification(certification: InsertCertification): Promise<Certification> {

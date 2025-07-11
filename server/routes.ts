@@ -2300,22 +2300,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         categoria, 
         subcategoria, 
         search, 
+        dataInicio,
+        dataFim,
         page = 1, 
         limit = 50 
       } = req.query;
       
-      const certifications = await storage.getCertifications({
+      const result = await storage.getCertifications({
         modalidade,
         curso,
         status,
         categoria,
         subcategoria,
         search,
+        dataInicio,
+        dataFim,
         page: parseInt(page as string),
         limit: parseInt(limit as string)
       });
       
-      res.json(certifications);
+      res.json(result);
     } catch (error) {
       console.error("Erro ao buscar certificações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
