@@ -61,7 +61,7 @@ export default function Certificacoes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterModalidade, setFilterModalidade] = useState('');
-  const [filterSubcategoria, setFilterSubcategoria] = useState('');
+
   const [filterPeriodo, setFilterPeriodo] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
@@ -84,7 +84,7 @@ export default function Certificacoes() {
     switch(tab) {
       case 'pos': return 'pos_graduacao';
       case 'segunda': return 'segunda_graduacao';
-      case 'formacao_pedagogica': return 'segunda_graduacao';
+      case 'formacao_pedagogica': return 'formacao_pedagogica';
       case 'formacao_livre': return 'formacao_livre';
       case 'diplomacao': return 'diplomacao_competencia';
       case 'eja': return 'eja';
@@ -128,7 +128,6 @@ export default function Certificacoes() {
     diploma: '',
     status: 'pendente',
     categoria: getCategoriaFromTab(activeTab),
-    subcategoria: '',
     tcc: 'nao_possui',
     praticasPedagogicas: 'nao_possui',
     estagio: 'nao_possui'
@@ -138,7 +137,6 @@ export default function Certificacoes() {
   useEffect(() => {
     setFilterStatus('');
     setFilterModalidade('');
-    setFilterSubcategoria('');
     setFilterPeriodo('');
     setDataInicio('');
     setDataFim('');
@@ -254,7 +252,6 @@ export default function Certificacoes() {
       modalidadeTab: getModalidadeFromTab(activeTab),
       status: filterStatus,
       modalidade: filterModalidade,
-      subcategoria: filterSubcategoria,
       periodo: filterPeriodo,
       dataInicio,
       dataFim,
@@ -280,7 +277,7 @@ export default function Certificacoes() {
       if (filterModalidade && filterModalidade !== 'todas') {
         params.set('modalidade', filterModalidade);
       }
-      if (filterSubcategoria && filterSubcategoria !== 'todas') params.append('subcategoria', filterSubcategoria);
+
       if (searchTerm && searchTerm.trim()) params.append('search', searchTerm.trim());
       
       // Adicionar filtros de período
@@ -300,7 +297,7 @@ export default function Certificacoes() {
   // Resetar página quando filtros mudarem
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, filterStatus, filterModalidade, filterSubcategoria, filterPeriodo, searchTerm]);
+  }, [activeTab, filterStatus, filterModalidade, filterPeriodo, searchTerm]);
 
   const certifications = certificationsData?.data || [];
   const totalCertifications = certificationsData?.total || 0;
@@ -979,7 +976,7 @@ export default function Certificacoes() {
                     <CardTitle>Filtros</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`grid grid-cols-1 gap-4 ${(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                       <div>
                         <Label htmlFor="search">Buscar</Label>
                         <div className="relative">
@@ -1018,7 +1015,7 @@ export default function Certificacoes() {
                           <SelectContent>
                             <SelectItem value="todas">Todas</SelectItem>
                             <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                            <SelectItem value="Formação Pedagógica">Formação Pedagógica</SelectItem>
+                            <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
                             <SelectItem value="EJA">EJA</SelectItem>
                             <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
                             <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
@@ -1029,22 +1026,6 @@ export default function Certificacoes() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && (
-                        <div>
-                          <Label htmlFor="filter-subcategoria">Subcategoria</Label>
-                          <Select value={filterSubcategoria} onValueChange={setFilterSubcategoria}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Todas as subcategorias" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="todas">Todas</SelectItem>
-                              <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
-                              <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
-                              <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
                       <div>
                         <Label htmlFor="filter-periodo">Período</Label>
                         <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
