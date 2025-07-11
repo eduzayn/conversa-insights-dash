@@ -295,6 +295,31 @@ const CertificadosPos = () => {
     }
   });
 
+  // Buscar alunos da tabela de certificações para o dropdown
+  const { data: certificationStudents = [] } = useQuery({
+    queryKey: ['/api/certificacoes'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/certificacoes?limit=1000');
+      return response as any[];
+    },
+    select: (data) => {
+      // Extrair alunos únicos da tabela de certificações
+      const uniqueStudents = data.reduce((acc: any[], cert: any) => {
+        if (cert.aluno && !acc.find(s => s.nome === cert.aluno && s.cpf === cert.cpf)) {
+          acc.push({
+            nome: cert.aluno,
+            cpf: cert.cpf,
+            id: cert.id
+          });
+        }
+        return acc;
+      }, []);
+      
+      // Ordenar por nome
+      return uniqueStudents.sort((a, b) => a.nome.localeCompare(b.nome));
+    }
+  });
+
   // Mutation para criar certificado
   const createCertificateMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -1003,8 +1028,14 @@ const CertificadosPos = () => {
           <form onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
+            
+            // Buscar dados do aluno selecionado na tabela de certificações
+            const selectedStudentName = formData.get('studentId') as string;
+            const selectedStudent = certificationStudents.find(s => s.nome === selectedStudentName);
+            
             const data = {
-              studentId: parseInt(formData.get('studentId') as string),
+              studentName: selectedStudentName,
+              studentCpf: selectedStudent?.cpf || '',
               courseId: parseInt(formData.get('courseId') as string),
               observacoes: formData.get('observacoes') as string,
               status: 'solicitado'
@@ -1018,9 +1049,9 @@ const CertificadosPos = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o aluno" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {students.map((student) => (
-                      <SelectItem key={student.id} value={student.id.toString()}>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {certificationStudents.map((student, index) => (
+                      <SelectItem key={`${student.nome}-${student.cpf}-${index}`} value={student.nome}>
                         {student.nome} - {student.cpf}
                       </SelectItem>
                     ))}
