@@ -455,6 +455,18 @@ const MatrizesCurriculares = () => {
 
     const [selectedDisciplines, setSelectedDisciplines] = useState<number[]>([]);
 
+    // Carregar disciplinas associadas ao curso quando for edição
+    React.useEffect(() => {
+      if (course && course.id) {
+        // Buscar disciplinas já associadas ao curso
+        const courseDisciplines = disciplinas?.filter(d => d.courseId === course.id).map(d => d.id) || [];
+        setSelectedDisciplines(courseDisciplines);
+      } else {
+        // Limpar seleção para novo curso
+        setSelectedDisciplines([]);
+      }
+    }, [course, disciplinas]);
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       onSubmit({ ...formData, selectedDisciplines });
