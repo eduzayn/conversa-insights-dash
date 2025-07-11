@@ -153,7 +153,7 @@ const Login = () => {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-gray-900">ERP EdunexIA</CardTitle>
-            <p className="text-gray-600 mt-1">Sistema de Relatórios e Gamificação</p>
+            <p className="text-gray-600 mt-1">Grupo Zayn Educacional</p>
           </div>
         </CardHeader>
         <CardContent>
