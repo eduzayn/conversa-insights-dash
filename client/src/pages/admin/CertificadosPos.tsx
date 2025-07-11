@@ -118,6 +118,7 @@ const CertificadosPos = () => {
   // Estados para busca de alunos
   const [selectedStudentName, setSelectedStudentName] = useState('');
   const [isStudentPopoverOpen, setIsStudentPopoverOpen] = useState(false);
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1081,28 +1082,38 @@ const CertificadosPos = () => {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar aluno por nome ou CPF..." />
+                    <Command shouldFilter={false}>
+                      <CommandInput 
+                        placeholder="Buscar aluno por nome ou CPF..." 
+                        value={studentSearchQuery}
+                        onValueChange={setStudentSearchQuery}
+                      />
                       <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
                       <CommandGroup className="max-h-[200px] overflow-y-auto">
-                        {certificationStudents.map((student, index) => (
-                          <CommandItem
-                            key={`student-item-${index}`}
-                            value={student.nome}
-                            onSelect={() => {
-                              setSelectedStudentName(student.nome);
-                              setIsStudentPopoverOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedStudentName === student.nome ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {student.nome} {student.cpf && `- ${student.cpf}`}
-                          </CommandItem>
-                        ))}
+                        {certificationStudents
+                          .filter(student => 
+                            student.nome.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
+                            (student.cpf && student.cpf.includes(studentSearchQuery))
+                          )
+                          .map((student, index) => (
+                            <CommandItem
+                              key={`student-item-${index}`}
+                              value={student.nome}
+                              onSelect={() => {
+                                setSelectedStudentName(student.nome);
+                                setIsStudentPopoverOpen(false);
+                                setStudentSearchQuery('');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedStudentName === student.nome ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {student.nome} {student.cpf && `- ${student.cpf}`}
+                            </CommandItem>
+                          ))}
                       </CommandGroup>
                     </Command>
                   </PopoverContent>
