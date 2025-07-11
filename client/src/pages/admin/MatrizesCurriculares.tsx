@@ -783,8 +783,9 @@ const MatrizesCurriculares = () => {
           <Input
             id="cargaHoraria"
             type="number"
-            value={formData.cargaHoraria}
+            value={formData.cargaHoraria || ''}
             onChange={(e) => setFormData({ ...formData, cargaHoraria: parseInt(e.target.value) || 0 })}
+            placeholder="Ex: 80"
             required
           />
         </div>
