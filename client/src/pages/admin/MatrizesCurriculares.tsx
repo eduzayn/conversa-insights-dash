@@ -206,18 +206,33 @@ const MatrizesCurriculares = () => {
   });
 
   const updateCourseMutation = useMutation({
-    mutationFn: async ({ id, ...data }: Partial<Curso> & { id: number }) => {
-      return apiRequest(`/api/academic/courses/${id}`, {
+    mutationFn: async ({ id, selectedDisciplines, ...data }: Partial<Curso> & { id: number; selectedDisciplines?: number[] }) => {
+      const { selectedDisciplines: _, ...courseData } = data;
+      
+      // Atualizar o curso primeiro
+      const course = await apiRequest(`/api/academic/courses/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: JSON.stringify(courseData),
         headers: { 'Content-Type': 'application/json' }
       });
+
+      // Se houver disciplinas selecionadas, associá-las ao curso
+      if (selectedDisciplines && selectedDisciplines.length > 0) {
+        await apiRequest(`/api/academic/courses/${id}/disciplines`, {
+          method: 'POST',
+          body: JSON.stringify({ disciplineIds: selectedDisciplines }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      return course;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/academic/courses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/academic/disciplines'] });
       setIsCourseEditModalOpen(false);
       setSelectedCourse(null);
-      toast({ title: 'Sucesso', description: 'Curso atualizado com sucesso' });
+      toast({ title: 'Sucesso', description: 'Curso atualizado com sucesso e disciplinas associadas' });
     },
     onError: () => {
       toast({ title: 'Erro', description: 'Erro ao atualizar curso', variant: 'destructive' });
