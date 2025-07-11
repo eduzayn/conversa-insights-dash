@@ -95,6 +95,22 @@ export default function Certificacoes() {
     }
   };
 
+  // Nova função para obter modalidade específica da aba
+  const getModalidadeFromTab = (tab: string) => {
+    switch(tab) {
+      case 'segunda': return 'Segunda licenciatura';
+      case 'formacao_pedagogica': return 'Formação pedagógica';
+      case 'pos': return 'Pós-graduação';
+      case 'formacao_livre': return 'Formação livre';
+      case 'diplomacao': return 'Diplomação por competência';
+      case 'eja': return 'EJA';
+      case 'graduacao': return 'Graduação';
+      case 'capacitacao': return 'Capacitação';
+      case 'sequencial': return 'Sequencial';
+      default: return null;
+    }
+  };
+
   const [newCertification, setNewCertification] = useState({
     aluno: '',
     cpf: '',
@@ -235,6 +251,7 @@ export default function Certificacoes() {
   const { data: certificationsData, isLoading } = useQuery({
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
+      modalidadeTab: getModalidadeFromTab(activeTab),
       status: filterStatus,
       modalidade: filterModalidade,
       subcategoria: filterSubcategoria,
@@ -252,8 +269,17 @@ export default function Certificacoes() {
         limit: pageSize.toString()
       });
       
+      // CORREÇÃO CRÍTICA: Aplicar filtro por modalidade específica da aba
+      const modalidadeEspecifica = getModalidadeFromTab(activeTab);
+      if (modalidadeEspecifica) {
+        params.append('modalidade', modalidadeEspecifica);
+      }
+      
       if (filterStatus && filterStatus !== 'todos') params.append('status', filterStatus);
-      if (filterModalidade && filterModalidade !== 'todas') params.append('modalidade', filterModalidade);
+      // Se há filtro manual de modalidade, ele sobrescreve o filtro da aba
+      if (filterModalidade && filterModalidade !== 'todas') {
+        params.set('modalidade', filterModalidade);
+      }
       if (filterSubcategoria && filterSubcategoria !== 'todas') params.append('subcategoria', filterSubcategoria);
       if (searchTerm && searchTerm.trim()) params.append('search', searchTerm.trim());
       
