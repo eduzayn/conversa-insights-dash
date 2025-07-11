@@ -110,6 +110,10 @@ const CertificadosPos = () => {
   const [templateSearchTerm, setTemplateSearchTerm] = useState('');
   const [templateCategoriaFilter, setTemplateCategoriaFilter] = useState<string>('all');
   const [templateTipoFilter, setTemplateTipoFilter] = useState<string>('all');
+  
+  // Estados para busca de alunos
+  const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [selectedStudentName, setSelectedStudentName] = useState('');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -303,20 +307,29 @@ const CertificadosPos = () => {
       return response as any[];
     },
     select: (data) => {
-      // Extrair alunos únicos da tabela de certificações
-      const uniqueStudents = data.reduce((acc: any[], cert: any) => {
-        if (cert.aluno && !acc.find(s => s.nome === cert.aluno && s.cpf === cert.cpf)) {
-          acc.push({
-            nome: cert.aluno,
-            cpf: cert.cpf,
-            id: cert.id
-          });
+      // Extrair alunos únicos da tabela de certificações usando Set para evitar duplicatas
+      const uniqueStudentsSet = new Set();
+      const students: any[] = [];
+      
+      data.forEach((cert: any, index: number) => {
+        if (cert.aluno && cert.aluno.trim()) {
+          const cleanName = cert.aluno.trim();
+          const cleanCpf = (cert.cpf || '').replace(/[^\d]/g, '');
+          const mapKey = `${cleanName}|${cleanCpf}`;
+          
+          if (!uniqueStudentsSet.has(mapKey)) {
+            uniqueStudentsSet.add(mapKey);
+            students.push({
+              nome: cleanName,
+              cpf: cleanCpf,
+              uniqueKey: `student-${students.length}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            });
+          }
         }
-        return acc;
-      }, []);
+      });
       
       // Ordenar por nome
-      return uniqueStudents.sort((a, b) => a.nome.localeCompare(b.nome));
+      return students.sort((a, b) => a.nome.localeCompare(b.nome));
     }
   });
 
@@ -1016,7 +1029,14 @@ const CertificadosPos = () => {
       </Dialog>
 
       {/* Modal de Criação de Certificado */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+        setIsCreateModalOpen(open);
+        if (!open) {
+          // Limpar campos quando modal é fechado
+          setStudentSearchTerm('');
+          setSelectedStudentName('');
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1027,11 +1047,10 @@ const CertificadosPos = () => {
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            const formData = new FormData(e.currentTarget);
             
             // Buscar dados do aluno selecionado na tabela de certificações
-            const selectedStudentName = formData.get('studentId') as string;
             const selectedStudent = certificationStudents.find(s => s.nome === selectedStudentName);
+            const formData = new FormData(e.currentTarget);
             
             const data = {
               studentName: selectedStudentName,
@@ -1045,18 +1064,39 @@ const CertificadosPos = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="studentId">Aluno</Label>
-                <Select name="studentId" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o aluno" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px] overflow-y-auto">
-                    {certificationStudents.map((student, index) => (
-                      <SelectItem key={`${student.nome}-${student.cpf}-${index}`} value={student.nome}>
-                        {student.nome} - {student.cpf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar aluno por nome..."
+                      className="pl-10"
+                      value={studentSearchTerm}
+                      onChange={(e) => setStudentSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Select 
+                    name="studentId" 
+                    required 
+                    value={selectedStudentName}
+                    onValueChange={setSelectedStudentName}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o aluno" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {certificationStudents
+                        .filter(student => 
+                          student.nome.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
+                          student.cpf.includes(studentSearchTerm)
+                        )
+                        .map((student, index) => (
+                          <SelectItem key={`student-item-${index}`} value={student.nome}>
+                            {student.nome} {student.cpf && `- ${student.cpf}`}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
