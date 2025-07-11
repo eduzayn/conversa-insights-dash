@@ -7,16 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, Filter, Download, Eye, FileText, 
   User, GraduationCap, Calendar, Award, Settings, Printer,
-  CheckCircle, Clock, XCircle, AlertCircle, ArrowLeft, Edit
+  CheckCircle, Clock, XCircle, AlertCircle, ArrowLeft, Edit,
+  Check, ChevronsUpDown
 } from 'lucide-react';
 
 // Tipos baseados no schema atualizado
@@ -112,8 +116,8 @@ const CertificadosPos = () => {
   const [templateTipoFilter, setTemplateTipoFilter] = useState<string>('all');
   
   // Estados para busca de alunos
-  const [studentSearchTerm, setStudentSearchTerm] = useState('');
   const [selectedStudentName, setSelectedStudentName] = useState('');
+  const [isStudentPopoverOpen, setIsStudentPopoverOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1033,8 +1037,8 @@ const CertificadosPos = () => {
         setIsCreateModalOpen(open);
         if (!open) {
           // Limpar campos quando modal é fechado
-          setStudentSearchTerm('');
           setSelectedStudentName('');
+          setIsStudentPopoverOpen(false);
         }
       }}>
         <DialogContent className="max-w-2xl">
@@ -1064,39 +1068,46 @@ const CertificadosPos = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="studentId">Aluno</Label>
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar aluno por nome..."
-                      className="pl-10"
-                      value={studentSearchTerm}
-                      onChange={(e) => setStudentSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <Select 
-                    name="studentId" 
-                    required 
-                    value={selectedStudentName}
-                    onValueChange={setSelectedStudentName}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o aluno" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px] overflow-y-auto">
-                      {certificationStudents
-                        .filter(student => 
-                          student.nome.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
-                          student.cpf.includes(studentSearchTerm)
-                        )
-                        .map((student, index) => (
-                          <SelectItem key={`student-item-${index}`} value={student.nome}>
+                <Popover open={isStudentPopoverOpen} onOpenChange={setIsStudentPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isStudentPopoverOpen}
+                      className="w-full justify-between"
+                    >
+                      {selectedStudentName || "Selecione o aluno"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar aluno por nome ou CPF..." />
+                      <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
+                      <CommandGroup className="max-h-[200px] overflow-y-auto">
+                        {certificationStudents.map((student, index) => (
+                          <CommandItem
+                            key={`student-item-${index}`}
+                            value={`${student.nome} ${student.cpf}`}
+                            onSelect={() => {
+                              setSelectedStudentName(student.nome);
+                              setIsStudentPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedStudentName === student.nome ? "opacity-100" : "opacity-0"
+                              )}
+                            />
                             {student.nome} {student.cpf && `- ${student.cpf}`}
-                          </SelectItem>
+                          </CommandItem>
                         ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <input type="hidden" name="studentId" value={selectedStudentName} required />
               </div>
 
               <div>
