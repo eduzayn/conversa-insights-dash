@@ -24,14 +24,16 @@ const STATUS_COLORS = {
   'pendente': 'bg-yellow-100 text-yellow-800',
   'em_andamento': 'bg-blue-100 text-blue-800',
   'concluido': 'bg-green-100 text-green-800',
-  'cancelado': 'bg-red-100 text-red-800'
+  'cancelado': 'bg-red-100 text-red-800',
+  'em_atraso': 'bg-orange-100 text-orange-800'
 };
 
 const STATUS_LABELS = {
   'pendente': 'Pendente',
   'em_andamento': 'Em Andamento',
   'concluido': 'Concluído',
-  'cancelado': 'Cancelado'
+  'cancelado': 'Cancelado',
+  'em_atraso': 'Em Atraso'
 };
 
 const SUBCATEGORIA_LABELS = {
@@ -573,6 +575,12 @@ export default function Certificacoes() {
                             Cancelado
                           </div>
                         </SelectItem>
+                        <SelectItem value="em_atraso">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                            Em Atraso
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -838,6 +846,7 @@ export default function Certificacoes() {
                             <SelectItem value="em_andamento">Em Andamento</SelectItem>
                             <SelectItem value="concluido">Concluído</SelectItem>
                             <SelectItem value="cancelado">Cancelado</SelectItem>
+                            <SelectItem value="em_atraso">Em Atraso</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1151,6 +1160,12 @@ export default function Certificacoes() {
                       <div className="flex items-center">
                         <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
                         Cancelado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="em_atraso">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                        Em Atraso
                       </div>
                     </SelectItem>
                   </SelectContent>
