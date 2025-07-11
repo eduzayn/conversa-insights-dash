@@ -802,16 +802,61 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[40px]">
-                <TabsTrigger value="pos" className="flex-1 min-w-[120px] text-xs lg:text-sm">Pós-graduação</TabsTrigger>
-                <TabsTrigger value="segunda" className="flex-1 min-w-[140px] text-xs lg:text-sm">Segunda licenciatura</TabsTrigger>
-                <TabsTrigger value="formacao_pedagogica" className="flex-1 min-w-[130px] text-xs lg:text-sm">Form. Pedagógica</TabsTrigger>
-                <TabsTrigger value="formacao_livre" className="flex-1 min-w-[110px] text-xs lg:text-sm">Form. Livre</TabsTrigger>
-                <TabsTrigger value="diplomacao" className="flex-1 min-w-[140px] text-xs lg:text-sm">Diplom. Competência</TabsTrigger>
-                <TabsTrigger value="eja" className="flex-1 min-w-[60px] text-xs lg:text-sm">EJA</TabsTrigger>
-                <TabsTrigger value="graduacao" className="flex-1 min-w-[90px] text-xs lg:text-sm">Graduação</TabsTrigger>
-                <TabsTrigger value="capacitacao" className="flex-1 min-w-[100px] text-xs lg:text-sm">Capacitação</TabsTrigger>
-                <TabsTrigger value="sequencial" className="flex-1 min-w-[90px] text-xs lg:text-sm">Sequencial</TabsTrigger>
+              <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg">
+                <TabsTrigger 
+                  value="pos" 
+                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Pós-graduação
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="segunda" 
+                  className="flex-1 min-w-[140px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Segunda licenciatura
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="formacao_pedagogica" 
+                  className="flex-1 min-w-[130px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Form. Pedagógica
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="formacao_livre" 
+                  className="flex-1 min-w-[110px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Form. Livre
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="diplomacao" 
+                  className="flex-1 min-w-[140px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Diplom. Competência
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="eja" 
+                  className="flex-1 min-w-[60px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  EJA
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="graduacao" 
+                  className="flex-1 min-w-[90px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Graduação
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="capacitacao" 
+                  className="flex-1 min-w-[100px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Capacitação
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="sequencial" 
+                  className="flex-1 min-w-[90px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                >
+                  Sequencial
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">

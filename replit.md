@@ -606,6 +606,16 @@ Changelog:
    * ✅ Todas as funcionalidades mantidas: relacionamento muitos-para-muitos, CRUD completo
    * ✅ 12 disciplinas ativas, 3 cursos ativos e 9 professores ativos confirmados no banco
    * Status: Renomeação completa e sistema 100% funcional
+- Padronização Visual das Abas - Sistema Unificado (11 Jul 2025):
+   * ✅ Padrão visual consistente aplicado em todas as páginas com sistema de abas
+   * ✅ Páginas atualizadas: Cobranças Asaas, Gestão de Cursos, Certificados Acadêmicos, Certificações
+   * ✅ TabsList com fundo cinza claro (bg-gray-100) e altura padronizada (h-12)
+   * ✅ TabsTrigger com espaçamento horizontal aumentado (px-6/px-3) e vertical (py-3/py-2)
+   * ✅ Aba ativa destacada com fundo branco, texto azul e sombra sutil
+   * ✅ Transições suaves (transition-all) para melhor experiência do usuário
+   * ✅ Responsividade mantida: página de certificações com 9 abas flexíveis
+   * ✅ Ícones preservados para identificação visual (FileText, Settings, School, BookOpen, Users)
+   * Status: Padronização visual completa aplicada em todo o sistema
 ```
 
 ## User Preferences
