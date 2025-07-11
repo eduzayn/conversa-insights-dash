@@ -3213,15 +3213,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas administradores" });
       }
 
-      const certificateData = insertAcademicCertificateSchema.parse(req.body);
+      const { studentName, studentCpf, courseId, observacoes, status = 'solicitado' } = req.body;
+      
+      if (!studentName || !courseId) {
+        return res.status(400).json({ message: "Nome do aluno e curso são obrigatórios" });
+      }
+
+      // 1. Verificar se já existe aluno acadêmico com este nome/CPF
+      let existingStudent = await storage.getAcademicStudentByNameOrCpf(studentName, studentCpf);
+      
+      // 2. Se não existe, criar novo aluno acadêmico
+      if (!existingStudent) {
+        const newStudentData = {
+          nome: studentName,
+          email: `${studentName.toLowerCase().replace(/\s+/g, '.')}@temporario.edu.br`,
+          cpf: studentCpf || '',
+          courseId: parseInt(courseId),
+          status: 'cursando'
+        };
+        existingStudent = await storage.createAcademicStudent(newStudentData);
+      }
+
+      // 3. Criar certificado acadêmico
+      const certificateData = {
+        studentId: existingStudent.id,
+        courseId: parseInt(courseId),
+        observacoes: observacoes || '',
+        status: status,
+        dataSolicitacao: new Date(),
+        solicitadoPor: req.user.id
+      };
+
       const certificate = await storage.createAcademicCertificate(certificateData);
+      console.log(`✅ Certificado acadêmico criado: ID ${certificate.id} para ${studentName}`);
+      
       res.status(201).json(certificate);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
-      }
       console.error("Erro ao criar certificado acadêmico:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      res.status(500).json({ 
+        message: "Erro interno do servidor", 
+        error: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
     }
   });
 

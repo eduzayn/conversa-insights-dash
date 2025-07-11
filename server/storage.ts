@@ -284,6 +284,7 @@ export interface IStorage {
   // Sistema de Certificados Acadêmicos - Alunos
   getAcademicStudents(filters?: { courseId?: number; status?: string }): Promise<AcademicStudent[]>;
   getAcademicStudentById(id: number): Promise<AcademicStudent | undefined>;
+  getAcademicStudentByNameOrCpf(name: string, cpf: string): Promise<AcademicStudent | undefined>;
   createAcademicStudent(student: InsertAcademicStudent): Promise<AcademicStudent>;
   updateAcademicStudent(id: number, student: Partial<AcademicStudent>): Promise<AcademicStudent | undefined>;
 
@@ -1546,6 +1547,18 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(academicStudents)
       .where(eq(academicStudents.id, id));
+    return student || undefined;
+  }
+
+  async getAcademicStudentByNameOrCpf(name: string, cpf: string): Promise<AcademicStudent | undefined> {
+    const conditions = [eq(academicStudents.nome, name)];
+    if (cpf && cpf.trim()) {
+      conditions.push(eq(academicStudents.cpf, cpf));
+    }
+    
+    const [student] = await db.select()
+      .from(academicStudents)
+      .where(or(...conditions));
     return student || undefined;
   }
 

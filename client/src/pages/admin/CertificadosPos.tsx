@@ -1088,7 +1088,7 @@ const CertificadosPos = () => {
                         {certificationStudents.map((student, index) => (
                           <CommandItem
                             key={`student-item-${index}`}
-                            value={`${student.nome} ${student.cpf}`}
+                            value={student.nome}
                             onSelect={() => {
                               setSelectedStudentName(student.nome);
                               setIsStudentPopoverOpen(false);
