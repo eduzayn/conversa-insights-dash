@@ -67,6 +67,8 @@ export default function Certificacoes() {
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
   const [courseSearchOpen, setCourseSearchOpen] = useState(false);
   const [editCourseSearchOpen, setEditCourseSearchOpen] = useState(false);
+  const [isNewCourseDialogOpen, setIsNewCourseDialogOpen] = useState(false);
+  const [newCourseData, setNewCourseData] = useState({ nome: '', cargaHoraria: '' });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -336,6 +338,31 @@ export default function Certificacoes() {
     }
   });
 
+  const createCourseMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('/api/cursos-pre-cadastrados', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: (newCourse) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/cursos-pre-cadastrados'] });
+      toast.success('Curso criado com sucesso!');
+      setIsNewCourseDialogOpen(false);
+      // Selecionar automaticamente o novo curso
+      setNewCertification({ 
+        ...newCertification, 
+        curso: newCourse.nome,
+        cargaHoraria: newCourse.cargaHoraria.toString()
+      });
+      setNewCourseData({ nome: '', cargaHoraria: '' });
+    },
+    onError: (error) => {
+      toast.error('Erro ao criar curso');
+      console.error('Erro:', error);
+    }
+  });
+
   const handleCreateCertification = () => {
     if (!newCertification.aluno || !newCertification.cpf || !newCertification.curso) {
       toast.error('Por favor, preencha os campos obrigatórios');
@@ -366,6 +393,51 @@ export default function Certificacoes() {
   const handleDeleteCertification = (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir esta certificação?')) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleCreateNewCourse = () => {
+    if (!newCourseData.nome || !newCourseData.cargaHoraria) {
+      toast.error('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (!newCertification.modalidade) {
+      toast.error('Selecione uma modalidade antes de criar um curso');
+      return;
+    }
+
+    const categoria = getCategoriaFromModalidade(newCertification.modalidade);
+    const area = getAreaFromCourse(newCourseData.nome);
+
+    const courseData = {
+      nome: newCourseData.nome,
+      modalidade: newCertification.modalidade,
+      categoria: categoria,
+      cargaHoraria: parseInt(newCourseData.cargaHoraria),
+      area: area,
+      ativo: true
+    };
+
+    createCourseMutation.mutate(courseData);
+  };
+
+  const getAreaFromCourse = (courseName: string): string => {
+    const lowerName = courseName.toLowerCase();
+    if (lowerName.includes('matemática') || lowerName.includes('física') || lowerName.includes('química')) {
+      return 'Ciências Exatas';
+    } else if (lowerName.includes('história') || lowerName.includes('geografia') || lowerName.includes('filosofia') || lowerName.includes('sociologia') || lowerName.includes('ciências da religião')) {
+      return 'Ciências Humanas';
+    } else if (lowerName.includes('letras') || lowerName.includes('português') || lowerName.includes('inglês') || lowerName.includes('espanhol') || lowerName.includes('libras')) {
+      return 'Letras';
+    } else if (lowerName.includes('educação física')) {
+      return 'Educação Física';
+    } else if (lowerName.includes('artes') || lowerName.includes('música')) {
+      return 'Artes';
+    } else if (lowerName.includes('ciências biológicas') || lowerName.includes('biologia')) {
+      return 'Ciências Biológicas';
+    } else {
+      return 'Educação';
     }
   };
 
@@ -491,56 +563,67 @@ export default function Certificacoes() {
                     </div>
                     <div className="col-span-2">
                       <Label htmlFor="curso">Curso *</Label>
-                      <Popover open={courseSearchOpen} onOpenChange={setCourseSearchOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={courseSearchOpen}
-                            className="w-full justify-between text-left"
-                          >
-                            <span className="truncate">{newCertification.curso || "Selecione um curso..."}</span>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[600px] p-0">
-                          <Command>
-                            <CommandInput placeholder="Buscar curso..." />
-                            <CommandList className="max-h-60">
-                              <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
-                              <CommandGroup>
-                                {preRegisteredCourses.map((course) => (
-                                  <CommandItem
-                                    key={course.id}
-                                    value={course.nome}
-                                    onSelect={(currentValue) => {
-                                      const selectedCourse = preRegisteredCourses.find(c => c.nome === currentValue);
-                                      setNewCertification({ 
-                                        ...newCertification, 
-                                        curso: currentValue,
-                                        cargaHoraria: selectedCourse ? selectedCourse.cargaHoraria.toString() : ''
-                                      });
-                                      setCourseSearchOpen(false);
-                                    }}
-                                    className="text-sm"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4 shrink-0",
-                                        newCertification.curso === course.nome ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    <div className="flex flex-col">
-                                      <span className="font-medium">{course.nome}</span>
-                                      <span className="text-xs text-gray-500">{course.cargaHoraria}h - {course.area}</span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <div className="flex gap-2">
+                        <Popover open={courseSearchOpen} onOpenChange={setCourseSearchOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={courseSearchOpen}
+                              className="flex-1 justify-between text-left"
+                            >
+                              <span className="truncate">{newCertification.curso || "Selecione um curso..."}</span>
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[600px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Buscar curso..." />
+                              <CommandList className="max-h-60">
+                                <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
+                                <CommandGroup>
+                                  {preRegisteredCourses.map((course) => (
+                                    <CommandItem
+                                      key={course.id}
+                                      value={course.nome}
+                                      onSelect={(currentValue) => {
+                                        const selectedCourse = preRegisteredCourses.find(c => c.nome === currentValue);
+                                        setNewCertification({ 
+                                          ...newCertification, 
+                                          curso: currentValue,
+                                          cargaHoraria: selectedCourse ? selectedCourse.cargaHoraria.toString() : ''
+                                        });
+                                        setCourseSearchOpen(false);
+                                      }}
+                                      className="text-sm"
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4 shrink-0",
+                                          newCertification.curso === course.nome ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{course.nome}</span>
+                                        <span className="text-xs text-gray-500">{course.cargaHoraria}h - {course.area}</span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setIsNewCourseDialogOpen(true)}
+                          title="Adicionar novo curso"
+                          className="shrink-0"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <div>
                       <Label htmlFor="cargaHoraria">Carga Horária</Label>
@@ -1160,6 +1243,49 @@ export default function Certificacoes() {
             </Button>
             <Button onClick={() => selectedCertification && handleUpdateCertification(selectedCertification)} disabled={updateMutation.isPending}>
               {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para criar novo curso */}
+      <Dialog open={isNewCourseDialogOpen} onOpenChange={setIsNewCourseDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Curso</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-course-name">Nome do Curso *</Label>
+              <Input
+                id="new-course-name"
+                value={newCourseData.nome}
+                onChange={(e) => setNewCourseData({ ...newCourseData, nome: e.target.value })}
+                placeholder="Ex: Licenciatura em História"
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-course-hours">Carga Horária (em horas) *</Label>
+              <Input
+                id="new-course-hours"
+                type="number"
+                value={newCourseData.cargaHoraria}
+                onChange={(e) => setNewCourseData({ ...newCourseData, cargaHoraria: e.target.value })}
+                placeholder="Ex: 1320"
+              />
+            </div>
+            {newCertification.modalidade && (
+              <div className="text-sm text-gray-600">
+                <strong>Modalidade:</strong> {newCertification.modalidade}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsNewCourseDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateNewCourse} disabled={createCourseMutation.isPending}>
+              {createCourseMutation.isPending ? 'Criando...' : 'Criar Curso'}
             </Button>
           </div>
         </DialogContent>
