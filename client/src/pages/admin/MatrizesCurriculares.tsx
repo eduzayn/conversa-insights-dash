@@ -114,6 +114,17 @@ const MatrizesCurriculares = () => {
     }
   });
 
+  // Buscar disciplinas do curso selecionado
+  const { data: courseDisciplines = [] } = useQuery({
+    queryKey: ['/api/academic/courses', selectedCourse?.id, 'disciplines'],
+    queryFn: async () => {
+      if (!selectedCourse?.id) return [];
+      const response = await apiRequest(`/api/academic/courses/${selectedCourse.id}/disciplines`);
+      return response as Disciplina[];
+    },
+    enabled: !!selectedCourse?.id
+  });
+
   // Mutation para criar disciplina
   const createDisciplinaMutation = useMutation({
     mutationFn: async (data: Partial<Disciplina>) => {
@@ -440,14 +451,22 @@ const MatrizesCurriculares = () => {
     // Carregar disciplinas associadas ao curso quando for edição
     React.useEffect(() => {
       if (course && course.id) {
-        // Buscar disciplinas já associadas ao curso
-        const courseDisciplines = disciplinas?.filter(d => d.courseId === course.id).map(d => d.id) || [];
-        setSelectedDisciplines(courseDisciplines);
+        // Buscar disciplinas já associadas ao curso via API
+        const loadCourseDisciplines = async () => {
+          try {
+            const response = await apiRequest(`/api/academic/courses/${course.id}/disciplines`);
+            const disciplineIds = response.map((d: any) => d.id);
+            setSelectedDisciplines(disciplineIds);
+          } catch (error) {
+            console.error('Erro ao carregar disciplinas do curso:', error);
+          }
+        };
+        loadCourseDisciplines();
       } else {
         // Limpar seleção para novo curso
         setSelectedDisciplines([]);
       }
-    }, [course, disciplinas]);
+    }, [course]);
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -1716,6 +1735,27 @@ const MatrizesCurriculares = () => {
                 <div>
                   <Label>Descrição</Label>
                   <p className="text-sm text-muted-foreground">{selectedCourse.descricao}</p>
+                </div>
+              )}
+              {courseDisciplines.length > 0 && (
+                <div>
+                  <Label>Disciplinas do Curso ({courseDisciplines.length})</Label>
+                  <div className="mt-2 space-y-2">
+                    {courseDisciplines.map((disciplina) => (
+                      <div key={disciplina.id} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <p className="font-medium">{disciplina.nome}</p>
+                          <p className="text-sm text-muted-foreground">{disciplina.codigo}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{disciplina.cargaHoraria}h</p>
+                          {disciplina.professor && (
+                            <p className="text-xs text-muted-foreground">{disciplina.professor.nome}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

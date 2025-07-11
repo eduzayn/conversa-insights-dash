@@ -1487,26 +1487,14 @@ export class DatabaseStorage implements IStorage {
   // Sistema de Certificados Acadêmicos - Relacionamento Curso-Disciplina
   async getCourseDisciplines(courseId: number): Promise<AcademicDiscipline[]> {
     const result = await db
-      .select({
-        id: academicDisciplines.id,
-        nome: academicDisciplines.nome,
-        codigo: academicDisciplines.codigo,
-        professorId: academicDisciplines.professorId,
-        cargaHoraria: academicDisciplines.cargaHoraria,
-        ementa: academicDisciplines.ementa,
-        objetivos: academicDisciplines.objetivos,
-        courseId: academicDisciplines.courseId,
-        ordem: academicDisciplines.ordem,
-        isActive: academicDisciplines.isActive,
-        createdAt: academicDisciplines.createdAt,
-        updatedAt: academicDisciplines.updatedAt,
-      })
+      .select()
       .from(academicDisciplines)
       .innerJoin(courseDisciplines, eq(courseDisciplines.disciplineId, academicDisciplines.id))
       .where(eq(courseDisciplines.courseId, courseId))
       .orderBy(asc(courseDisciplines.ordem));
     
-    return result;
+    // Mapear apenas os campos da disciplina
+    return result.map(row => row.academic_disciplines);
   }
 
   async addCourseDisciplines(courseId: number, disciplineIds: number[]): Promise<void> {
