@@ -440,8 +440,6 @@ export const academicDisciplines = pgTable("academic_disciplines", {
   codigo: text("codigo"),
   professorId: integer("professorid").references(() => academicProfessors.id),
   cargaHoraria: integer("cargahoraria"),
-  periodo: integer("periodo").default(1), // período sugerido
-  tipo: text("tipo").default("obrigatoria"), // obrigatoria, optativa, eletiva
   ementa: text("ementa"),
   prerequeisitos: text("prerequeisitos").array(), // array de strings com pré-requisitos
   status: text("status").default("ativo"), // ativo, inativo, em_desenvolvimento
@@ -1098,8 +1096,6 @@ export const insertAcademicDisciplineSchema = createInsertSchema(academicDiscipl
   codigo: true,
   professorId: true,
   cargaHoraria: true,
-  periodo: true,
-  tipo: true,
   ementa: true,
   prerequeisitos: true,
   status: true,

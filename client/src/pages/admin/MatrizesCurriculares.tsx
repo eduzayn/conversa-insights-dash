@@ -702,8 +702,6 @@ const MatrizesCurriculares = () => {
       nome: disciplina?.nome || '',
       codigo: disciplina?.codigo || '',
       cargaHoraria: disciplina?.cargaHoraria || 0,
-      periodo: disciplina?.periodo || 1,
-      tipo: disciplina?.tipo || 'obrigatoria',
       professorId: disciplina?.professorId || 0,
       ementa: disciplina?.ementa || '',
       prerequeisitos: disciplina?.prerequeisitos?.join(', ') || '',
@@ -746,7 +744,7 @@ const MatrizesCurriculares = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="professorId">Professor</Label>
-            <Select value={formData.professorId.toString()} onValueChange={(value) => setFormData({ ...formData, professorId: parseInt(value) })}>
+            <Select value={formData.professorId?.toString() || "0"} onValueChange={(value) => setFormData({ ...formData, professorId: parseInt(value) })}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o professor" />
               </SelectTrigger>
@@ -775,43 +773,15 @@ const MatrizesCurriculares = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="cargaHoraria">Carga Horária</Label>
-            <Input
-              id="cargaHoraria"
-              type="number"
-              value={formData.cargaHoraria}
-              onChange={(e) => setFormData({ ...formData, cargaHoraria: parseInt(e.target.value) || 0 })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="periodo">Período</Label>
-            <Select value={formData.periodo.toString()} onValueChange={(value) => setFormData({ ...formData, periodo: parseInt(value) })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                {[1,2,3,4,5,6,7,8].map(p => (
-                  <SelectItem key={p} value={p.toString()}>{p}º Período</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="tipo">Tipo</Label>
-            <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="obrigatoria">Obrigatória</SelectItem>
-                <SelectItem value="optativa">Optativa</SelectItem>
-                <SelectItem value="eletiva">Eletiva</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div>
+          <Label htmlFor="cargaHoraria">Carga Horária</Label>
+          <Input
+            id="cargaHoraria"
+            type="number"
+            value={formData.cargaHoraria}
+            onChange={(e) => setFormData({ ...formData, cargaHoraria: parseInt(e.target.value) || 0 })}
+            required
+          />
         </div>
 
         <div>
