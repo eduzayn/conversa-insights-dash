@@ -632,12 +632,18 @@ const CertificadosPos = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="certificados" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-gray-100 rounded-lg">
+          <TabsTrigger 
+            value="certificados" 
+            className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
             <FileText className="h-4 w-4" />
             Certificados
           </TabsTrigger>
-          <TabsTrigger value="modelos" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="modelos" 
+            className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+          >
             <Settings className="h-4 w-4" />
             Modelos de Certificados
           </TabsTrigger>
