@@ -127,9 +127,20 @@ export default function Certificacoes() {
         const sameStudent = cert.aluno === otherCert.aluno && cert.cpf === otherCert.cpf;
         if (!sameStudent) return false;
         
-        // Calcular similaridade dos cursos (threshold de 70%)
-        const similarity = calculateSimilarity(cert.curso || '', otherCert.curso || '');
-        return similarity >= 0.7;
+        // Extrair apenas o nome específico do curso (remover prefixos comuns)
+        const cleanCourseName1 = (cert.curso || '').replace(/^(Pós-Graduação em|Segunda Licenciatura em|Formação Pedagógica em|Graduação em)\s*/i, '').trim();
+        const cleanCourseName2 = (otherCert.curso || '').replace(/^(Pós-Graduação em|Segunda Licenciatura em|Formação Pedagógica em|Graduação em)\s*/i, '').trim();
+        
+        // Calcular similaridade dos cursos com threshold mais restritivo (85%)
+        const similarity = calculateSimilarity(cleanCourseName1, cleanCourseName2);
+        
+        // Verificação adicional: evitar falsos positivos em cursos muito diferentes
+        const words1 = cleanCourseName1.toLowerCase().split(/\s+/);
+        const words2 = cleanCourseName2.toLowerCase().split(/\s+/);
+        const commonWords = words1.filter(word => words2.includes(word) && word.length > 3);
+        
+        // Só considerar como duplicata se tiver alta similaridade E palavras-chave em comum
+        return similarity >= 0.85 && (commonWords.length >= 2 || similarity >= 0.95);
       });
       
       if (similarCerts.length > 0) {
