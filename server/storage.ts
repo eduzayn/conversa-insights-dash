@@ -750,14 +750,14 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(certifications.subcategoria, filters.subcategoria));
       }
       
-      // Busca por nome, CPF ou curso
+      // Busca por nome, CPF ou curso (case-insensitive)
       if (filters.search && filters.search.trim()) {
-        const searchTerm = `%${filters.search.trim()}%`;
+        const searchTerm = `%${filters.search.trim().toLowerCase()}%`;
         conditions.push(
           or(
-            like(certifications.aluno, searchTerm),
-            like(certifications.cpf, searchTerm),
-            like(certifications.curso, searchTerm)
+            sql`LOWER(${certifications.aluno}) LIKE ${searchTerm}`,
+            sql`LOWER(${certifications.cpf}) LIKE ${searchTerm}`,
+            sql`LOWER(${certifications.curso}) LIKE ${searchTerm}`
           )
         );
       }
