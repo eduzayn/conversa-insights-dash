@@ -57,7 +57,7 @@ const Negociacoes: React.FC = () => {
   const [selectedNegociacao, setSelectedNegociacao] = useState<Negociacao | null>(null);
   const [selectedExpirado, setSelectedExpirado] = useState<Expirado | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const queryClient = useQueryClient();
 
@@ -73,7 +73,7 @@ const Negociacoes: React.FC = () => {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter) params.append('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       return apiRequest(`/api/negociacoes?${params}`);
     }
   });
@@ -217,7 +217,7 @@ const Negociacoes: React.FC = () => {
                       <SelectValue placeholder="Filtrar por status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos os status</SelectItem>
+                      <SelectItem value="all">Todos os status</SelectItem>
                       <SelectItem value="ativo">Ativo</SelectItem>
                       <SelectItem value="finalizado">Finalizado</SelectItem>
                       <SelectItem value="cancelado">Cancelado</SelectItem>
