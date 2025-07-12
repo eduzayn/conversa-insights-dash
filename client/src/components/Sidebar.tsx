@@ -127,7 +127,6 @@ export const Sidebar = () => {
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
-
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div 
@@ -135,7 +134,6 @@ export const Sidebar = () => {
           onClick={closeMobileMenu}
         />
       )}
-
       {/* Sidebar */}
       <div className={cn(
         "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-40",
@@ -150,7 +148,7 @@ export const Sidebar = () => {
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           {(!collapsed || mobileOpen) && (
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">Analytics</h1>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">EdunexIA</h1>
               <p className="text-xs md:text-sm text-gray-500">Educhat</p>
             </div>
           )}
