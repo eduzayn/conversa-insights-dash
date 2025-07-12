@@ -26,6 +26,7 @@ interface Negociacao {
   previsaoPagamento: string;
   parcelasAtraso: number;
   dataVencimentoMaisAntiga: string;
+  valorNegociado?: number;
   observacoes: string;
   colaboradorResponsavel: string;
   origem: 'asaas' | 'certificacao';
@@ -463,6 +464,21 @@ const Negociacoes: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="valorNegociado">Valor Negociado (R$)</Label>
+                  <Input
+                    id="valorNegociado"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={selectedNegociacao.valorNegociado || ''}
+                    onChange={(e) => setSelectedNegociacao({...selectedNegociacao, valorNegociado: parseFloat(e.target.value) || undefined})}
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="dataVencimentoMaisAntiga">Data Vencimento Mais Antiga</Label>
                   <Input
                     id="dataVencimentoMaisAntiga"
@@ -470,6 +486,9 @@ const Negociacoes: React.FC = () => {
                     value={selectedNegociacao.dataVencimentoMaisAntiga}
                     onChange={(e) => setSelectedNegociacao({...selectedNegociacao, dataVencimentoMaisAntiga: e.target.value})}
                   />
+                </div>
+                <div>
+                  {/* Campo vazio para manter layout em 2 colunas */}
                 </div>
               </div>
               
