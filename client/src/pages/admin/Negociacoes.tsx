@@ -62,10 +62,14 @@ const Negociacoes: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Buscar colaboradores (usuários admin e agentes)
-  const { data: colaboradores = [] } = useQuery({
+  const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
     queryKey: ['/api/users'],
     queryFn: () => apiRequest('/api/users')
   });
+
+  // Debug: verificar dados dos colaboradores
+  console.log('Colaboradores carregados:', colaboradores);
+  console.log('Loading colaboradores:', loadingColaboradores);
 
   // Buscar negociações
   const { data: negociacoes = [], isLoading: loadingNegociacoes } = useQuery({
