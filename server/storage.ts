@@ -29,6 +29,8 @@ import {
   academicGrades,
   academicCertificates,
   certificateTemplates,
+  negociacoes,
+  negociacoesExpirados,
 
   simplifiedEnrollments,
   type User, 
@@ -105,10 +107,14 @@ import {
   type AcademicCertificate,
   type InsertAcademicCertificate,
   type CertificateTemplate,
-  type InsertCertificateTemplate
+  type InsertCertificateTemplate,
+  type Negociacao,
+  type InsertNegociacao,
+  type NegociacaoExpirado,
+  type InsertNegociacaoExpirado
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, like, count, isNotNull, sql } from "drizzle-orm";
+import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -1852,6 +1858,189 @@ export class DatabaseStorage implements IStorage {
   async getCertificateTemplateById(id: number): Promise<CertificateTemplate | undefined> {
     const [template] = await db.select().from(certificateTemplates).where(eq(certificateTemplates.id, id));
     return template || undefined;
+  }
+
+  // Métodos para Negociações
+  async getNegociacoes(filters?: { search?: string; status?: string }): Promise<Negociacao[]> {
+    const conditions = [];
+    
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(negociacoes.clienteNome, `%${filters.search}%`),
+          ilike(negociacoes.clienteCpf, `%${filters.search}%`)
+        )
+      );
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(negociacoes.status, filters.status));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(negociacoes).where(and(...conditions)).orderBy(desc(negociacoes.createdAt));
+    }
+    
+    return await db.select().from(negociacoes).orderBy(desc(negociacoes.createdAt));
+  }
+
+  async createNegociacao(negociacao: InsertNegociacao): Promise<Negociacao> {
+    const [newNegociacao] = await db
+      .insert(negociacoes)
+      .values({
+        ...negociacao,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newNegociacao;
+  }
+
+  async updateNegociacao(id: number, negociacao: Partial<Negociacao>): Promise<Negociacao | undefined> {
+    const [updatedNegociacao] = await db
+      .update(negociacoes)
+      .set({ ...negociacao, updatedAt: new Date() })
+      .where(eq(negociacoes.id, id))
+      .returning();
+    return updatedNegociacao || undefined;
+  }
+
+  async deleteNegociacao(id: number): Promise<void> {
+    await db.delete(negociacoes).where(eq(negociacoes.id, id));
+  }
+
+  // Métodos para Negociações Expirados
+  async getNegociacoesExpirados(filters?: { search?: string }): Promise<NegociacaoExpirado[]> {
+    const conditions = [];
+    
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(negociacoesExpirados.clienteNome, `%${filters.search}%`),
+          ilike(negociacoesExpirados.curso, `%${filters.search}%`)
+        )
+      );
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(negociacoesExpirados).where(and(...conditions)).orderBy(desc(negociacoesExpirados.createdAt));
+    }
+    
+    return await db.select().from(negociacoesExpirados).orderBy(desc(negociacoesExpirados.createdAt));
+  }
+
+  async createNegociacaoExpirado(expirado: InsertNegociacaoExpirado): Promise<NegociacaoExpirado> {
+    const [newExpirado] = await db
+      .insert(negociacoesExpirados)
+      .values({
+        ...expirado,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newExpirado;
+  }
+
+  async updateNegociacaoExpirado(id: number, expirado: Partial<NegociacaoExpirado>): Promise<NegociacaoExpirado | undefined> {
+    const [updatedExpirado] = await db
+      .update(negociacoesExpirados)
+      .set({ ...expirado, updatedAt: new Date() })
+      .where(eq(negociacoesExpirados.id, id))
+      .returning();
+    return updatedExpirado || undefined;
+  }
+
+  async deleteNegociacaoExpirado(id: number): Promise<void> {
+    await db.delete(negociacoesExpirados).where(eq(negociacoesExpirados.id, id));
+  }
+
+  // Método para sincronizar com dados do Asaas e certificações
+  async syncNegociacoesFromAsaasAndCertificacoes(): Promise<{ created: number; updated: number }> {
+    let created = 0;
+    let updated = 0;
+    
+    try {
+      // Buscar clientes do Asaas com parcelas em atraso (simulação - tabela payments não existe no contexto atual)
+      // Esta funcionalidade será implementada quando a integração Asaas estiver completa
+      const paymentsWithDelay: any[] = [];
+      
+      for (const payment of paymentsWithDelay) {
+        // Verificar se já existe negociação para este cliente
+        const existingNegociacao = await db
+          .select()
+          .from(negociacoes)
+          .where(
+            and(
+              eq(negociacoes.clienteNome, payment.customerName || ''),
+              eq(negociacoes.origem, 'asaas')
+            )
+          );
+        
+        if (existingNegociacao.length === 0) {
+          // Criar nova negociação
+          await this.createNegociacao({
+            clienteNome: payment.customerName || '',
+            clienteEmail: payment.customerEmail || '',
+            dataNegociacao: new Date().toISOString().split('T')[0],
+            previsaoPagamento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 dias a partir de hoje
+            parcelasAtraso: 1,
+            dataVencimentoMaisAntiga: payment.dueDate?.toISOString().split('T')[0] || '',
+            observacoes: `Importado automaticamente do Asaas - Pagamento ID: ${payment.externalId}`,
+            colaboradorResponsavel: 'Sistema',
+            origem: 'asaas',
+            status: 'ativo'
+          });
+          created++;
+        }
+      }
+      
+      // Buscar certificações pendentes/problemas para negociação
+      const problematicCertifications = await db
+        .select()
+        .from(certifications)
+        .where(
+          or(
+            eq(certifications.status, 'pendente'),
+            eq(certifications.financeiro, 'Pendente'),
+            eq(certifications.financeiro, 'Em atraso')
+          )
+        );
+        
+      for (const cert of problematicCertifications) {
+        // Verificar se já existe negociação para esta certificação
+        const existingNegociacao = await db
+          .select()
+          .from(negociacoes)
+          .where(
+            and(
+              eq(negociacoes.clienteNome, cert.aluno),
+              eq(negociacoes.origem, 'certificacao')
+            )
+          );
+        
+        if (existingNegociacao.length === 0) {
+          await this.createNegociacao({
+            clienteNome: cert.aluno,
+            clienteCpf: cert.cpf || '',
+            curso: cert.curso || '',
+            categoria: cert.categoria,
+            dataNegociacao: new Date().toISOString().split('T')[0],
+            previsaoPagamento: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 15 dias
+            parcelasAtraso: 0,
+            observacoes: `Certificação com problemas financeiros - Status: ${cert.financeiro}`,
+            colaboradorResponsavel: 'Sistema',
+            origem: 'certificacao',
+            status: 'ativo'
+          });
+          created++;
+        }
+      }
+      
+    } catch (error) {
+      console.error('Erro ao sincronizar negociações:', error);
+    }
+    
+    return { created, updated };
   }
 }
 

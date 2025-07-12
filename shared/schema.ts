@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, uuid, varchar, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, uuid, varchar, date, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -272,6 +272,45 @@ export const preRegisteredCourses = pgTable("pre_registered_courses", {
   cargaHoraria: integer("carga_horaria").notNull(),
   area: text("area"), // Gestão Escolar, Saúde Mental, etc.
   ativo: boolean("ativo").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para negociações
+export const negociacoes = pgTable("negociacoes", {
+  id: serial("id").primaryKey(),
+  clienteNome: text("cliente_nome").notNull(),
+  clienteEmail: text("cliente_email"),
+  clienteCpf: text("cliente_cpf"),
+  clienteTelefone: text("cliente_telefone"),
+  curso: text("curso"),
+  categoria: text("categoria"),
+  dataNegociacao: date("data_negociacao").notNull(),
+  previsaoPagamento: date("previsao_pagamento").notNull(),
+  parcelasAtraso: integer("parcelas_atraso").notNull().default(0),
+  dataVencimentoMaisAntiga: date("data_vencimento_mais_antiga"),
+  observacoes: text("observacoes"),
+  colaboradorResponsavel: text("colaborador_responsavel").notNull(),
+  origem: text("origem").notNull().default("certificacao"), // asaas, certificacao
+  status: text("status").notNull().default("ativo"), // ativo, finalizado, cancelado
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para cursos expirados
+export const negociacoesExpirados = pgTable("negociacoes_expirados", {
+  id: serial("id").primaryKey(),
+  clienteNome: text("cliente_nome").notNull(),
+  clienteEmail: text("cliente_email"),
+  clienteCpf: text("cliente_cpf"),
+  curso: text("curso").notNull(),
+  categoria: text("categoria").notNull(),
+  dataExpiracao: date("data_expiracao").notNull(),
+  propostaReativacao: text("proposta_reativacao"),
+  valorProposta: decimal("valor_proposta", { precision: 10, scale: 2 }),
+  statusProposta: text("status_proposta").notNull().default("pendente"), // pendente, enviada, aceita, rejeitada
+  observacoes: text("observacoes"),
+  colaboradorResponsavel: text("colaborador_responsavel").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1215,6 +1254,44 @@ export type CertificationDocument = typeof certificationDocuments.$inferSelect;
 
 export type InsertPreRegisteredCourse = z.infer<typeof insertPreRegisteredCourseSchema>;
 export type PreRegisteredCourse = typeof preRegisteredCourses.$inferSelect;
+
+// Schemas para negociações
+export const insertNegociacaoSchema = createInsertSchema(negociacoes).pick({
+  clienteNome: true,
+  clienteEmail: true,
+  clienteCpf: true,
+  clienteTelefone: true,
+  curso: true,
+  categoria: true,
+  dataNegociacao: true,
+  previsaoPagamento: true,
+  parcelasAtraso: true,
+  dataVencimentoMaisAntiga: true,
+  observacoes: true,
+  colaboradorResponsavel: true,
+  origem: true,
+  status: true,
+});
+
+export const insertNegociacaoExpiradoSchema = createInsertSchema(negociacoesExpirados).pick({
+  clienteNome: true,
+  clienteEmail: true,
+  clienteCpf: true,
+  curso: true,
+  categoria: true,
+  dataExpiracao: true,
+  propostaReativacao: true,
+  valorProposta: true,
+  statusProposta: true,
+  observacoes: true,
+  colaboradorResponsavel: true,
+});
+
+export type InsertNegociacao = z.infer<typeof insertNegociacaoSchema>;
+export type Negociacao = typeof negociacoes.$inferSelect;
+
+export type InsertNegociacaoExpirado = z.infer<typeof insertNegociacaoExpiradoSchema>;
+export type NegociacaoExpirado = typeof negociacoesExpirados.$inferSelect;
 
 // Tipos para Portal do Aluno
 export type InsertStudentEnrollment = z.infer<typeof insertStudentEnrollmentSchema>;

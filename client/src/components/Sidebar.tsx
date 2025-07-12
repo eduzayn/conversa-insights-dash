@@ -53,6 +53,7 @@ const menuSections = [
     icon: DollarSign,
     items: [
       { label: 'Cobranças Asaas', path: '/cobrancas' },
+      { label: 'Negociações', path: '/negociacoes' },
     ]
   },
   {

@@ -18,7 +18,9 @@ import {
   insertAcademicStudentSchema,
   insertAcademicGradeSchema,
   insertAcademicCertificateSchema,
-  insertCertificateTemplateSchema
+  insertCertificateTemplateSchema,
+  insertNegociacaoSchema,
+  insertNegociacaoExpiradoSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
@@ -3670,6 +3672,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Erro interno do servidor", 
         error: error instanceof Error ? error.message : "Erro desconhecido" 
       });
+    }
+  });
+
+  // ===== MÓDULO DE NEGOCIAÇÕES =====
+  
+  // Negociações
+  app.get("/api/negociacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const { search, status } = req.query;
+      const negociacoes = await storage.getNegociacoes({ search, status });
+      res.json(negociacoes);
+    } catch (error) {
+      console.error("Erro ao buscar negociações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/negociacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const negociacaoData = insertNegociacaoSchema.parse(req.body);
+      const negociacao = await storage.createNegociacao(negociacaoData);
+      res.status(201).json(negociacao);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar negociação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/negociacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const negociacao = await storage.updateNegociacao(parseInt(id), req.body);
+      if (!negociacao) {
+        return res.status(404).json({ message: "Negociação não encontrada" });
+      }
+      res.json(negociacao);
+    } catch (error) {
+      console.error("Erro ao atualizar negociação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.delete("/api/negociacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteNegociacao(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao deletar negociação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Negociações Expirados
+  app.get("/api/negociacoes-expirados", authenticateToken, async (req: any, res) => {
+    try {
+      const { search } = req.query;
+      const expirados = await storage.getNegociacoesExpirados({ search });
+      res.json(expirados);
+    } catch (error) {
+      console.error("Erro ao buscar negociações expirados:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/negociacoes-expirados", authenticateToken, async (req: any, res) => {
+    try {
+      const expiradoData = insertNegociacaoExpiradoSchema.parse(req.body);
+      const expirado = await storage.createNegociacaoExpirado(expiradoData);
+      res.status(201).json(expirado);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar negociação expirado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/negociacoes-expirados/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const expirado = await storage.updateNegociacaoExpirado(parseInt(id), req.body);
+      if (!expirado) {
+        return res.status(404).json({ message: "Negociação expirado não encontrada" });
+      }
+      res.json(expirado);
+    } catch (error) {
+      console.error("Erro ao atualizar negociação expirado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.delete("/api/negociacoes-expirados/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteNegociacaoExpirado(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao deletar negociação expirado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Sincronização automática com Asaas e Certificações
+  app.post("/api/negociacoes/sync", authenticateToken, async (req: any, res) => {
+    try {
+      const result = await storage.syncNegociacoesFromAsaasAndCertificacoes();
+      res.json({ 
+        message: "Sincronização concluída com sucesso", 
+        created: result.created, 
+        updated: result.updated 
+      });
+    } catch (error) {
+      console.error("Erro ao sincronizar negociações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
