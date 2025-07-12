@@ -194,7 +194,7 @@ export default function Certificacoes() {
   const [newCertification, setNewCertification] = useState({
     aluno: '',
     cpf: '',
-    modalidade: '',
+    modalidade: 'Presencial', // Padrão: Presencial
     curso: '',
     cargaHoraria: '',
     financeiro: 'em_dia',
@@ -441,7 +441,7 @@ export default function Certificacoes() {
       setNewCertification({
         aluno: '',
         cpf: '',
-        modalidade: '',
+        modalidade: 'Presencial',
         curso: '',
         cargaHoraria: '',
         financeiro: '',
@@ -712,21 +712,15 @@ export default function Certificacoes() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="modalidade">Modalidade</Label>
+                      <Label htmlFor="modalidade">Formato de Entrega</Label>
                       <Select value={newCertification.modalidade} onValueChange={(value) => setNewCertification({ ...newCertification, modalidade: value })}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a modalidade" />
+                          <SelectValue placeholder="Selecione o formato" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                          <SelectItem value="Formação Pedagógica">Formação Pedagógica</SelectItem>
-                          <SelectItem value="EJA">EJA</SelectItem>
-                          <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
-                          <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
-                          <SelectItem value="Formação livre">Formação livre</SelectItem>
-                          <SelectItem value="Graduação">Graduação</SelectItem>
-                          <SelectItem value="Capacitação">Capacitação</SelectItem>
-                          <SelectItem value="Sequencial">Sequencial</SelectItem>
+                          <SelectItem value="Presencial">Presencial</SelectItem>
+                          <SelectItem value="EAD">EAD (Ensino a Distância)</SelectItem>
+                          <SelectItem value="Híbrido">Híbrido (Presencial + EAD)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1106,22 +1100,16 @@ export default function Certificacoes() {
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor="filter-modalidade">Modalidade</Label>
+                        <Label htmlFor="filter-modalidade">Formato de Entrega</Label>
                         <Select value={filterModalidade} onValueChange={setFilterModalidade}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Todas as modalidades" />
+                            <SelectValue placeholder="Todos os formatos" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="todas">Todas</SelectItem>
-                            <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                            <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
-                            <SelectItem value="EJA">EJA</SelectItem>
-                            <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
-                            <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
-                            <SelectItem value="Formação livre">Formação livre</SelectItem>
-                            <SelectItem value="Graduação">Graduação</SelectItem>
-                            <SelectItem value="Capacitação">Capacitação</SelectItem>
-                            <SelectItem value="Sequencial">Sequencial</SelectItem>
+                            <SelectItem value="todas">Todos</SelectItem>
+                            <SelectItem value="Presencial">Presencial</SelectItem>
+                            <SelectItem value="EAD">EAD (Ensino a Distância)</SelectItem>
+                            <SelectItem value="Híbrido">Híbrido</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1177,7 +1165,7 @@ export default function Certificacoes() {
                         Exibindo <strong>{(currentPage - 1) * pageSize + 1}</strong> a <strong>{Math.min(currentPage * pageSize, totalCertifications)}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
                         {searchTerm && ` para "${searchTerm}"`}
                         {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
-                        {filterModalidade && filterModalidade !== 'todas' && ` da modalidade "${filterModalidade}"`}
+                        {filterModalidade && filterModalidade !== 'todas' && ` no formato "${filterModalidade}"`}
                       </>
                     )}
                   </div>
@@ -1239,7 +1227,7 @@ export default function Certificacoes() {
                                 )}
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-gray-700">Modalidade</div>
+                                <div className="text-sm font-medium text-gray-700">Formato</div>
                                 <div className="text-sm">{certification.modalidade}</div>
                                 <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
                                 <div className="text-sm">{certification.financeiro}</div>
@@ -1442,21 +1430,15 @@ export default function Certificacoes() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-modalidade">Modalidade</Label>
+                  <Label htmlFor="edit-modalidade">Formato de Entrega</Label>
                   <Select value={selectedCertification.modalidade} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, modalidade: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Segunda licenciatura">Segunda licenciatura</SelectItem>
-                      <SelectItem value="Formação pedagógica">Formação pedagógica</SelectItem>
-                      <SelectItem value="EJA">EJA</SelectItem>
-                      <SelectItem value="Diplomação por competência">Diplomação por competência</SelectItem>
-                      <SelectItem value="Pós-graduação">Pós-graduação</SelectItem>
-                      <SelectItem value="Formação livre">Formação livre</SelectItem>
-                      <SelectItem value="Graduação">Graduação</SelectItem>
-                      <SelectItem value="Capacitação">Capacitação</SelectItem>
-                      <SelectItem value="Sequencial">Sequencial</SelectItem>
+                      <SelectItem value="Presencial">Presencial</SelectItem>
+                      <SelectItem value="EAD">EAD (Ensino a Distância)</SelectItem>
+                      <SelectItem value="Híbrido">Híbrido (Presencial + EAD)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

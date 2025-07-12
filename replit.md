@@ -630,6 +630,16 @@ Changelog:
    * ✅ Footer informativo sobre sistema integrado
    * ✅ Navegação automática funcionando para todos os portais
    * Status: Hub centralizado implementado e totalmente funcional
+- Reestruturação Modalidade vs Categoria Finalizada (11 Jul 2025):
+   * ✅ Estrutura clarificada: Modalidade = Formato de entrega (EAD, Presencial, Híbrido) vs Categoria = Tipo acadêmico
+   * ✅ Dados corrigidos: 88 certificações EAD redistribuídas corretamente por categoria acadêmica  
+   * ✅ 717 modalidades acadêmicas convertidas para "Presencial" (formato de entrega)
+   * ✅ Interface atualizada: Formulários e filtros refletem nova estrutura clarificada
+   * ✅ Rótulos atualizados: "Modalidade" → "Formato de Entrega" em toda interface
+   * ✅ Valores padrão: Presencial como formato padrão para novos registros
+   * ✅ Sistema final: 88 EAD + 717 Presencial distribuídos por 9 categorias acadêmicas
+   * ✅ Sistema de duplicatas finalizado: Threshold 85%, remoção de prefixos comuns, validação dupla
+   * ✅ Problema de busca case-sensitive corrigido: Filtros usam LOWER() para busca insensível
 ```
 
 ## User Preferences
