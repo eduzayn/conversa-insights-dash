@@ -1210,7 +1210,12 @@ export default function Certificacoes() {
                             <div className="flex items-start justify-between">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1">
                               <div>
-                                <div className="font-semibold text-lg">{certification.aluno}</div>
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="font-semibold text-lg">{certification.aluno}</div>
+                                  <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
+                                    {STATUS_LABELS[certification.status as keyof typeof STATUS_LABELS]}
+                                  </Badge>
+                                </div>
                                 <div className="text-sm text-gray-600">CPF: {certification.cpf}</div>
                                 <div className="text-sm text-gray-600">Curso: {certification.curso}</div>
                                 {certification.cargaHoraria && (
@@ -1235,11 +1240,7 @@ export default function Certificacoes() {
                                 <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
                               </div>
                               <div>
-                                <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
-                                  {STATUS_LABELS[certification.status as keyof typeof STATUS_LABELS]}
-                                </Badge>
-                                
-                                {/* Novos campos acadêmicos */}
+                                {/* Campos acadêmicos específicos */}
                                 <div className="mt-2 space-y-1">
                                   {certification.tcc && certification.tcc !== 'nao_possui' && (
                                     <div className="flex items-center gap-2">
