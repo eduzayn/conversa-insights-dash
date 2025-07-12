@@ -63,8 +63,8 @@ const Negociacoes: React.FC = () => {
 
   // Buscar colaboradores (usuários admin e agentes)
   const { data: colaboradores = [] } = useQuery({
-    queryKey: ['/api/users-colaboradores'],
-    queryFn: () => apiRequest('/api/users?role=admin,agent')
+    queryKey: ['/api/users'],
+    queryFn: () => apiRequest('/api/users')
   });
 
   // Buscar negociações
@@ -484,7 +484,7 @@ const Negociacoes: React.FC = () => {
                       <SelectValue placeholder="Selecionar colaborador" />
                     </SelectTrigger>
                     <SelectContent>
-                      {colaboradores.map((colab: any) => (
+                      {colaboradores.filter((colab: any) => colab.role === 'admin' || colab.role === 'agent').map((colab: any) => (
                         <SelectItem key={colab.id} value={colab.username}>
                           {colab.username} ({colab.email})
                         </SelectItem>
@@ -637,7 +637,7 @@ const Negociacoes: React.FC = () => {
                       <SelectValue placeholder="Selecionar colaborador" />
                     </SelectTrigger>
                     <SelectContent>
-                      {colaboradores.map((colab: any) => (
+                      {colaboradores.filter((colab: any) => colab.role === 'admin' || colab.role === 'agent').map((colab: any) => (
                         <SelectItem key={colab.id} value={colab.username}>
                           {colab.username} ({colab.email})
                         </SelectItem>
