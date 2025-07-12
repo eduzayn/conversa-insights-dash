@@ -369,7 +369,7 @@ const Negociacoes: React.FC = () => {
                               <div className="mt-3 text-sm text-gray-600">
                                 <strong>Proposta:</strong> {expirado.propostaReativacao}
                                 {expirado.valorProposta && (
-                                  <span className="ml-2 font-semibold">R$ {expirado.valorProposta.toFixed(2)}</span>
+                                  <span className="ml-2 font-semibold">R$ {Number(expirado.valorProposta).toFixed(2)}</span>
                                 )}
                               </div>
                             )}

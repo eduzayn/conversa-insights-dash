@@ -616,6 +616,19 @@ Changelog:
    * ✅ Responsividade mantida: página de certificações com 9 abas flexíveis
    * ✅ Ícones preservados para identificação visual (FileText, Settings, School, BookOpen, Users)
    * Status: Padronização visual completa aplicada em todo o sistema
+- Módulo de Negociações Implementado (12 Jul 2025):
+   * ✅ Schema PostgreSQL completo criado: tabelas negociacoes e negociacoes_expirados
+   * ✅ Campos estruturados: cliente (nome, email, CPF), curso, categoria, datas, parcelas em atraso
+   * ✅ Sistema de origem: 'asaas' ou 'certificacao' para rastreamento de fonte
+   * ✅ Status controlados: ativo, finalizado, cancelado para negociações
+   * ✅ Backend completo: storage layer com métodos CRUD e rotas API funcionais
+   * ✅ Frontend moderno: interface com abas "Negociações" e "Expirados"
+   * ✅ Integração sidebar: seção Financeiro > Negociações
+   * ✅ Funcionalidades: filtros por status, busca, criação/edição de registros
+   * ✅ Dados de teste criados: 3 negociações ativas e 2 cursos expirados
+   * ✅ Correções aplicadas: SelectItem value vazio → "all", Number() para toFixed()
+   * ✅ Sistema operacional: API retornando dados corretamente, interface funcional
+   * Status: Módulo completo e pronto para uso em produção
 - Hub Central de Login Implementado (11 Jul 2025):
    * ✅ Página LoginHub.tsx criada com interface moderna e elegante
    * ✅ 3 cards principais com cores específicas e ícones representativos:
