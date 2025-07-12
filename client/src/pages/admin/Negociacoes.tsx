@@ -67,10 +67,6 @@ const Negociacoes: React.FC = () => {
     queryFn: () => apiRequest('/api/users')
   });
 
-  // Debug: verificar dados dos colaboradores
-  console.log('Colaboradores carregados:', colaboradores);
-  console.log('Loading colaboradores:', loadingColaboradores);
-
   // Buscar negociações
   const { data: negociacoes = [], isLoading: loadingNegociacoes } = useQuery({
     queryKey: ['/api/negociacoes', { search: searchTerm, status: statusFilter }],

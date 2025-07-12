@@ -4,6 +4,9 @@ import { Server as SocketServer } from "socket.io";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
+import { sql, eq, inArray } from "drizzle-orm";
+import { db } from "./db";
+import { users } from "@shared/schema"; 
 import { 
   insertUserSchema, 
   insertRegistrationTokenSchema, 
@@ -367,6 +370,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newToken);
     } catch (error) {
       console.error("Erro ao criar token:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== USUÁRIOS =====
+  
+  // Buscar todos os usuários (apenas admin e agent)
+  app.get("/api/users", authenticateToken, async (req: any, res) => {
+    try {
+      const result = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          role: users.role
+        })
+        .from(users)
+        .where(inArray(users.role, ['admin', 'agent']))
+        .orderBy(users.username);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
