@@ -1286,8 +1286,15 @@ export default function Certificacoes() {
                       <Card>
                         <CardContent className="p-8 text-center">
                           <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                          <div className="text-lg font-medium text-gray-900">Nenhuma certificação encontrada</div>
-                          <div className="text-gray-600">Crie uma nova certificação para começar</div>
+                          <div className="text-lg font-medium text-gray-900">
+                            {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
+                          </div>
+                          <div className="text-gray-600">
+                            {activeTab === 'eja' 
+                              ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
+                              : 'Crie uma nova certificação para começar'
+                            }
+                          </div>
                         </CardContent>
                       </Card>
                     )}

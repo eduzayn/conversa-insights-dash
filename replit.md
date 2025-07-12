@@ -640,6 +640,21 @@ Changelog:
    * ✅ Sistema final: 88 EAD + 717 Presencial distribuídos por 9 categorias acadêmicas
    * ✅ Sistema de duplicatas finalizado: Threshold 85%, remoção de prefixos comuns, validação dupla
    * ✅ Problema de busca case-sensitive corrigido: Filtros usam LOWER() para busca insensível
+- Correção Crítica: Categoria EJA Vazia Documentada (11 Jul 2025):
+   * ✅ PROBLEMA IDENTIFICADO: Categoria EJA não possui certificações no banco (0 registros)
+   * ✅ Função getModalidadeFromTab() obsoleta removida completamente
+   * ✅ Filtros automáticos por modalidade da aba removidos (modalidade = formato de entrega)
+   * ✅ Interface melhorada: mensagem específica para categoria EJA vazia
+   * ✅ Distribuição real das categorias confirmada:
+     - segunda_graduacao: 328 certificações
+     - pos_graduacao: 262 certificações  
+     - formacao_pedagogica: 122 certificações
+     - formacao_livre: 74 certificações
+     - diplomacao_competencia: 16 certificações
+     - capacitacao: 2 certificações
+     - sequencial: 1 certificação
+     - eja: 0 certificações (categoria vazia)
+   * ✅ Sistema funcional para todas as outras categorias com dados reais
 ```
 
 ## User Preferences
