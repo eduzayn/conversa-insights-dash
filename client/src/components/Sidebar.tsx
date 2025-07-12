@@ -149,7 +149,7 @@ export const Sidebar = () => {
           {(!collapsed || mobileOpen) && (
             <div>
               <h1 className="text-lg md:text-xl font-bold text-gray-900">EdunexIA</h1>
-              <p className="text-xs md:text-sm text-gray-500">Educhat</p>
+              <p className="text-xs md:text-sm text-gray-500">Grupo ZAYN</p>
             </div>
           )}
           <Button
