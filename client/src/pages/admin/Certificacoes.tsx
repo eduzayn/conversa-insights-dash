@@ -19,6 +19,8 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import type { Certification } from '@shared/schema';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 const STATUS_COLORS = {
   'pendente': 'bg-yellow-100 text-yellow-800',
@@ -75,6 +77,73 @@ export default function Certificacoes() {
   const [pageSize, setPageSize] = useState(50);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Função para calcular similaridade entre strings usando Levenshtein Distance
+  const calculateSimilarity = (str1: string, str2: string): number => {
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
+    
+    if (s1 === s2) return 1;
+    
+    const len1 = s1.length;
+    const len2 = s2.length;
+    
+    if (len1 === 0) return len2 === 0 ? 1 : 0;
+    if (len2 === 0) return 0;
+    
+    // Matriz para programação dinâmica
+    const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(null));
+    
+    for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+    for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+    
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,      // deletar
+          matrix[i][j - 1] + 1,      // inserir
+          matrix[i - 1][j - 1] + cost // substituir
+        );
+      }
+    }
+    
+    const maxLen = Math.max(len1, len2);
+    return (maxLen - matrix[len1][len2]) / maxLen;
+  };
+
+  // Função para detectar certificações duplicadas/similares
+  const detectDuplicates = (certifications: Certification[]) => {
+    const duplicates: { [key: string]: Certification[] } = {};
+    const processed = new Set<number>();
+    
+    certifications.forEach((cert, index) => {
+      if (processed.has(cert.id)) return;
+      
+      const similarCerts = certifications.filter((otherCert, otherIndex) => {
+        if (index === otherIndex || processed.has(otherCert.id)) return false;
+        
+        // Mesmo aluno e CPF
+        const sameStudent = cert.aluno === otherCert.aluno && cert.cpf === otherCert.cpf;
+        if (!sameStudent) return false;
+        
+        // Calcular similaridade dos cursos (threshold de 70%)
+        const similarity = calculateSimilarity(cert.curso || '', otherCert.curso || '');
+        return similarity >= 0.7;
+      });
+      
+      if (similarCerts.length > 0) {
+        const key = `${cert.aluno}-${cert.cpf}`;
+        duplicates[key] = [cert, ...similarCerts];
+        
+        // Marcar como processados
+        processed.add(cert.id);
+        similarCerts.forEach(sc => processed.add(sc.id));
+      }
+    });
+    
+    return duplicates;
+  };
 
   const handleBackToDashboard = () => {
     navigate('/');
@@ -302,6 +371,10 @@ export default function Certificacoes() {
   const certifications = certificationsData?.data || [];
   const totalCertifications = certificationsData?.total || 0;
   const totalPages = certificationsData?.totalPages || 1;
+  
+  // Detectar certificações duplicadas/similares
+  const duplicates = detectDuplicates(certifications);
+  const duplicateCount = Object.keys(duplicates).length;
 
   // Função para gerar números de página
   const getPageNumbers = () => {
@@ -971,6 +1044,21 @@ export default function Certificacoes() {
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
+                {/* Alerta de Duplicatas */}
+                {duplicateCount > 0 && (
+                  <Alert className="border-orange-200 bg-orange-50">
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <AlertDescription className="text-orange-800">
+                      <strong>Atenção:</strong> Detectados {duplicateCount} {duplicateCount === 1 ? 'aluno com cursos similares' : 'alunos com cursos similares'}. 
+                      {Object.entries(duplicates).map(([key, certs]) => {
+                        const aluno = certs[0].aluno;
+                        const cursos = certs.map(c => c.curso).join(', ');
+                        return ` ${aluno}: ${cursos}.`;
+                      }).join('')}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Filtros</CardTitle>
@@ -1104,10 +1192,22 @@ export default function Certificacoes() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {certifications.map((certification: Certification) => (
-                      <Card key={certification.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
+                    {certifications.map((certification: Certification) => {
+                      // Verificar se esta certificação está em algum grupo de duplicatas
+                      const isDuplicate = Object.values(duplicates).some(group => 
+                        group.some(cert => cert.id === certification.id)
+                      );
+                      
+                      return (
+                        <Card key={certification.id} className={`hover:shadow-md transition-shadow ${isDuplicate ? 'border-orange-300 bg-orange-50' : ''}`}>
+                          <CardContent className="p-6">
+                            {isDuplicate && (
+                              <div className="mb-3 flex items-center gap-2 text-orange-700 text-sm font-medium">
+                                <AlertTriangle className="h-4 w-4" />
+                                Possível duplicata detectada
+                              </div>
+                            )}
+                            <div className="flex items-start justify-between">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1">
                               <div>
                                 <div className="font-semibold text-lg">{certification.aluno}</div>
@@ -1195,7 +1295,8 @@ export default function Certificacoes() {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                      );
+                    })}
                     
                     {certifications.length === 0 && (
                       <Card>
