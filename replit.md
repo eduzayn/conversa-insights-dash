@@ -559,6 +559,14 @@ Changelog:
    * ✅ Sistema de exclusão com AlertDialog funcionando
    * ✅ Formatação monetária na listagem operacional
    * Status: Sistema de negociações 100% funcional e estável em produção
+- Melhorias na Interface de Certificações (13 Jul 2025):
+   * ✅ Campo "Formato de Entrega" configurado com EAD como padrão
+   * ✅ Alteração aplicada no estado inicial: modalidade: 'EAD' (anteriormente 'Presencial')
+   * ✅ Warning DialogDescription resolvido em todos os diálogos
+   * ✅ DialogDescription adicionada nos modais: Nova Certificação, Editar Certificação, Adicionar Novo Curso
+   * ✅ Import DialogDescription adicionado aos componentes de UI
+   * ✅ Interface mais profissional com descrições contextuais
+   * Status: Campo EAD como padrão implementado e warnings de acessibilidade corrigidos
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft, Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -182,7 +182,7 @@ export default function Certificacoes() {
   const [newCertification, setNewCertification] = useState({
     aluno: '',
     cpf: '',
-    modalidade: 'Presencial', // Padrão: Presencial
+    modalidade: 'EAD', // Padrão: EAD
     curso: '',
     cargaHoraria: '',
     financeiro: 'em_dia',
@@ -633,6 +633,9 @@ export default function Certificacoes() {
                 <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Nova Certificação</DialogTitle>
+                    <DialogDescription>
+                      Preencha os dados para criar uma nova certificação
+                    </DialogDescription>
                   </DialogHeader>
                   {/* Campo de Status em destaque no topo */}
                   <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1358,6 +1361,9 @@ export default function Certificacoes() {
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Certificação</DialogTitle>
+            <DialogDescription>
+              Modifique os dados da certificação selecionada
+            </DialogDescription>
           </DialogHeader>
           {selectedCertification && (
             <>
@@ -1690,6 +1696,9 @@ export default function Certificacoes() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Curso</DialogTitle>
+            <DialogDescription>
+              Cadastre um novo curso no sistema
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
