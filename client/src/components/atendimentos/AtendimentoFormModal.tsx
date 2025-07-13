@@ -42,8 +42,8 @@ export const AtendimentoFormModal = ({
       lead: atendimento?.lead || "",
       hora: atendimento?.hora || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       atendente: atendimento?.atendente || "",
-      equipe: atendimento?.equipe || "",
-      duracao: atendimento?.duracao || "00:00",
+      equipe: atendimento?.equipe || "Atendimento",
+      duracao: atendimento?.duracao || "00:30",
       status: atendimento?.status || 'Pendente',
       resultado: atendimento?.resultado || undefined,
       companhia: (atendimento?.companhia as 'COMERCIAL' | 'SUPORTE') || 'SUPORTE',
@@ -199,14 +199,20 @@ export const AtendimentoFormModal = ({
           <div className="space-y-2">
             <Label htmlFor="resultado">Resultado CRM</Label>
             <Select
-              value={form.watch("resultado") || ""}
-              onValueChange={(value) => form.setValue("resultado", value as any)}
+              value={form.watch("resultado") || "sem_resultado"}
+              onValueChange={(value) => {
+                if (value === "sem_resultado") {
+                  form.setValue("resultado", undefined);
+                } else {
+                  form.setValue("resultado", value as any);
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o resultado (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sem resultado</SelectItem>
+                <SelectItem value="sem_resultado">Sem resultado</SelectItem>
                 <SelectItem value="venda_ganha">Venda Ganha</SelectItem>
                 <SelectItem value="venda_perdida">Venda Perdida</SelectItem>
                 <SelectItem value="aluno_satisfeito">Aluno Satisfeito</SelectItem>
