@@ -1623,7 +1623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar novo atendimento manual
   app.post("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
-      const { lead, hora, atendente, equipe, duracao, status, resultado, companhia } = req.body;
+      const { lead, hora, atendente, equipe, duracao, status, resultado } = req.body;
       
       // Validar dados obrigatórios
       if (!lead || !hora || !atendente || !equipe || !duracao || !status) {
@@ -1634,28 +1634,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dbStatus = status === 'Em andamento' ? 'active' : 
                       status === 'Concluído' ? 'closed' : 'pending';
 
+      // Primeiro criar ou buscar um lead
+      let leadRecord = await storage.getLeadByPhone(`+55${Date.now()}`);
+      if (!leadRecord) {
+        leadRecord = await storage.createLead({
+          name: lead,
+          phone: `+55${Date.now()}`, // Telefone fictício único
+          status: 'novo',
+          source: 'manual',
+          companyAccount: 'SUPORTE'
+        });
+      }
+
       // Criar conversa manual (atendimento)
       const conversation = await storage.createConversation({
+        leadId: leadRecord.id,
         customerName: lead,
-        customerPhone: `+55${Date.now()}`, // Telefone fictício único
+        customerPhone: leadRecord.phone,
         status: dbStatus,
         attendantId: req.user.id,
         resultado: resultado || null,
-        companyAccount: companhia || 'SUPORTE',
-        isManual: true // Flag para identificar atendimentos manuais
+        companyAccount: 'SUPORTE',
+        hora: hora,
+        atendente: atendente,
+        equipe: equipe,
+        duracao: duracao
       });
 
       // Retornar no formato de atendimento
       const atendimento = {
         id: conversation.id,
         lead: conversation.customerName,
-        hora: hora,
-        atendente: atendente,
-        equipe: equipe,
-        duracao: duracao,
+        hora: conversation.hora,
+        atendente: conversation.atendente,
+        equipe: conversation.equipe,
+        duracao: conversation.duracao,
         status: status,
-        resultado: conversation.resultado,
-        companhia: conversation.companyAccount
+        resultado: conversation.resultado
       };
 
       res.status(201).json(atendimento);
