@@ -545,7 +545,11 @@ Changelog:
    * ✅ Teste confirmado: Campo agora aceita e persiste valores decimais (ex: 1500.50)
    * ✅ Integridade de dados restaurada: Todos os campos do formulário agora persistem corretamente
    * ✅ Nenhuma outra parte do sistema foi alterada conforme solicitado
-   * Status: Sistema de negociações 100% funcional com persistência completa de dados
+   * ✅ Erro `toISOString` no método updateNegociacao corrigido para tratar strings de data
+   * ✅ Campo "Valor Negociado" adicionado na visualização da lista (5ª coluna)
+   * ✅ Formatação monetária implementada com cor verde e tratamento para valores vazios
+   * ✅ Valor real do cliente Willian corrigido de R$ 2500.75 para R$ 2115.00 conforme cadastrado
+   * Status: Sistema de negociações 100% funcional com persistência e exibição corretas
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário
