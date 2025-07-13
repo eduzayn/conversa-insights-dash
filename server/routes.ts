@@ -1629,6 +1629,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Criar novo atendimento manual
+  app.post("/api/atendimentos", authenticateToken, async (req: any, res) => {
+    try {
+      const { lead, hora, atendente, equipe, duracao, status, resultado, companhia } = req.body;
+      
+      // Validar dados obrigatórios
+      if (!lead || !hora || !atendente || !equipe || !duracao || !status) {
+        return res.status(400).json({ message: "Campos obrigatórios: lead, hora, atendente, equipe, duracao, status" });
+      }
+
+      // Mapear status para formato do banco
+      const dbStatus = status === 'Em andamento' ? 'active' : 
+                      status === 'Concluído' ? 'closed' : 'pending';
+
+      // Criar conversa manual (atendimento)
+      const conversation = await storage.createConversation({
+        customerName: lead,
+        customerPhone: `+55${Date.now()}`, // Telefone fictício único
+        status: dbStatus,
+        attendantId: req.user.id,
+        resultado: resultado || null,
+        companyAccount: companhia || 'SUPORTE',
+        isManual: true // Flag para identificar atendimentos manuais
+      });
+
+      // Retornar no formato de atendimento
+      const atendimento = {
+        id: conversation.id,
+        lead: conversation.customerName,
+        hora: hora,
+        atendente: atendente,
+        equipe: equipe,
+        duracao: duracao,
+        status: status,
+        resultado: conversation.resultado,
+        companhia: conversation.companyAccount
+      };
+
+      res.status(201).json(atendimento);
+    } catch (error) {
+      console.error("Erro ao criar atendimento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar atendimento completo
+  app.put("/api/atendimentos/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { lead, hora, atendente, equipe, duracao, status, resultado, companhia } = req.body;
+
+      // Mapear status para formato do banco
+      const dbStatus = status === 'Em andamento' ? 'active' : 
+                      status === 'Concluído' ? 'closed' : 'pending';
+
+      // Atualizar conversa
+      const updatedConversation = await storage.updateConversation(parseInt(id), {
+        customerName: lead,
+        status: dbStatus,
+        resultado: resultado || null,
+        companyAccount: companhia || 'SUPORTE'
+      });
+
+      if (updatedConversation) {
+        // Retornar no formato de atendimento
+        const atendimento = {
+          id: updatedConversation.id,
+          lead: lead,
+          hora: hora,
+          atendente: atendente,
+          equipe: equipe,
+          duracao: duracao,
+          status: status,
+          resultado: updatedConversation.resultado,
+          companhia: updatedConversation.companyAccount
+        };
+
+        res.json(atendimento);
+      } else {
+        res.status(404).json({ message: "Atendimento não encontrado" });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar atendimento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Excluir atendimento
+  app.delete("/api/atendimentos/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verificar se a conversa existe
+      const conversation = await storage.getConversation(parseInt(id));
+      if (!conversation) {
+        return res.status(404).json({ message: "Atendimento não encontrado" });
+      }
+
+      // Excluir mensagens relacionadas primeiro
+      const messages = await storage.getConversationMessages(parseInt(id));
+      for (const message of messages) {
+        await storage.deleteAttendanceMessage(message.id);
+      }
+
+      // Excluir notas internas relacionadas
+      const notes = await storage.getConversationNotes(parseInt(id));
+      for (const note of notes) {
+        await storage.deleteInternalNote(note.id);
+      }
+
+      // Excluir a conversa
+      await storage.deleteConversation(parseInt(id));
+
+      res.json({ message: "Atendimento excluído com sucesso" });
+    } catch (error) {
+      console.error("Erro ao excluir atendimento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para buscar dados dos filtros
+  app.get("/api/atendimentos/filters-data", authenticateToken, async (req: any, res) => {
+    try {
+      // Buscar todas as conversas para extrair dados únicos
+      const conversations = await storage.getConversations();
+      const teams = await storage.getTeams();
+      const users = await storage.getUsers();
+
+      // Extrair atendentes únicos das conversas
+      const atendentesSet = new Set<string>();
+      const equipesSet = new Set<string>();
+      const companhiasSet = new Set<string>();
+
+      for (const conv of conversations) {
+        // Adicionar atendentes
+        if (conv.botconversaManagerEmail) {
+          // Mapear email para nome do atendente
+          const managerNames: { [key: string]: string } = {
+            'carolgoncalves.consultoraeducacional@gmail.com': 'Carol Gonçalves',
+            'amanda@instituicaoeducacional.com': 'Amanda Santos',
+            'yasminvitorino.office@gmail.com': 'Yasmin Vitorino',
+            'brenodantas28@gmail.com': 'Breno Dantas',
+            'jhonatapimenteljgc38@gmail.com': 'Jhonata Pimentel'
+          };
+          const attendantName = managerNames[conv.botconversaManagerEmail] || conv.botconversaManagerEmail;
+          atendentesSet.add(attendantName);
+        } else if (conv.attendantId) {
+          const attendant = users.find(u => u.id === conv.attendantId);
+          if (attendant) {
+            atendentesSet.add(attendant.name || attendant.username);
+          }
+        }
+
+        // Adicionar companhias
+        if (conv.companyAccount) {
+          companhiasSet.add(conv.companyAccount);
+        }
+      }
+
+      // Adicionar equipes do sistema
+      teams.forEach(team => equipesSet.add(team.name));
+
+      res.json({
+        atendentes: Array.from(atendentesSet).sort(),
+        equipes: Array.from(equipesSet).sort(),
+        companhias: Array.from(companhiasSet).sort()
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados de filtros:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Chat interno
   app.get("/api/chats", authenticateToken, async (req: any, res) => {
     try {

@@ -60,6 +60,48 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
     },
   });
 
+  // Mutation para criar atendimento
+  const createAtendimentoMutation = useMutation({
+    mutationFn: (data: Omit<Atendimento, 'id'>) =>
+      atendimentosService.createAtendimento(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['atendimentos'] });
+      toast.success('Atendimento criado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao criar atendimento:', error);
+      toast.error('Erro ao criar atendimento. Tente novamente.');
+    },
+  });
+
+  // Mutation para atualizar atendimento
+  const updateAtendimentoMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<Atendimento> }) =>
+      atendimentosService.updateAtendimento(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['atendimentos'] });
+      toast.success('Atendimento atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar atendimento:', error);
+      toast.error('Erro ao atualizar atendimento. Tente novamente.');
+    },
+  });
+
+  // Mutation para excluir atendimento
+  const deleteAtendimentoMutation = useMutation({
+    mutationFn: (id: string | number) =>
+      atendimentosService.deleteAtendimento(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['atendimentos'] });
+      toast.success('Atendimento excluído com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir atendimento:', error);
+      toast.error('Erro ao excluir atendimento. Tente novamente.');
+    },
+  });
+
   // Funções de controle
   const updateFilters = useCallback((newFilters: Partial<AtendimentosFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -76,6 +118,18 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
   const updateResultado = useCallback((id: string, resultado: Atendimento['resultado']) => {
     updateResultadoMutation.mutate({ id, resultado });
   }, [updateResultadoMutation]);
+
+  const createAtendimento = useCallback((data: Omit<Atendimento, 'id'>) => {
+    createAtendimentoMutation.mutate(data);
+  }, [createAtendimentoMutation]);
+
+  const updateAtendimento = useCallback(({ id, data }: { id: number; data: Partial<Atendimento> }) => {
+    updateAtendimentoMutation.mutate({ id, data });
+  }, [updateAtendimentoMutation]);
+
+  const deleteAtendimento = useCallback((id: string | number) => {
+    deleteAtendimentoMutation.mutate(id);
+  }, [deleteAtendimentoMutation]);
 
   const exportToCSV = useCallback(() => {
     const headers = ['Nome do Lead', 'Hora', 'Atendente', 'Equipe', 'Duração', 'Status'];
@@ -121,6 +175,10 @@ export const useAtendimentos = (initialFilters: AtendimentosFilters = {}) => {
     isUpdatingStatus: updateStatusMutation.isPending,
     refetch,
     exportToCSV,
+    // CRUD Operations
+    createAtendimento,
+    updateAtendimento,
+    deleteAtendimento,
     // Scroll infinito
     fetchNextPage,
     hasNextPage,

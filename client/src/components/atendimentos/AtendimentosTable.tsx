@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
 import { Atendimento } from "@/types/atendimento";
 import { useEffect, useRef } from "react";
 
@@ -12,6 +13,8 @@ interface AtendimentosTableProps {
   isUpdatingStatus: boolean;
   onStatusChange: (id: string, newStatus: string) => void;
   onResultadoChange: (id: string, newResultado: string) => void;
+  onEditAtendimento?: (atendimento: Atendimento) => void;
+  onDeleteAtendimento?: (id: string) => void;
   filters: any;
   // Scroll infinito
   fetchNextPage?: () => void;
@@ -25,6 +28,8 @@ export const AtendimentosTable = ({
   isUpdatingStatus, 
   onStatusChange, 
   onResultadoChange,
+  onEditAtendimento,
+  onDeleteAtendimento,
   filters,
   // Scroll infinito
   fetchNextPage,
@@ -143,36 +148,26 @@ export const AtendimentosTable = ({
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
-                        <Select
-                          value={item.status}
-                          onValueChange={(value) => onStatusChange(String(item.id), value)}
-                          disabled={isUpdatingStatus}
-                        >
-                          <SelectTrigger className="w-32 h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Pendente">Pendente</SelectItem>
-                            <SelectItem value="Em andamento">Em andamento</SelectItem>
-                            <SelectItem value="Concluído">Concluído</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        <Select
-                          value={item.resultado || ""}
-                          onValueChange={(value) => onResultadoChange(String(item.id), value)}
-                          disabled={isUpdatingStatus}
-                        >
-                          <SelectTrigger className="w-40 h-8">
-                            <SelectValue placeholder="Classificar..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="venda_ganha">Venda Ganha</SelectItem>
-                            <SelectItem value="venda_perdida">Venda Perdida</SelectItem>
-                            <SelectItem value="aluno_satisfeito">Aluno Satisfeito</SelectItem>
-                            <SelectItem value="sem_solucao">Sem Solução</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        {onEditAtendimento && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onEditAtendimento(item)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {onDeleteAtendimento && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onDeleteAtendimento(String(item.id))}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

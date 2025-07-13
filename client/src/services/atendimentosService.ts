@@ -98,10 +98,28 @@ export const atendimentosService = {
     return await response.json();
   },
 
-  async syncConversations(): Promise<void> {
+  async createAtendimento(data: Omit<Atendimento, 'id'>): Promise<Atendimento> {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/atendimentos/sync`, {
+    const response = await fetch(`${API_URL}/atendimentos`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao criar atendimento: ${response.status}`);
+    }
+    
+    return await response.json();
+  },
+
+  async deleteAtendimento(id: string | number): Promise<void> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/atendimentos/${id}`, {
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -109,8 +127,29 @@ export const atendimentosService = {
     });
     
     if (!response.ok) {
-      throw new Error(`Erro ao sincronizar conversas: ${response.status}`);
+      throw new Error(`Erro ao excluir atendimento: ${response.status}`);
     }
+  },
+
+  async getFiltersData(): Promise<{
+    atendentes: string[];
+    equipes: string[];
+    companhias: string[];
+  }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/atendimentos/filters-data`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar dados de filtros: ${response.status}`);
+    }
+    
+    return await response.json();
   }
 };
 

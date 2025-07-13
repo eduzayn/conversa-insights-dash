@@ -1,9 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, RefreshCw, AlertCircle, RotateCcw } from "lucide-react";
-import { useState } from "react";
-import { atendimentosService } from "@/services/atendimentosService";
+import { Download, RefreshCw, AlertCircle, Plus } from "lucide-react";
 
 interface AtendimentosHeaderProps {
   isLoading: boolean;
@@ -11,6 +9,7 @@ interface AtendimentosHeaderProps {
   error: any;
   onRefetch: () => void;
   onExportCSV: () => void;
+  onCreateAtendimento: () => void;
 }
 
 export const AtendimentosHeader = ({ 
@@ -18,22 +17,9 @@ export const AtendimentosHeader = ({
   atendimentosCount, 
   error, 
   onRefetch, 
-  onExportCSV 
+  onExportCSV,
+  onCreateAtendimento
 }: AtendimentosHeaderProps) => {
-  const [isSyncing, setIsSyncing] = useState(false);
-  
-  const handleSyncConversations = async () => {
-    setIsSyncing(true);
-    try {
-      await atendimentosService.syncConversations();
-      // Atualizar dados após sincronização
-      onRefetch();
-    } catch (error) {
-      console.error('Erro ao sincronizar conversas:', error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
   
   return (
     <>
@@ -46,12 +32,11 @@ export const AtendimentosHeader = ({
         </div>
         <div className="flex gap-2">
           <Button 
-            variant="outline" 
-            onClick={handleSyncConversations}
-            disabled={isSyncing || isLoading}
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={onCreateAtendimento}
           >
-            <RotateCcw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-            Sincronizar BotConversa
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Atendimento
           </Button>
           <Button 
             variant="outline" 
