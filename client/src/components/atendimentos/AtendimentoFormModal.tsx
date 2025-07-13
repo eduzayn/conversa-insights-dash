@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,20 @@ export const AtendimentoFormModal = ({
   onSubmit,
   title
 }: AtendimentoFormModalProps) => {
+  // Buscar lista de usuários
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/users'],
+    queryFn: async () => {
+      const response = await fetch('/api/users', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Erro ao carregar usuários');
+      return response.json();
+    }
+  });
+
   const form = useForm<AtendimentoFormData>({
     resolver: zodResolver(atendimentoSchema),
     defaultValues: {
@@ -107,11 +122,21 @@ export const AtendimentoFormModal = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="atendente">Atendente *</Label>
-              <Input
-                id="atendente"
-                {...form.register("atendente")}
-                placeholder="Nome do atendente"
-              />
+              <Select
+                value={form.watch("atendente")}
+                onValueChange={(value) => form.setValue("atendente", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o atendente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user: any) => (
+                    <SelectItem key={user.id} value={user.username}>
+                      {user.username} ({user.role === 'admin' ? 'Administrador' : 'Atendente'})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {form.formState.errors.atendente && (
                 <p className="text-sm text-red-600">{form.formState.errors.atendente.message}</p>
               )}
