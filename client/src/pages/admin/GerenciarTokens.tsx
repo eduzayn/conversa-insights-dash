@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Key, Users, ShieldCheck, Copy, Plus, Calendar, User, ArrowLeft } from "lucide-react";
+import { Key, Users, ShieldCheck, Copy, Plus, Calendar, User, ArrowLeft, UserX, UserCheck } from "lucide-react";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,7 @@ interface RegistrationToken {
   userName?: string;
   userEmail?: string;
   userCreatedAt?: string;
+  userIsActive?: boolean;
 }
 
 const GerenciarTokens: React.FC = () => {
@@ -78,6 +79,62 @@ const GerenciarTokens: React.FC = () => {
     }
   });
 
+  // Mutation para desativar usuário
+  const deactivateUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await fetch(`/api/users/${userId}/deactivate`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Erro ao desativar usuário');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/registration-tokens'] });
+      toast({
+        title: "Usuário desativado!",
+        description: "O usuário foi desativado e não pode mais acessar o sistema.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao desativar usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation para reativar usuário
+  const activateUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await fetch(`/api/users/${userId}/activate`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Erro ao reativar usuário');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/registration-tokens'] });
+      toast({
+        title: "Usuário reativado!",
+        description: "O usuário foi reativado e pode acessar o sistema novamente.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao reativar usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleCreateToken = () => {
     createTokenMutation.mutate(selectedRole);
   };
@@ -114,6 +171,15 @@ const GerenciarTokens: React.FC = () => {
       return <Badge variant="destructive"><ShieldCheck className="w-3 h-3 mr-1" />Administrador</Badge>;
     }
     return <Badge variant="outline"><Users className="w-3 h-3 mr-1" />Atendente</Badge>;
+  };
+
+  const getUserStatusBadge = (isActive?: boolean) => {
+    if (isActive === undefined) return null;
+    
+    if (isActive) {
+      return <Badge variant="default" className="bg-green-500"><UserCheck className="w-3 h-3 mr-1" />Ativo</Badge>;
+    }
+    return <Badge variant="destructive"><UserX className="w-3 h-3 mr-1" />Inativo</Badge>;
   };
 
   if (error) {
@@ -261,20 +327,50 @@ const GerenciarTokens: React.FC = () => {
                           </div>
                         )}
                         {token.isUsed && token.userName && (
-                          <div className="bg-blue-50 p-2 mt-2 rounded border-l-4 border-blue-200">
-                            <div className="text-sm font-medium text-blue-800">Usuário que utilizou o token:</div>
-                            <div className="flex items-center gap-1 text-xs text-blue-700">
+                          <div className="bg-blue-50 p-3 mt-2 rounded border-l-4 border-blue-200">
+                            <div className="text-sm font-medium text-blue-800 mb-2">Usuário que utilizou o token:</div>
+                            <div className="flex items-center gap-1 text-xs text-blue-700 mb-1">
                               <User className="w-3 h-3" />
                               <span className="font-medium">{token.userName}</span>
+                              {getUserStatusBadge(token.userIsActive)}
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-blue-600">
+                            <div className="flex items-center gap-1 text-xs text-blue-600 mb-1">
                               <span>📧</span>
                               <span>{token.userEmail}</span>
                             </div>
                             {token.userCreatedAt && (
-                              <div className="flex items-center gap-1 text-xs text-blue-600">
+                              <div className="flex items-center gap-1 text-xs text-blue-600 mb-3">
                                 <Calendar className="w-3 h-3" />
                                 Cadastro: {formatDate(token.userCreatedAt)}
+                              </div>
+                            )}
+                            
+                            {/* Botões de ação para usuário */}
+                            {token.usedBy && (
+                              <div className="flex gap-2 pt-2 border-t border-blue-200">
+                                {token.userIsActive ? (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => deactivateUserMutation.mutate(token.usedBy!)}
+                                    disabled={deactivateUserMutation.isPending}
+                                    className="text-xs"
+                                  >
+                                    <UserX className="w-3 h-3 mr-1" />
+                                    {deactivateUserMutation.isPending ? 'Desativando...' : 'Desativar Usuário'}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() => activateUserMutation.mutate(token.usedBy!)}
+                                    disabled={activateUserMutation.isPending}
+                                    className="text-xs bg-green-600 hover:bg-green-700"
+                                  >
+                                    <UserCheck className="w-3 h-3 mr-1" />
+                                    {activateUserMutation.isPending ? 'Reativando...' : 'Reativar Usuário'}
+                                  </Button>
+                                )}
                               </div>
                             )}
                           </div>

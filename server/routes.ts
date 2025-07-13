@@ -374,6 +374,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Desativar usuário (alterar isActive para false)
+  app.patch("/api/users/:id/deactivate", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID de usuário inválido" });
+      }
+
+      // Não permitir desativar o próprio usuário admin
+      if (userId === req.user.id) {
+        return res.status(400).json({ message: "Não é possível desativar seu próprio usuário" });
+      }
+
+      const updatedUser = await storage.updateUser(userId, { isActive: false });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      res.json({ message: "Usuário desativado com sucesso", user: updatedUser });
+    } catch (error) {
+      console.error("Erro ao desativar usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reativar usuário (alterar isActive para true)
+  app.patch("/api/users/:id/activate", authenticateToken, async (req: any, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores" });
+      }
+
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID de usuário inválido" });
+      }
+
+      const updatedUser = await storage.updateUser(userId, { isActive: true });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      res.json({ message: "Usuário reativado com sucesso", user: updatedUser });
+    } catch (error) {
+      console.error("Erro ao reativar usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // ===== USUÁRIOS =====
   
   // Buscar todos os usuários (apenas admin e agent)

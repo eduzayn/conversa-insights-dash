@@ -394,6 +394,7 @@ export class DatabaseStorage implements IStorage {
         userName: users.name,
         userEmail: users.email,
         userCreatedAt: users.createdAt,
+        userIsActive: users.isActive,
       })
       .from(registrationTokens)
       .leftJoin(users, eq(registrationTokens.usedBy, users.id))
