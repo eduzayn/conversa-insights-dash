@@ -177,6 +177,33 @@ const Negociacoes: React.FC = () => {
     }
   }, [selectedNegociacao, isSubmitting, negociacaoMutation]);
 
+  const deleteNegociacaoMutation = useMutation({
+    mutationFn: (id: number) => 
+      apiRequest(`/api/negociacoes/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/negociacoes'] });
+      toast({
+        title: "Sucesso",
+        description: "Negociação excluída com sucesso!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir negociação",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteNegociacao = useCallback((id: number) => {
+    if (window.confirm('Tem certeza de que deseja excluir esta negociação? Esta ação não pode ser desfeita.')) {
+      deleteNegociacaoMutation.mutate(id);
+    }
+  }, [deleteNegociacaoMutation]);
+
   // Limpar estado ao fechar modal
   useEffect(() => {
     if (!isCreateModalOpen) {
@@ -406,6 +433,14 @@ const Negociacoes: React.FC = () => {
                               }}
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteNegociacao(negociacao.id)}
+                              className="text-red-600 hover:text-red-700 hover:border-red-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
