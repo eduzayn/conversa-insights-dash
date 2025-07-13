@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
@@ -65,6 +66,7 @@ const Negociacoes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -186,12 +188,14 @@ const Negociacoes: React.FC = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/negociacoes'] });
+      setDeleteId(null);
       toast({
         title: "Sucesso",
         description: "Negociação excluída com sucesso!",
       });
     },
     onError: () => {
+      setDeleteId(null);
       toast({
         title: "Erro",
         description: "Erro ao excluir negociação",
@@ -201,10 +205,14 @@ const Negociacoes: React.FC = () => {
   });
 
   const handleDeleteNegociacao = useCallback((id: number) => {
-    if (window.confirm('Tem certeza de que deseja excluir esta negociação? Esta ação não pode ser desfeita.')) {
-      deleteNegociacaoMutation.mutate(id);
+    setDeleteId(id);
+  }, []);
+
+  const confirmDeleteNegociacao = useCallback(() => {
+    if (deleteId) {
+      deleteNegociacaoMutation.mutate(deleteId);
     }
-  }, [deleteNegociacaoMutation]);
+  }, [deleteId, deleteNegociacaoMutation]);
 
   // Limpar estado ao fechar modal
   useEffect(() => {
@@ -959,6 +967,33 @@ const Negociacoes: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AlertDialog para confirmação de exclusão */}
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir esta negociação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteNegociacao}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={deleteNegociacaoMutation.isPending}
+            >
+              {deleteNegociacaoMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

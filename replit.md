@@ -551,7 +551,11 @@ Changelog:
    * ✅ Valor real do cliente Willian corrigido de R$ 2500.75 para R$ 2115.00 conforme cadastrado
    * ✅ Botão de exclusão implementado com ícone de lixeira e confirmação de segurança
    * ✅ Nome do menu alterado de "Cobranças Asaas" para "Asaas União" na sidebar
-   * Status: Sistema de negociações 100% funcional com persistência, exibição e exclusão corretas
+   * ✅ Campo "Gateway de Pagamento" implementado com 6 opções (Asaas União, Asaas Fadyc, Edunext Zayn, Edunext Fadyc, Lytex Zayn, Lytex Fadyc)
+   * ✅ Campo posicionado ao lado da "Data de Vencimento Mais Antiga" conforme especificado
+   * ✅ Diálogo de confirmação de exclusão melhorado usando AlertDialog em vez de window.confirm
+   * ✅ Schema e banco de dados atualizados para suportar o novo campo gateway_pagamento
+   * Status: Sistema de negociações 100% funcional com persistência, exibição, exclusão e seleção de gateway
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário
