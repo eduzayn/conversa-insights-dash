@@ -194,9 +194,24 @@ export const AtendimentoFormModal = ({
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Pendente">Pendente</SelectItem>
-                  <SelectItem value="Em andamento">Em andamento</SelectItem>
-                  <SelectItem value="Concluído">Concluído</SelectItem>
+                  <SelectItem value="Pendente">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      Pendente
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Em andamento">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      Em andamento
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Concluído">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      Concluído
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {form.formState.errors.status && (

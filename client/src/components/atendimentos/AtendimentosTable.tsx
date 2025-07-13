@@ -40,9 +40,9 @@ export const AtendimentosTable = ({
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      'Concluído': 'bg-green-100 text-green-800',
-      'Em andamento': 'bg-yellow-100 text-yellow-800',
-      'Pendente': 'bg-gray-100 text-gray-800'
+      'Concluído': { bg: 'bg-green-100 text-green-800', dot: 'bg-green-500' },
+      'Em andamento': { bg: 'bg-blue-100 text-blue-800', dot: 'bg-blue-500' },
+      'Pendente': { bg: 'bg-yellow-100 text-yellow-800', dot: 'bg-yellow-500' }
     };
     return variants[status as keyof typeof variants] || variants['Pendente'];
   };
@@ -133,8 +133,11 @@ export const AtendimentosTable = ({
                     </td>
                     <td className="py-3 px-4 text-gray-600">{item.duracao}</td>
                     <td className="py-3 px-4">
-                      <Badge className={getStatusBadge(item.status)}>
-                        {item.status}
+                      <Badge className={getStatusBadge(item.status).bg}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${getStatusBadge(item.status).dot}`}></div>
+                          {item.status}
+                        </div>
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
