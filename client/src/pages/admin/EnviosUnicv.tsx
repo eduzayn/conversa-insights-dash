@@ -73,7 +73,7 @@ const EnviosUnicv: React.FC = () => {
 
   // Atualizar lista de certificações quando novos dados chegam
   useEffect(() => {
-    if (certificacoes?.data) {
+    if (certificacoes?.data && Array.isArray(certificacoes.data)) {
       if (certificacoesPage === 1) {
         setAllCertificacoes(certificacoes.data);
       } else {
@@ -86,6 +86,10 @@ const EnviosUnicv: React.FC = () => {
         certificacoes.pagination && 
         certificacoes.pagination.page < certificacoes.pagination.totalPages
       );
+    } else if (certificacoes?.data && !Array.isArray(certificacoes.data)) {
+      // Se os dados não estão no formato esperado, usar como array vazio
+      setAllCertificacoes([]);
+      setHasMoreCertificacoes(false);
     }
   }, [certificacoes, certificacoesPage]);
 
@@ -161,7 +165,7 @@ const EnviosUnicv: React.FC = () => {
     const formData = new FormData(e.target as HTMLFormElement);
     
     const certificationId = parseInt(formData.get('certificationId') as string);
-    const certificacao = certificacoes.data?.find((cert: Certificacao) => cert.id === certificationId);
+    const certificacao = allCertificacoes?.find((cert: Certificacao) => cert.id === certificationId);
     
     const data: EnvioUnicv = {
       certificationId,
@@ -461,8 +465,8 @@ const EnviosUnicv: React.FC = () => {
                             className="w-full justify-between"
                           >
                             {comboboxValue
-                              ? allCertificacoes.find((cert) => cert.id.toString() === comboboxValue)
-                                ? `${allCertificacoes.find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${allCertificacoes.find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
+                              ? (allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)
+                                ? `${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
                                 : "Selecione um aluno..."
                               : "Selecione um aluno..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -477,7 +481,7 @@ const EnviosUnicv: React.FC = () => {
                             <CommandList className="max-h-60">
                               <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
                               <CommandGroup>
-                                {allCertificacoes?.map((cert: Certificacao) => (
+                                {(allCertificacoes || []).map((cert: Certificacao) => (
                                   <CommandItem
                                     key={cert.id}
                                     value={`${cert.aluno} ${cert.cpf} ${cert.curso}`}
@@ -520,8 +524,8 @@ const EnviosUnicv: React.FC = () => {
                               
                               {/* Indicador de total carregado */}
                               <div className="p-2 text-xs text-gray-500 text-center border-t">
-                                {allCertificacoes.length} alunos carregados
-                                {!hasMoreCertificacoes && allCertificacoes.length > 0 && ' (todos)'}
+                                {(allCertificacoes || []).length} alunos carregados
+                                {!hasMoreCertificacoes && (allCertificacoes || []).length > 0 && ' (todos)'}
                               </div>
                             </CommandList>
                           </Command>
