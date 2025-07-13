@@ -529,6 +529,15 @@ Changelog:
    * ✅ Funções auxiliares criadas: getStatusBadge(), getCustomerName(), getPaymentId()
    * ✅ Sincronização automática de customer.name e customer.email do Asaas
    * Status: Página de cobranças totalmente corrigida, sem regressões
+- Correção Crítica: Bugs de React Hooks Resolvidos (13 Jul 2025):
+   * ✅ PROBLEMA PRINCIPAL RESOLVIDO: Erro "Rendered more hooks than during the previous render"
+   * ✅ Páginas corrigidas: Negociacoes.tsx, AtendimentoAluno.tsx, ChatInterno.tsx, Presenca.tsx, Produtividade.tsx
+   * ✅ Causa identificada: Verificações de autenticação (if loading/if !user) executadas antes de todos os hooks
+   * ✅ Solução aplicada: Movidas todas as verificações condicionais para após a execução de todos os hooks
+   * ✅ Padrão correto implementado: hooks primeiro, verificações depois, return do JSX por último
+   * ✅ Sistema agora funcionando sem erros de React nos logs do console
+   * ✅ Todas as páginas administrativas estáveis e navegáveis
+   * Status: Bugs críticos de hooks eliminados, sistema estável
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário
