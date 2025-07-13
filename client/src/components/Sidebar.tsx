@@ -42,7 +42,6 @@ const menuSections = [
     label: 'Acadêmico',
     icon: GraduationCap,
     items: [
-      { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
       { label: 'Análise Certificação', path: '/certificacoes' },
       { label: 'Certificados Acadêmicos', path: '/certificados-pos' },
       { label: 'Gestão de Cursos', path: '/matrizes-curriculares' },
@@ -53,6 +52,7 @@ const menuSections = [
     label: 'Financeiro',
     icon: DollarSign,
     items: [
+      { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
       { label: 'Cobranças Asaas', path: '/cobrancas' },
       { label: 'Negociações', path: '/negociacoes' },
     ]
