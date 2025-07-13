@@ -230,11 +230,11 @@ const EnviosUnicv: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <div className="p-8 max-w-7xl mx-auto">
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1 p-6">
+          <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
               <Button
@@ -626,7 +626,7 @@ const EnviosUnicv: React.FC = () => {
               </DialogContent>
             </Dialog>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
