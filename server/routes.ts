@@ -1669,7 +1669,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/atendimentos/:id", authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { lead, hora, atendente, equipe, duracao, status, resultado, companhia } = req.body;
+      const { lead, hora, atendente, equipe, duracao, status, resultado } = req.body;
+
+      console.log('PUT /api/atendimentos/:id - Dados recebidos:', { 
+        id, lead, hora, atendente, equipe, duracao, status, resultado 
+      });
 
       // Mapear status para formato do banco
       const dbStatus = status === 'Em andamento' ? 'active' : 
@@ -1679,9 +1683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedConversation = await storage.updateConversation(parseInt(id), {
         customerName: lead,
         status: dbStatus,
-        resultado: resultado || null,
-        companyAccount: companhia || 'SUPORTE'
+        resultado: resultado || null
       });
+
+      console.log('Conversa atualizada:', updatedConversation);
 
       if (updatedConversation) {
         // Retornar no formato de atendimento
@@ -1693,8 +1698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           equipe: equipe,
           duracao: duracao,
           status: status,
-          resultado: updatedConversation.resultado,
-          companhia: updatedConversation.companyAccount
+          resultado: updatedConversation.resultado
         };
 
         res.json(atendimento);
