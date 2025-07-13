@@ -378,10 +378,25 @@ export class DatabaseStorage implements IStorage {
     return regToken;
   }
 
-  async getAllRegistrationTokens(): Promise<RegistrationToken[]> {
+  async getAllRegistrationTokens(): Promise<any[]> {
     return await db
-      .select()
+      .select({
+        id: registrationTokens.id,
+        token: registrationTokens.token,
+        role: registrationTokens.role,
+        createdBy: registrationTokens.createdBy,
+        isUsed: registrationTokens.isUsed,
+        usedBy: registrationTokens.usedBy,
+        expiresAt: registrationTokens.expiresAt,
+        createdAt: registrationTokens.createdAt,
+        usedAt: registrationTokens.usedAt,
+        // Dados do usuário que utilizou o token
+        userName: users.name,
+        userEmail: users.email,
+        userCreatedAt: users.createdAt,
+      })
       .from(registrationTokens)
+      .leftJoin(users, eq(registrationTokens.usedBy, users.id))
       .orderBy(desc(registrationTokens.createdAt));
   }
 

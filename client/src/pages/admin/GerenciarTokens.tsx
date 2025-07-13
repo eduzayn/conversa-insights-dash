@@ -22,6 +22,10 @@ interface RegistrationToken {
   expiresAt: string;
   createdAt: string;
   usedAt?: string;
+  // Dados do usuário que utilizou o token
+  userName?: string;
+  userEmail?: string;
+  userCreatedAt?: string;
 }
 
 const GerenciarTokens: React.FC = () => {
@@ -254,6 +258,25 @@ const GerenciarTokens: React.FC = () => {
                           <div className="flex items-center gap-1">
                             <User className="w-3 h-3" />
                             Usado: {formatDate(token.usedAt)}
+                          </div>
+                        )}
+                        {token.isUsed && token.userName && (
+                          <div className="bg-blue-50 p-2 mt-2 rounded border-l-4 border-blue-200">
+                            <div className="text-sm font-medium text-blue-800">Usuário que utilizou o token:</div>
+                            <div className="flex items-center gap-1 text-xs text-blue-700">
+                              <User className="w-3 h-3" />
+                              <span className="font-medium">{token.userName}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-blue-600">
+                              <span>📧</span>
+                              <span>{token.userEmail}</span>
+                            </div>
+                            {token.userCreatedAt && (
+                              <div className="flex items-center gap-1 text-xs text-blue-600">
+                                <Calendar className="w-3 h-3" />
+                                Cadastro: {formatDate(token.userCreatedAt)}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
