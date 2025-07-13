@@ -330,7 +330,7 @@ const EnviosUnicv: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem key="all-categoria" value="all">Todas as categorias</SelectItem>
-                        {categorias.map(categoria => (
+                        {categorias.filter(categoria => categoria).map(categoria => (
                           <SelectItem key={categoria} value={categoria}>
                             {categoria.replace('_', ' ')}
                           </SelectItem>
@@ -390,7 +390,7 @@ const EnviosUnicv: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {envios.map((envio: EnvioUnicv) => (
+                        {(envios || []).filter(envio => envio && envio.id).map((envio: EnvioUnicv) => (
                           <tr key={envio.id} className="border-b hover:bg-gray-50">
                             <td className="p-4">{envio.aluno}</td>
                             <td className="p-4">{envio.cpf}</td>
@@ -481,7 +481,7 @@ const EnviosUnicv: React.FC = () => {
                             <CommandList className="max-h-60">
                               <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
                               <CommandGroup>
-                                {(allCertificacoes || []).map((cert: Certificacao) => (
+                                {(allCertificacoes || []).filter(cert => cert && cert.id && cert.aluno && cert.cpf && cert.curso).map((cert: Certificacao) => (
                                   <CommandItem
                                     key={cert.id}
                                     value={`${cert.aluno} ${cert.cpf} ${cert.curso}`}
@@ -569,7 +569,7 @@ const EnviosUnicv: React.FC = () => {
                           <SelectValue placeholder="Selecione o responsável..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {colaboradores.map((colab: any) => (
+                          {(colaboradores || []).filter(colab => colab && colab.id && colab.name).map((colab: any) => (
                             <SelectItem key={colab.id} value={colab.name}>
                               {colab.name}
                             </SelectItem>
