@@ -504,14 +504,14 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="graduacao">Graduação</SelectItem>
-                <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
-                <SelectItem value="capacitacao">Capacitação</SelectItem>
-                <SelectItem value="formacao_livre">Formação Livre</SelectItem>
-                <SelectItem value="eja">EJA</SelectItem>
-                <SelectItem value="sequencial">Sequencial</SelectItem>
-                <SelectItem value="diplomacao">Diplomação por Competência</SelectItem>
+                <SelectItem key="graduacao" value="graduacao">Graduação</SelectItem>
+                <SelectItem key="pos_graduacao" value="pos_graduacao">Pós-Graduação</SelectItem>
+                <SelectItem key="segunda_licenciatura" value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                <SelectItem key="capacitacao" value="capacitacao">Capacitação</SelectItem>
+                <SelectItem key="formacao_livre" value="formacao_livre">Formação Livre</SelectItem>
+                <SelectItem key="eja" value="eja">EJA</SelectItem>
+                <SelectItem key="sequencial" value="sequencial">Sequencial</SelectItem>
+                <SelectItem key="diplomacao" value="diplomacao">Diplomação por Competência</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -535,10 +535,10 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Selecione a modalidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="presencial">Presencial</SelectItem>
-                <SelectItem value="ead">EAD</SelectItem>
-                <SelectItem value="hibrido">Híbrido</SelectItem>
-                <SelectItem value="semipresencial">Semipresencial</SelectItem>
+                <SelectItem key="presencial" value="presencial">Presencial</SelectItem>
+                <SelectItem key="ead" value="ead">EAD</SelectItem>
+                <SelectItem key="hibrido" value="hibrido">Híbrido</SelectItem>
+                <SelectItem key="semipresencial" value="semipresencial">Semipresencial</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -585,7 +585,7 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Selecione o coordenador" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">Não definido</SelectItem>
+                <SelectItem key="coord-0" value="0">Não definido</SelectItem>
                 {professors.map((professor: any) => (
                   <SelectItem key={professor.id} value={professor.id.toString()}>
                     {professor.nome}
@@ -601,9 +601,9 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="inativo">Inativo</SelectItem>
-                <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
+                <SelectItem key="ativo-1" value="ativo">Ativo</SelectItem>
+                <SelectItem key="inativo-1" value="inativo">Inativo</SelectItem>
+                <SelectItem key="em_desenvolvimento-1" value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -754,7 +754,7 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Selecione o professor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">Não definido</SelectItem>
+                <SelectItem key="prof-0" value="0">Não definido</SelectItem>
                 {professors.map((professor: any) => (
                   <SelectItem key={professor.id} value={professor.id.toString()}>
                     {professor.nome}
@@ -770,9 +770,9 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="inativo">Inativo</SelectItem>
-                <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
+                <SelectItem key="ativo-1" value="ativo">Ativo</SelectItem>
+                <SelectItem key="inativo-1" value="inativo">Inativo</SelectItem>
+                <SelectItem key="em_desenvolvimento-1" value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -885,11 +885,11 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Selecione a titulação" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="graduacao">Graduação</SelectItem>
-                <SelectItem value="especializacao">Especialização</SelectItem>
-                <SelectItem value="mestre">Mestre</SelectItem>
-                <SelectItem value="doutor">Doutor</SelectItem>
-                <SelectItem value="pos_doutor">Pós-Doutor</SelectItem>
+                <SelectItem key="graduacao-filter" value="graduacao">Graduação</SelectItem>
+                <SelectItem key="especializacao" value="especializacao">Especialização</SelectItem>
+                <SelectItem key="mestre" value="mestre">Mestre</SelectItem>
+                <SelectItem key="doutor" value="doutor">Doutor</SelectItem>
+                <SelectItem key="pos_doutor" value="pos_doutor">Pós-Doutor</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -912,9 +912,9 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="inativo">Inativo</SelectItem>
-                <SelectItem value="licenca">Em Licença</SelectItem>
+                <SelectItem key="ativo-1" value="ativo">Ativo</SelectItem>
+                <SelectItem key="inativo-1" value="inativo">Inativo</SelectItem>
+                <SelectItem key="licenca" value="licenca">Em Licença</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1100,12 +1100,12 @@ const MatrizesCurriculares = () => {
                     <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as Categorias</SelectItem>
-                    <SelectItem value="graduacao">Graduação</SelectItem>
-                    <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                    <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
-                    <SelectItem value="capacitacao">Capacitação</SelectItem>
-                    <SelectItem value="formacao_livre">Formação Livre</SelectItem>
+                    <SelectItem key="all-categorias" value="all">Todas as Categorias</SelectItem>
+                    <SelectItem key="graduacao-filter" value="graduacao">Graduação</SelectItem>
+                    <SelectItem key="pos_graduacao-filter" value="pos_graduacao">Pós-Graduação</SelectItem>
+                    <SelectItem key="segunda_licenciatura-filter" value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
+                    <SelectItem key="capacitacao-filter" value="capacitacao">Capacitação</SelectItem>
+                    <SelectItem key="formacao_livre-filter" value="formacao_livre">Formação Livre</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={modalidadeFilter} onValueChange={setModalidadeFilter}>
@@ -1113,11 +1113,11 @@ const MatrizesCurriculares = () => {
                     <SelectValue placeholder="Modalidade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as Modalidades</SelectItem>
-                    <SelectItem value="presencial">Presencial</SelectItem>
-                    <SelectItem value="ead">EAD</SelectItem>
-                    <SelectItem value="hibrido">Híbrido</SelectItem>
-                    <SelectItem value="semipresencial">Semipresencial</SelectItem>
+                    <SelectItem key="all-modalidades" value="all">Todas as Modalidades</SelectItem>
+                    <SelectItem key="presencial-filter" value="presencial">Presencial</SelectItem>
+                    <SelectItem key="ead-filter" value="ead">EAD</SelectItem>
+                    <SelectItem key="hibrido-filter" value="hibrido">Híbrido</SelectItem>
+                    <SelectItem key="semipresencial-filter" value="semipresencial">Semipresencial</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -1125,10 +1125,10 @@ const MatrizesCurriculares = () => {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os Status</SelectItem>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="inativo">Inativo</SelectItem>
-                    <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
+                    <SelectItem key="all-status-1" value="all">Todos os Status</SelectItem>
+                    <SelectItem key="ativo-1" value="ativo">Ativo</SelectItem>
+                    <SelectItem key="inativo-1" value="inativo">Inativo</SelectItem>
+                    <SelectItem key="em_desenvolvimento-1" value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1328,10 +1328,10 @@ const MatrizesCurriculares = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="inativo">Inativo</SelectItem>
-                <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
+                <SelectItem key="all-status-1" value="all">Todos os Status</SelectItem>
+                <SelectItem key="ativo-1" value="ativo">Ativo</SelectItem>
+                <SelectItem key="inativo-1" value="inativo">Inativo</SelectItem>
+                <SelectItem key="em_desenvolvimento-1" value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1597,10 +1597,10 @@ const MatrizesCurriculares = () => {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os Status</SelectItem>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="inativo">Inativo</SelectItem>
-                    <SelectItem value="licenca">Em Licença</SelectItem>
+                    <SelectItem key="all-status-1" value="all">Todos os Status</SelectItem>
+                    <SelectItem key="ativo-1" value="ativo">Ativo</SelectItem>
+                    <SelectItem key="inativo-1" value="inativo">Inativo</SelectItem>
+                    <SelectItem key="licenca" value="licenca">Em Licença</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
