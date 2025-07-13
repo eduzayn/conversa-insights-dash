@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Send, FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Search, Filter } from "lucide-react";
@@ -45,7 +49,8 @@ const EnviosUnicv: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoriaFilter, setCategoriaFilter] = useState('all');
-  const [modalSearchTerm, setModalSearchTerm] = useState('');
+  const [comboboxOpen, setComboboxOpen] = useState(false);
+  const [comboboxValue, setComboboxValue] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -177,7 +182,7 @@ const EnviosUnicv: React.FC = () => {
 
   const openEditModal = (envio: EnvioUnicv) => {
     setSelectedEnvio(envio);
-    setModalSearchTerm(''); // Limpar busca ao abrir modal
+    setComboboxValue(envio.certificationId.toString()); // Definir valor do combobox
     setIsCreateModalOpen(true);
   };
 
@@ -337,7 +342,7 @@ const EnviosUnicv: React.FC = () => {
                           className="w-full"
                           onClick={() => {
                             setSelectedEnvio(null);
-                            setModalSearchTerm(''); // Limpar busca ao criar novo
+                            setComboboxValue(''); // Limpar combobox ao criar novo
                           }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -447,66 +452,89 @@ const EnviosUnicv: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Label htmlFor="certificationId">Aluno (Certificação)</Label>
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                          <Input
-                            placeholder="Buscar aluno por nome, CPF ou curso..."
-                            value={modalSearchTerm}
-                            onChange={(e) => setModalSearchTerm(e.target.value)}
-                            className="pl-10"
-                          />
-                        </div>
-                        <Select 
-                          name="certificationId" 
-                          defaultValue={selectedEnvio?.certificationId?.toString()}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um aluno..." />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-60">
-                            {allCertificacoes
-                              ?.filter((cert: Certificacao) => {
-                                // Aplicar busca se houver termo
-                                if (modalSearchTerm.trim()) {
-                                  const termo = modalSearchTerm.toLowerCase();
-                                  return cert.aluno.toLowerCase().includes(termo) ||
-                                         cert.cpf.toLowerCase().includes(termo) ||
-                                         cert.curso.toLowerCase().includes(termo);
-                                }
-                                return true;
-                              })
-                              ?.map((cert: Certificacao) => (
-                                <SelectItem key={cert.id} value={cert.id.toString()}>
-                                  {cert.aluno} - {cert.cpf} ({cert.curso})
-                                </SelectItem>
-                              ))}
-                            
-                            {/* Botão para carregar mais certificações */}
-                            {hasMoreCertificacoes && (
-                              <div className="p-2 border-t">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={loadMoreCertificacoes}
-                                  disabled={loadingCertificacoes}
-                                  className="w-full text-blue-600 hover:text-blue-700"
-                                >
-                                  {loadingCertificacoes ? 'Carregando...' : 'Carregar mais alunos...'}
-                                </Button>
+                      <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={comboboxOpen}
+                            className="w-full justify-between"
+                          >
+                            {comboboxValue
+                              ? allCertificacoes.find((cert) => cert.id.toString() === comboboxValue)
+                                ? `${allCertificacoes.find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${allCertificacoes.find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
+                                : "Selecione um aluno..."
+                              : "Selecione um aluno..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput 
+                              placeholder="Buscar aluno por nome, CPF ou curso..." 
+                              className="h-9"
+                            />
+                            <CommandList className="max-h-60">
+                              <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
+                              <CommandGroup>
+                                {allCertificacoes?.map((cert: Certificacao) => (
+                                  <CommandItem
+                                    key={cert.id}
+                                    value={`${cert.aluno} ${cert.cpf} ${cert.curso}`}
+                                    onSelect={() => {
+                                      setComboboxValue(cert.id.toString());
+                                      setComboboxOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        comboboxValue === cert.id.toString() ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{cert.aluno}</span>
+                                      <span className="text-sm text-muted-foreground">
+                                        {cert.cpf} • {cert.curso}
+                                      </span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                                
+                                {/* Botão para carregar mais certificações */}
+                                {hasMoreCertificacoes && (
+                                  <div className="p-2 border-t">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={loadMoreCertificacoes}
+                                      disabled={loadingCertificacoes}
+                                      className="w-full text-blue-600 hover:text-blue-700"
+                                    >
+                                      {loadingCertificacoes ? 'Carregando...' : 'Carregar mais alunos...'}
+                                    </Button>
+                                  </div>
+                                )}
+                              </CommandGroup>
+                              
+                              {/* Indicador de total carregado */}
+                              <div className="p-2 text-xs text-gray-500 text-center border-t">
+                                {allCertificacoes.length} alunos carregados
+                                {!hasMoreCertificacoes && allCertificacoes.length > 0 && ' (todos)'}
                               </div>
-                            )}
-                            
-                            {/* Indicador de total carregado */}
-                            <div className="p-2 text-xs text-gray-500 text-center border-t">
-                              {allCertificacoes.length} alunos carregados
-                              {!hasMoreCertificacoes && allCertificacoes.length > 0 && ' (todos)'}
-                            </div>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {/* Campo hidden para o formulário */}
+                      <input 
+                        type="hidden" 
+                        name="certificationId" 
+                        value={comboboxValue}
+                        required
+                      />
                     </div>
 
                     <div>
