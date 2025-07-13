@@ -290,6 +290,7 @@ export const negociacoes = pgTable("negociacoes", {
   parcelasAtraso: integer("parcelas_atraso").notNull().default(0),
   dataVencimentoMaisAntiga: date("data_vencimento_mais_antiga"),
   valorNegociado: decimal("valor_negociado", { precision: 10, scale: 2 }),
+  gatewayPagamento: text("gateway_pagamento"),
   observacoes: text("observacoes"),
   colaboradorResponsavel: text("colaborador_responsavel").notNull(),
   origem: text("origem").notNull().default("certificacao"), // asaas, certificacao
@@ -1298,6 +1299,7 @@ export const insertNegociacaoSchema = createInsertSchema(negociacoes).pick({
   parcelasAtraso: true,
   dataVencimentoMaisAntiga: true,
   valorNegociado: true,
+  gatewayPagamento: true,
   observacoes: true,
   colaboradorResponsavel: true,
   origem: true,

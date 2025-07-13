@@ -29,6 +29,7 @@ interface Negociacao {
   parcelasAtraso: number;
   dataVencimentoMaisAntiga: string;
   valorNegociado?: number;
+  gatewayPagamento?: string;
   observacoes: string;
   colaboradorResponsavel: string;
   origem: 'asaas' | 'certificacao';
@@ -162,6 +163,7 @@ const Negociacoes: React.FC = () => {
       previsaoPagamento: '',
       parcelasAtraso: 0,
       dataVencimentoMaisAntiga: '',
+      gatewayPagamento: '',
       observacoes: '',
       colaboradorResponsavel: '',
       origem: 'certificacao',
@@ -633,7 +635,23 @@ const Negociacoes: React.FC = () => {
                   />
                 </div>
                 <div>
-                  {/* Campo vazio para manter layout em 2 colunas */}
+                  <Label htmlFor="gatewayPagamento">Gateway de Pagamento</Label>
+                  <Select
+                    value={selectedNegociacao.gatewayPagamento || ''}
+                    onValueChange={(value) => setSelectedNegociacao({...selectedNegociacao, gatewayPagamento: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar gateway" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asaas_uniao">Asaas União</SelectItem>
+                      <SelectItem value="asaas_fadyc">Asaas Fadyc</SelectItem>
+                      <SelectItem value="edunext_zayn">Edunext Zayn</SelectItem>
+                      <SelectItem value="edunext_fadyc">Edunext Fadyc</SelectItem>
+                      <SelectItem value="lytex_zayn">Lytex Zayn</SelectItem>
+                      <SelectItem value="lytex_fadyc">Lytex Fadyc</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
