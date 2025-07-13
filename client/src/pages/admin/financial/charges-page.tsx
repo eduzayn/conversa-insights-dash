@@ -473,7 +473,8 @@ const ChargesPage: React.FC = () => {
           {/* Cabeçalho da página */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Pagamentos Asaas</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Cobranças Asaas União 
+</h1>
               <p className="text-muted-foreground">
                 Gerencie cobranças e pagamentos diretamente pelo Asaas
               </p>
