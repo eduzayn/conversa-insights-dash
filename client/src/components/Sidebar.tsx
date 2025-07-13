@@ -12,10 +12,12 @@ import {
   ChevronDown,
   ChevronUp,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuSections = [
   {
@@ -71,6 +73,7 @@ export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const { logout } = useAuth();
 
   // Força todos os submenus colapsados por padrão (sem persistência por enquanto)
   useEffect(() => {
@@ -234,6 +237,25 @@ export const Sidebar = () => {
             </div>
           ))}
         </nav>
+
+        {/* Logout Button */}
+        <div className="p-4 border-t border-gray-200">
+          <Button
+            variant="ghost"
+            onClick={logout}
+            className={cn(
+              "w-full flex items-center justify-start gap-3 p-3 rounded-lg transition-colors min-h-[44px]",
+              "text-red-600 hover:text-red-700 hover:bg-red-50",
+              collapsed && !mobileOpen ? "justify-center" : ""
+            )}
+            title={collapsed && !mobileOpen ? "Sair" : undefined}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {(!collapsed || mobileOpen) && (
+              <span className="font-medium">Sair</span>
+            )}
+          </Button>
+        </div>
       </div>
     </>
   );
