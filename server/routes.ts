@@ -1334,13 +1334,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return {
           id: conv.id,
           lead: conv.customerName || conv.customerPhone || `Cliente ${conv.id}`,
-          hora: new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
+          hora: conv.hora || new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
             minute: '2-digit' 
           }),
-          atendente: attendantName,
-          equipe: equipe,
-          duracao: duracao,
+          atendente: conv.atendente || attendantName,
+          equipe: conv.equipe || equipe,
+          duracao: conv.duracao || duracao,
           status: conv.status === 'active' ? 'Em andamento' : 
                  conv.status === 'closed' ? 'Concluído' : 'Pendente',
           resultado: conv.resultado || null
@@ -1679,11 +1679,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dbStatus = status === 'Em andamento' ? 'active' : 
                       status === 'Concluído' ? 'closed' : 'pending';
 
-      // Atualizar conversa
+      // Atualizar conversa com todos os campos de atendimento
       const updatedConversation = await storage.updateConversation(parseInt(id), {
         customerName: lead,
         status: dbStatus,
-        resultado: resultado || null
+        resultado: resultado || null,
+        hora: hora,
+        atendente: atendente,
+        equipe: equipe,
+        duracao: duracao
       });
 
       console.log('Conversa atualizada:', updatedConversation);
@@ -1692,11 +1696,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Retornar no formato de atendimento
         const atendimento = {
           id: updatedConversation.id,
-          lead: lead,
-          hora: hora,
-          atendente: atendente,
-          equipe: equipe,
-          duracao: duracao,
+          lead: updatedConversation.customerName,
+          hora: updatedConversation.hora,
+          atendente: updatedConversation.atendente,
+          equipe: updatedConversation.equipe,
+          duracao: updatedConversation.duracao,
           status: status,
           resultado: updatedConversation.resultado
         };

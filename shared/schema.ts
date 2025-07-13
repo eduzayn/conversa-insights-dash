@@ -124,7 +124,7 @@ export const conversations = pgTable("conversations", {
   attendantId: integer("attendant_id").references(() => users.id),
   status: text("status").notNull().default("novo"), // novo, em_andamento, finalizado
   // Classificação CRM do resultado
-  resultado: text("resultado"), // venda_ganha, venda_perdida, aluno_satisfeito, sem_solucao
+  resultado: text("resultado"), // venda_ganha, venda_perdida, aluno_satisfeito, sem_solucao, resolvido
   customerName: text("customer_name"), // Nome do cliente
   customerPhone: text("customer_phone"), // Telefone do cliente
   // Informações do atendente BotConversa
@@ -132,6 +132,11 @@ export const conversations = pgTable("conversations", {
   botconversaManagerName: text("botconversa_manager_name"), // Nome do manager no BotConversa
   botconversaManagerEmail: text("botconversa_manager_email"), // Email do manager no BotConversa
   companyAccount: text("company_account"), // COMERCIAL (182301) ou SUPORTE (182331)
+  // Campos específicos de atendimento
+  hora: text("hora"), // Horário do atendimento
+  atendente: text("atendente"), // Nome do atendente
+  equipe: text("equipe"), // Equipe responsável
+  duracao: text("duracao"), // Duração do atendimento
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
