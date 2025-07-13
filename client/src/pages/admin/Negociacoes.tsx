@@ -364,7 +364,7 @@ const Negociacoes: React.FC = () => {
                               </Badge>
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Data Negociação:</span>
                                 <div className="font-medium">{new Date(negociacao.dataNegociacao + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
@@ -372,6 +372,12 @@ const Negociacoes: React.FC = () => {
                               <div>
                                 <span className="text-gray-500">Previsão Pagamento:</span>
                                 <div className="font-medium">{new Date(negociacao.previsaoPagamento + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Valor Negociado:</span>
+                                <div className="font-medium text-green-600">
+                                  {negociacao.valorNegociado ? `R$ ${Number(negociacao.valorNegociado).toFixed(2)}` : 'Não informado'}
+                                </div>
                               </div>
                               <div>
                                 <span className="text-gray-500">Parcelas em Atraso:</span>

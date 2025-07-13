@@ -1923,19 +1923,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateNegociacao(id: number, negociacao: Partial<Negociacao>): Promise<Negociacao | undefined> {
-    // Converter strings de data para objetos Date se necessário
-    const updateData = { ...negociacao, updatedAt: new Date() };
+    // Preparar dados para atualização
+    const updateData: any = { ...negociacao, updatedAt: new Date() };
     
+    // Converter strings de data para formato adequado se necessário
     if (updateData.dataNegociacao && typeof updateData.dataNegociacao === 'string') {
-      updateData.dataNegociacao = updateData.dataNegociacao as any;
+      updateData.dataNegociacao = updateData.dataNegociacao;
     }
     
     if (updateData.previsaoPagamento && typeof updateData.previsaoPagamento === 'string') {
-      updateData.previsaoPagamento = updateData.previsaoPagamento as any;
+      updateData.previsaoPagamento = updateData.previsaoPagamento;
     }
     
     if (updateData.dataVencimentoMaisAntiga && typeof updateData.dataVencimentoMaisAntiga === 'string') {
-      updateData.dataVencimentoMaisAntiga = updateData.dataVencimentoMaisAntiga as any;
+      updateData.dataVencimentoMaisAntiga = updateData.dataVencimentoMaisAntiga;
+    }
+    
+    // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)
+    if (updateData.valorNegociado !== undefined) {
+      updateData.valorNegociado = updateData.valorNegociado?.toString();
     }
     
     const [updatedNegociacao] = await db
