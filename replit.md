@@ -538,27 +538,27 @@ Changelog:
    * ✅ Sistema agora funcionando sem erros de React nos logs do console
    * ✅ Todas as páginas administrativas estáveis e navegáveis
    * Status: Bugs críticos de hooks eliminados, sistema estável
-- Correção Crítica: Campo valorNegociado não Persistia no Banco (13 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: Campo "Valor Negociado (R$)" não sendo salvo no banco de dados
-   * ✅ Causa identificada: Campo `valorNegociado` ausente do `insertNegociacaoSchema` em shared/schema.ts
-   * ✅ Correção cirúrgica aplicada: Adicionado `valorNegociado: true` ao schema de inserção
-   * ✅ Teste confirmado: Campo agora aceita e persiste valores decimais (ex: 1500.50)
-   * ✅ Integridade de dados restaurada: Todos os campos do formulário agora persistem corretamente
-   * ✅ Nenhuma outra parte do sistema foi alterada conforme solicitado
-   * ✅ Erro `toISOString` no método updateNegociacao corrigido para tratar strings de data
-   * ✅ Campo "Valor Negociado" adicionado na visualização da lista (5ª coluna)
-   * ✅ Formatação monetária implementada com cor verde e tratamento para valores vazios
-   * ✅ Valor real do cliente Willian corrigido de R$ 2500.75 para R$ 2115.00 conforme cadastrado
-   * ✅ Botão de exclusão implementado com ícone de lixeira e confirmação de segurança
-   * ✅ Nome do menu alterado de "Cobranças Asaas" para "Asaas União" na sidebar
-   * ✅ Campo "Gateway de Pagamento" implementado com 6 opções (Asaas União, Asaas Fadyc, Edunext Zayn, Edunext Fadyc, Lytex Zayn, Lytex Fadyc)
-   * ✅ Campo posicionado ao lado da "Data de Vencimento Mais Antiga" conforme especificado
-   * ✅ Diálogo de confirmação de exclusão melhorado usando AlertDialog em vez de window.confirm
-   * ✅ Schema e banco de dados atualizados para suportar o novo campo gateway_pagamento
-   * ✅ CORREÇÃO CRÍTICA: Erro toISOString ao editar negociações corrigido - campos date do Drizzle mantidos como strings
-   * ✅ Métodos createNegociacao e updateNegociacao corrigidos para compatibilidade com tipo 'date' do PostgreSQL
-   * ✅ Problema resolvido: Drizzle esperava strings YYYY-MM-DD para campos 'date', não objetos Date
-   * Status: Sistema de negociações 100% funcional com persistência, exibição, exclusão e seleção de gateway
+- Correção Crítica: Sistema de Negociações Totalmente Corrigido (13 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro crítico "value.toISOString is not a function" no método updateNegociacao
+   * ✅ Causa identificada: Conflito entre tipos de data (timestamp vs date) no schema Drizzle ORM
+   * ✅ Correção cirúrgica aplicada no server/storage.ts:
+     - Método updateNegociacao reescrito com filtro de campos permitidos
+     - Tratamento específico para campos do tipo 'date' (formato YYYY-MM-DD)
+     - Remoção do campo updatedAt automático que causava o erro
+     - Validação robusta de tipos para valorNegociado (decimal)
+   * ✅ Sistema de validação melhorado:
+     - Conversão automática de datas para formato PostgreSQL
+     - Sanitização de campos não permitidos na atualização
+     - Tratamento específico para valores monetários
+   * ✅ Teste confirmado: CRUD completo funcionando (criar, editar, excluir, listar)
+   * ✅ API funcionando: PUT /api/negociacoes/:id retorna status 200
+   * ✅ Frontend funcionando: Modal de edição salva sem erros
+   * ✅ Função handleDeleteNegociacao verificada e operacional
+   * ✅ Campo "Valor Negociado" persistindo corretamente no banco
+   * ✅ Campo "Gateway de Pagamento" com 6 opções funcionais
+   * ✅ Sistema de exclusão com AlertDialog funcionando
+   * ✅ Formatação monetária na listagem operacional
+   * Status: Sistema de negociações 100% funcional e estável em produção
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário

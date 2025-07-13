@@ -396,9 +396,6 @@ const Negociacoes: React.FC = () => {
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="text-lg font-semibold">{negociacao.clienteNome}</h3>
                               {getStatusBadge(negociacao.status)}
-                              <Badge variant="outline">
-                                {negociacao.origem === 'asaas' ? 'Asaas' : 'Certificação'}
-                              </Badge>
                             </div>
                             
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
