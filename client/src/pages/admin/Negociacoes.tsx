@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, FileText, Plus, Edit, Trash2, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, User, FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
+import { useNavigate } from "react-router-dom";
 
 interface Negociacao {
   id?: number;
@@ -63,6 +64,7 @@ const Negociacoes: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Buscar colaboradores (usuários admin e agentes)
   const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
@@ -239,8 +241,21 @@ const Negociacoes: React.FC = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="bg-white shadow-sm border-b border-gray-200 p-4">
-          <h1 className="text-2xl font-bold text-gray-900">Negociações</h1>
-          <p className="text-gray-600">Gestão de negociações e cursos expirados</p>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 min-h-[44px] px-2 md:px-3"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Negociações</h1>
+              <p className="text-gray-600">Gestão de negociações e cursos expirados</p>
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto p-6">
