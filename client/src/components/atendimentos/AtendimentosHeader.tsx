@@ -27,7 +27,7 @@ export const AtendimentosHeader = ({
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Diário de Atendimentos</h1>
           <p className="text-gray-600">
-            Visualize todos os atendimentos {isLoading ? '(Carregando...)' : `(${atendimentosCount} atendimentos)`}
+            Visualize todos os atendimentos
           </p>
         </div>
         <div className="flex gap-2">
