@@ -111,7 +111,10 @@ import {
   type Negociacao,
   type InsertNegociacao,
   type NegociacaoExpirado,
-  type InsertNegociacaoExpirado
+  type InsertNegociacaoExpirado,
+  enviosUnicv,
+  type EnvioUnicv,
+  type InsertEnvioUnicv
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql } from "drizzle-orm";
@@ -313,6 +316,13 @@ export interface IStorage {
   updateCertificateTemplate(id: number, template: Partial<CertificateTemplate>): Promise<CertificateTemplate | undefined>;
   deleteCertificateTemplate(id: number): Promise<void>;
   getCertificateTemplateById(id: number): Promise<CertificateTemplate | undefined>;
+  
+  // Sistema de Envios UNICV
+  getEnviosUnicv(filters?: { search?: string; status?: string; categoria?: string }): Promise<EnvioUnicv[]>;
+  createEnvioUnicv(envio: InsertEnvioUnicv): Promise<EnvioUnicv>;
+  updateEnvioUnicv(id: number, envio: Partial<EnvioUnicv>): Promise<EnvioUnicv | undefined>;
+  deleteEnvioUnicv(id: number): Promise<void>;
+  getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2057,6 +2067,65 @@ export class DatabaseStorage implements IStorage {
     }
     
     return { created, updated };
+  }
+
+  // Sistema de Envios UNICV
+  async getEnviosUnicv(filters?: { search?: string; status?: string; categoria?: string }): Promise<EnvioUnicv[]> {
+    const conditions = [];
+    
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(enviosUnicv.aluno, `%${filters.search}%`),
+          ilike(enviosUnicv.cpf, `%${filters.search}%`),
+          ilike(enviosUnicv.curso, `%${filters.search}%`)
+        )
+      );
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(enviosUnicv.statusEnvio, filters.status));
+    }
+    
+    if (filters?.categoria) {
+      conditions.push(eq(enviosUnicv.categoria, filters.categoria));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(enviosUnicv).where(and(...conditions)).orderBy(desc(enviosUnicv.createdAt));
+    }
+    
+    return await db.select().from(enviosUnicv).orderBy(desc(enviosUnicv.createdAt));
+  }
+
+  async createEnvioUnicv(envio: InsertEnvioUnicv): Promise<EnvioUnicv> {
+    const [newEnvio] = await db
+      .insert(enviosUnicv)
+      .values({
+        ...envio,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newEnvio;
+  }
+
+  async updateEnvioUnicv(id: number, envio: Partial<EnvioUnicv>): Promise<EnvioUnicv | undefined> {
+    const [updatedEnvio] = await db
+      .update(enviosUnicv)
+      .set({ ...envio, updatedAt: new Date() })
+      .where(eq(enviosUnicv.id, id))
+      .returning();
+    return updatedEnvio || undefined;
+  }
+
+  async deleteEnvioUnicv(id: number): Promise<void> {
+    await db.delete(enviosUnicv).where(eq(enviosUnicv.id, id));
+  }
+
+  async getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined> {
+    const [envio] = await db.select().from(enviosUnicv).where(eq(enviosUnicv.id, id));
+    return envio || undefined;
   }
 }
 

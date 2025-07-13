@@ -23,7 +23,8 @@ import {
   insertAcademicCertificateSchema,
   insertCertificateTemplateSchema,
   insertNegociacaoSchema,
-  insertNegociacaoExpiradoSchema
+  insertNegociacaoExpiradoSchema,
+  insertEnvioUnicvSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
@@ -3889,6 +3890,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Erro ao sincronizar negociações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ENVIOS UNICV =====
+
+  // Buscar envios UNICV
+  app.get("/api/envios-unicv", authenticateToken, async (req: any, res) => {
+    try {
+      const { search, status, categoria } = req.query;
+      const envios = await storage.getEnviosUnicv({ search, status, categoria });
+      res.json(envios);
+    } catch (error) {
+      console.error("Erro ao buscar envios UNICV:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar novo envio UNICV
+  app.post("/api/envios-unicv", authenticateToken, async (req: any, res) => {
+    try {
+      const envioData = insertEnvioUnicvSchema.parse(req.body);
+      const envio = await storage.createEnvioUnicv(envioData);
+      res.status(201).json(envio);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      console.error("Erro ao criar envio UNICV:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar envio UNICV
+  app.put("/api/envios-unicv/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const envio = await storage.updateEnvioUnicv(parseInt(id), req.body);
+      if (!envio) {
+        return res.status(404).json({ message: "Envio UNICV não encontrado" });
+      }
+      res.json(envio);
+    } catch (error) {
+      console.error("Erro ao atualizar envio UNICV:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar envio UNICV
+  app.delete("/api/envios-unicv/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteEnvioUnicv(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao deletar envio UNICV:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar envio UNICV por ID
+  app.get("/api/envios-unicv/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const envio = await storage.getEnvioUnicvById(parseInt(id));
+      if (!envio) {
+        return res.status(404).json({ message: "Envio UNICV não encontrado" });
+      }
+      res.json(envio);
+    } catch (error) {
+      console.error("Erro ao buscar envio UNICV:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

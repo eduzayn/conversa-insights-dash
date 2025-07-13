@@ -46,6 +46,7 @@ const menuSections = [
       { label: 'Análise Certificação', path: '/certificacoes' },
       { label: 'Certificados Acadêmicos', path: '/certificados-pos' },
       { label: 'Gestão de Cursos', path: '/matrizes-curriculares' },
+      { label: 'Envios UNICV', path: '/envios-unicv' },
     ]
   },
   {

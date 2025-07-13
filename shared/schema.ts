@@ -317,6 +317,34 @@ export const negociacoesExpirados = pgTable("negociacoes_expirados", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela para envios UNICV
+export const enviosUnicv = pgTable("envios_unicv", {
+  id: serial("id").primaryKey(),
+  certificationId: integer("certification_id").notNull().references(() => certifications.id),
+  aluno: text("aluno").notNull(),
+  cpf: text("cpf").notNull(),
+  curso: text("curso").notNull(),
+  categoria: text("categoria").notNull(),
+  statusEnvio: text("status_envio").notNull().default("nao_enviado"), // nao_enviado, enviado
+  numeroOficio: text("numero_oficio"),
+  dataEnvio: date("data_envio"),
+  observacoes: text("observacoes"),
+  colaboradorResponsavel: text("colaborador_responsavel").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schemas Zod para envios UNICV
+export const insertEnvioUnicvSchema = createInsertSchema(enviosUnicv)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
+export type EnvioUnicv = typeof enviosUnicv.$inferSelect;
+export type InsertEnvioUnicv = z.infer<typeof insertEnvioUnicvSchema>;
+
 // Tabela para matrículas dos alunos
 export const studentEnrollments = pgTable("student_enrollments", {
   id: serial("id").primaryKey(),
