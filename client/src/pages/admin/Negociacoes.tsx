@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +60,7 @@ const Negociacoes: React.FC = () => {
   const [selectedExpirado, setSelectedExpirado] = useState<Expirado | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -93,6 +94,12 @@ const Negociacoes: React.FC = () => {
   // Mutation para criar/atualizar negociação
   const negociacaoMutation = useMutation({
     mutationFn: async (data: Negociacao) => {
+      if (isSubmitting) {
+        throw new Error('Submissão já em andamento');
+      }
+      
+      setIsSubmitting(true);
+      
       if (data.id) {
         return apiRequest(`/api/negociacoes/${data.id}`, {
           method: 'PUT',
@@ -109,9 +116,11 @@ const Negociacoes: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/negociacoes'] });
       setIsCreateModalOpen(false);
       setSelectedNegociacao(null);
+      setIsSubmitting(false);
       toast({ title: "Sucesso", description: "Negociação salva com sucesso!" });
     },
     onError: () => {
+      setIsSubmitting(false);
       toast({ title: "Erro", description: "Erro ao salvar negociação" });
     }
   });
@@ -141,7 +150,7 @@ const Negociacoes: React.FC = () => {
     }
   });
 
-  const handleCreateNegociacao = () => {
+  const handleCreateNegociacao = useCallback(() => {
     const hoje = new Date().toISOString().split('T')[0];
     setSelectedNegociacao({
       clienteNome: '',
@@ -154,8 +163,22 @@ const Negociacoes: React.FC = () => {
       origem: 'certificacao',
       status: 'aguardando_pagamento'
     });
+    setIsSubmitting(false);
     setIsCreateModalOpen(true);
-  };
+  }, []);
+
+  const handleSaveNegociacao = useCallback(() => {
+    if (selectedNegociacao && !isSubmitting && !negociacaoMutation.isPending) {
+      negociacaoMutation.mutate(selectedNegociacao);
+    }
+  }, [selectedNegociacao, isSubmitting, negociacaoMutation]);
+
+  // Limpar estado ao fechar modal
+  useEffect(() => {
+    if (!isCreateModalOpen) {
+      setIsSubmitting(false);
+    }
+  }, [isCreateModalOpen]);
 
   const handleCreateExpirado = () => {
     setSelectedExpirado({
@@ -609,18 +632,18 @@ const Negociacoes: React.FC = () => {
           )}
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsCreateModalOpen(false);
+              setSelectedNegociacao(null);
+              setIsSubmitting(false);
+            }}>
               Cancelar
             </Button>
             <Button 
-              onClick={() => {
-                if (selectedNegociacao && !negociacaoMutation.isPending) {
-                  negociacaoMutation.mutate(selectedNegociacao);
-                }
-              }}
-              disabled={!selectedNegociacao?.clienteNome || !selectedNegociacao?.dataNegociacao || !selectedNegociacao?.previsaoPagamento || !selectedNegociacao?.colaboradorResponsavel || negociacaoMutation.isPending}
+              onClick={handleSaveNegociacao}
+              disabled={!selectedNegociacao?.clienteNome || !selectedNegociacao?.dataNegociacao || !selectedNegociacao?.previsaoPagamento || !selectedNegociacao?.colaboradorResponsavel || isSubmitting || negociacaoMutation.isPending}
             >
-              {negociacaoMutation.isPending ? "Salvando..." : "Salvar Negociação"}
+              {isSubmitting || negociacaoMutation.isPending ? "Salvando..." : "Salvar Negociação"}
             </Button>
           </DialogFooter>
         </DialogContent>

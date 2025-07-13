@@ -1923,9 +1923,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateNegociacao(id: number, negociacao: Partial<Negociacao>): Promise<Negociacao | undefined> {
+    // Converter strings de data para objetos Date se necessário
+    const updateData = { ...negociacao, updatedAt: new Date() };
+    
+    if (updateData.dataNegociacao && typeof updateData.dataNegociacao === 'string') {
+      updateData.dataNegociacao = updateData.dataNegociacao as any;
+    }
+    
+    if (updateData.previsaoPagamento && typeof updateData.previsaoPagamento === 'string') {
+      updateData.previsaoPagamento = updateData.previsaoPagamento as any;
+    }
+    
+    if (updateData.dataVencimentoMaisAntiga && typeof updateData.dataVencimentoMaisAntiga === 'string') {
+      updateData.dataVencimentoMaisAntiga = updateData.dataVencimentoMaisAntiga as any;
+    }
+    
     const [updatedNegociacao] = await db
       .update(negociacoes)
-      .set({ ...negociacao, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(negociacoes.id, id))
       .returning();
     return updatedNegociacao || undefined;
