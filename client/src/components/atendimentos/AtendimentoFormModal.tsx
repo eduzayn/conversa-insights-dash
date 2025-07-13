@@ -132,7 +132,7 @@ export const AtendimentoFormModal = ({
                 <SelectContent>
                   {users.map((user: any) => (
                     <SelectItem key={user.id} value={user.username}>
-                      {user.username} ({user.role === 'admin' ? 'Administrador' : 'Atendente'})
+                      {user.username}
                     </SelectItem>
                   ))}
                 </SelectContent>
