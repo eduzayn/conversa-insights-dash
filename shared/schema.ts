@@ -293,7 +293,7 @@ export const negociacoes = pgTable("negociacoes", {
   observacoes: text("observacoes"),
   colaboradorResponsavel: text("colaborador_responsavel").notNull(),
   origem: text("origem").notNull().default("certificacao"), // asaas, certificacao
-  status: text("status").notNull().default("ativo"), // ativo, finalizado, cancelado
+  status: text("status").notNull().default("aguardando_pagamento"), // aguardando_pagamento, recebido, acordo_quebrado
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

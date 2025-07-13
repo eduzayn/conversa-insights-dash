@@ -30,7 +30,7 @@ interface Negociacao {
   observacoes: string;
   colaboradorResponsavel: string;
   origem: 'asaas' | 'certificacao';
-  status: 'ativo' | 'finalizado' | 'cancelado';
+  status: 'aguardando_pagamento' | 'recebido' | 'acordo_quebrado';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -151,7 +151,7 @@ const Negociacoes: React.FC = () => {
       observacoes: '',
       colaboradorResponsavel: '',
       origem: 'certificacao',
-      status: 'ativo'
+      status: 'aguardando_pagamento'
     });
     setIsCreateModalOpen(true);
   };
@@ -170,15 +170,27 @@ const Negociacoes: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      ativo: 'bg-blue-100 text-blue-800',
-      finalizado: 'bg-green-100 text-green-800', 
-      cancelado: 'bg-red-100 text-red-800',
+      'aguardando_pagamento': 'bg-yellow-100 text-yellow-800',
+      'recebido': 'bg-green-100 text-green-800', 
+      'acordo_quebrado': 'bg-red-100 text-red-800',
       pendente: 'bg-yellow-100 text-yellow-800',
       enviada: 'bg-purple-100 text-purple-800',
       aceita: 'bg-green-100 text-green-800',
       rejeitada: 'bg-red-100 text-red-800'
     };
-    return <Badge className={styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'}>{status}</Badge>;
+    
+    const labels = {
+      'aguardando_pagamento': 'Aguardando pagamento',
+      'recebido': 'Recebido',
+      'acordo_quebrado': 'Acordo quebrado',
+      pendente: 'Pendente',
+      enviada: 'Enviada',
+      aceita: 'Aceita',
+      rejeitada: 'Rejeitada'
+    };
+    
+    const label = labels[status as keyof typeof labels] || status;
+    return <Badge className={styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'}>{label}</Badge>;
   };
 
   return (
@@ -225,9 +237,9 @@ const Negociacoes: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
-                      <SelectItem value="ativo">Ativo</SelectItem>
-                      <SelectItem value="finalizado">Finalizado</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
+                      <SelectItem value="aguardando_pagamento">Aguardando pagamento</SelectItem>
+                      <SelectItem value="recebido">Recebido</SelectItem>
+                      <SelectItem value="acordo_quebrado">Acordo quebrado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -521,15 +533,15 @@ const Negociacoes: React.FC = () => {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={selectedNegociacao.status}
-                    onValueChange={(value: 'ativo' | 'finalizado' | 'cancelado') => setSelectedNegociacao({...selectedNegociacao, status: value})}
+                    onValueChange={(value: 'aguardando_pagamento' | 'recebido' | 'acordo_quebrado') => setSelectedNegociacao({...selectedNegociacao, status: value})}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ativo">Ativo</SelectItem>
-                      <SelectItem value="finalizado">Finalizado</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
+                      <SelectItem value="aguardando_pagamento">Aguardando pagamento</SelectItem>
+                      <SelectItem value="recebido">Recebido</SelectItem>
+                      <SelectItem value="acordo_quebrado">Acordo quebrado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
