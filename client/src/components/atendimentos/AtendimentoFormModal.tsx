@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +17,7 @@ const atendimentoSchema = z.object({
   equipe: z.string().min(1, "Equipe é obrigatória"),
   duracao: z.string().min(1, "Duração é obrigatória"),
   status: z.enum(['Concluído', 'Em andamento', 'Pendente']),
-  resultado: z.enum(['venda_ganha', 'venda_perdida', 'aluno_satisfeito', 'sem_solucao']).optional(),
-  companhia: z.enum(['COMERCIAL', 'SUPORTE']).optional(),
+  resultado: z.enum(['venda_ganha', 'venda_perdida', 'aluno_satisfeito', 'sem_solucao', 'resolvido']).optional(),
 });
 
 type AtendimentoFormData = z.infer<typeof atendimentoSchema>;
@@ -54,16 +54,40 @@ export const AtendimentoFormModal = ({
   const form = useForm<AtendimentoFormData>({
     resolver: zodResolver(atendimentoSchema),
     defaultValues: {
-      lead: atendimento?.lead || "",
-      hora: atendimento?.hora || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      atendente: atendimento?.atendente || "",
-      equipe: atendimento?.equipe || "Atendimento",
-      duracao: atendimento?.duracao || "00:30",
-      status: atendimento?.status || 'Pendente',
-      resultado: atendimento?.resultado || undefined,
-      companhia: (atendimento?.companhia as 'COMERCIAL' | 'SUPORTE') || 'SUPORTE',
+      lead: "",
+      hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      atendente: "",
+      equipe: "Atendimento",
+      duracao: "00:30",
+      status: 'Pendente',
+      resultado: undefined,
     }
   });
+
+  // Resetar o formulário quando o atendimento mudar
+  useEffect(() => {
+    if (atendimento) {
+      form.reset({
+        lead: atendimento.lead || "",
+        hora: atendimento.hora || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        atendente: atendimento.atendente || "",
+        equipe: atendimento.equipe || "Atendimento",
+        duracao: atendimento.duracao || "00:30",
+        status: atendimento.status || 'Pendente',
+        resultado: atendimento.resultado || undefined,
+      });
+    } else {
+      form.reset({
+        lead: "",
+        hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        atendente: "",
+        equipe: "Atendimento",
+        duracao: "00:30",
+        status: 'Pendente',
+        resultado: undefined,
+      });
+    }
+  }, [atendimento, form]);
 
   const handleSubmit = (data: AtendimentoFormData) => {
     if (atendimento) {
