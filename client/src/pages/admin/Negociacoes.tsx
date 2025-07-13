@@ -314,11 +314,11 @@ const Negociacoes: React.FC = () => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Data Negociação:</span>
-                                <div className="font-medium">{new Date(negociacao.dataNegociacao).toLocaleDateString()}</div>
+                                <div className="font-medium">{new Date(negociacao.dataNegociacao + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
                               </div>
                               <div>
                                 <span className="text-gray-500">Previsão Pagamento:</span>
-                                <div className="font-medium">{new Date(negociacao.previsaoPagamento).toLocaleDateString()}</div>
+                                <div className="font-medium">{new Date(negociacao.previsaoPagamento + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
                               </div>
                               <div>
                                 <span className="text-gray-500">Parcelas em Atraso:</span>
@@ -613,10 +613,14 @@ const Negociacoes: React.FC = () => {
               Cancelar
             </Button>
             <Button 
-              onClick={() => selectedNegociacao && negociacaoMutation.mutate(selectedNegociacao)}
-              disabled={!selectedNegociacao?.clienteNome || !selectedNegociacao?.dataNegociacao || !selectedNegociacao?.previsaoPagamento || !selectedNegociacao?.colaboradorResponsavel}
+              onClick={() => {
+                if (selectedNegociacao && !negociacaoMutation.isPending) {
+                  negociacaoMutation.mutate(selectedNegociacao);
+                }
+              }}
+              disabled={!selectedNegociacao?.clienteNome || !selectedNegociacao?.dataNegociacao || !selectedNegociacao?.previsaoPagamento || !selectedNegociacao?.colaboradorResponsavel || negociacaoMutation.isPending}
             >
-              Salvar Negociação
+              {negociacaoMutation.isPending ? "Salvando..." : "Salvar Negociação"}
             </Button>
           </DialogFooter>
         </DialogContent>
