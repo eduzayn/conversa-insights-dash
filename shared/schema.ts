@@ -1297,6 +1297,7 @@ export const insertNegociacaoSchema = createInsertSchema(negociacoes).pick({
   previsaoPagamento: true,
   parcelasAtraso: true,
   dataVencimentoMaisAntiga: true,
+  valorNegociado: true,
   observacoes: true,
   colaboradorResponsavel: true,
   origem: true,

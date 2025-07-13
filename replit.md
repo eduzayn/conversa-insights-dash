@@ -538,6 +538,14 @@ Changelog:
    * ✅ Sistema agora funcionando sem erros de React nos logs do console
    * ✅ Todas as páginas administrativas estáveis e navegáveis
    * Status: Bugs críticos de hooks eliminados, sistema estável
+- Correção Crítica: Campo valorNegociado não Persistia no Banco (13 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Campo "Valor Negociado (R$)" não sendo salvo no banco de dados
+   * ✅ Causa identificada: Campo `valorNegociado` ausente do `insertNegociacaoSchema` em shared/schema.ts
+   * ✅ Correção cirúrgica aplicada: Adicionado `valorNegociado: true` ao schema de inserção
+   * ✅ Teste confirmado: Campo agora aceita e persiste valores decimais (ex: 1500.50)
+   * ✅ Integridade de dados restaurada: Todos os campos do formulário agora persistem corretamente
+   * ✅ Nenhuma outra parte do sistema foi alterada conforme solicitado
+   * Status: Sistema de negociações 100% funcional com persistência completa de dados
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário
