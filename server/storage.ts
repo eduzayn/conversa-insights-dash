@@ -1911,10 +1911,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNegociacao(negociacao: InsertNegociacao): Promise<Negociacao> {
+    // Preparar dados para inserção, convertendo strings de data para objetos Date
+    const insertData: any = { ...negociacao };
+    
+    // Converter strings de data para objetos Date se necessário
+    if (insertData.dataNegociacao && typeof insertData.dataNegociacao === 'string') {
+      insertData.dataNegociacao = new Date(insertData.dataNegociacao);
+    }
+    
+    if (insertData.previsaoPagamento && typeof insertData.previsaoPagamento === 'string') {
+      insertData.previsaoPagamento = new Date(insertData.previsaoPagamento);
+    }
+    
+    if (insertData.dataVencimentoMaisAntiga && typeof insertData.dataVencimentoMaisAntiga === 'string') {
+      insertData.dataVencimentoMaisAntiga = new Date(insertData.dataVencimentoMaisAntiga);
+    }
+    
+    // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)
+    if (insertData.valorNegociado !== undefined) {
+      insertData.valorNegociado = insertData.valorNegociado?.toString();
+    }
+    
     const [newNegociacao] = await db
       .insert(negociacoes)
       .values({
-        ...negociacao,
+        ...insertData,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1926,17 +1947,17 @@ export class DatabaseStorage implements IStorage {
     // Preparar dados para atualização
     const updateData: any = { ...negociacao, updatedAt: new Date() };
     
-    // Converter strings de data para formato adequado se necessário
+    // Converter strings de data para objetos Date se necessário
     if (updateData.dataNegociacao && typeof updateData.dataNegociacao === 'string') {
-      updateData.dataNegociacao = updateData.dataNegociacao;
+      updateData.dataNegociacao = new Date(updateData.dataNegociacao);
     }
     
     if (updateData.previsaoPagamento && typeof updateData.previsaoPagamento === 'string') {
-      updateData.previsaoPagamento = updateData.previsaoPagamento;
+      updateData.previsaoPagamento = new Date(updateData.previsaoPagamento);
     }
     
     if (updateData.dataVencimentoMaisAntiga && typeof updateData.dataVencimentoMaisAntiga === 'string') {
-      updateData.dataVencimentoMaisAntiga = updateData.dataVencimentoMaisAntiga;
+      updateData.dataVencimentoMaisAntiga = new Date(updateData.dataVencimentoMaisAntiga);
     }
     
     // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)

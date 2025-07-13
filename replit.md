@@ -555,6 +555,8 @@ Changelog:
    * ✅ Campo posicionado ao lado da "Data de Vencimento Mais Antiga" conforme especificado
    * ✅ Diálogo de confirmação de exclusão melhorado usando AlertDialog em vez de window.confirm
    * ✅ Schema e banco de dados atualizados para suportar o novo campo gateway_pagamento
+   * ✅ CORREÇÃO CRÍTICA: Erro toISOString ao editar negociações corrigido - conversão adequada de strings para objetos Date
+   * ✅ Métodos createNegociacao e updateNegociacao corrigidos para tratamento correto de campos de data
    * Status: Sistema de negociações 100% funcional com persistência, exibição, exclusão e seleção de gateway
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
