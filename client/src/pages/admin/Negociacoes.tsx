@@ -192,13 +192,19 @@ const Negociacoes: React.FC = () => {
 
         <div className="flex-1 overflow-auto p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="bg-gray-100 h-12">
-              <TabsTrigger value="negociacoes" className="px-6 py-3 transition-all">
-                <FileText className="w-4 h-4 mr-2" />
+            <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-gray-100 rounded-lg">
+              <TabsTrigger 
+                value="negociacoes" 
+                className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+              >
+                <FileText className="w-4 h-4" />
                 Negociações
               </TabsTrigger>
-              <TabsTrigger value="expirados" className="px-6 py-3 transition-all">
-                <AlertTriangle className="w-4 h-4 mr-2" />
+              <TabsTrigger 
+                value="expirados" 
+                className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+              >
+                <AlertTriangle className="w-4 h-4" />
                 Expirados
               </TabsTrigger>
             </TabsList>
