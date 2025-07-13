@@ -1236,7 +1236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atendimentos com paginação
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
-      const { startDate, endDate, status, equipe, companhia, page = 1, limit = 20 } = req.query;
+      const { startDate, endDate, status, equipe, page = 1, limit = 20 } = req.query;
       const currentPage = parseInt(page);
       const pageSize = parseInt(limit);
       
@@ -1331,9 +1331,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Determinar companhia baseada no campo companyAccount da conversa
-        let companhiaAtendimento = conv.companyAccount || 'SUPORTE'; // Default para SUPORTE se não definido
-        
         return {
           id: conv.id,
           lead: conv.customerName || conv.customerPhone || `Cliente ${conv.id}`,
@@ -1346,8 +1343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           duracao: duracao,
           status: conv.status === 'active' ? 'Em andamento' : 
                  conv.status === 'closed' ? 'Concluído' : 'Pendente',
-          resultado: conv.resultado || null,
-          companhia: companhiaAtendimento
+          resultado: conv.resultado || null
         };
       }));
       
@@ -1375,12 +1371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
-      // Filtro por companhia (se fornecido)
-      if (companhia && companhia !== 'Todas') {
-        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
-          atendimento.companhia === companhia
-        );
-      }
+
       
       // Filtro por busca de texto (se fornecido)
       if (req.query.search) {

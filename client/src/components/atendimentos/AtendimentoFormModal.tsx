@@ -219,21 +219,7 @@ export const AtendimentoFormModal = ({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="companhia">Companhia</Label>
-              <Select
-                value={form.watch("companhia")}
-                onValueChange={(value: 'COMERCIAL' | 'SUPORTE') => form.setValue("companhia", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a companhia" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SUPORTE">Suporte</SelectItem>
-                  <SelectItem value="COMERCIAL">Comercial</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
           </div>
 
           <div className="space-y-2">

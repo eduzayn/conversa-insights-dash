@@ -8,7 +8,6 @@ export interface Atendimento {
   duracao: string;
   status: 'Concluído' | 'Em andamento' | 'Pendente';
   resultado?: 'venda_ganha' | 'venda_perdida' | 'aluno_satisfeito' | 'sem_solucao';
-  companhia?: string; // COMERCIAL ou SUPORTE
 }
 
 export interface AtendimentosFilters {
@@ -19,7 +18,6 @@ export interface AtendimentosFilters {
   search?: string;
   periodo?: string;
   atendente?: string;
-  companhia?: string; // COMERCIAL, SUPORTE, ou Todas
 }
 
 export interface AtendimentoData {
@@ -30,5 +28,4 @@ export interface AtendimentoData {
   equipe: string;
   duracao: string;
   status: 'Concluído' | 'Em andamento' | 'Pendente';
-  companhia?: string; // COMERCIAL ou SUPORTE
 }
