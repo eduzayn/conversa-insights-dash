@@ -678,7 +678,7 @@ const Negociacoes: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                      <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                      <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                       <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                       <SelectItem value="formacao_livre">Formação Livre</SelectItem>
                       <SelectItem value="graduacao">Graduação</SelectItem>

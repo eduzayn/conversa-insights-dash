@@ -60,10 +60,10 @@ const EnviosUnicv: React.FC = () => {
   const [hasMoreCertificacoes, setHasMoreCertificacoes] = useState(true);
 
   const { data: certificacoes, isLoading: loadingCertificacoes } = useQuery({
-    queryKey: ['/api/certificacoes', { categoria: 'segunda_graduacao,formacao_pedagogica', page: certificacoesPage, limit: 100 }],
+    queryKey: ['/api/certificacoes', { categoria: 'segunda_licenciatura,formacao_pedagogica', page: certificacoesPage, limit: 100 }],
     queryFn: async () => {
       const params = new URLSearchParams({
-        categoria: 'segunda_graduacao,formacao_pedagogica',
+        categoria: 'segunda_licenciatura,formacao_pedagogica',
         page: certificacoesPage.toString(),
         limit: '100'
       });

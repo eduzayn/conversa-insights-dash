@@ -163,7 +163,7 @@ export default function Certificacoes() {
   const getCategoriaFromTab = (tab: string) => {
     switch(tab) {
       case 'pos': return 'pos_graduacao';
-      case 'segunda': return 'segunda_graduacao';
+      case 'segunda': return 'segunda_licenciatura';
       case 'formacao_pedagogica': return 'formacao_pedagogica';
       case 'formacao_livre': return 'formacao_livre';
       case 'diplomacao': return 'diplomacao_competencia';
@@ -255,7 +255,7 @@ export default function Certificacoes() {
     switch (modalidade) {
       case 'Segunda licenciatura':
       case 'Formação Pedagógica':
-        return 'segunda_graduacao';
+        return 'segunda_licenciatura';
       case 'Pós-graduação':
         return 'pos_graduacao';
       case 'Formação livre':

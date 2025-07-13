@@ -1285,7 +1285,7 @@ const CertificadosPos = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
-                  {templates.filter(t => t.categoria === 'segunda_graduacao').length}
+                  {templates.filter(t => t.categoria === 'segunda_licenciatura').length}
                 </div>
               </CardContent>
             </Card>
@@ -1318,7 +1318,7 @@ const CertificadosPos = () => {
                   <SelectContent>
                     <SelectItem value="all">Todas as Categorias</SelectItem>
                     <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                    <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                    <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                     <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1505,7 +1505,7 @@ const CertificadosPos = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                           <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1914,7 +1914,7 @@ const CertificadosPos = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                           <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                         </SelectContent>
                       </Select>
