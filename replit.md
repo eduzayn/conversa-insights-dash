@@ -549,7 +549,9 @@ Changelog:
    * ✅ Campo "Valor Negociado" adicionado na visualização da lista (5ª coluna)
    * ✅ Formatação monetária implementada com cor verde e tratamento para valores vazios
    * ✅ Valor real do cliente Willian corrigido de R$ 2500.75 para R$ 2115.00 conforme cadastrado
-   * Status: Sistema de negociações 100% funcional com persistência e exibição corretas
+   * ✅ Botão de exclusão implementado com ícone de lixeira e confirmação de segurança
+   * ✅ Nome do menu alterado de "Cobranças Asaas" para "Asaas União" na sidebar
+   * Status: Sistema de negociações 100% funcional com persistência, exibição e exclusão corretas
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário

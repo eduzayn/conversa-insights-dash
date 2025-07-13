@@ -55,7 +55,7 @@ const menuSections = [
     icon: DollarSign,
     items: [
       { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
-      { label: 'Cobranças Asaas', path: '/cobrancas' },
+      { label: 'Asaas União', path: '/cobrancas' },
       { label: 'Negociações', path: '/negociacoes' },
     ]
   },
