@@ -567,6 +567,16 @@ Changelog:
    * ✅ Import DialogDescription adicionado aos componentes de UI
    * ✅ Interface mais profissional com descrições contextuais
    * Status: Campo EAD como padrão implementado e warnings de acessibilidade corrigidos
+- Correção Campo Categoria - Modal Certificações (13 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Campo de subcategorias desnecessário removido
+   * ✅ Campo "Categoria" completo implementado com todas as 9 opções:
+     - Pós-Graduação, Segunda Graduação, Formação Pedagógica, Formação Livre
+     - Diplomação por Competência, EJA, Graduação, Capacitação, Sequencial
+   * ✅ Alteração aplicada em ambos os modais: Nova Certificação e Editar Certificação
+   * ✅ Campo marcado como obrigatório (*) para melhor UX
+   * ✅ Remoção cirúrgica do campo condicional de subcategoria que só aparecia em certas abas
+   * ✅ Interface simplificada e mais intuitiva sem campos desnecessários
+   * Status: Campo categoria completo e funcional implementado
 - Reimplementação Completa da Página de Cobranças (10 Jul 2025):
    * ✅ Página antiga completamente removida para evitar conflitos
    * ✅ Nova implementação seguindo exatamente o código fornecido pelo usuário

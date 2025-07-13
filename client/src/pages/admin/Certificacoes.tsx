@@ -786,21 +786,25 @@ export default function Certificacoes() {
                         disabled={!!newCertification.curso}
                       />
                     </div>
-                    {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && (
-                      <div>
-                        <Label htmlFor="subcategoria">Subcategoria</Label>
-                        <Select value={newCertification.subcategoria} onValueChange={(value) => setNewCertification({ ...newCertification, subcategoria: value })}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a subcategoria" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
-                            <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
-                            <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                    <div>
+                      <Label htmlFor="categoria">Categoria *</Label>
+                      <Select value={newCertification.categoria} onValueChange={(value) => setNewCertification({ ...newCertification, categoria: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
+                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                          <SelectItem value="formacao_livre">Formação Livre</SelectItem>
+                          <SelectItem value="diplomacao_competencia">Diplomação por Competência</SelectItem>
+                          <SelectItem value="eja">EJA</SelectItem>
+                          <SelectItem value="graduacao">Graduação</SelectItem>
+                          <SelectItem value="capacitacao">Capacitação</SelectItem>
+                          <SelectItem value="sequencial">Sequencial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div>
                       <Label htmlFor="dataPrevista">Data Inicio Certificação</Label>
                       <Input
@@ -1502,21 +1506,25 @@ export default function Certificacoes() {
                   placeholder="Horas"
                 />
               </div>
-              {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && (
-                <div>
-                  <Label htmlFor="edit-subcategoria">Subcategoria</Label>
-                  <Select value={selectedCertification.subcategoria || ''} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, subcategoria: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
-                      <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
-                      <SelectItem value="pedagogia_bachareis">Pedagogia para Bacharéis e Tecnólogos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div>
+                <Label htmlFor="edit-categoria">Categoria *</Label>
+                <Select value={selectedCertification.categoria || ''} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, categoria: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
+                    <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                    <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                    <SelectItem value="formacao_livre">Formação Livre</SelectItem>
+                    <SelectItem value="diplomacao_competencia">Diplomação por Competência</SelectItem>
+                    <SelectItem value="eja">EJA</SelectItem>
+                    <SelectItem value="graduacao">Graduação</SelectItem>
+                    <SelectItem value="capacitacao">Capacitação</SelectItem>
+                    <SelectItem value="sequencial">Sequencial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label htmlFor="edit-dataPrevista">Data Inicio Certificação</Label>
                 <Input
