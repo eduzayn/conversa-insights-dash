@@ -1914,12 +1914,20 @@ export class DatabaseStorage implements IStorage {
     // Preparar dados para inserção
     const insertData: any = { ...negociacao };
     
-    // Para campos do tipo 'date' no Drizzle, manter as strings no formato YYYY-MM-DD
-    // Não converter para objetos Date pois o tipo 'date' do Drizzle espera strings
-    
     // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)
-    if (insertData.valorNegociado !== undefined) {
-      insertData.valorNegociado = insertData.valorNegociado?.toString();
+    if (insertData.valorNegociado !== undefined && insertData.valorNegociado !== null) {
+      insertData.valorNegociado = insertData.valorNegociado.toString();
+    }
+    
+    // Para campos do tipo 'date' no Drizzle, garantir que sejam strings no formato YYYY-MM-DD
+    if (insertData.dataNegociacao && typeof insertData.dataNegociacao === 'string') {
+      insertData.dataNegociacao = insertData.dataNegociacao.split('T')[0];
+    }
+    if (insertData.previsaoPagamento && typeof insertData.previsaoPagamento === 'string') {
+      insertData.previsaoPagamento = insertData.previsaoPagamento.split('T')[0];
+    }
+    if (insertData.dataVencimentoMaisAntiga && typeof insertData.dataVencimentoMaisAntiga === 'string') {
+      insertData.dataVencimentoMaisAntiga = insertData.dataVencimentoMaisAntiga.split('T')[0];
     }
     
     const [newNegociacao] = await db
@@ -1934,15 +1942,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateNegociacao(id: number, negociacao: Partial<Negociacao>): Promise<Negociacao | undefined> {
-    // Preparar dados para atualização
-    const updateData: any = { ...negociacao, updatedAt: new Date() };
+    // Preparar dados para atualização - apenas campos que podem ser atualizados
+    const allowedFields = [
+      'clienteNome', 'clienteEmail', 'clienteCpf', 'clienteTelefone',
+      'curso', 'categoria', 'dataNegociacao', 'previsaoPagamento',
+      'parcelasAtraso', 'dataVencimentoMaisAntiga', 'valorNegociado',
+      'gatewayPagamento', 'observacoes', 'colaboradorResponsavel',
+      'origem', 'status'
+    ];
     
-    // Para campos do tipo 'date' no Drizzle, manter as strings no formato YYYY-MM-DD
-    // Não converter para objetos Date pois o tipo 'date' do Drizzle espera strings
+    const updateData: any = {};
+    
+    // Filtrar apenas campos permitidos
+    for (const field of allowedFields) {
+      if (negociacao[field as keyof Negociacao] !== undefined) {
+        updateData[field] = negociacao[field as keyof Negociacao];
+      }
+    }
     
     // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)
-    if (updateData.valorNegociado !== undefined) {
-      updateData.valorNegociado = updateData.valorNegociado?.toString();
+    if (updateData.valorNegociado !== undefined && updateData.valorNegociado !== null) {
+      updateData.valorNegociado = updateData.valorNegociado.toString();
+    }
+    
+    // Para campos do tipo 'date' no Drizzle, garantir que sejam strings no formato YYYY-MM-DD
+    if (updateData.dataNegociacao && typeof updateData.dataNegociacao === 'string') {
+      updateData.dataNegociacao = updateData.dataNegociacao.split('T')[0];
+    }
+    if (updateData.previsaoPagamento && typeof updateData.previsaoPagamento === 'string') {
+      updateData.previsaoPagamento = updateData.previsaoPagamento.split('T')[0];
+    }
+    if (updateData.dataVencimentoMaisAntiga && typeof updateData.dataVencimentoMaisAntiga === 'string') {
+      updateData.dataVencimentoMaisAntiga = updateData.dataVencimentoMaisAntiga.split('T')[0];
     }
     
     const [updatedNegociacao] = await db
