@@ -1911,21 +1911,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNegociacao(negociacao: InsertNegociacao): Promise<Negociacao> {
-    // Preparar dados para inserção, convertendo strings de data para objetos Date
+    // Preparar dados para inserção
     const insertData: any = { ...negociacao };
     
-    // Converter strings de data para objetos Date se necessário
-    if (insertData.dataNegociacao && typeof insertData.dataNegociacao === 'string') {
-      insertData.dataNegociacao = new Date(insertData.dataNegociacao);
-    }
-    
-    if (insertData.previsaoPagamento && typeof insertData.previsaoPagamento === 'string') {
-      insertData.previsaoPagamento = new Date(insertData.previsaoPagamento);
-    }
-    
-    if (insertData.dataVencimentoMaisAntiga && typeof insertData.dataVencimentoMaisAntiga === 'string') {
-      insertData.dataVencimentoMaisAntiga = new Date(insertData.dataVencimentoMaisAntiga);
-    }
+    // Para campos do tipo 'date' no Drizzle, manter as strings no formato YYYY-MM-DD
+    // Não converter para objetos Date pois o tipo 'date' do Drizzle espera strings
     
     // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)
     if (insertData.valorNegociado !== undefined) {
@@ -1947,18 +1937,8 @@ export class DatabaseStorage implements IStorage {
     // Preparar dados para atualização
     const updateData: any = { ...negociacao, updatedAt: new Date() };
     
-    // Converter strings de data para objetos Date se necessário
-    if (updateData.dataNegociacao && typeof updateData.dataNegociacao === 'string') {
-      updateData.dataNegociacao = new Date(updateData.dataNegociacao);
-    }
-    
-    if (updateData.previsaoPagamento && typeof updateData.previsaoPagamento === 'string') {
-      updateData.previsaoPagamento = new Date(updateData.previsaoPagamento);
-    }
-    
-    if (updateData.dataVencimentoMaisAntiga && typeof updateData.dataVencimentoMaisAntiga === 'string') {
-      updateData.dataVencimentoMaisAntiga = new Date(updateData.dataVencimentoMaisAntiga);
-    }
+    // Para campos do tipo 'date' no Drizzle, manter as strings no formato YYYY-MM-DD
+    // Não converter para objetos Date pois o tipo 'date' do Drizzle espera strings
     
     // Converter valorNegociado para string se for number (para o tipo decimal do PostgreSQL)
     if (updateData.valorNegociado !== undefined) {
