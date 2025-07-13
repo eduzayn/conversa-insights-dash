@@ -569,9 +569,9 @@ const EnviosUnicv: React.FC = () => {
                           <SelectValue placeholder="Selecione o responsável..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {(colaboradores || []).filter(colab => colab && colab.id && colab.name).map((colab: any) => (
-                            <SelectItem key={colab.id} value={colab.name}>
-                              {colab.name}
+                          {(colaboradores || []).filter(colab => colab && colab.id && colab.username).map((colab: any) => (
+                            <SelectItem key={colab.id} value={colab.username}>
+                              {colab.username}
                             </SelectItem>
                           ))}
                         </SelectContent>
