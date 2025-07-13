@@ -148,6 +148,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Validar token e retornar dados do usuário
+  app.get("/api/auth/me", authenticateToken, async (req: any, res) => {
+    try {
+      res.json({
+        user: {
+          id: req.user.id,
+          username: req.user.username,
+          email: req.user.email,
+          name: req.user.name,
+          role: req.user.role,
+          companyAccount: req.user.companyAccount,
+          department: req.user.department
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao validar token:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Registro
   app.post("/api/auth/register", async (req, res) => {
     try {
