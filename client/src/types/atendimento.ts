@@ -7,7 +7,7 @@ export interface Atendimento {
   equipe: string;
   duracao: string;
   status: 'Concluído' | 'Em andamento' | 'Pendente';
-  resultado?: 'venda_ganha' | 'venda_perdida' | 'aluno_satisfeito' | 'sem_solucao';
+  resultado?: 'venda_ganha' | 'venda_perdida' | 'aluno_satisfeito' | 'sem_solucao' | 'resolvido';
 }
 
 export interface AtendimentosFilters {

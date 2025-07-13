@@ -52,7 +52,8 @@ export const AtendimentosTable = ({
       'venda_ganha': 'bg-green-100 text-green-800',
       'venda_perdida': 'bg-red-100 text-red-800',
       'aluno_satisfeito': 'bg-blue-100 text-blue-800',
-      'sem_solucao': 'bg-orange-100 text-orange-800'
+      'sem_solucao': 'bg-orange-100 text-orange-800',
+      'resolvido': 'bg-purple-100 text-purple-800'
     };
     return variants[resultado as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
@@ -62,7 +63,8 @@ export const AtendimentosTable = ({
       'venda_ganha': 'Venda Ganha',
       'venda_perdida': 'Venda Perdida',
       'aluno_satisfeito': 'Aluno Satisfeito',
-      'sem_solucao': 'Sem Solução'
+      'sem_solucao': 'Sem Solução',
+      'resolvido': 'Resolvido'
     };
     return labels[resultado as keyof typeof labels] || 'Não classificado';
   };

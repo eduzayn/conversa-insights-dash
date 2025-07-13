@@ -243,6 +243,7 @@ export const AtendimentoFormModal = ({
                 <SelectItem value="venda_perdida">Venda Perdida</SelectItem>
                 <SelectItem value="aluno_satisfeito">Aluno Satisfeito</SelectItem>
                 <SelectItem value="sem_solucao">Sem Solução</SelectItem>
+                <SelectItem value="resolvido">Resolvido</SelectItem>
               </SelectContent>
             </Select>
           </div>
