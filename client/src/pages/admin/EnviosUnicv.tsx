@@ -45,6 +45,7 @@ const EnviosUnicv: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoriaFilter, setCategoriaFilter] = useState('all');
+  const [modalSearchTerm, setModalSearchTerm] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -140,6 +141,7 @@ const EnviosUnicv: React.FC = () => {
 
   const openEditModal = (envio: EnvioUnicv) => {
     setSelectedEnvio(envio);
+    setModalSearchTerm(''); // Limpar busca ao abrir modal
     setIsCreateModalOpen(true);
   };
 
@@ -297,7 +299,10 @@ const EnviosUnicv: React.FC = () => {
                       <DialogTrigger asChild>
                         <Button 
                           className="w-full"
-                          onClick={() => setSelectedEnvio(null)}
+                          onClick={() => {
+                            setSelectedEnvio(null);
+                            setModalSearchTerm(''); // Limpar busca ao criar novo
+                          }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Novo Envio UNICV
@@ -406,22 +411,48 @@ const EnviosUnicv: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Label htmlFor="certificationId">Aluno (Certificação)</Label>
-                      <Select 
-                        name="certificationId" 
-                        defaultValue={selectedEnvio?.certificationId?.toString()}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um aluno..." />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                          {certificacoes.data?.map((cert: Certificacao) => (
-                            <SelectItem key={cert.id} value={cert.id.toString()}>
-                              {cert.aluno} - {cert.cpf} ({cert.curso})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <Input
+                            placeholder="Buscar aluno por nome, CPF ou curso..."
+                            value={modalSearchTerm}
+                            onChange={(e) => setModalSearchTerm(e.target.value)}
+                            className="pl-10"
+                          />
+                        </div>
+                        <Select 
+                          name="certificationId" 
+                          defaultValue={selectedEnvio?.certificationId?.toString()}
+                          required
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um aluno..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60">
+                            {certificacoes.data
+                              ?.filter((cert: Certificacao) => {
+                                // Filtrar apenas Segunda Licenciatura e Formação Pedagógica
+                                const categoriasPermitidas = ['segunda_graduacao', 'formacao_pedagogica'];
+                                if (!categoriasPermitidas.includes(cert.categoria)) return false;
+                                
+                                // Aplicar busca se houver termo
+                                if (modalSearchTerm.trim()) {
+                                  const termo = modalSearchTerm.toLowerCase();
+                                  return cert.aluno.toLowerCase().includes(termo) ||
+                                         cert.cpf.toLowerCase().includes(termo) ||
+                                         cert.curso.toLowerCase().includes(termo);
+                                }
+                                return true;
+                              })
+                              ?.map((cert: Certificacao) => (
+                                <SelectItem key={cert.id} value={cert.id.toString()}>
+                                  {cert.aluno} - {cert.cpf} ({cert.curso})
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div>
