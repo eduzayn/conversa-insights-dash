@@ -49,11 +49,47 @@ const EnviosUnicv: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // Buscar certificações para popular o select
-  const { data: certificacoes = [], isLoading: loadingCertificacoes } = useQuery({
-    queryKey: ['/api/certificacoes'],
-    queryFn: () => apiRequest('/api/certificacoes')
+  // Buscar certificações para popular o select com paginação
+  const [certificacoesPage, setCertificacoesPage] = useState(1);
+  const [allCertificacoes, setAllCertificacoes] = useState<Certificacao[]>([]);
+  const [hasMoreCertificacoes, setHasMoreCertificacoes] = useState(true);
+
+  const { data: certificacoes, isLoading: loadingCertificacoes } = useQuery({
+    queryKey: ['/api/certificacoes', { categoria: 'segunda_graduacao,formacao_pedagogica', page: certificacoesPage, limit: 100 }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        categoria: 'segunda_graduacao,formacao_pedagogica',
+        page: certificacoesPage.toString(),
+        limit: '100'
+      });
+      return apiRequest(`/api/certificacoes?${params}`);
+    }
   });
+
+  // Atualizar lista de certificações quando novos dados chegam
+  useEffect(() => {
+    if (certificacoes?.data) {
+      if (certificacoesPage === 1) {
+        setAllCertificacoes(certificacoes.data);
+      } else {
+        setAllCertificacoes(prev => [...prev, ...certificacoes.data]);
+      }
+      
+      // Verificar se há mais páginas
+      setHasMoreCertificacoes(
+        certificacoes.data.length === 100 && 
+        certificacoes.pagination && 
+        certificacoes.pagination.page < certificacoes.pagination.totalPages
+      );
+    }
+  }, [certificacoes, certificacoesPage]);
+
+  // Função para carregar mais certificações
+  const loadMoreCertificacoes = () => {
+    if (hasMoreCertificacoes && !loadingCertificacoes) {
+      setCertificacoesPage(prev => prev + 1);
+    }
+  };
 
   // Buscar colaboradores (usuários admin e agentes)
   const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
@@ -430,12 +466,8 @@ const EnviosUnicv: React.FC = () => {
                             <SelectValue placeholder="Selecione um aluno..." />
                           </SelectTrigger>
                           <SelectContent className="max-h-60">
-                            {certificacoes.data
+                            {allCertificacoes
                               ?.filter((cert: Certificacao) => {
-                                // Filtrar apenas Segunda Licenciatura e Formação Pedagógica
-                                const categoriasPermitidas = ['segunda_graduacao', 'formacao_pedagogica'];
-                                if (!categoriasPermitidas.includes(cert.categoria)) return false;
-                                
                                 // Aplicar busca se houver termo
                                 if (modalSearchTerm.trim()) {
                                   const termo = modalSearchTerm.toLowerCase();
@@ -450,6 +482,28 @@ const EnviosUnicv: React.FC = () => {
                                   {cert.aluno} - {cert.cpf} ({cert.curso})
                                 </SelectItem>
                               ))}
+                            
+                            {/* Botão para carregar mais certificações */}
+                            {hasMoreCertificacoes && (
+                              <div className="p-2 border-t">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={loadMoreCertificacoes}
+                                  disabled={loadingCertificacoes}
+                                  className="w-full text-blue-600 hover:text-blue-700"
+                                >
+                                  {loadingCertificacoes ? 'Carregando...' : 'Carregar mais alunos...'}
+                                </Button>
+                              </div>
+                            )}
+                            
+                            {/* Indicador de total carregado */}
+                            <div className="p-2 text-xs text-gray-500 text-center border-t">
+                              {allCertificacoes.length} alunos carregados
+                              {!hasMoreCertificacoes && allCertificacoes.length > 0 && ' (todos)'}
+                            </div>
                           </SelectContent>
                         </Select>
                       </div>
