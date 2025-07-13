@@ -43,21 +43,24 @@ const Login = () => {
       [companyId]: {
         ...prev[companyId],
         active: checked,
-        departments: checked ? prev[companyId].departments : []
+        departments: checked ? (prev[companyId]?.departments || []) : []
       }
     }));
   };
 
   const handleDepartmentToggle = (companyId: 'COMERCIAL' | 'SUPORTE', departmentId: string, checked: boolean) => {
-    setMultiCompanyData(prev => ({
-      ...prev,
-      [companyId]: {
-        ...prev[companyId],
-        departments: checked 
-          ? [...prev[companyId].departments, departmentId]
-          : prev[companyId].departments.filter(d => d !== departmentId)
-      }
-    }));
+    setMultiCompanyData(prev => {
+      const currentDepartments = prev[companyId]?.departments || [];
+      return {
+        ...prev,
+        [companyId]: {
+          ...prev[companyId],
+          departments: checked 
+            ? [...currentDepartments, departmentId]
+            : currentDepartments.filter(d => d !== departmentId)
+        }
+      };
+    });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -76,60 +79,57 @@ const Login = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevenir múltiplas submissões
+    if (loading) return;
+    
     setLoading(true);
 
-    if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem.");
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres.");
-      setLoading(false);
-      return;
-    }
-
-    if (!token) {
-      toast.error("Token de registro é obrigatório.");
-      setLoading(false);
-      return;
-    }
-
-    // Validações específicas por tipo de acesso
-    if (accessType === "single") {
-      if (!companyAccount) {
-        toast.error("Por favor, selecione uma companhia.");
-        setLoading(false);
+    try {
+      if (password !== confirmPassword) {
+        toast.error("As senhas não coincidem.");
         return;
       }
 
-      if (!department) {
-        toast.error("Por favor, selecione um departamento.");
-        setLoading(false);
-        return;
-      }
-    } else {
-      // Validação para acesso multi-companhia
-      const hasActiveCompany = multiCompanyData.COMERCIAL.active || multiCompanyData.SUPORTE.active;
-      if (!hasActiveCompany) {
-        toast.error("Por favor, ative pelo menos uma companhia.");
-        setLoading(false);
+      if (password.length < 6) {
+        toast.error("A senha deve ter pelo menos 6 caracteres.");
         return;
       }
 
-      // Validar se cada companhia ativa tem pelo menos um departamento selecionado
-      const activeCompanies = Object.entries(multiCompanyData).filter(([_, data]) => data.active);
-      for (const [companyId, data] of activeCompanies) {
-        if (data.departments.length === 0) {
-          toast.error(`Por favor, selecione pelo menos um departamento para ${companyId}.`);
-          setLoading(false);
+      if (!token) {
+        toast.error("Token de registro é obrigatório.");
+        return;
+      }
+
+      // Validações específicas por tipo de acesso
+      if (accessType === "single") {
+        if (!companyAccount) {
+          toast.error("Por favor, selecione uma companhia.");
           return;
         }
+
+        if (!department) {
+          toast.error("Por favor, selecione um departamento.");
+          return;
+        }
+      } else {
+        // Validação para acesso multi-companhia
+        const hasActiveCompany = multiCompanyData.COMERCIAL?.active || multiCompanyData.SUPORTE?.active;
+        if (!hasActiveCompany) {
+          toast.error("Por favor, ative pelo menos uma companhia.");
+          return;
+        }
+
+        // Validar se cada companhia ativa tem pelo menos um departamento selecionado
+        const activeCompanies = Object.entries(multiCompanyData).filter(([_, data]) => data && data.active);
+        for (const [companyId, data] of activeCompanies) {
+          if (!data.departments || data.departments.length === 0) {
+            toast.error(`Por favor, selecione pelo menos um departamento para ${companyId}.`);
+            return;
+          }
+        }
       }
-    }
-    
-    try {
+      
       // Preparar dados para envio
       const registrationData = accessType === "single" 
         ? { companyAccount, department, multiCompanyAccess: null }
@@ -357,7 +357,7 @@ const Login = () => {
 
                 {/* Acesso Único */}
                 {accessType === "single" && (
-                  <>
+                  <div key="single-access" className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="company-account">Companhia *</Label>
                       <Select value={companyAccount} onValueChange={(value) => {
@@ -375,7 +375,7 @@ const Login = () => {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {COMPANIES.map(company => (
+                      {COMPANIES.filter(company => company && company.id).map(company => (
                         <SelectItem key={company.id} value={company.id}>
                           <div className="flex items-center gap-2">
                             <Building className="h-4 w-4" />
@@ -405,7 +405,7 @@ const Login = () => {
                             ? "Nenhum departamento disponível para esta companhia. Contate o administrador."
                             : "Selecione um departamento"
                       }>
-                        {department && (
+                        {department && companyAccount && (
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
                             {getDepartmentsByCompany(companyAccount).find(d => d.id === department)?.name}
@@ -414,7 +414,7 @@ const Login = () => {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {getDepartmentsByCompany(companyAccount).map(dept => (
+                      {getDepartmentsByCompany(companyAccount).filter(dept => dept && dept.id).map(dept => (
                         <SelectItem key={dept.id} value={dept.id}>
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
@@ -428,12 +428,12 @@ const Login = () => {
                     Selecione o departamento/funil onde irá atuar
                   </p>
                 </div>
-                  </>
+                  </div>
                 )}
 
                 {/* Acesso Multi-Companhias */}
                 {accessType === "multi" && (
-                  <div className="space-y-4">
+                  <div key="multi-access" className="space-y-4">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
                         <Network className="h-4 w-4" />
@@ -445,8 +445,8 @@ const Login = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {COMPANIES.map(company => (
-                        <div key={company.id} className="border rounded-lg p-4 space-y-3">
+                      {COMPANIES.filter(company => company && company.id).map(company => (
+                        <div key={`multi-${company.id}`} className="border rounded-lg p-4 space-y-3">
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id={`company-${company.id}`}
@@ -465,8 +465,8 @@ const Login = () => {
                             <div className="ml-6 space-y-2">
                               <Label className="text-sm text-gray-600">Departamentos:</Label>
                               <div className="grid grid-cols-1 gap-2">
-                                {company.departments.map(dept => (
-                                  <div key={dept.id} className="flex items-center space-x-2">
+                                {company.departments.filter(dept => dept && dept.id).map(dept => (
+                                  <div key={`dept-${company.id}-${dept.id}`} className="flex items-center space-x-2">
                                     <Checkbox
                                       id={`dept-${company.id}-${dept.id}`}
                                       checked={multiCompanyData[company.id as 'COMERCIAL' | 'SUPORTE']?.departments.includes(dept.id) || false}
