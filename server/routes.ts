@@ -2408,11 +2408,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit = 50 
       } = req.query;
       
+      // Tratar categoria múltipla (ex: "segunda_graduacao,formacao_pedagogica")
+      let categoriaFilter = categoria;
+      if (categoria && typeof categoria === 'string' && categoria.includes(',')) {
+        // Para múltiplas categorias, vamos buscar cada uma separadamente e combinar
+        const categorias = categoria.split(',').map(c => c.trim());
+        const results = [];
+        
+        for (const cat of categorias) {
+          const catResult = await storage.getCertifications({
+            modalidade,
+            curso,
+            status,
+            categoria: cat,
+            subcategoria,
+            search,
+            dataInicio,
+            dataFim,
+            page: parseInt(page as string),
+            limit: parseInt(limit as string)
+          });
+          results.push(...catResult.data);
+        }
+        
+        // Remover duplicatas e ordenar
+        const uniqueResults = results.filter((item, index, self) => 
+          index === self.findIndex(t => t.id === item.id)
+        );
+        
+        const result = {
+          data: uniqueResults,
+          total: uniqueResults.length,
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          totalPages: Math.ceil(uniqueResults.length / parseInt(limit as string))
+        };
+        
+        return res.json(result);
+      }
+      
       const result = await storage.getCertifications({
         modalidade,
         curso,
         status,
-        categoria,
+        categoria: categoriaFilter,
         subcategoria,
         search,
         dataInicio,
