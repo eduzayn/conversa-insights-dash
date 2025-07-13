@@ -307,6 +307,7 @@ export const negociacoesExpirados = pgTable("negociacoes_expirados", {
   curso: text("curso").notNull(),
   categoria: text("categoria").notNull(),
   dataExpiracao: date("data_expiracao").notNull(),
+  dataProposta: date("data_proposta"),
   propostaReativacao: text("proposta_reativacao"),
   valorProposta: decimal("valor_proposta", { precision: 10, scale: 2 }),
   statusProposta: text("status_proposta").notNull().default("pendente"), // pendente, enviada, aceita, rejeitada
@@ -1281,6 +1282,7 @@ export const insertNegociacaoExpiradoSchema = createInsertSchema(negociacoesExpi
   curso: true,
   categoria: true,
   dataExpiracao: true,
+  dataProposta: true,
   propostaReativacao: true,
   valorProposta: true,
   statusProposta: true,

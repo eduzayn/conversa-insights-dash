@@ -43,6 +43,7 @@ interface Expirado {
   curso: string;
   categoria: string;
   dataExpiracao: string;
+  dataProposta?: string;
   propostaReativacao?: string;
   valorProposta?: number;
   statusProposta: 'pendente' | 'enviada' | 'aceita' | 'rejeitada';
@@ -697,6 +698,18 @@ const Negociacoes: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="dataProposta">Data da Proposta</Label>
+                  <Input
+                    id="dataProposta"
+                    type="date"
+                    value={selectedExpirado.dataProposta || ''}
+                    onChange={(e) => setSelectedExpirado({...selectedExpirado, dataProposta: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="valorProposta">Valor da Proposta (R$)</Label>
                   <Input
                     id="valorProposta"
@@ -707,6 +720,9 @@ const Negociacoes: React.FC = () => {
                     onChange={(e) => setSelectedExpirado({...selectedExpirado, valorProposta: parseFloat(e.target.value) || undefined})}
                     placeholder="0,00"
                   />
+                </div>
+                <div>
+                  {/* Campo vazio para manter layout em 2 colunas */}
                 </div>
               </div>
               
@@ -739,12 +755,54 @@ const Negociacoes: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pendente">Pendente</SelectItem>
-                      <SelectItem value="enviada">Enviada</SelectItem>
-                      <SelectItem value="aceita">Aceita</SelectItem>
-                      <SelectItem value="rejeitada">Rejeitada</SelectItem>
+                      <SelectItem value="pendente">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          Pendente
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="enviada">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                          Enviada
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="aceita">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Aceita
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="rejeitada">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Rejeitada
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {/* Legenda dos status */}
+                  <div className="mt-2 text-xs text-gray-600">
+                    <div className="flex gap-4 flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                        <span>Pendente</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                        <span>Enviada</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span>Aceita</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span>Rejeitada</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
