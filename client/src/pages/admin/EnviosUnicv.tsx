@@ -268,9 +268,9 @@ const EnviosUnicv: React.FC = () => {
                         <SelectValue placeholder="Todos os status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todos os status</SelectItem>
-                        <SelectItem value="enviado">Enviado</SelectItem>
-                        <SelectItem value="nao_enviado">Não Enviado</SelectItem>
+                        <SelectItem key="all-status" value="all">Todos os status</SelectItem>
+                        <SelectItem key="enviado" value="enviado">Enviado</SelectItem>
+                        <SelectItem key="nao_enviado" value="nao_enviado">Não Enviado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -282,7 +282,7 @@ const EnviosUnicv: React.FC = () => {
                         <SelectValue placeholder="Todas as categorias" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todas as categorias</SelectItem>
+                        <SelectItem key="all-categoria" value="all">Todas as categorias</SelectItem>
                         {categorias.map(categoria => (
                           <SelectItem key={categoria} value={categoria}>
                             {categoria.replace('_', ' ')}
@@ -435,8 +435,8 @@ const EnviosUnicv: React.FC = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="nao_enviado">Não Enviado</SelectItem>
-                          <SelectItem value="enviado">Enviado</SelectItem>
+                          <SelectItem key="modal-nao_enviado" value="nao_enviado">Não Enviado</SelectItem>
+                          <SelectItem key="modal-enviado" value="enviado">Enviado</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
