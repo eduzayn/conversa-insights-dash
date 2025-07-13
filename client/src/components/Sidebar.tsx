@@ -23,6 +23,7 @@ const menuSections = [
   {
     label: 'Geral',
     icon: BarChart3,
+    iconColor: 'text-blue-600',
     items: [
       { label: 'Dashboard', path: '/' },
       { label: 'Produtividade', path: '/produtividade' },
@@ -33,6 +34,7 @@ const menuSections = [
   {
     label: 'Relacionamento',
     icon: MessageSquare,
+    iconColor: 'text-green-600',
     items: [
       { label: 'Atendimento ao Aluno', path: '/atendimento-aluno' },
       { label: 'Chat Interno', path: '/chat-interno' },
@@ -43,6 +45,7 @@ const menuSections = [
   {
     label: 'Acadêmico',
     icon: GraduationCap,
+    iconColor: 'text-purple-600',
     items: [
       { label: 'Análise Certificação', path: '/certificacoes' },
       { label: 'Certificados Acadêmicos', path: '/certificados-pos' },
@@ -53,6 +56,7 @@ const menuSections = [
   {
     label: 'Financeiro',
     icon: DollarSign,
+    iconColor: 'text-amber-600',
     items: [
       { label: 'Matrícula Simplificada', path: '/matricula-simplificada' },
       { label: 'Asaas União', path: '/cobrancas' },
@@ -62,6 +66,7 @@ const menuSections = [
   {
     label: 'Integrações',
     icon: Settings,
+    iconColor: 'text-gray-600',
     items: [
       { label: 'BotConversa', path: '/integracao-botconversa' },
       { label: 'Gerenciar Tokens', path: '/gerenciar-tokens' },
@@ -194,7 +199,7 @@ export const Sidebar = () => {
                 title={collapsed && !mobileOpen ? section.label : undefined}
               >
                 <div className="flex items-center">
-                  <section.icon className="h-5 w-5 flex-shrink-0" />
+                  <section.icon className={cn("h-5 w-5 flex-shrink-0", section.iconColor)} />
                   {(!collapsed || mobileOpen) && (
                     <span className="ml-3">{section.label}</span>
                   )}
