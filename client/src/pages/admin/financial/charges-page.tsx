@@ -726,7 +726,7 @@ const ChargesPage: React.FC = () => {
           {/* Tabela de pagamentos */}
           <Card>
             <CardHeader>
-              <CardTitle>Lista de Pagamentos</CardTitle>
+              <CardTitle>Lista de Cobranças</CardTitle>
               <CardDescription>
                 {totalItems} cobranças encontradas
               </CardDescription>
