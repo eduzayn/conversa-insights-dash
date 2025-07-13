@@ -179,6 +179,16 @@ const Negociacoes: React.FC = () => {
       rejeitada: 'bg-red-100 text-red-800'
     };
     
+    const dotColors = {
+      'aguardando_pagamento': 'bg-yellow-500',
+      'recebido': 'bg-green-500',
+      'acordo_quebrado': 'bg-red-500',
+      pendente: 'bg-yellow-500',
+      enviada: 'bg-purple-500',
+      aceita: 'bg-green-500',
+      rejeitada: 'bg-red-500'
+    };
+    
     const labels = {
       'aguardando_pagamento': 'Aguardando pagamento',
       'recebido': 'Recebido',
@@ -190,7 +200,14 @@ const Negociacoes: React.FC = () => {
     };
     
     const label = labels[status as keyof typeof labels] || status;
-    return <Badge className={styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'}>{label}</Badge>;
+    const dotColor = dotColors[status as keyof typeof dotColors] || 'bg-gray-500';
+    
+    return (
+      <Badge className={`${styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'} flex items-center gap-1`}>
+        <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
+        {label}
+      </Badge>
+    );
   };
 
   return (
@@ -237,9 +254,24 @@ const Negociacoes: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
-                      <SelectItem value="aguardando_pagamento">Aguardando pagamento</SelectItem>
-                      <SelectItem value="recebido">Recebido</SelectItem>
-                      <SelectItem value="acordo_quebrado">Acordo quebrado</SelectItem>
+                      <SelectItem value="aguardando_pagamento">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          Aguardando pagamento
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="recebido">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Recebido
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="acordo_quebrado">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Acordo quebrado
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -539,9 +571,24 @@ const Negociacoes: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="aguardando_pagamento">Aguardando pagamento</SelectItem>
-                      <SelectItem value="recebido">Recebido</SelectItem>
-                      <SelectItem value="acordo_quebrado">Acordo quebrado</SelectItem>
+                      <SelectItem value="aguardando_pagamento">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          Aguardando pagamento
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="recebido">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Recebido
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="acordo_quebrado">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Acordo quebrado
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
