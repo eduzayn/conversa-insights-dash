@@ -67,9 +67,21 @@ const Negociacoes: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Função para capturar erros de renderização
+  const handleRenderError = (error: Error) => {
+    console.error('Erro de renderização capturado:', error);
+    setRenderError(error.message);
+  };
+
+  // Reset error state quando dados mudam
+  useEffect(() => {
+    setRenderError(null);
+  }, [negociacoes, expirados]);
 
   // Buscar colaboradores (usuários admin e agentes)
   const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
@@ -299,6 +311,52 @@ const Negociacoes: React.FC = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
+  // Proteção contra erros de renderização
+  if (renderError) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <div className="bg-white shadow-sm border-b px-6 py-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin')}
+                className="mb-2"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar ao Dashboard
+              </Button>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Negociações</h1>
+            <p className="text-gray-600 mt-1">Gestão de negociações e cursos expirados</p>
+          </div>
+          <div className="flex-1 p-6">
+            <Card>
+              <CardContent className="p-8 text-center">
+                <AlertTriangle className="mx-auto h-12 w-12 text-red-400 mb-4" />
+                <div className="text-lg font-medium text-gray-900">Erro de Renderização</div>
+                <div className="text-gray-600 mb-4">
+                  Ocorreu um erro ao renderizar esta página: {renderError}
+                </div>
+                <Button
+                  onClick={() => {
+                    setRenderError(null);
+                    window.location.reload();
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Recarregar Página
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -399,8 +457,8 @@ const Negociacoes: React.FC = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  negociacoes.map((negociacao: Negociacao) => (
-                    <Card key={negociacao.id} className="hover:shadow-md transition-shadow">
+                  negociacoes.map((negociacao: Negociacao, index: number) => (
+                    <Card key={negociacao.id || `negociacao-${index}`} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -412,16 +470,41 @@ const Negociacoes: React.FC = () => {
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Data Negociação:</span>
-                                <div className="font-medium">{new Date(negociacao.dataNegociacao + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
+                                <div className="font-medium">
+                                  {negociacao.dataNegociacao ? 
+                                    (() => {
+                                      try {
+                                        return new Date(negociacao.dataNegociacao + 'T12:00:00').toLocaleDateString('pt-BR');
+                                      } catch {
+                                        return 'Data inválida';
+                                      }
+                                    })() 
+                                    : 'Não informado'
+                                  }
+                                </div>
                               </div>
                               <div>
                                 <span className="text-gray-500">Previsão Pagamento:</span>
-                                <div className="font-medium">{new Date(negociacao.previsaoPagamento + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
+                                <div className="font-medium">
+                                  {negociacao.previsaoPagamento ? 
+                                    (() => {
+                                      try {
+                                        return new Date(negociacao.previsaoPagamento + 'T12:00:00').toLocaleDateString('pt-BR');
+                                      } catch {
+                                        return 'Data inválida';
+                                      }
+                                    })() 
+                                    : 'Não informado'
+                                  }
+                                </div>
                               </div>
                               <div>
                                 <span className="text-gray-500">Valor Negociado:</span>
                                 <div className="font-medium text-green-600">
-                                  {negociacao.valorNegociado ? `R$ ${Number(negociacao.valorNegociado).toFixed(2)}` : 'Não informado'}
+                                  {negociacao.valorNegociado && !isNaN(Number(negociacao.valorNegociado)) 
+                                    ? `R$ ${Number(negociacao.valorNegociado).toFixed(2)}` 
+                                    : 'Não informado'
+                                  }
                                 </div>
                               </div>
                               <div>
@@ -500,8 +583,8 @@ const Negociacoes: React.FC = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  expirados.map((expirado: Expirado) => (
-                    <Card key={expirado.id} className="hover:shadow-md transition-shadow">
+                  expirados.map((expirado: Expirado, index: number) => (
+                    <Card key={expirado.id || `expirado-${index}`} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -521,7 +604,18 @@ const Negociacoes: React.FC = () => {
                               </div>
                               <div>
                                 <span className="text-gray-500">Data Expiração:</span>
-                                <div className="font-medium text-red-600">{new Date(expirado.dataExpiracao).toLocaleDateString()}</div>
+                                <div className="font-medium text-red-600">
+                                  {expirado.dataExpiracao ? 
+                                    (() => {
+                                      try {
+                                        return new Date(expirado.dataExpiracao + 'T12:00:00').toLocaleDateString('pt-BR');
+                                      } catch {
+                                        return 'Data inválida';
+                                      }
+                                    })() 
+                                    : 'Não informado'
+                                  }
+                                </div>
                               </div>
                               <div>
                                 <span className="text-gray-500">Responsável:</span>
@@ -532,7 +626,7 @@ const Negociacoes: React.FC = () => {
                             {expirado.propostaReativacao && (
                               <div className="mt-3 text-sm text-gray-600">
                                 <strong>Proposta:</strong> {expirado.propostaReativacao}
-                                {expirado.valorProposta && (
+                                {expirado.valorProposta && !isNaN(Number(expirado.valorProposta)) && (
                                   <span className="ml-2 font-semibold">R$ {Number(expirado.valorProposta).toFixed(2)}</span>
                                 )}
                               </div>
@@ -682,11 +776,13 @@ const Negociacoes: React.FC = () => {
                       <SelectValue placeholder="Selecionar colaborador" />
                     </SelectTrigger>
                     <SelectContent>
-                      {colaboradores.filter((colab: any) => colab.role === 'admin' || colab.role === 'agent').map((colab: any) => (
-                        <SelectItem key={colab.id} value={colab.username}>
-                          {colab.username} ({colab.email})
-                        </SelectItem>
-                      ))}
+                      {colaboradores
+                        .filter((colab: any) => colab && colab.role && (colab.role === 'admin' || colab.role === 'agent'))
+                        .map((colab: any, index: number) => (
+                          <SelectItem key={colab.id || `colab-neg-${index}`} value={colab.username || ''}>
+                            {colab.username || 'Usuário sem nome'} {colab.email ? `(${colab.email})` : ''}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -869,11 +965,13 @@ const Negociacoes: React.FC = () => {
                       <SelectValue placeholder="Selecionar colaborador" />
                     </SelectTrigger>
                     <SelectContent>
-                      {colaboradores.filter((colab: any) => colab.role === 'admin' || colab.role === 'agent').map((colab: any) => (
-                        <SelectItem key={colab.id} value={colab.username}>
-                          {colab.username} ({colab.email})
-                        </SelectItem>
-                      ))}
+                      {colaboradores
+                        .filter((colab: any) => colab && colab.role && (colab.role === 'admin' || colab.role === 'agent'))
+                        .map((colab: any, index: number) => (
+                          <SelectItem key={colab.id || `colab-exp-${index}`} value={colab.username || ''}>
+                            {colab.username || 'Usuário sem nome'} {colab.email ? `(${colab.email})` : ''}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
