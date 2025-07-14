@@ -4,6 +4,7 @@ import { Server as SocketServer } from "socket.io";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
+import { logger } from "./utils/logger";
 import { sql, eq, inArray } from "drizzle-orm";
 import { db } from "./db";
 import { users } from "@shared/schema"; 
@@ -66,7 +67,7 @@ export const authenticateToken = async (req: any, res: any, next: any) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Erro na validação do token:', error);
+    logger.error('Erro na validação do token', error);
     return res.status(403).json({ message: 'Token inválido' });
   }
 };
@@ -144,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro no login:", error);
+      logger.error("Erro no login:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -164,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Erro ao validar token:", error);
+      logger.error("Erro ao validar token:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -232,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro no registro:", error);
+      logger.error("Erro no registro:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -313,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro no login do aluno:", error);
+      logger.error("Erro no login do aluno:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -338,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json({ token: regToken.token, expiresAt: regToken.expiresAt });
     } catch (error) {
-      console.error("Erro ao criar token:", error);
+      logger.error("Erro ao criar token:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -355,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tokens = await storage.getAllRegistrationTokens();
       res.json(tokens);
     } catch (error) {
-      console.error("Erro ao buscar tokens:", error);
+      logger.error("Erro ao buscar tokens:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -390,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(newToken);
     } catch (error) {
-      console.error("Erro ao criar token:", error);
+      logger.error("Erro ao criar token:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -419,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ message: "Usuário desativado com sucesso", user: updatedUser });
     } catch (error) {
-      console.error("Erro ao desativar usuário:", error);
+      logger.error("Erro ao desativar usuário:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -443,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ message: "Usuário reativado com sucesso", user: updatedUser });
     } catch (error) {
-      console.error("Erro ao reativar usuário:", error);
+      logger.error("Erro ao reativar usuário:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -466,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
+      logger.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -483,7 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enrollments = await storage.getStudentEnrollments(req.user.id);
       res.json(enrollments);
     } catch (error) {
-      console.error("Erro ao buscar matrículas:", error);
+      logger.error("Erro ao buscar matrículas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -499,7 +500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const evaluations = await storage.getStudentEvaluations(parseInt(enrollmentId));
       res.json(evaluations);
     } catch (error) {
-      console.error("Erro ao buscar avaliações:", error);
+      logger.error("Erro ao buscar avaliações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -514,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const documents = await storage.getStudentDocuments(req.user.id);
       res.json(documents);
     } catch (error) {
-      console.error("Erro ao buscar documentos:", error);
+      logger.error("Erro ao buscar documentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -535,7 +536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(document);
     } catch (error) {
-      console.error("Erro ao enviar documento:", error);
+      logger.error("Erro ao enviar documento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -550,7 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payments = await storage.getStudentPayments(req.user.id);
       res.json(payments);
     } catch (error) {
-      console.error("Erro ao buscar pagamentos:", error);
+      logger.error("Erro ao buscar pagamentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -565,7 +566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const certificates = await storage.getStudentCertificates(req.user.id);
       res.json(certificates);
     } catch (error) {
-      console.error("Erro ao buscar certificados:", error);
+      logger.error("Erro ao buscar certificados:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -588,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(certificate);
     } catch (error) {
-      console.error("Erro ao solicitar certificado:", error);
+      logger.error("Erro ao solicitar certificado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -603,7 +604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const card = await storage.getStudentCard(req.user.id);
       res.json(card);
     } catch (error) {
-      console.error("Erro ao buscar carteirinha:", error);
+      logger.error("Erro ao buscar carteirinha:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -641,7 +642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(card);
     } catch (error) {
-      console.error("Erro ao gerar carteirinha:", error);
+      logger.error("Erro ao gerar carteirinha:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -673,7 +674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Erro ao validar carteirinha:", error);
+      logger.error("Erro ao validar carteirinha:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -690,7 +691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enrollments = await storage.getStudentEnrollments(req.user.id);
       res.json(enrollments);
     } catch (error) {
-      console.error("Erro ao buscar cursos:", error);
+      logger.error("Erro ao buscar cursos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -740,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         enrollment: enrollment
       });
     } catch (error) {
-      console.error("Erro ao criar matrícula:", error);
+      logger.error("Erro ao criar matrícula:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -792,7 +793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Erro ao testar matrícula:", error);
+      logger.error("Erro ao testar matrícula:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -827,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mockPayload
       });
     } catch (error) {
-      console.error("Erro ao testar webhook:", error);
+      logger.error("Erro ao testar webhook:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -879,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(disciplinasCompletas);
     } catch (error) {
-      console.error("Erro ao buscar disciplinas:", error);
+      logger.error("Erro ao buscar disciplinas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -897,7 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true, message: "Conteúdo marcado como visualizado" });
     } catch (error) {
-      console.error("Erro ao marcar conteúdo como visualizado:", error);
+      logger.error("Erro ao marcar conteúdo como visualizado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -924,7 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Notificações criadas:", notifications);
       res.json({ success: true, notificationsCreated: notifications.length });
     } catch (error) {
-      console.error("Erro ao enviar notificações:", error);
+      logger.error("Erro ao enviar notificações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -947,7 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(allEvaluations);
     } catch (error) {
-      console.error("Erro ao buscar avaliações:", error);
+      logger.error("Erro ao buscar avaliações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -962,7 +963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const certificates = await storage.getStudentCertificates(req.user.id);
       res.json(certificates);
     } catch (error) {
-      console.error("Erro ao buscar certificados:", error);
+      logger.error("Erro ao buscar certificados:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -977,7 +978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payments = await storage.getStudentPayments(req.user.id);
       res.json(payments);
     } catch (error) {
-      console.error("Erro ao buscar pagamentos:", error);
+      logger.error("Erro ao buscar pagamentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -992,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const documents = await storage.getStudentDocuments(req.user.id);
       res.json(documents);
     } catch (error) {
-      console.error("Erro ao buscar documentos:", error);
+      logger.error("Erro ao buscar documentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1020,7 +1021,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(document);
     } catch (error) {
-      console.error("Erro ao fazer upload do documento:", error);
+      logger.error("Erro ao fazer upload do documento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1061,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(profile);
     } catch (error) {
-      console.error("Erro ao buscar perfil:", error);
+      logger.error("Erro ao buscar perfil:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1080,7 +1081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(updatedUser);
     } catch (error) {
-      console.error("Erro ao atualizar perfil:", error);
+      logger.error("Erro ao atualizar perfil:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1095,7 +1096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const card = await storage.getStudentCard(req.user.id);
       res.json(card);
     } catch (error) {
-      console.error("Erro ao buscar carteirinha:", error);
+      logger.error("Erro ao buscar carteirinha:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1111,7 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Em produção, implementar lógica de conversas de suporte
       res.json([]);
     } catch (error) {
-      console.error("Erro ao buscar conversas de suporte:", error);
+      logger.error("Erro ao buscar conversas de suporte:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1126,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Para este exemplo, retornamos um array vazio
       res.json([]);
     } catch (error) {
-      console.error("Erro ao buscar mensagens:", error);
+      logger.error("Erro ao buscar mensagens:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1137,7 +1138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teams = await storage.getTeams();
       res.json(teams);
     } catch (error) {
-      console.error("Erro ao buscar teams:", error);
+      logger.error("Erro ao buscar teams:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1152,7 +1153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const team = await storage.createTeam({ name, description, icon });
       res.status(201).json(team);
     } catch (error) {
-      console.error("Erro ao criar team:", error);
+      logger.error("Erro ao criar team:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1170,7 +1171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const leads = await storage.getLeads(filters);
       res.json(leads);
     } catch (error) {
-      console.error("Erro ao buscar leads:", error);
+      logger.error("Erro ao buscar leads:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1184,7 +1185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.status(201).json(lead);
     } catch (error) {
-      console.error("Erro ao criar lead:", error);
+      logger.error("Erro ao criar lead:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1201,7 +1202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversations = await storage.getConversations(filters);
       res.json(conversations);
     } catch (error) {
-      console.error("Erro ao buscar conversas:", error);
+      logger.error("Erro ao buscar conversas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1225,7 +1226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Erro ao sincronizar conversas:", error);
+      logger.error("Erro ao sincronizar conversas:", error);
       res.status(500).json({ 
         message: "Erro ao sincronizar conversas",
         error: error instanceof Error ? error.message : "Erro desconhecido"
@@ -1416,7 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Erro ao buscar atendimentos:", error);
+      logger.error("Erro ao buscar atendimentos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1513,7 +1514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       });
     } catch (error) {
-      console.error("Erro ao buscar dados de filtros do BotConversa:", error);
+      logger.error("Erro ao buscar dados de filtros do BotConversa:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1550,7 +1551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
             console.log(`✓ Status sincronizado com BotConversa: ${status} para ${updatedConversation.customerPhone}`);
           } catch (error) {
-            console.error(`⚠️ Erro na sincronização com BotConversa:`, error);
+            logger.error(`⚠️ Erro na sincronização com BotConversa:`, error);
             // Não falha a operação local se houver erro no BotConversa
           }
         }
@@ -1574,7 +1575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(404).json({ message: "Atendimento não encontrado" });
       }
     } catch (error) {
-      console.error("Erro ao atualizar status:", error);
+      logger.error("Erro ao atualizar status:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1615,7 +1616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(404).json({ message: "Atendimento não encontrado" });
       }
     } catch (error) {
-      console.error("Erro ao atualizar resultado:", error);
+      logger.error("Erro ao atualizar resultado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1675,7 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(atendimento);
     } catch (error) {
-      console.error("Erro ao criar atendimento:", error);
+      logger.error("Erro ao criar atendimento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1725,7 +1726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(404).json({ message: "Atendimento não encontrado" });
       }
     } catch (error) {
-      console.error("Erro ao atualizar atendimento:", error);
+      logger.error("Erro ao atualizar atendimento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1758,7 +1759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ message: "Atendimento excluído com sucesso" });
     } catch (error) {
-      console.error("Erro ao excluir atendimento:", error);
+      logger.error("Erro ao excluir atendimento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1811,7 +1812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companhias: Array.from(companhiasSet).sort()
       });
     } catch (error) {
-      console.error("Erro ao buscar dados de filtros:", error);
+      logger.error("Erro ao buscar dados de filtros:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1822,7 +1823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const chats = await storage.getUserChats(req.user.id);
       res.json(chats);
     } catch (error) {
-      console.error("Erro ao buscar chats:", error);
+      logger.error("Erro ao buscar chats:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1842,7 +1843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(chat);
     } catch (error) {
-      console.error("Erro ao criar chat:", error);
+      logger.error("Erro ao criar chat:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1861,7 +1862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(messages);
     } catch (error) {
-      console.error("Erro ao buscar mensagens:", error);
+      logger.error("Erro ao buscar mensagens:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1887,7 +1888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(message);
     } catch (error) {
-      console.error("Erro ao criar mensagem:", error);
+      logger.error("Erro ao criar mensagem:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1905,7 +1906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const goals = await storage.getGoals(filters);
       res.json(goals);
     } catch (error) {
-      console.error("Erro ao buscar metas:", error);
+      logger.error("Erro ao buscar metas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1920,7 +1921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const goal = await storage.createGoal(goalData);
       res.status(201).json(goal);
     } catch (error) {
-      console.error("Erro ao criar meta:", error);
+      logger.error("Erro ao criar meta:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1938,7 +1939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const progress = await storage.getGoalProgress(filters);
       res.json(progress);
     } catch (error) {
-      console.error("Erro ao buscar progresso das metas:", error);
+      logger.error("Erro ao buscar progresso das metas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1949,7 +1950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const progress = await storage.createGoalProgress(progressData);
       res.status(201).json(progress);
     } catch (error) {
-      console.error("Erro ao criar progresso de meta:", error);
+      logger.error("Erro ao criar progresso de meta:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1984,7 +1985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(progress);
     } catch (error) {
-      console.error("Erro ao incrementar progresso da meta:", error);
+      logger.error("Erro ao incrementar progresso da meta:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1999,7 +2000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(achievements);
     } catch (error) {
-      console.error("Erro ao buscar conquistas:", error);
+      logger.error("Erro ao buscar conquistas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2134,7 +2135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weeklyStats
       });
     } catch (error) {
-      console.error("Erro ao buscar dados de presença:", error);
+      logger.error("Erro ao buscar dados de presença:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2211,7 +2212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dailyStats.reduce((sum, day) => sum + day.onlineMinutes, 0) / dailyStats.length : 0
       });
     } catch (error) {
-      console.error("Erro ao buscar relatório do usuário:", error);
+      logger.error("Erro ao buscar relatório do usuário:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2315,7 +2316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Erro ao buscar ranking de presença:", error);
+      logger.error("Erro ao buscar ranking de presença:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2334,7 +2335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activity = await storage.getUserActivity(parseInt(userId), date as string);
       res.json(activity);
     } catch (error) {
-      console.error("Erro ao buscar atividade:", error);
+      logger.error("Erro ao buscar atividade:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2356,7 +2357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(activity);
     } catch (error) {
-      console.error("Erro ao criar atividade:", error);
+      logger.error("Erro ao criar atividade:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2371,7 +2372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.status(201).json(conversation);
     } catch (error) {
-      console.error("Erro ao criar conversa:", error);
+      logger.error("Erro ao criar conversa:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2389,7 +2390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(messages);
     } catch (error) {
-      console.error("Erro ao buscar mensagens da conversa:", error);
+      logger.error("Erro ao buscar mensagens da conversa:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2412,7 +2413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(message);
     } catch (error) {
-      console.error("Erro ao criar mensagem de atendimento:", error);
+      logger.error("Erro ao criar mensagem de atendimento:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2423,7 +2424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const notes = await storage.getConversationNotes(parseInt(conversationId));
       res.json(notes);
     } catch (error) {
-      console.error("Erro ao buscar notas da conversa:", error);
+      logger.error("Erro ao buscar notas da conversa:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2441,7 +2442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(note);
     } catch (error) {
-      console.error("Erro ao criar nota interna:", error);
+      logger.error("Erro ao criar nota interna:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2460,7 +2461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Você pode implementar queries específicas aqui
       res.json(stats);
     } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      logger.error("Erro ao buscar estatísticas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2480,7 +2481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(metrics);
     } catch (error) {
-      console.error("Erro ao buscar métricas de produtividade:", error);
+      logger.error("Erro ao buscar métricas de produtividade:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -2598,7 +2599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro ao processar webhook Suporte:", error);
+      logger.error("Erro ao processar webhook Suporte:", error);
       res.status(500).json({ 
         error: "Erro interno do servidor",
         message: error instanceof Error ? error.message : "Erro desconhecido"
@@ -2638,7 +2639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro ao processar webhook Comercial:", error);
+      logger.error("Erro ao processar webhook Comercial:", error);
       res.status(500).json({ 
         error: "Erro interno do servidor",
         message: error instanceof Error ? error.message : "Erro desconhecido"
@@ -2693,7 +2694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
     } catch (error) {
-      console.error("Erro ao testar integração:", error);
+      logger.error("Erro ao testar integração:", error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       
       // Analisar tipo de erro para resposta mais útil
@@ -2748,7 +2749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro na sincronização:", error);
+      logger.error("Erro na sincronização:", error);
       res.status(500).json({ 
         error: "Erro na sincronização",
         message: error instanceof Error ? error.message : "Erro desconhecido"
@@ -2811,7 +2812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro no diagnóstico:", error);
+      logger.error("Erro no diagnóstico:", error);
       res.status(500).json({ 
         error: "Erro no diagnóstico",
         message: error instanceof Error ? error.message : "Erro desconhecido"
@@ -2860,7 +2861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         account
       });
     } catch (error) {
-      console.error("Erro ao testar roteamento:", error);
+      logger.error("Erro ao testar roteamento:", error);
       return res.status(500).json({ 
         success: false, 
         error: "Erro interno do servidor",
@@ -2891,7 +2892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro ao buscar fluxos:", error);
+      logger.error("Erro ao buscar fluxos:", error);
       res.status(500).json({ 
         error: "Erro interno do servidor",
         message: error instanceof Error ? error.message : "Erro desconhecido"
@@ -2966,7 +2967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro ao analisar fluxo:", error);
+      logger.error("Erro ao analisar fluxo:", error);
       res.status(500).json({ 
         error: "Erro interno do servidor",
         message: error instanceof Error ? error.message : "Erro desconhecido"
@@ -3044,7 +3045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Erro ao buscar certificações:", error);
+      logger.error("Erro ao buscar certificações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3057,7 +3058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(certification);
     } catch (error) {
-      console.error("Erro ao criar certificação:", error);
+      logger.error("Erro ao criar certificação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3075,7 +3076,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(certification);
     } catch (error) {
-      console.error("Erro ao atualizar certificação:", error);
+      logger.error("Erro ao atualizar certificação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3093,7 +3094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "Certificação excluída com sucesso" });
     } catch (error) {
-      console.error("Erro ao excluir certificação:", error);
+      logger.error("Erro ao excluir certificação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3112,7 +3113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(courses);
     } catch (error) {
-      console.error('Erro ao buscar cursos pré-cadastrados:', error);
+      logger.error('Erro ao buscar cursos pré-cadastrados:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });
@@ -3123,7 +3124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const course = await storage.createPreRegisteredCourse(courseData);
       res.json(course);
     } catch (error) {
-      console.error('Erro ao criar curso pré-cadastrado:', error);
+      logger.error('Erro ao criar curso pré-cadastrado:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });
@@ -3140,7 +3141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(certification);
     } catch (error) {
-      console.error("Erro ao buscar certificação:", error);
+      logger.error("Erro ao buscar certificação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3160,7 +3161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enrollments = await storage.getSimplifiedEnrollments(filters);
       res.json(enrollments);
     } catch (error) {
-      console.error("Erro ao buscar matrículas simplificadas:", error);
+      logger.error("Erro ao buscar matrículas simplificadas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3223,7 +3224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Cobrança criada no Asaas:', asaasPaymentId);
 
       } catch (asaasError) {
-        console.error("Erro na integração com Asaas:", asaasError);
+        logger.error("Erro na integração com Asaas:", asaasError);
         // Continuar mesmo se falhar no Asaas, mas registrar o erro
       }
 
@@ -3275,7 +3276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('Usuário aluno criado:', newUser.id);
           }
         } catch (userError) {
-          console.error("Erro ao criar usuário:", userError);
+          logger.error("Erro ao criar usuário:", userError);
           // Não bloquear o processo se falhar criação do usuário
         }
       }
@@ -3293,7 +3294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : "Matrícula criada. Integração com Asaas pendente."
       });
     } catch (error) {
-      console.error("Erro ao criar matrícula simplificada:", error);
+      logger.error("Erro ao criar matrícula simplificada:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3316,7 +3317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(enrollment);
     } catch (error) {
-      console.error("Erro ao atualizar status da matrícula:", error);
+      logger.error("Erro ao atualizar status da matrícula:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3334,7 +3335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(enrollment);
     } catch (error) {
-      console.error("Erro ao buscar matrícula:", error);
+      logger.error("Erro ao buscar matrícula:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3382,7 +3383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Erro no login do professor:", error);
+      logger.error("Erro no login do professor:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3426,7 +3427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ stats, recentActivities });
     } catch (error) {
-      console.error("Erro ao buscar dashboard do professor:", error);
+      logger.error("Erro ao buscar dashboard do professor:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3441,7 +3442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subjects = await storage.getProfessorSubjects(req.user.id);
       res.json(subjects);
     } catch (error) {
-      console.error("Erro ao buscar disciplinas do professor:", error);
+      logger.error("Erro ao buscar disciplinas do professor:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3464,7 +3465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(subject);
     } catch (error) {
-      console.error("Erro ao criar disciplina:", error);
+      logger.error("Erro ao criar disciplina:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3484,7 +3485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contents = await storage.getSubjectContents(parseInt(subjectId as string), req.user.id);
       res.json(contents);
     } catch (error) {
-      console.error("Erro ao buscar conteúdos:", error);
+      logger.error("Erro ao buscar conteúdos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3509,7 +3510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(content);
     } catch (error) {
-      console.error("Erro ao criar conteúdo:", error);
+      logger.error("Erro ao criar conteúdo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3529,7 +3530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(evaluations);
     } catch (error) {
-      console.error("Erro ao buscar avaliações:", error);
+      logger.error("Erro ao buscar avaliações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3549,7 +3550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const evaluation = await storage.createProfessorEvaluation(evaluationData);
       res.status(201).json(evaluation);
     } catch (error) {
-      console.error("Erro ao criar avaliação:", error);
+      logger.error("Erro ao criar avaliação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3565,7 +3566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questions = await storage.getEvaluationQuestions(parseInt(id));
       res.json(questions);
     } catch (error) {
-      console.error("Erro ao buscar questões:", error);
+      logger.error("Erro ao buscar questões:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3586,7 +3587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const question = await storage.createEvaluationQuestion(questionData);
       res.status(201).json(question);
     } catch (error) {
-      console.error("Erro ao criar questão:", error);
+      logger.error("Erro ao criar questão:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3602,7 +3603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const submissions = await storage.getEvaluationSubmissions(parseInt(id));
       res.json(submissions);
     } catch (error) {
-      console.error("Erro ao buscar submissões:", error);
+      logger.error("Erro ao buscar submissões:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3616,7 +3617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const courses = await storage.getAcademicCourses({ categoria, status });
       res.json(courses);
     } catch (error) {
-      console.error("Erro ao buscar cursos acadêmicos:", error);
+      logger.error("Erro ao buscar cursos acadêmicos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3634,7 +3635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar curso acadêmico:", error);
+      logger.error("Erro ao criar curso acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3652,7 +3653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(course);
     } catch (error) {
-      console.error("Erro ao atualizar curso acadêmico:", error);
+      logger.error("Erro ao atualizar curso acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3667,7 +3668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteAcademicCourse(parseInt(id));
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar curso acadêmico:", error);
+      logger.error("Erro ao deletar curso acadêmico:", error);
       
       // Se o erro contém informação sobre alunos matriculados, retornar erro 400 com mensagem amigável
       if (error instanceof Error && error.message.includes('aluno(s) matriculado(s)')) {
@@ -3684,7 +3685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const professors = await storage.getAcademicProfessors();
       res.json(professors);
     } catch (error) {
-      console.error("Erro ao buscar professores acadêmicos:", error);
+      logger.error("Erro ao buscar professores acadêmicos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3702,7 +3703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar professor acadêmico:", error);
+      logger.error("Erro ao criar professor acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3720,7 +3721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(professor);
     } catch (error) {
-      console.error("Erro ao atualizar professor acadêmico:", error);
+      logger.error("Erro ao atualizar professor acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3731,7 +3732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const disciplines = await storage.getAcademicDisciplines();
       res.json(disciplines);
     } catch (error) {
-      console.error("Erro ao buscar disciplinas acadêmicas:", error);
+      logger.error("Erro ao buscar disciplinas acadêmicas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3749,7 +3750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar disciplina acadêmica:", error);
+      logger.error("Erro ao criar disciplina acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3767,7 +3768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(discipline);
     } catch (error) {
-      console.error("Erro ao atualizar disciplina acadêmica:", error);
+      logger.error("Erro ao atualizar disciplina acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3782,7 +3783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteAcademicDiscipline(parseInt(id));
       res.json({ message: "Disciplina removida com sucesso" });
     } catch (error) {
-      console.error("Erro ao remover disciplina acadêmica:", error);
+      logger.error("Erro ao remover disciplina acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3794,7 +3795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const disciplines = await storage.getCourseDisciplines(parseInt(courseId));
       res.json(disciplines);
     } catch (error) {
-      console.error("Erro ao buscar disciplinas do curso:", error);
+      logger.error("Erro ao buscar disciplinas do curso:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3815,7 +3816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addCourseDisciplines(parseInt(courseId), disciplineIds);
       res.json({ message: "Disciplinas adicionadas ao curso com sucesso" });
     } catch (error) {
-      console.error("Erro ao adicionar disciplinas ao curso:", error);
+      logger.error("Erro ao adicionar disciplinas ao curso:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3832,7 +3833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.removeCourseDisciplines(parseInt(courseId), disciplineIds);
       res.json({ message: "Disciplinas removidas do curso com sucesso" });
     } catch (error) {
-      console.error("Erro ao remover disciplinas do curso:", error);
+      logger.error("Erro ao remover disciplinas do curso:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3847,7 +3848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.json(students);
     } catch (error) {
-      console.error("Erro ao buscar alunos acadêmicos:", error);
+      logger.error("Erro ao buscar alunos acadêmicos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3865,7 +3866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar aluno acadêmico:", error);
+      logger.error("Erro ao criar aluno acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3883,7 +3884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(student);
     } catch (error) {
-      console.error("Erro ao atualizar aluno acadêmico:", error);
+      logger.error("Erro ao atualizar aluno acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3898,7 +3899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       res.json(grades);
     } catch (error) {
-      console.error("Erro ao buscar notas acadêmicas:", error);
+      logger.error("Erro ao buscar notas acadêmicas:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3916,7 +3917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar nota acadêmica:", error);
+      logger.error("Erro ao criar nota acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3934,7 +3935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(grade);
     } catch (error) {
-      console.error("Erro ao atualizar nota acadêmica:", error);
+      logger.error("Erro ao atualizar nota acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -3950,7 +3951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.json(certificates);
     } catch (error) {
-      console.error("Erro ao buscar certificados acadêmicos:", error);
+      logger.error("Erro ao buscar certificados acadêmicos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4017,7 +4018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(certificate);
     } catch (error) {
-      console.error("Erro ao criar certificado acadêmico:", error);
+      logger.error("Erro ao criar certificado acadêmico:", error);
       res.status(500).json({ 
         message: "Erro interno do servidor", 
         error: error instanceof Error ? error.message : "Erro desconhecido" 
@@ -4038,7 +4039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(certificate);
     } catch (error) {
-      console.error("Erro ao atualizar certificado acadêmico:", error);
+      logger.error("Erro ao atualizar certificado acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4057,7 +4058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(certificate);
     } catch (error) {
-      console.error("Erro ao emitir certificado acadêmico:", error);
+      logger.error("Erro ao emitir certificado acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4081,7 +4082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const templates = await storage.getCertificateTemplates(filters);
       res.json(templates);
     } catch (error) {
-      console.error("Erro ao buscar modelos de certificados:", error);
+      logger.error("Erro ao buscar modelos de certificados:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4100,7 +4101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(template);
     } catch (error) {
-      console.error("Erro ao buscar modelo:", error);
+      logger.error("Erro ao buscar modelo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4123,7 +4124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar modelo de certificado:", error);
+      logger.error("Erro ao criar modelo de certificado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4142,7 +4143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(template);
     } catch (error) {
-      console.error("Erro ao atualizar modelo:", error);
+      logger.error("Erro ao atualizar modelo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4158,7 +4159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteCertificateTemplate(parseInt(id));
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar modelo:", error);
+      logger.error("Erro ao deletar modelo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4191,7 +4192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.send(pdfBuffer);
     } catch (error) {
-      console.error("Erro ao gerar PDF do certificado:", error);
+      logger.error("Erro ao gerar PDF do certificado:", error);
       res.status(500).json({ 
         message: "Erro interno do servidor", 
         error: error instanceof Error ? error.message : "Erro desconhecido" 
@@ -4388,7 +4389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.send(htmlCompleto);
     } catch (error) {
-      console.error("Erro ao gerar preview:", error);
+      logger.error("Erro ao gerar preview:", error);
       res.status(500).json({ 
         message: "Erro interno do servidor", 
         error: error instanceof Error ? error.message : "Erro desconhecido" 
@@ -4405,7 +4406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const negociacoes = await storage.getNegociacoes({ search, status });
       res.json(negociacoes);
     } catch (error) {
-      console.error("Erro ao buscar negociações:", error);
+      logger.error("Erro ao buscar negociações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4419,7 +4420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar negociação:", error);
+      logger.error("Erro ao criar negociação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4433,7 +4434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(negociacao);
     } catch (error) {
-      console.error("Erro ao atualizar negociação:", error);
+      logger.error("Erro ao atualizar negociação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4444,7 +4445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteNegociacao(parseInt(id));
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar negociação:", error);
+      logger.error("Erro ao deletar negociação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4456,7 +4457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expirados = await storage.getNegociacoesExpirados({ search });
       res.json(expirados);
     } catch (error) {
-      console.error("Erro ao buscar negociações expirados:", error);
+      logger.error("Erro ao buscar negociações expirados:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4470,7 +4471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar negociação expirado:", error);
+      logger.error("Erro ao criar negociação expirado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4484,7 +4485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(expirado);
     } catch (error) {
-      console.error("Erro ao atualizar negociação expirado:", error);
+      logger.error("Erro ao atualizar negociação expirado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4495,7 +4496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteNegociacaoExpirado(parseInt(id));
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar negociação expirado:", error);
+      logger.error("Erro ao deletar negociação expirado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4510,7 +4511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updated: result.updated 
       });
     } catch (error) {
-      console.error("Erro ao sincronizar negociações:", error);
+      logger.error("Erro ao sincronizar negociações:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4524,7 +4525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envios = await storage.getEnviosUnicv({ search, status, categoria });
       res.json(envios);
     } catch (error) {
-      console.error("Erro ao buscar envios UNICV:", error);
+      logger.error("Erro ao buscar envios UNICV:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4547,7 +4548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      console.error("Erro ao criar envio UNICV:", error);
+      logger.error("Erro ao criar envio UNICV:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4571,7 +4572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(envio);
     } catch (error) {
-      console.error("Erro ao atualizar envio UNICV:", error);
+      logger.error("Erro ao atualizar envio UNICV:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4583,7 +4584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteEnvioUnicv(parseInt(id));
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar envio UNICV:", error);
+      logger.error("Erro ao deletar envio UNICV:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4598,7 +4599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(envio);
     } catch (error) {
-      console.error("Erro ao buscar envio UNICV:", error);
+      logger.error("Erro ao buscar envio UNICV:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

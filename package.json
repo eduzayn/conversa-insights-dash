@@ -50,6 +50,7 @@
     "agora-rtc-sdk-ng": "^4.23.4",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
+    "caniuse-lite": "^1.0.30001727",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

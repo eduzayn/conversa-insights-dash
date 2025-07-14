@@ -37,12 +37,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  if (process.env.NODE_ENV === 'development') {
   console.log("Iniciando servidor...");
+}
   let server;
   
   try {
     server = await registerRoutes(app);
-    console.log("Rotas registradas com sucesso");
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Rotas registradas com sucesso");
+    }
   } catch (error) {
     console.error("Erro ao registrar rotas:", error);
     process.exit(1);

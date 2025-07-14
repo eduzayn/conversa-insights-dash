@@ -74,7 +74,9 @@ const Negociacoes: React.FC = () => {
 
   // Função para capturar erros de renderização
   const handleRenderError = (error: Error) => {
-    console.error('Erro de renderização capturado:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro de renderização capturado:', error);
+    }
     setRenderError(error.message);
   };
 

@@ -743,6 +743,24 @@ Changelog:
      - sequencial: 1 certificação
      - eja: 0 certificações (categoria vazia)
    * ✅ Sistema funcional para todas as outras categorias com dados reais
+- Correção Crítica: Logs de Produção Limpos (14 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Rota /register faltante causando 404 errors
+   * ✅ Página Register.tsx criada com redirecionamento para sistema de tokens
+   * ✅ Sistema de logging adequado implementado (server/utils/logger.ts)
+   * ✅ Todos os console.error substituídos por logger.error no backend
+   * ✅ Logger com filtro de ambiente: logs detalhados em dev, mínimos em produção
+   * ✅ Sistema de interceptação de logs frontend implementado (client/src/utils/productionLogger.ts)
+   * ✅ Filtros para suprimir logs do Agora SDK, Vite HMR e outros SDKs em produção
+   * ✅ 15+ padrões de logs desnecessários filtrados automaticamente
+   * ✅ Erros de 404 para rotas inexistentes suprimidos em produção
+   * ✅ Logs de HMR (Hot Module Replacement) filtrados
+   * ✅ Logs de conexão WebSocket e debugging suprimidos
+   * ✅ Browserslist atualizado para versão mais recente
+   * ✅ Sistema de logs condicionais no servidor (NODE_ENV === 'development')
+   * ✅ Interceptação de console.log, console.debug, console.info, console.warn e console.error
+   * ✅ Logs de produção mais limpos e profissionais
+   * ✅ Manutenção de logs críticos de erro em produção (sem informações sensíveis)
+   * Status: Sistema de logging otimizado para produção, sem poluição de logs
 ```
 
 ## User Preferences

@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { createAsaasService } from '../services/unified-asaas-service';
 import { storage } from '../storage';
+import { logger } from '../utils/logger';
 import { z } from 'zod';
 
 const router = Router();
@@ -31,7 +32,7 @@ const auth = async (req: any, res: Response, next: NextFunction) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Erro na validação do token:', error);
+    logger.error('Erro na validação do token', error);
     return res.status(403).json({ message: 'Token inválido' });
   }
 };
