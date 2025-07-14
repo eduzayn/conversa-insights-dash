@@ -134,7 +134,7 @@ const EnviosUnicv: React.FC = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'], type: 'all' });
       setIsCreateModalOpen(false);
       setSelectedEnvio(null);
       toast({ title: "Sucesso", description: "Envio UNICV salvo com sucesso!" });
@@ -152,7 +152,7 @@ const EnviosUnicv: React.FC = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'], type: 'all' });
       toast({ title: "Sucesso", description: "Envio UNICV excluído com sucesso!" });
     },
     onError: () => {
