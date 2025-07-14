@@ -425,6 +425,23 @@ Changelog:
    * ✅ Redirecionamento pós-login funcionando corretamente (/portal-aluno/login → /portal)
    * ✅ Conflitos entre sistemas de roteamento eliminados permanentemente
    * ✅ Sistema unificado previne problemas futuros de navegação
+- Correção Definitiva: Problemas de Timezone no Módulo Envios UNICV (14 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Data mostrava um dia a menos (13/07 em vez de 14/07)
+   * ✅ Causa identificada: Conversão automática de timezone entre UTC e local
+   * ✅ Correção backend: Rotas POST/PUT adicionam 'T12:00:00' para forçar interpretação local
+   * ✅ Correção frontend: Função formatDate() modificada para tratar timezone corretamente
+   * ✅ Sistema agora consistente: data no banco (2025-07-14) = data na interface (14/07/2025)
+   * ✅ Funcionalidade completa: Criação, edição, exclusão e listagem de envios UNICV
+   * ✅ Interface melhorada: Modal de exclusão elegante com AlertDialog
+   * ✅ Data de envio automática: Preenchida automaticamente com data atual
+   * ✅ Invalidação de cache otimizada: React Query usando predicate para capturar todas variações
+- Resolução: Problema de Autenticação Usuário Tamires Kele (14 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Usuário "Tamires Kele" conseguiu se registrar com sucesso
+   * ✅ Token d7e3af14-d8ec-4aa3-8502-fa6dee244873 usado corretamente
+   * ✅ Usuário criado: ID 17, email cobrancazayn22@gmail.com, role admin
+   * ✅ Token marcado como usado no sistema
+   * ✅ Sistema de registro funcionando normalmente
+   * ✅ Logs temporários removidos após resolução
 - Limpeza Completa do Sistema de Roteamento (10 Jul 2025):
    * ✅ FINALIZADA: Remoção completa do Wouter de todo o projeto
    * ✅ ModernStudentSidebar migrado para React Router DOM (useLocation, Link)
