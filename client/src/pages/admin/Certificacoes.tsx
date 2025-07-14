@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft, Check, ChevronsUpDown } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft, Check, ChevronsUpDown, AlertTriangle } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -20,7 +21,6 @@ import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import type { Certification } from '@shared/schema';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
 
 const STATUS_COLORS = {
   'pendente': 'bg-yellow-100 text-yellow-800',
@@ -73,6 +73,7 @@ export default function Certificacoes() {
   const [editCourseSearchOpen, setEditCourseSearchOpen] = useState(false);
   const [isNewCourseDialogOpen, setIsNewCourseDialogOpen] = useState(false);
   const [newCourseData, setNewCourseData] = useState({ nome: '', cargaHoraria: '' });
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const queryClient = useQueryClient();
@@ -505,8 +506,13 @@ export default function Certificacoes() {
   };
 
   const handleDeleteCertification = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir esta certificação?')) {
-      deleteMutation.mutate(id);
+    setDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId);
+      setDeleteId(null);
     }
   };
 
@@ -1711,6 +1717,31 @@ export default function Certificacoes() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* AlertDialog para confirmação de exclusão */}
+      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta certificação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
