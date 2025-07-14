@@ -39,7 +39,7 @@ const menuSections = [
       { label: 'Atendimento ao Aluno', path: '/atendimento-aluno' },
       { label: 'Chat Interno', path: '/chat-interno' },
       { label: 'CRM', path: '/crm' },
-      { label: 'Atendimentos', path: '/atendimentos' },
+      { label: 'Diário de Atendimento', path: '/atendimentos' },
     ]
   },
   {
