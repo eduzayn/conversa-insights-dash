@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Send, FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Search, Filter } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
@@ -51,6 +52,7 @@ const EnviosUnicv: React.FC = () => {
   const [categoriaFilter, setCategoriaFilter] = useState('all');
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [comboboxValue, setComboboxValue] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -191,8 +193,13 @@ const EnviosUnicv: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Tem certeza que deseja excluir este envio UNICV?')) {
-      deleteMutation.mutate(id);
+    setDeleteId(id);
+  };
+
+  const confirmDeleteEnvio = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId);
+      setDeleteId(null);
     }
   };
 
@@ -625,6 +632,33 @@ const EnviosUnicv: React.FC = () => {
                 </form>
               </DialogContent>
             </Dialog>
+
+            {/* AlertDialog para confirmação de exclusão */}
+            <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                    Confirmar Exclusão
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza de que deseja excluir este envio UNICV? Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setDeleteId(null)}>
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={confirmDeleteEnvio}
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                    disabled={deleteMutation.isPending}
+                  >
+                    {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </main>
       </div>
