@@ -86,7 +86,6 @@ const Atendimentos = () => {
               isLoading={isLoading}
               atendimentosCount={atendimentos.length}
               error={error}
-              onRefetch={refetch}
               onExportCSV={exportToCSV}
               onCreateAtendimento={handleCreateAtendimento}
             />

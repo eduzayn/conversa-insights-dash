@@ -1,13 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, RefreshCw, AlertCircle, Plus } from "lucide-react";
+import { Download, AlertCircle, Plus } from "lucide-react";
 
 interface AtendimentosHeaderProps {
   isLoading: boolean;
   atendimentosCount: number;
   error: any;
-  onRefetch: () => void;
   onExportCSV: () => void;
   onCreateAtendimento: () => void;
 }
@@ -16,7 +15,6 @@ export const AtendimentosHeader = ({
   isLoading, 
   atendimentosCount, 
   error, 
-  onRefetch, 
   onExportCSV,
   onCreateAtendimento
 }: AtendimentosHeaderProps) => {
@@ -38,14 +36,7 @@ export const AtendimentosHeader = ({
             <Plus className="h-4 w-4 mr-2" />
             Novo Atendimento
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={onRefetch}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
+
           <Button 
             className="bg-green-600 hover:bg-green-700"
             onClick={onExportCSV}
