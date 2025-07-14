@@ -233,7 +233,17 @@ const Negociacoes: React.FC = () => {
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | undefined | null) => {
+    // Garantir que status seja uma string válida
+    if (!status || typeof status !== 'string') {
+      return (
+        <Badge className="bg-gray-100 text-gray-800 flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+          Indefinido
+        </Badge>
+      );
+    }
+
     const styles = {
       'aguardando_pagamento': 'bg-yellow-100 text-yellow-800',
       'recebido': 'bg-green-100 text-green-800', 
@@ -266,9 +276,10 @@ const Negociacoes: React.FC = () => {
     
     const label = labels[status as keyof typeof labels] || status;
     const dotColor = dotColors[status as keyof typeof dotColors] || 'bg-gray-500';
+    const styleClass = styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800';
     
     return (
-      <Badge className={`${styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'} flex items-center gap-1`}>
+      <Badge className={`${styleClass} flex items-center gap-1`}>
         <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
         {label}
       </Badge>
