@@ -998,6 +998,14 @@ export const insertGoalSchema = createInsertSchema(goals).pick({
   reward: true,
 });
 
+export const insertGoalProgressSchema = createInsertSchema(goalProgress).pick({
+  goalId: true,
+  userId: true,
+  current: true,
+  achieved: true,
+  period: true,
+});
+
 export const insertUserActivitySchema = createInsertSchema(userActivity).pick({
   userId: true,
   loginTime: true,
@@ -1275,6 +1283,9 @@ export type InternalNote = typeof internalNotes.$inferSelect;
 
 export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type Goal = typeof goals.$inferSelect;
+
+export type InsertGoalProgress = z.infer<typeof insertGoalProgressSchema>;
+export type GoalProgress = typeof goalProgress.$inferSelect;
 
 export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
 export type UserActivity = typeof userActivity.$inferSelect;

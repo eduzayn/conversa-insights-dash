@@ -53,6 +53,8 @@ import {
   type InsertInternalNote,
   type Goal,
   type InsertGoal,
+  type GoalProgress,
+  type InsertGoalProgress,
   type UserActivity,
   type InsertUserActivity,
   type Certification,
@@ -612,6 +614,12 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .returning();
+
+    // Atualizar progresso das metas de atendimento
+    if (newConversation.attendantId) {
+      await this.updateGoalProgressForAttendance(newConversation.attendantId);
+    }
+
     return newConversation;
   }
 
@@ -715,6 +723,135 @@ export class DatabaseStorage implements IStorage {
       .where(eq(goals.id, id))
       .returning();
     return updatedGoal || undefined;
+  }
+
+  // Goal Progress
+  async getGoalProgress(filters?: { goalId?: number; userId?: number; period?: string }): Promise<GoalProgress[]> {
+    const conditions = [];
+    
+    if (filters?.goalId) {
+      conditions.push(eq(goalProgress.goalId, filters.goalId));
+    }
+    if (filters?.userId) {
+      conditions.push(eq(goalProgress.userId, filters.userId));
+    }
+    if (filters?.period) {
+      conditions.push(eq(goalProgress.period, filters.period));
+    }
+    
+    return await db.select().from(goalProgress)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(goalProgress.updatedAt));
+  }
+
+  async createGoalProgress(progress: InsertGoalProgress): Promise<GoalProgress> {
+    const [newProgress] = await db
+      .insert(goalProgress)
+      .values({
+        ...progress,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newProgress;
+  }
+
+  async updateGoalProgress(id: number, progress: Partial<GoalProgress>): Promise<GoalProgress | undefined> {
+    const [updatedProgress] = await db
+      .update(goalProgress)
+      .set({ ...progress, updatedAt: new Date() })
+      .where(eq(goalProgress.id, id))
+      .returning();
+    return updatedProgress || undefined;
+  }
+
+  async incrementGoalProgress(goalId: number, userId: number | null, period: string, increment: number = 1): Promise<GoalProgress> {
+    // Buscar progresso existente
+    const existingProgress = await db
+      .select()
+      .from(goalProgress)
+      .where(
+        and(
+          eq(goalProgress.goalId, goalId),
+          userId ? eq(goalProgress.userId, userId) : isNull(goalProgress.userId),
+          eq(goalProgress.period, period)
+        )
+      )
+      .limit(1);
+
+    if (existingProgress.length > 0) {
+      // Atualizar progresso existente
+      const current = existingProgress[0];
+      const newCurrent = current.current + increment;
+      
+      // Verificar se a meta foi atingida
+      const goal = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.id, goalId))
+        .limit(1);
+      
+      const achieved = goal.length > 0 && newCurrent >= goal[0].target;
+      
+      const [updated] = await db
+        .update(goalProgress)
+        .set({ 
+          current: newCurrent, 
+          achieved,
+          updatedAt: new Date() 
+        })
+        .where(eq(goalProgress.id, current.id))
+        .returning();
+      
+      return updated;
+    } else {
+      // Criar novo progresso
+      const goal = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.id, goalId))
+        .limit(1);
+      
+      const achieved = goal.length > 0 && increment >= goal[0].target;
+      
+      return await this.createGoalProgress({
+        goalId,
+        userId,
+        current: increment,
+        achieved,
+        period
+      });
+    }
+  }
+
+  async checkGoalAchievements(userId?: number): Promise<any[]> {
+    // Buscar metas recém-atingidas (achieved = true e não notificadas ainda)
+    const query = db
+      .select({
+        goalId: goalProgress.goalId,
+        userId: goalProgress.userId,
+        current: goalProgress.current,
+        achieved: goalProgress.achieved,
+        period: goalProgress.period,
+        goalTitle: goals.title,
+        goalType: goals.type,
+        goalPeriod: goals.period,
+        goalReward: goals.reward,
+        teamName: teams.name,
+        userName: users.username
+      })
+      .from(goalProgress)
+      .innerJoin(goals, eq(goalProgress.goalId, goals.id))
+      .leftJoin(teams, eq(goals.teamId, teams.id))
+      .leftJoin(users, eq(goalProgress.userId, users.id))
+      .where(
+        and(
+          eq(goalProgress.achieved, true),
+          userId ? eq(goalProgress.userId, userId) : undefined
+        )
+      );
+
+    return await query;
   }
 
   // User Activity
@@ -2179,6 +2316,62 @@ export class DatabaseStorage implements IStorage {
   async getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined> {
     const [envio] = await db.select().from(enviosUnicv).where(eq(enviosUnicv.id, id));
     return envio || undefined;
+  }
+  // Sistema de monitoramento automático das metas
+  async updateGoalProgressForAttendance(userId: number): Promise<void> {
+    const today = new Date().toISOString().split('T')[0];
+    const thisWeek = `${new Date().getFullYear()}-W${Math.ceil((new Date().getDate() - new Date().getDay() + 1) / 7).toString().padStart(2, '0')}`;
+    const thisMonth = new Date().toISOString().slice(0, 7);
+
+    // Buscar metas de atendimento para este usuário
+    const userGoals = await db
+      .select()
+      .from(goals)
+      .where(
+        and(
+          eq(goals.isActive, true),
+          eq(goals.indicator, 'atendimentos'),
+          or(
+            eq(goals.userId, userId),
+            and(
+              eq(goals.type, 'team'),
+              sql`${goals.teamId} IN (SELECT team_id FROM team_members WHERE user_id = ${userId})`
+            )
+          )
+        )
+      );
+
+    // Atualizar progresso para cada meta
+    for (const goal of userGoals) {
+      let period = today; // padrão daily
+      
+      if (goal.period === 'weekly') {
+        period = thisWeek;
+      } else if (goal.period === 'monthly') {
+        period = thisMonth;
+      }
+
+      const targetUserId = goal.type === 'individual' ? userId : null;
+      
+      await this.incrementGoalProgress(goal.id, targetUserId, period, 1);
+    }
+  }
+
+  async getCurrentPeriod(period: string): Promise<string> {
+    const now = new Date();
+    
+    switch (period) {
+      case 'daily':
+        return now.toISOString().split('T')[0]; // YYYY-MM-DD
+      case 'weekly':
+        const year = now.getFullYear();
+        const week = Math.ceil((now.getDate() - now.getDay() + 1) / 7);
+        return `${year}-W${week.toString().padStart(2, '0')}`;
+      case 'monthly':
+        return now.toISOString().slice(0, 7); // YYYY-MM
+      default:
+        return now.toISOString().split('T')[0];
+    }
   }
 }
 

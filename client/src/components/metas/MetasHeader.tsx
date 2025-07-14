@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Bell } from "lucide-react";
+import { Plus, Bell, Target } from "lucide-react";
 import { toast } from "sonner";
+import { apiRequest } from "@/lib/queryClient";
 
 interface MetasHeaderProps {
   onConfigureMetas: () => void;
@@ -16,6 +17,30 @@ export const MetasHeader = ({ onConfigureMetas, onSimularConquista }: MetasHeade
     });
   };
 
+  const handleTestarMetasReais = async () => {
+    try {
+      const response = await apiRequest('/api/test-goal-progress', {
+        method: 'POST',
+        body: JSON.stringify({ userId: 1 }), // Testar com admin
+      });
+      
+      const data = await response.json();
+      
+      if (data.achievements && data.achievements.length > 0) {
+        toast.success("Meta conquistada!", {
+          description: `${data.achievements.length} nova(s) conquista(s) detectada(s)!`
+        });
+      } else {
+        toast.info("Progresso atualizado", {
+          description: "Nenhuma nova conquista no momento"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao testar metas:', error);
+      toast.error("Erro ao testar sistema de metas");
+    }
+  };
+
   return (
     <div className="flex justify-between items-start">
       <div>
@@ -23,6 +48,14 @@ export const MetasHeader = ({ onConfigureMetas, onSimularConquista }: MetasHeade
         <p className="text-gray-600">Sistema de gamificação e acompanhamento de metas</p>
       </div>
       <div className="flex gap-2">
+        <Button 
+          onClick={handleTestarMetasReais}
+          variant="outline"
+          className="bg-orange-50 hover:bg-orange-100 border-orange-200"
+        >
+          <Target className="h-4 w-4 mr-2" />
+          Testar Sistema
+        </Button>
         <Button 
           onClick={() => handleSimularConquista('individual')}
           variant="outline"

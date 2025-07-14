@@ -1925,6 +1925,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Goal Progress endpoints
+  app.get("/api/goal-progress", authenticateToken, async (req: any, res) => {
+    try {
+      const { goalId, userId, period } = req.query;
+      const filters: any = {};
+      
+      if (goalId) filters.goalId = parseInt(goalId as string);
+      if (userId) filters.userId = parseInt(userId as string);
+      if (period) filters.period = period as string;
+
+      const progress = await storage.getGoalProgress(filters);
+      res.json(progress);
+    } catch (error) {
+      console.error("Erro ao buscar progresso das metas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/goal-progress", authenticateToken, async (req: any, res) => {
+    try {
+      const progressData = req.body;
+      const progress = await storage.createGoalProgress(progressData);
+      res.status(201).json(progress);
+    } catch (error) {
+      console.error("Erro ao criar progresso de meta:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/goal-progress/increment", authenticateToken, async (req: any, res) => {
+    try {
+      const { goalId, userId, period, increment = 1 } = req.body;
+      
+      const progress = await storage.incrementGoalProgress(
+        goalId, 
+        userId || null, 
+        period, 
+        increment
+      );
+      
+      // Verificar se houve conquista e notificar via WebSocket
+      if (progress.achieved) {
+        const achievements = await storage.checkGoalAchievements(userId);
+        const relevantAchievement = achievements.find(a => 
+          a.goalId === goalId && 
+          a.userId === userId && 
+          a.period === period
+        );
+        
+        if (relevantAchievement) {
+          io.emit('goal_achieved', {
+            userId: userId || null,
+            achievement: relevantAchievement
+          });
+        }
+      }
+      
+      res.json(progress);
+    } catch (error) {
+      console.error("Erro ao incrementar progresso da meta:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/goal-achievements", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId } = req.query;
+      
+      const achievements = await storage.checkGoalAchievements(
+        userId ? parseInt(userId as string) : undefined
+      );
+      
+      res.json(achievements);
+    } catch (error) {
+      console.error("Erro ao buscar conquistas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para simular atendimento e testar sistema de metas
+  app.post("/api/test-goal-progress", authenticateToken, async (req: any, res) => {
+    try {
+      const { userId } = req.body;
+      const targetUserId = userId || req.user.id;
+      
+      console.log(`Simulando atendimento para usuário ${targetUserId}`);
+      
+      // Simular atendimento para atualizar metas
+      await storage.updateGoalProgressForAttendance(targetUserId);
+      
+      // Verificar conquistas
+      const achievements = await storage.checkGoalAchievements(targetUserId);
+      const newAchievements = achievements.filter(a => a.achieved && a.userId === targetUserId);
+      
+      // Notificar via WebSocket se houver conquistas
+      if (newAchievements.length > 0) {
+        for (const achievement of newAchievements) {
+          io.emit('goal_achieved', {
+            userId: targetUserId,
+            achievement
+          });
+          console.log(`Meta conquistada: ${achievement.goalTitle} por ${achievement.userName}`);
+        }
+      }
+      
+      res.json({
+        message: "Teste de progresso executado com sucesso",
+        userId: targetUserId,
+        achievements: newAchievements,
+        totalAchievements: achievements.length
+      });
+    } catch (error) {
+      console.error("Erro ao testar progresso das metas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // User Activity
   app.get("/api/users/:userId/activity", authenticateToken, async (req: any, res) => {
     try {
