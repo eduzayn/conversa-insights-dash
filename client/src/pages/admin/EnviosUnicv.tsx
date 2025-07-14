@@ -230,7 +230,9 @@ const EnviosUnicv: React.FC = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+      // Adicionar horário do meio-dia para evitar problemas de timezone
+      const dateWithTime = dateString.includes('T') ? dateString : dateString + 'T12:00:00';
+      return format(new Date(dateWithTime), 'dd/MM/yyyy', { locale: ptBR });
     } catch {
       return dateString;
     }
