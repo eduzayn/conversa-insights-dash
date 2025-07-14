@@ -1769,7 +1769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Buscar todas as conversas para extrair dados únicos
       const conversations = await storage.getConversations();
       const teams = await storage.getTeams();
-      const users = await storage.getUsers();
+      const users = await storage.getAllUsers();
 
       // Extrair atendentes únicos das conversas
       const atendentesSet = new Set<string>();
@@ -2038,6 +2038,320 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Erro ao testar progresso das metas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoints para relatórios de presença com dados reais
+  app.get("/api/presence/dashboard", authenticateToken, async (req: any, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Buscar todos os usuários ativos
+      const allUsers = await storage.getAllUsers();
+      const activeUsers = allUsers.filter(user => user.isActive);
+      
+      // Buscar atividades de todos os usuários para hoje
+      const todaysActivities = await Promise.all(
+        activeUsers.map(async (user) => {
+          const activities = await storage.getUserActivity(user.id, today);
+          return { user, activities };
+        })
+      );
+
+      // Calcular estatísticas
+      const totalEmployees = activeUsers.length;
+      const usersWithActivity = todaysActivities.filter(ua => ua.activities.length > 0);
+      const presentToday = usersWithActivity.length;
+      const absentToday = totalEmployees - presentToday;
+
+      // Calcular tempo médio online
+      let totalOnlineMinutes = 0;
+      const detailedAttendance = usersWithActivity.map(({ user, activities }) => {
+        // Agrupar atividades por sessão
+        const sessions = activities.reduce((acc, activity) => {
+          const sessionKey = activity.sessionId || 'default';
+          if (!acc[sessionKey]) {
+            acc[sessionKey] = [];
+          }
+          acc[sessionKey].push(activity);
+          return acc;
+        }, {} as Record<string, typeof activities>);
+
+        // Calcular tempo online total
+        let userOnlineMinutes = 0;
+        const sessionSummary = Object.entries(sessions).map(([sessionId, sessionActivities]) => {
+          const loginActivity = sessionActivities.find(a => a.action === 'login');
+          const logoutActivity = sessionActivities.find(a => a.action === 'logout');
+          
+          let sessionMinutes = 0;
+          if (loginActivity) {
+            const endTime = logoutActivity ? new Date(logoutActivity.timestamp) : new Date();
+            const startTime = new Date(loginActivity.timestamp);
+            sessionMinutes = Math.max(0, (endTime.getTime() - startTime.getTime()) / (1000 * 60));
+          }
+          
+          userOnlineMinutes += sessionMinutes;
+          
+          return {
+            sessionId,
+            loginTime: loginActivity?.timestamp,
+            logoutTime: logoutActivity?.timestamp,
+            minutes: sessionMinutes
+          };
+        });
+
+        totalOnlineMinutes += userOnlineMinutes;
+
+        // Última atividade
+        const lastActivity = activities.length > 0 ? 
+          new Date(Math.max(...activities.map(a => new Date(a.timestamp).getTime()))) : null;
+
+        // Contar inatividades (atividades de "heartbeat" ou "activity_check")
+        const inactivityCount = activities.filter(a => 
+          a.action === 'inactivity_detected' || a.action === 'away'
+        ).length;
+
+        // Primeira sessão do dia
+        const mainSession = sessionSummary[0] || { loginTime: null, logoutTime: null };
+
+        return {
+          name: user.username,
+          email: user.email,
+          team: user.teamName || 'Sem equipe',
+          loginTime: mainSession.loginTime ? 
+            new Date(mainSession.loginTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-',
+          logoutTime: mainSession.logoutTime ? 
+            new Date(mainSession.logoutTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-',
+          totalOnlineTime: userOnlineMinutes > 0 ? 
+            `${Math.floor(userOnlineMinutes / 60)}h ${Math.floor(userOnlineMinutes % 60)}m` : '0h 0m',
+          status: mainSession.logoutTime ? 'Ativo' : (userOnlineMinutes > 0 ? 'Online' : 'Inativo'),
+          inactivityCount,
+          lastActivity: lastActivity ? 
+            lastActivity.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-',
+          userId: user.id
+        };
+      });
+
+      // Adicionar usuários ausentes
+      const absentUsers = todaysActivities
+        .filter(ua => ua.activities.length === 0)
+        .map(({ user }) => ({
+          name: user.username,
+          email: user.email,
+          team: user.teamName || 'Sem equipe',
+          loginTime: '-',
+          logoutTime: '-',
+          totalOnlineTime: '0h 0m',
+          status: 'Ausente',
+          inactivityCount: 0,
+          lastActivity: '-',
+          userId: user.id
+        }));
+
+      const allAttendance = [...detailedAttendance, ...absentUsers];
+
+      // Calcular tempo médio
+      const averageOnlineMinutes = presentToday > 0 ? totalOnlineMinutes / presentToday : 0;
+      const averageOnlineTime = `${Math.floor(averageOnlineMinutes / 60)}h ${Math.floor(averageOnlineMinutes % 60)}m`;
+
+      // Estatísticas semanais (últimos 7 dias)
+      const weeklyStats = await calculateWeeklyStats(activeUsers, storage);
+
+      res.json({
+        summary: {
+          totalEmployees,
+          presentToday,
+          absentToday,
+          averageOnlineTime,
+          attendanceRate: totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0
+        },
+        dailyAttendance: allAttendance,
+        weeklyStats
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados de presença:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para relatório detalhado por usuário
+  app.get("/api/presence/user/:userId", authenticateToken, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { startDate, endDate } = req.query;
+      
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Buscar atividades no período
+      const activities = await storage.getUserActivity(userId);
+      
+      // Filtrar por período se especificado
+      let filteredActivities = activities;
+      if (startDate || endDate) {
+        filteredActivities = activities.filter(activity => {
+          const activityDate = new Date(activity.timestamp);
+          const start = startDate ? new Date(startDate as string) : new Date('1970-01-01');
+          const end = endDate ? new Date(endDate as string) : new Date();
+          return activityDate >= start && activityDate <= end;
+        });
+      }
+
+      // Agrupar por data
+      const dailyActivities = filteredActivities.reduce((acc, activity) => {
+        const date = new Date(activity.timestamp).toISOString().split('T')[0];
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(activity);
+        return acc;
+      }, {} as Record<string, typeof activities>);
+
+      // Calcular estatísticas diárias
+      const dailyStats = Object.entries(dailyActivities).map(([date, dayActivities]) => {
+        const loginActivity = dayActivities.find(a => a.action === 'login');
+        const logoutActivity = dayActivities.find(a => a.action === 'logout');
+        
+        let onlineMinutes = 0;
+        if (loginActivity) {
+          const endTime = logoutActivity ? new Date(logoutActivity.timestamp) : new Date();
+          const startTime = new Date(loginActivity.timestamp);
+          onlineMinutes = Math.max(0, (endTime.getTime() - startTime.getTime()) / (1000 * 60));
+        }
+
+        return {
+          date,
+          loginTime: loginActivity?.timestamp,
+          logoutTime: logoutActivity?.timestamp,
+          onlineMinutes,
+          totalActivities: dayActivities.length,
+          inactivityCount: dayActivities.filter(a => 
+            a.action === 'inactivity_detected' || a.action === 'away'
+          ).length
+        };
+      });
+
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          team: user.teamName || 'Sem equipe'
+        },
+        dailyStats: dailyStats.sort((a, b) => b.date.localeCompare(a.date)),
+        totalDays: dailyStats.length,
+        averageOnlineTime: dailyStats.length > 0 ? 
+          dailyStats.reduce((sum, day) => sum + day.onlineMinutes, 0) / dailyStats.length : 0
+      });
+    } catch (error) {
+      console.error("Erro ao buscar relatório do usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para ranking de presença
+  app.get("/api/presence/ranking", authenticateToken, async (req: any, res) => {
+    try {
+      const { period = 'week' } = req.query; // week, month
+      
+      const allUsers = await storage.getAllUsers();
+      const activeUsers = allUsers.filter(user => user.isActive);
+      
+      // Calcular período
+      const endDate = new Date();
+      const startDate = new Date();
+      if (period === 'week') {
+        startDate.setDate(endDate.getDate() - 7);
+      } else if (period === 'month') {
+        startDate.setMonth(endDate.getMonth() - 1);
+      }
+
+      // Calcular estatísticas por usuário
+      const userStats = await Promise.all(
+        activeUsers.map(async (user) => {
+          const activities = await storage.getUserActivity(user.id);
+          const periodActivities = activities.filter(activity => {
+            const activityDate = new Date(activity.timestamp);
+            return activityDate >= startDate && activityDate <= endDate;
+          });
+
+          // Calcular tempo online total
+          const sessions = periodActivities.reduce((acc, activity) => {
+            const sessionKey = activity.sessionId || 'default';
+            if (!acc[sessionKey]) {
+              acc[sessionKey] = [];
+            }
+            acc[sessionKey].push(activity);
+            return acc;
+          }, {} as Record<string, typeof activities>);
+
+          let totalOnlineMinutes = 0;
+          let daysPresent = 0;
+          const dailyPresence = new Set();
+
+          Object.values(sessions).forEach(sessionActivities => {
+            const loginActivity = sessionActivities.find(a => a.action === 'login');
+            const logoutActivity = sessionActivities.find(a => a.action === 'logout');
+            
+            if (loginActivity) {
+              const endTime = logoutActivity ? new Date(logoutActivity.timestamp) : new Date();
+              const startTime = new Date(loginActivity.timestamp);
+              const sessionMinutes = Math.max(0, (endTime.getTime() - startTime.getTime()) / (1000 * 60));
+              totalOnlineMinutes += sessionMinutes;
+              
+              const day = startTime.toISOString().split('T')[0];
+              dailyPresence.add(day);
+            }
+          });
+
+          daysPresent = dailyPresence.size;
+          const expectedDays = period === 'week' ? 7 : 30;
+          const attendanceRate = expectedDays > 0 ? (daysPresent / expectedDays) * 100 : 0;
+
+          return {
+            userId: user.id,
+            username: user.username,
+            email: user.email,
+            team: user.teamName || 'Sem equipe',
+            totalOnlineMinutes,
+            daysPresent,
+            attendanceRate,
+            averageDailyMinutes: daysPresent > 0 ? totalOnlineMinutes / daysPresent : 0
+          };
+        })
+      );
+
+      // Ordenar por tempo online total
+      const rankingByTime = userStats
+        .sort((a, b) => b.totalOnlineMinutes - a.totalOnlineMinutes)
+        .map((user, index) => ({ ...user, rank: index + 1 }));
+
+      // Ordenar por taxa de presença
+      const rankingByAttendance = userStats
+        .sort((a, b) => b.attendanceRate - a.attendanceRate)
+        .map((user, index) => ({ ...user, rank: index + 1 }));
+
+      res.json({
+        period,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        rankings: {
+          byOnlineTime: rankingByTime,
+          byAttendanceRate: rankingByAttendance
+        },
+        summary: {
+          totalUsers: activeUsers.length,
+          totalOnlineHours: Math.round(userStats.reduce((sum, u) => sum + u.totalOnlineMinutes, 0) / 60),
+          averageAttendanceRate: Math.round(
+            userStats.reduce((sum, u) => sum + u.attendanceRate, 0) / userStats.length
+          )
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao buscar ranking de presença:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4321,5 +4635,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   return httpServer; // return the HTTP server instance
+}
+
+// Função auxiliar para cálculos de estatísticas semanais
+async function calculateWeeklyStats(activeUsers: any[], storage: any) {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 7);
+
+  let totalPresenceDays = 0;
+  let totalPossibleDays = activeUsers.length * 7;
+  let totalInactivityCount = 0;
+
+  for (const user of activeUsers) {
+    const activities = await storage.getUserActivity(user.id);
+    const weekActivities = activities.filter((activity: any) => {
+      const activityDate = new Date(activity.timestamp);
+      return activityDate >= startDate && activityDate <= endDate;
+    });
+
+    // Contar dias únicos com atividade
+    const activeDays = new Set(
+      weekActivities.map((activity: any) => 
+        new Date(activity.timestamp).toISOString().split('T')[0]
+      )
+    );
+    
+    totalPresenceDays += activeDays.size;
+    
+    // Contar inatividades
+    totalInactivityCount += weekActivities.filter((activity: any) => 
+      activity.action === 'inactivity_detected' || activity.action === 'away'
+    ).length;
+  }
+
+  const attendanceRate = totalPossibleDays > 0 ? Math.round((totalPresenceDays / totalPossibleDays) * 100) : 0;
+  
+  // Calcular tempo médio diário da semana
+  let totalWeekMinutes = 0;
+  let daysWithActivity = 0;
+
+  for (const user of activeUsers) {
+    const activities = await storage.getUserActivity(user.id);
+    const weekActivities = activities.filter((activity: any) => {
+      const activityDate = new Date(activity.timestamp);
+      return activityDate >= startDate && activityDate <= endDate;
+    });
+
+    // Agrupar por data
+    const dailyActivities = weekActivities.reduce((acc: any, activity: any) => {
+      const date = new Date(activity.timestamp).toISOString().split('T')[0];
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(activity);
+      return acc;
+    }, {});
+
+    // Calcular tempo online por dia
+    Object.values(dailyActivities).forEach((dayActivities: any) => {
+      const loginActivity = dayActivities.find((a: any) => a.action === 'login');
+      const logoutActivity = dayActivities.find((a: any) => a.action === 'logout');
+      
+      if (loginActivity) {
+        const endTime = logoutActivity ? new Date(logoutActivity.timestamp) : new Date();
+        const startTime = new Date(loginActivity.timestamp);
+        const minutes = Math.max(0, (endTime.getTime() - startTime.getTime()) / (1000 * 60));
+        totalWeekMinutes += minutes;
+        daysWithActivity++;
+      }
+    });
+  }
+
+  const averageDailyMinutes = daysWithActivity > 0 ? totalWeekMinutes / daysWithActivity : 0;
+  const averageDailyTime = `${Math.floor(averageDailyMinutes / 60)}h ${Math.floor(averageDailyMinutes % 60)}m`;
+
+  return {
+    attendanceRate,
+    averageDailyTime,
+    totalInactivityCount
+  };
 }
 
