@@ -4533,6 +4533,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/envios-unicv", authenticateToken, async (req: any, res) => {
     try {
       const envioData = insertEnvioUnicvSchema.parse(req.body);
+      
+      // Corrigir data de envio para evitar problemas de timezone
+      if (envioData.dataEnvio) {
+        // Garantir que a data seja interpretada como local, não UTC
+        const localDate = new Date(envioData.dataEnvio + 'T12:00:00');
+        envioData.dataEnvio = localDate.toISOString().split('T')[0];
+      }
+      
       const envio = await storage.createEnvioUnicv(envioData);
       res.status(201).json(envio);
     } catch (error) {
@@ -4548,7 +4556,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/envios-unicv/:id", authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const envio = await storage.updateEnvioUnicv(parseInt(id), req.body);
+      const updateData = req.body;
+      
+      // Corrigir data de envio para evitar problemas de timezone
+      if (updateData.dataEnvio) {
+        // Garantir que a data seja interpretada como local, não UTC
+        const localDate = new Date(updateData.dataEnvio + 'T12:00:00');
+        updateData.dataEnvio = localDate.toISOString().split('T')[0];
+      }
+      
+      const envio = await storage.updateEnvioUnicv(parseInt(id), updateData);
       if (!envio) {
         return res.status(404).json({ message: "Envio UNICV não encontrado" });
       }
