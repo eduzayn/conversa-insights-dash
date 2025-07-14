@@ -174,20 +174,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password, email, name, role, token, companyAccount, department, multiCompanyAccess } = registerSchema.parse(req.body);
       
+      console.log("🔍 Tentativa de registro:", { username, email, token: token.substring(0, 8) + "..." });
+      
       // Verificar token de registro
       const regToken = await storage.getRegistrationToken(token);
       if (!regToken || regToken.isUsed || regToken.expiresAt < new Date()) {
+        console.log("❌ Token inválido:", { found: !!regToken, isUsed: regToken?.isUsed, expired: regToken?.expiresAt < new Date() });
         return res.status(400).json({ message: "Token de registro inválido ou expirado" });
       }
 
       // Verificar se username/email já existem
       const existingUser = await storage.getUserByUsername(username);
+      console.log("👤 Verificação username:", { username, exists: !!existingUser });
       if (existingUser) {
+        console.log("❌ Username já existe:", existingUser.username);
         return res.status(400).json({ message: "Username já está em uso" });
       }
 
       const existingEmail = await storage.getUserByEmail(email);
+      console.log("📧 Verificação email:", { email, exists: !!existingEmail });
       if (existingEmail) {
+        console.log("❌ Email já existe:", existingEmail.email);
         return res.status(400).json({ message: "Email já está em uso" });
       }
 
