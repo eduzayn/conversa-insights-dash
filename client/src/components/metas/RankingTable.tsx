@@ -10,19 +10,67 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Trophy, Gift } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface RankingTableProps {
   onVerRecompensas: () => void;
 }
 
 export const RankingTable = ({ onVerRecompensas }: RankingTableProps) => {
-  const rankingData = [
-    { posicao: 1, nome: "Maria Souza", setor: "Comercial", moedas: 680, moedasMes: 120 },
-    { posicao: 2, nome: "João Lima", setor: "Suporte", moedas: 530, moedasMes: 95 },
-    { posicao: 3, nome: "Ana Santos", setor: "Comercial", moedas: 480, moedasMes: 88 },
-    { posicao: 4, nome: "Carlos Silva", setor: "Administrativo", moedas: 420, moedasMes: 75 },
-    { posicao: 5, nome: "Bruna Reis", setor: "Suporte", moedas: 380, moedasMes: 62 }
-  ];
+  const { data: goals = [] } = useQuery({
+    queryKey: ['/api/goals'],
+    enabled: true
+  });
+
+  const { data: goalProgress = [] } = useQuery({
+    queryKey: ['/api/goal-progress'],
+    enabled: true
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: true
+  });
+
+  const { data: teams = [] } = useQuery({
+    queryKey: ['/api/teams'],
+    enabled: true
+  });
+
+  // Processar dados reais do ranking
+  const rankingData = users
+    .map((user: any) => {
+      const userProgress = goalProgress.filter((p: any) => p.userId === user.id && p.achieved);
+      const totalCoins = userProgress.reduce((sum: number, p: any) => {
+        const goal = goals.find((g: any) => g.id === p.goalId);
+        return sum + (goal?.reward || 0);
+      }, 0);
+
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const monthlyCoins = userProgress
+        .filter((p: any) => p.updatedAt && p.updatedAt.startsWith(currentMonth))
+        .reduce((sum: number, p: any) => {
+          const goal = goals.find((g: any) => g.id === p.goalId);
+          return sum + (goal?.reward || 0);
+        }, 0);
+
+      const userTeam = teams.find((t: any) => t.id === user.teamId);
+
+      return {
+        nome: user.name || user.username,
+        setor: userTeam?.name || "Sem equipe",
+        moedas: totalCoins,
+        moedasMes: monthlyCoins,
+        userId: user.id
+      };
+    })
+    .filter((user: any) => user.moedas > 0)
+    .sort((a: any, b: any) => b.moedas - a.moedas)
+    .map((user: any, index: number) => ({
+      ...user,
+      posicao: index + 1
+    }))
+    .slice(0, 10);
 
   const getPosicaoIcon = (posicao: number) => {
     switch (posicao) {
@@ -60,17 +108,27 @@ export const RankingTable = ({ onVerRecompensas }: RankingTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rankingData.map((pessoa) => (
-              <TableRow key={pessoa.posicao}>
-                <TableCell className="font-medium text-lg">
-                  {getPosicaoIcon(pessoa.posicao)}
+            {rankingData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                  Nenhum colaborador com metas conquistadas ainda.
+                  <br />
+                  Configure metas e acompanhe o progresso da equipe.
                 </TableCell>
-                <TableCell className="font-medium">{pessoa.nome}</TableCell>
-                <TableCell>{pessoa.setor}</TableCell>
-                <TableCell>🪙 {pessoa.moedasMes}</TableCell>
-                <TableCell className="font-bold">🪙 {pessoa.moedas}</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              rankingData.map((pessoa) => (
+                <TableRow key={pessoa.posicao}>
+                  <TableCell className="font-medium text-lg">
+                    {getPosicaoIcon(pessoa.posicao)}
+                  </TableCell>
+                  <TableCell className="font-medium">{pessoa.nome}</TableCell>
+                  <TableCell>{pessoa.setor}</TableCell>
+                  <TableCell>🪙 {pessoa.moedasMes}</TableCell>
+                  <TableCell className="font-bold">🪙 {pessoa.moedas}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

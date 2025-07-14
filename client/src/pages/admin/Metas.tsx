@@ -18,8 +18,7 @@ const Metas = () => {
   const { 
     conquistaAtual, 
     isVisible, 
-    fecharNotificacao, 
-    simularConquista 
+    fecharNotificacao
   } = useMetaNotificacoes();
 
   return (
@@ -31,7 +30,6 @@ const Metas = () => {
           <div className="space-y-4 md:space-y-6">
             <MetasHeader 
               onConfigureMetas={() => setIsMetasModalOpen(true)}
-              onSimularConquista={simularConquista}
             />
 
             <MetasSummaryCards />

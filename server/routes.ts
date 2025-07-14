@@ -2004,43 +2004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para simular atendimento e testar sistema de metas
-  app.post("/api/test-goal-progress", authenticateToken, async (req: any, res) => {
-    try {
-      const { userId } = req.body;
-      const targetUserId = userId || req.user.id;
-      
-      console.log(`Simulando atendimento para usuário ${targetUserId}`);
-      
-      // Simular atendimento para atualizar metas
-      await storage.updateGoalProgressForAttendance(targetUserId);
-      
-      // Verificar conquistas
-      const achievements = await storage.checkGoalAchievements(targetUserId);
-      const newAchievements = achievements.filter(a => a.achieved && a.userId === targetUserId);
-      
-      // Notificar via WebSocket se houver conquistas
-      if (newAchievements.length > 0) {
-        for (const achievement of newAchievements) {
-          io.emit('goal_achieved', {
-            userId: targetUserId,
-            achievement
-          });
-          console.log(`Meta conquistada: ${achievement.goalTitle} por ${achievement.userName}`);
-        }
-      }
-      
-      res.json({
-        message: "Teste de progresso executado com sucesso",
-        userId: targetUserId,
-        achievements: newAchievements,
-        totalAchievements: achievements.length
-      });
-    } catch (error) {
-      console.error("Erro ao testar progresso das metas:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+
 
   // Endpoints para relatórios de presença com dados reais
   app.get("/api/presence/dashboard", authenticateToken, async (req: any, res) => {
