@@ -2320,8 +2320,9 @@ export class DatabaseStorage implements IStorage {
     return updatedEnvio || undefined;
   }
 
-  async deleteEnvioUnicv(id: number): Promise<void> {
-    await db.delete(enviosUnicv).where(eq(enviosUnicv.id, id));
+  async deleteEnvioUnicv(id: number): Promise<boolean> {
+    const result = await db.delete(enviosUnicv).where(eq(enviosUnicv.id, id));
+    return result.rowCount > 0;
   }
 
   async getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined> {

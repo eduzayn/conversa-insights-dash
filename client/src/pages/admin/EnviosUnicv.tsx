@@ -157,14 +157,30 @@ const EnviosUnicv: React.FC = () => {
       });
     },
     onSuccess: () => {
-      console.log('Invalidando cache após exclusão...');
       queryClient.invalidateQueries({ 
         predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
       });
       toast({ title: "Sucesso", description: "Envio UNICV excluído com sucesso!" });
+      setDeleteId(null);
     },
-    onError: () => {
-      toast({ title: "Erro", description: "Erro ao excluir envio UNICV", variant: "destructive" });
+    onError: (error: any) => {
+      let errorMessage = "Erro ao excluir envio UNICV";
+      
+      if (error?.message?.includes("não encontrado")) {
+        errorMessage = "Envio UNICV não encontrado. Pode ter sido excluído por outro usuário.";
+      }
+      
+      toast({ 
+        title: "Erro", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
+      setDeleteId(null);
+      
+      // Atualizar lista para refletir estado atual
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+      });
     }
   });
 
@@ -205,7 +221,7 @@ const EnviosUnicv: React.FC = () => {
   const confirmDeleteEnvio = () => {
     if (deleteId) {
       deleteMutation.mutate(deleteId);
-      setDeleteId(null);
+      // Não fechar o modal aqui - será fechado no onSuccess ou onError
     }
   };
 

@@ -4581,7 +4581,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/envios-unicv/:id", authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-      await storage.deleteEnvioUnicv(parseInt(id));
+      const deleted = await storage.deleteEnvioUnicv(parseInt(id));
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Envio UNICV não encontrado" });
+      }
+      
       res.status(204).send();
     } catch (error) {
       logger.error("Erro ao deletar envio UNICV:", error);
