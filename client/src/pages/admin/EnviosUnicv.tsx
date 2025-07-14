@@ -605,7 +605,7 @@ const EnviosUnicv: React.FC = () => {
                       <Input
                         name="dataEnvio"
                         type="date"
-                        defaultValue={selectedEnvio?.dataEnvio}
+                        defaultValue={selectedEnvio?.dataEnvio || new Date().toISOString().split('T')[0]}
                       />
                     </div>
 
