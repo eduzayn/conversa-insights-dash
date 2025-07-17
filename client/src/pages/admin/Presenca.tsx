@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Clock, Users, UserCheck, UserX, Crown, TrendingUp, Calendar, Award } from "lucide-react";
 import { useActivityMonitor } from "@/hooks/useActivityMonitor";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 
 // Interface para os dados de presença
@@ -78,18 +79,21 @@ const Presenca = () => {
   // Buscar dados reais de presença
   const { data: presenceData, isLoading: isLoadingPresence, error: presenceError } = useQuery<PresenceData>({
     queryKey: ['/api/presence/dashboard'],
+    queryFn: () => apiRequest('/api/presence/dashboard'),
     enabled: !!user
   });
 
   // Buscar ranking semanal
   const { data: weeklyRanking, isLoading: isLoadingRanking } = useQuery<RankingData>({
     queryKey: ['/api/presence/ranking', { period: 'week' }],
+    queryFn: () => apiRequest('/api/presence/ranking?period=week'),
     enabled: !!user
   });
 
   // Buscar ranking mensal
   const { data: monthlyRanking } = useQuery<RankingData>({
     queryKey: ['/api/presence/ranking', { period: 'month' }],
+    queryFn: () => apiRequest('/api/presence/ranking?period=month'),
     enabled: !!user
   });
 
