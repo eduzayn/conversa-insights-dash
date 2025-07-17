@@ -76,7 +76,7 @@ const Presenca = () => {
   const [selectedTeam, setSelectedTeam] = useState('todas');
 
   // Buscar dados reais de presença
-  const { data: presenceData, isLoading: isLoadingPresence } = useQuery<PresenceData>({
+  const { data: presenceData, isLoading: isLoadingPresence, error: presenceError } = useQuery<PresenceData>({
     queryKey: ['/api/presence/dashboard'],
     enabled: !!user
   });
@@ -138,12 +138,32 @@ const Presenca = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!presenceData) {
+  if (presenceError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">Erro ao carregar dados de presença</p>
+          <p className="text-gray-400 text-sm mt-2">{presenceError?.message || 'Erro desconhecido'}</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!presenceData && !isLoadingPresence) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Nenhum dado de presença disponível</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se ainda está carregando, mostrar spinner
+  if (!presenceData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
