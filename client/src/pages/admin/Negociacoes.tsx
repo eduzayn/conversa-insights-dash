@@ -80,11 +80,6 @@ const Negociacoes: React.FC = () => {
     setRenderError(error.message);
   };
 
-  // Reset error state quando dados mudam
-  useEffect(() => {
-    setRenderError(null);
-  }, [negociacoes, expirados]);
-
   // Buscar colaboradores (usuários admin e agentes)
   const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
     queryKey: ['/api/users'],
@@ -111,6 +106,11 @@ const Negociacoes: React.FC = () => {
       return apiRequest(`/api/negociacoes-expirados?${params}`);
     }
   });
+
+  // Reset error state quando dados mudam
+  useEffect(() => {
+    setRenderError(null);
+  }, [negociacoes, expirados]);
 
   // Mutation para criar/atualizar negociação
   const negociacaoMutation = useMutation({
