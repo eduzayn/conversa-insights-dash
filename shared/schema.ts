@@ -1302,26 +1302,39 @@ export type CertificationDocument = typeof certificationDocuments.$inferSelect;
 export type InsertPreRegisteredCourse = z.infer<typeof insertPreRegisteredCourseSchema>;
 export type PreRegisteredCourse = typeof preRegisteredCourses.$inferSelect;
 
-// Schemas para negociações
-export const insertNegociacaoSchema = createInsertSchema(negociacoes).pick({
-  clienteNome: true,
-  clienteEmail: true,
-  clienteCpf: true,
-  clienteTelefone: true,
-  curso: true,
-  categoria: true,
-  dataNegociacao: true,
-  previsaoPagamento: true,
-  parcelasAtraso: true,
-  dataVencimentoMaisAntiga: true,
-  valorNegociado: true,
-  gatewayPagamento: true,
-  observacoes: true,
-  colaboradorResponsavel: true,
-  origem: true,
-  status: true,
-}).extend({
-  valorNegociado: z.union([z.string(), z.number()]).optional().nullable()
+// Schemas para negociações com validação em português
+export const insertNegociacaoSchema = z.object({
+  clienteNome: z.string({
+    required_error: "Nome do cliente é obrigatório",
+    invalid_type_error: "Nome do cliente deve ser um texto"
+  }).min(1, "Nome do cliente é obrigatório"),
+  clienteEmail: z.string().optional().nullable(),
+  clienteCpf: z.string().optional().nullable(),
+  clienteTelefone: z.string().optional().nullable(),
+  curso: z.string().optional().nullable(),
+  categoria: z.string().optional().nullable(),
+  dataNegociacao: z.string({
+    required_error: "Data da negociação é obrigatória",
+    invalid_type_error: "Data da negociação deve ser um texto"
+  }).min(1, "Data da negociação não pode estar vazia"),
+  previsaoPagamento: z.string({
+    required_error: "Previsão de pagamento é obrigatória", 
+    invalid_type_error: "Previsão de pagamento deve ser um texto"
+  }).min(1, "Previsão de pagamento não pode estar vazia"),
+  parcelasAtraso: z.number({
+    required_error: "Número de parcelas em atraso é obrigatório",
+    invalid_type_error: "Parcelas em atraso deve ser um número"
+  }).min(0, "Número de parcelas em atraso deve ser maior ou igual a zero"),
+  dataVencimentoMaisAntiga: z.string().optional().nullable(),
+  valorNegociado: z.union([z.string(), z.number()]).optional().nullable(),
+  gatewayPagamento: z.string().optional().nullable(),
+  observacoes: z.string().optional().nullable(),
+  colaboradorResponsavel: z.string({
+    required_error: "Colaborador responsável é obrigatório",
+    invalid_type_error: "Colaborador responsável deve ser um texto"
+  }).min(1, "Colaborador responsável não pode estar vazio"),
+  origem: z.string().default("certificacao"),
+  status: z.string().default("aguardando_pagamento")
 });
 
 export const insertNegociacaoExpiradoSchema = createInsertSchema(negociacoesExpirados).pick({

@@ -140,9 +140,21 @@ const Negociacoes: React.FC = () => {
       setIsSubmitting(false);
       toast({ title: "Sucesso", description: "Negociação salva com sucesso!" });
     },
-    onError: () => {
+    onError: (error: any) => {
       setIsSubmitting(false);
-      toast({ title: "Erro", description: "Erro ao salvar negociação" });
+      
+      // Extrair mensagem específica se for erro de validação
+      let errorMessage = "Erro ao salvar negociação";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({ 
+        title: "Erro", 
+        description: errorMessage,
+        variant: "destructive"
+      });
     }
   });
 
