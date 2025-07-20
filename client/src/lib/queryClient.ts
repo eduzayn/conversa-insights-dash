@@ -56,6 +56,11 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
     throw new Error(errorData.message || `Erro HTTP ${response.status}`);
   }
   
-  // Processar resposta JSON automaticamente
+  // Para status 204 (No Content), retornar objeto vazio em vez de tentar parsear JSON
+  if (response.status === 204) {
+    return {};
+  }
+  
+  // Processar resposta JSON automaticamente para outros casos
   return response.json();
 };
