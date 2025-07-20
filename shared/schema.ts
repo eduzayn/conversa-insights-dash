@@ -1320,6 +1320,8 @@ export const insertNegociacaoSchema = createInsertSchema(negociacoes).pick({
   colaboradorResponsavel: true,
   origem: true,
   status: true,
+}).extend({
+  valorNegociado: z.union([z.string(), z.number()]).optional().nullable()
 });
 
 export const insertNegociacaoExpiradoSchema = createInsertSchema(negociacoesExpirados).pick({
