@@ -208,10 +208,17 @@ const Negociacoes: React.FC = () => {
   }, [selectedNegociacao, isSubmitting, negociacaoMutation]);
 
   const deleteNegociacaoMutation = useMutation({
-    mutationFn: (id: number) => 
-      apiRequest(`/api/negociacoes/${id}`, {
-        method: 'DELETE',
-      }),
+    mutationFn: async (id: number) => {
+      try {
+        const response = await apiRequest(`/api/negociacoes/${id}`, {
+          method: 'DELETE',
+        });
+        return response;
+      } catch (error) {
+        console.error('Erro na exclusão:', error);
+        throw error;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/negociacoes'] });
       setDeleteId(null);
@@ -220,11 +227,12 @@ const Negociacoes: React.FC = () => {
         description: "Negociação excluída com sucesso!",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Erro capturado na mutação:', error);
       setDeleteId(null);
       toast({
         title: "Erro",
-        description: "Erro ao excluir negociação",
+        description: error?.message || "Erro ao excluir negociação",
         variant: "destructive",
       });
     },
