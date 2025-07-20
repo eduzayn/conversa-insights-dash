@@ -29,6 +29,16 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
     authToken = studentToken;
   }
   
+  // Garantir que a URL seja relativa ou aponte para localhost em desenvolvimento
+  let requestUrl = url;
+  if (url.startsWith('/api')) {
+    // URL já está relativa, manter como está
+    requestUrl = url;
+  } else if (url.includes('replit.app') && import.meta.env.DEV) {
+    // Em desenvolvimento, substituir URLs de produção por localhost
+    requestUrl = url.replace(/https:\/\/.*\.replit\.app/, '');
+  }
+  
   const config: RequestInit = {
     ...options,
     headers: {
@@ -38,7 +48,7 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
     },
   };
 
-  const response = await fetch(url, config);
+  const response = await fetch(requestUrl, config);
   
   // Se a resposta não for ok, lançar erro com a mensagem
   if (!response.ok) {
