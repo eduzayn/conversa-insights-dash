@@ -711,6 +711,7 @@ const Negociacoes: React.FC = () => {
                     value={selectedNegociacao.clienteNome}
                     onChange={(e) => setSelectedNegociacao({...selectedNegociacao, clienteNome: e.target.value})}
                     placeholder="Nome completo"
+                    className="form-input-responsive"
                   />
                 </div>
                 <div>

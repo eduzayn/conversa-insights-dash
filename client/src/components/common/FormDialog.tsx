@@ -54,12 +54,12 @@ export function FormDialog({
     'md': 'max-w-md',
     'lg': 'max-w-lg',
     'xl': 'max-w-xl',
-    '2xl': 'max-w-2xl'
+    '2xl': 'modal-responsive'
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={maxWidthClasses[maxWidth]}>
+      <DialogContent className={`${maxWidthClasses[maxWidth]} overflow-y-auto`}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && (

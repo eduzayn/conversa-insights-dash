@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Melhorias de responsividade para modais em diferentes zoom levels */
+@layer utilities {
+  .modal-responsive {
+    width: min(90vw, 48rem);
+    max-height: min(95vh, 45rem);
+    margin: auto;
+  }
+  
+  /* Garantir que os inputs sejam sempre legíveis */
+  .form-input-responsive {
+    font-size: max(16px, 1rem);
+    min-height: 44px;
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
