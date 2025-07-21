@@ -795,6 +795,23 @@ Changelog:
    * ✅ IntegracaoAsaas.tsx: 2 botões corrigidos (Criar Cobrança em ambas as implementações)
    * ✅ Total: 26 botões padronizados em 8 páginas administrativas
    * Status: Padronização visual COMPLETA em páginas e modais do sistema administrativo
+- Sistema Envios FAMAR Implementado (21 Jul 2025):
+   * ✅ Módulo FAMAR duplicado completamente do sistema UNICV
+   * ✅ Schema PostgreSQL: tabela envios_famar criada com mesma estrutura do UNICV
+   * ✅ Backend completo: métodos CRUD no storage.ts e rotas API em routes.ts
+   * ✅ Frontend: página EnviosFamar.tsx implementada com funcionalidade idêntica
+   * ✅ Navegação: rota /envios-famar adicionada ao App.tsx
+   * ✅ Menu: opção "Envios FAMAR" adicionada na seção Acadêmico da sidebar
+   * ✅ Integração funcional: modal puxa dados da página de certificações conforme esperado
+   * ✅ Teste confirmado: sistema funcionando após autenticação (admin/password)
+   * ✅ Sistema separado: UNICV e FAMAR operam independentemente
+   * Status: Sistema FAMAR 100% implementado e operacional
+- Correção Senha Usuário Erick Moreira (21 Jul 2025):
+   * ✅ Usuário localizado: ID 11, username "Erick Moreira Pereira"
+   * ✅ Nova senha definida: "Zayn@2025" (solicitação do usuário)
+   * ✅ Senha criptografada com bcrypt e salva no PostgreSQL
+   * ✅ Login funcional: erickmoreirap62@gmail.com / Zayn@2025
+   * Status: Senha atualizada e sistema funcionando
 ```
 
 ## User Preferences
