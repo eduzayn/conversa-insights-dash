@@ -854,6 +854,19 @@ Changelog:
    * ✅ Teste confirmado: atendimento "Aninha Moreira P" criado e editado com sucesso
    * ✅ Sistema de atendimentos 100% funcional: POST 201, PUT 200, GET 200
    * Status: Criação e edição de atendimentos operacional sem erros
+- Sistema de Atendimentos Otimizado - Campo Data e Consolidação de Equipes (21 Jul 2025):
+   * ✅ Campo "Data" implementado no modal de novo atendimento
+   * ✅ Data automática preenchida com fuso horário de São Paulo (America/Sao_Paulo)
+   * ✅ Função getCurrentDateSaoPaulo() criada para conversão correta de timezone
+   * ✅ Layout reorganizado em 3 colunas: Nome do Lead, Data, Hora
+   * ✅ Schema atendimentoSchema atualizado com validação de data obrigatória
+   * ✅ Tipos Atendimento e AtendimentoData atualizados para incluir campo data
+   * ✅ Consolidação de equipes redundantes implementada:
+     - Removidas: "Atendimento", "Suporte Técnico", "Relacionamento"
+     - Mantida: "Suporte" (única opção consolidada)
+   * ✅ Valor padrão alterado de "Atendimento" para "Suporte" em todos os lugares
+   * ✅ 9 equipes otimizadas no dropdown: Suporte, Vendas, Comercial, Cobrança, Tutoria, Secretaria Pós, Secretaria Segunda, Documentação, Análise Certificação
+   * Status: Modal otimizado com campo data automático e equipes consolidadas
 ```
 
 ## User Preferences

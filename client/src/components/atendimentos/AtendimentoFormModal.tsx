@@ -69,7 +69,7 @@ export const AtendimentoFormModal = ({
       data: getCurrentDateSaoPaulo(),
       hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       atendente: "",
-      equipe: "Atendimento",
+      equipe: "Suporte",
       duracao: "00:30",
       status: 'Pendente',
       resultado: undefined,
@@ -84,7 +84,7 @@ export const AtendimentoFormModal = ({
         data: atendimento.data || getCurrentDateSaoPaulo(),
         hora: atendimento.hora || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         atendente: atendimento.atendente || "",
-        equipe: atendimento.equipe || "Atendimento",
+        equipe: atendimento.equipe || "Suporte",
         duracao: atendimento.duracao || "00:30",
         status: atendimento.status || 'Pendente',
         resultado: atendimento.resultado || undefined,
@@ -95,7 +95,7 @@ export const AtendimentoFormModal = ({
         data: getCurrentDateSaoPaulo(),
         hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         atendente: "",
-        equipe: "Atendimento",
+        equipe: "Suporte",
         duracao: "00:30",
         status: 'Pendente',
         resultado: undefined,
@@ -202,10 +202,8 @@ export const AtendimentoFormModal = ({
                   <SelectValue placeholder="Selecione a equipe" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Atendimento">Atendimento</SelectItem>
+                  <SelectItem value="Suporte">Suporte</SelectItem>
                   <SelectItem value="Vendas">Vendas</SelectItem>
-                  <SelectItem value="Suporte Técnico">Suporte Técnico</SelectItem>
-                  <SelectItem value="Relacionamento">Relacionamento</SelectItem>
                   <SelectItem value="Comercial">Comercial</SelectItem>
                   <SelectItem value="Cobrança">Cobrança</SelectItem>
                   <SelectItem value="Tutoria">Tutoria</SelectItem>
