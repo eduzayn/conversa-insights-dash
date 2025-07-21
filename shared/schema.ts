@@ -1337,19 +1337,34 @@ export const insertNegociacaoSchema = z.object({
   status: z.string().default("aguardando_pagamento")
 });
 
-export const insertNegociacaoExpiradoSchema = createInsertSchema(negociacoesExpirados).pick({
-  clienteNome: true,
-  clienteEmail: true,
-  clienteCpf: true,
-  curso: true,
-  categoria: true,
-  dataExpiracao: true,
-  dataProposta: true,
-  propostaReativacao: true,
-  valorProposta: true,
-  statusProposta: true,
-  observacoes: true,
-  colaboradorResponsavel: true,
+export const insertNegociacaoExpiradoSchema = z.object({
+  clienteNome: z.string({
+    required_error: "Nome do cliente é obrigatório",
+    invalid_type_error: "Nome do cliente deve ser um texto"
+  }).min(1, "Nome do cliente é obrigatório"),
+  clienteEmail: z.string().optional().nullable(),
+  clienteCpf: z.string().optional().nullable(),
+  curso: z.string({
+    required_error: "Curso é obrigatório",
+    invalid_type_error: "Curso deve ser um texto"
+  }).min(1, "Curso é obrigatório"),
+  categoria: z.string({
+    required_error: "Categoria é obrigatória",
+    invalid_type_error: "Categoria deve ser um texto"
+  }).min(1, "Categoria é obrigatória"),
+  dataExpiracao: z.string({
+    required_error: "Data de expiração é obrigatória",
+    invalid_type_error: "Data de expiração deve ser um texto"
+  }).min(1, "Data de expiração não pode estar vazia"),
+  dataProposta: z.string().optional().nullable(),
+  propostaReativacao: z.string().optional().nullable(),
+  valorProposta: z.union([z.string(), z.number()]).optional().nullable(),
+  statusProposta: z.string().default("pendente"),
+  observacoes: z.string().optional().nullable(),
+  colaboradorResponsavel: z.string({
+    required_error: "Colaborador responsável é obrigatório",
+    invalid_type_error: "Colaborador responsável deve ser um texto"
+  }).min(1, "Colaborador responsável não pode estar vazio"),
 });
 
 export type InsertNegociacao = z.infer<typeof insertNegociacaoSchema>;

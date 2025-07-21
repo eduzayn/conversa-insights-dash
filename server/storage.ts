@@ -2157,10 +2157,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNegociacaoExpirado(expirado: InsertNegociacaoExpirado): Promise<NegociacaoExpirado> {
+    // Preparar dados para inserção
+    const insertData: any = { ...expirado };
+    
+    // Converter valorProposta para string se for number (para o tipo decimal do PostgreSQL)
+    if (insertData.valorProposta !== undefined && insertData.valorProposta !== null) {
+      insertData.valorProposta = insertData.valorProposta.toString();
+    }
+    
+    // Para campos do tipo 'date' no Drizzle, garantir que sejam strings no formato YYYY-MM-DD
+    if (insertData.dataExpiracao && typeof insertData.dataExpiracao === 'string') {
+      insertData.dataExpiracao = insertData.dataExpiracao.split('T')[0];
+    }
+    if (insertData.dataProposta && typeof insertData.dataProposta === 'string') {
+      insertData.dataProposta = insertData.dataProposta.split('T')[0];
+    }
+    
     const [newExpirado] = await db
       .insert(negociacoesExpirados)
       .values({
-        ...expirado,
+        ...insertData,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

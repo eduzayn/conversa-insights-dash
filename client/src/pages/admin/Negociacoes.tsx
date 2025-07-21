@@ -178,8 +178,24 @@ const Negociacoes: React.FC = () => {
       setSelectedExpirado(null);
       toast({ title: "Sucesso", description: "Expirado salvo com sucesso!" });
     },
-    onError: () => {
-      toast({ title: "Erro", description: "Erro ao salvar expirado" });
+    onError: (error: any) => {
+      // Extrair mensagem específica se for erro de validação
+      let errorMessage = "Erro ao salvar expirado";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      // Se for erro de validação com detalhes
+      if (error?.details && Array.isArray(error.details)) {
+        errorMessage = error.details.join(', ');
+      }
+      
+      toast({ 
+        title: "Erro", 
+        description: errorMessage,
+        variant: "destructive"
+      });
     }
   });
 
