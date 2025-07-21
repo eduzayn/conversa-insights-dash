@@ -461,7 +461,7 @@ const EnviosUnicv: React.FC = () => {
                     <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                       <DialogTrigger asChild>
                         <Button 
-                          className="w-full"
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
                           onClick={() => {
                             setSelectedEnvio(null);
                             setComboboxValue(''); // Limpar combobox ao criar novo
@@ -807,6 +807,7 @@ const EnviosUnicv: React.FC = () => {
                     <Button 
                       type="submit" 
                       disabled={envioMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white"
                     >
                       {envioMutation.isPending ? 'Salvando...' : 'Salvar'}
                     </Button>

@@ -407,7 +407,7 @@ const Negociacoes: React.FC = () => {
                   </div>
                 </div>
                 
-                <Button onClick={handleCreateNegociacao}>
+                <Button onClick={handleCreateNegociacao} className="bg-green-600 hover:bg-green-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Nova Negociação
                 </Button>
@@ -586,7 +586,7 @@ const Negociacoes: React.FC = () => {
                   </div>
                 </div>
                 
-                <Button onClick={handleCreateExpirado}>
+                <Button onClick={handleCreateExpirado} className="bg-green-600 hover:bg-green-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Expirado
                 </Button>

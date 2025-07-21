@@ -623,7 +623,7 @@ const CertificadosPos = () => {
         </div>
         <Button 
           onClick={() => activeTab === 'certificados' ? setIsCreateModalOpen(true) : setIsCreateTemplateModalOpen(true)} 
-          className="gap-2"
+          className="gap-2 bg-green-600 hover:bg-green-700 text-white"
         >
           <Plus className="h-4 w-4" />
           {activeTab === 'certificados' ? 'Novo Certificado' : 'Novo Modelo'}
@@ -1353,7 +1353,7 @@ const CertificadosPos = () => {
                   <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">Nenhum modelo encontrado</h3>
                   <p className="text-muted-foreground mb-4">Crie seu primeiro modelo de certificado para começar.</p>
-                  <Button onClick={() => setIsCreateTemplateModalOpen(true)}>
+                  <Button onClick={() => setIsCreateTemplateModalOpen(true)} className="bg-green-600 hover:bg-green-700 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Criar Primeiro Modelo
                   </Button>

@@ -781,6 +781,17 @@ Changelog:
    * ✅ Sistema unificado: terminologia consistente em todo o projeto
    * ✅ Zero referências órfãs: busca completa confirmou limpeza total
    * Status: Padronização "Segunda Licenciatura" 100% completa em todo o sistema
+- Padronização Visual Botões Verdes - Sistema Completo (21 Jul 2025):
+   * ✅ Certificacoes.tsx: 4 botões corrigidos (Nova Certificação, Criar, Salvar, Criar Curso)
+   * ✅ CertificadosPos.tsx: 3 botões corrigidos (Novo Certificado/Modelo, Criar Primeiro Modelo)
+   * ✅ MatrizesCurriculares.tsx: 3 botões corrigidos (Novo Curso, Nova Disciplina, Novo Professor)
+   * ✅ GerenciarTokens.tsx: 1 botão corrigido (Gerar Token)
+   * ✅ Negociacoes.tsx: 2 botões corrigidos (Nova Negociação, Novo Expirado)
+   * ✅ EnviosUnicv.tsx: 2 botões corrigidos (Novo Envio UNICV, Salvar)
+   * ✅ MatriculaSimplificada.tsx: 1 botão corrigido (Nova Matrícula)
+   * ✅ Padrão aplicado: bg-green-600 hover:bg-green-700 text-white
+   * ✅ Consistência visual: todos os botões de inclusão/criação agora são verdes
+   * Status: Padronização visual completa em todas as páginas administrativas
 ```
 
 ## User Preferences

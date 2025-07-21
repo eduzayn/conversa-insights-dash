@@ -344,7 +344,7 @@ export default function MatriculaSimplificada() {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={handleModalClose}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
               <Plus className="h-4 w-4 mr-2" />
               Nova Matrícula
             </Button>

@@ -251,7 +251,7 @@ const GerenciarTokens: React.FC = () => {
             <Button 
               onClick={handleCreateToken} 
               disabled={createTokenMutation.isPending}
-              className="bg-blue-500 hover:bg-blue-600"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
               {createTokenMutation.isPending ? "Gerando..." : "Gerar Token"}
             </Button>

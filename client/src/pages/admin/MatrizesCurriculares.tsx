@@ -1010,7 +1010,7 @@ const MatrizesCurriculares = () => {
             </div>
             <Dialog open={isCourseCreateModalOpen} onOpenChange={setIsCourseCreateModalOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white">
                   <Plus className="h-4 w-4" />
                   Novo Curso
                 </Button>
@@ -1237,7 +1237,7 @@ const MatrizesCurriculares = () => {
             </div>
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white">
                   <Plus className="h-4 w-4" />
                   Nova Disciplina
                 </Button>
@@ -1507,7 +1507,7 @@ const MatrizesCurriculares = () => {
             </div>
             <Dialog open={isProfessorCreateModalOpen} onOpenChange={setIsProfessorCreateModalOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white">
                   <Plus className="h-4 w-4" />
                   Novo Professor
                 </Button>
