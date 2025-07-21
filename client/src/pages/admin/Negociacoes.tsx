@@ -676,7 +676,7 @@ const Negociacoes: React.FC = () => {
                               {getStatusBadge(expirado.statusProposta)}
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Curso:</span>
                                 <div className="font-medium">{expirado.curso}</div>
@@ -701,6 +701,15 @@ const Negociacoes: React.FC = () => {
                                 </div>
                               </div>
                               <div>
+                                <span className="text-gray-500">Valor da Proposta:</span>
+                                <div className="font-medium text-green-600">
+                                  {expirado.valorProposta && !isNaN(Number(expirado.valorProposta)) 
+                                    ? `R$ ${Number(expirado.valorProposta).toFixed(2).replace('.', ',')}` 
+                                    : 'Não informado'
+                                  }
+                                </div>
+                              </div>
+                              <div>
                                 <span className="text-gray-500">Responsável:</span>
                                 <div className="font-medium">{expirado.colaboradorResponsavel}</div>
                               </div>
@@ -709,9 +718,6 @@ const Negociacoes: React.FC = () => {
                             {expirado.propostaReativacao && (
                               <div className="mt-3 text-sm text-gray-600">
                                 <strong>Proposta:</strong> {expirado.propostaReativacao}
-                                {expirado.valorProposta && !isNaN(Number(expirado.valorProposta)) && (
-                                  <span className="ml-2 font-semibold">R$ {Number(expirado.valorProposta).toFixed(2)}</span>
-                                )}
                               </div>
                             )}
                           </div>
