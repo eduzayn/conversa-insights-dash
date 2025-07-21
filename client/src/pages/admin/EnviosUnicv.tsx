@@ -806,7 +806,7 @@ const EnviosUnicv: React.FC = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="segunda_graduacao">Segunda Licenciatura</SelectItem>
                           <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
                           <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                           <SelectItem value="formacao_livre">Formação Livre</SelectItem>
