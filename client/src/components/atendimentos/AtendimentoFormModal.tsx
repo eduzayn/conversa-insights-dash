@@ -10,8 +10,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Atendimento } from "@/types/atendimento";
 
+// Função para obter data atual no fuso de São Paulo
+const getCurrentDateSaoPaulo = () => {
+  return new Date().toLocaleDateString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).split('/').reverse().join('-'); // Converte para formato YYYY-MM-DD
+};
+
 const atendimentoSchema = z.object({
   lead: z.string().min(1, "Nome do lead é obrigatório"),
+  data: z.string().min(1, "Data é obrigatória"),
   hora: z.string().min(1, "Hora é obrigatória"),
   atendente: z.string().min(1, "Atendente é obrigatório"),
   equipe: z.string().min(1, "Equipe é obrigatória"),
@@ -55,6 +66,7 @@ export const AtendimentoFormModal = ({
     resolver: zodResolver(atendimentoSchema),
     defaultValues: {
       lead: "",
+      data: getCurrentDateSaoPaulo(),
       hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       atendente: "",
       equipe: "Atendimento",
@@ -69,6 +81,7 @@ export const AtendimentoFormModal = ({
     if (atendimento) {
       form.reset({
         lead: atendimento.lead || "",
+        data: atendimento.data || getCurrentDateSaoPaulo(),
         hora: atendimento.hora || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         atendente: atendimento.atendente || "",
         equipe: atendimento.equipe || "Atendimento",
@@ -79,6 +92,7 @@ export const AtendimentoFormModal = ({
     } else {
       form.reset({
         lead: "",
+        data: getCurrentDateSaoPaulo(),
         hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         atendente: "",
         equipe: "Atendimento",
@@ -117,7 +131,7 @@ export const AtendimentoFormModal = ({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="lead">Nome do Lead *</Label>
               <Input
@@ -127,6 +141,18 @@ export const AtendimentoFormModal = ({
               />
               {form.formState.errors.lead && (
                 <p className="text-sm text-red-600">{form.formState.errors.lead.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="data">Data *</Label>
+              <Input
+                id="data"
+                type="date"
+                {...form.register("data")}
+              />
+              {form.formState.errors.data && (
+                <p className="text-sm text-red-600">{form.formState.errors.data.message}</p>
               )}
             </div>
 

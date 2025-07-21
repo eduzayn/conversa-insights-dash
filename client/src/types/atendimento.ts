@@ -2,6 +2,7 @@
 export interface Atendimento {
   id: number;
   lead: string;
+  data: string;
   hora: string;
   atendente: string;
   equipe: string;
@@ -23,6 +24,7 @@ export interface AtendimentosFilters {
 export interface AtendimentoData {
   id: string;
   lead: string;
+  data: string;
   hora: string;
   atendente: string;
   equipe: string;
