@@ -4,14 +4,14 @@ import { MetricCard } from "@/components/MetricCard";
 import { AttendanceChart } from "@/components/charts/AttendanceChart";
 import { ProductivityChart } from "@/components/charts/ProductivityChart";
 import { TeamChart } from "@/components/charts/TeamChart";
-import { Users, MessageSquare, Clock, TrendingUp } from "lucide-react";
+import { Users, MessageSquare, FileText, TrendingUp } from "lucide-react";
 
 export const Dashboard = () => {
   // Mock data - replace with real data from API
   const metrics = {
     totalAttendances: 1247,
     activeAgents: 12,
-    avgResponseTime: "2m 15s",
+    pendingCertifications: 534,
     completionRate: "94%"
   };
 
@@ -34,11 +34,11 @@ export const Dashboard = () => {
           trendUp={true}
         />
         <MetricCard
-          title="Tempo Médio de Resposta"
-          value={metrics.avgResponseTime}
-          icon={Clock}
-          trend="-8%"
-          trendUp={true}
+          title="Certificações Pendentes"
+          value={metrics.pendingCertifications.toString()}
+          icon={FileText}
+          trend="-15"
+          trendUp={false}
         />
         <MetricCard
           title="Taxa de Conclusão"
