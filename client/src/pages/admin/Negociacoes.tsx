@@ -184,7 +184,9 @@ const Negociacoes: React.FC = () => {
   });
 
   const handleCreateNegociacao = useCallback(() => {
-    const hoje = new Date().toISOString().split('T')[0];
+    // Obter data local no formato YYYY-MM-DD (não UTC)
+    const agora = new Date();
+    const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     setSelectedNegociacao({
       clienteNome: '',
       dataNegociacao: hoje,
