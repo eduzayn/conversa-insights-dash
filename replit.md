@@ -841,6 +841,16 @@ Changelog:
    * ✅ Mantida compatibilidade com zoom 67% e outras configurações
    * ✅ Sistema DOM multicamada preservado (ErrorBoundary, domErrorHandler, cacheCleanup)
    * Status: Responsividade completa implementada, todos os modais funcionando perfeitamente
+- Correção Crítica: Sistema de Criação de Atendimentos Corrigido (21 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro "storage.getLeadByPhone is not a function" que impedia criação de atendimentos
+   * ✅ Função inexistente getLeadByPhone() removida do código
+   * ✅ Sistema simplificado: createLead() direta sem verificação prévia
+   * ✅ Campos inválidos removidos do InsertLead e InsertConversation
+   * ✅ Atualização direta no banco implementada via SQL para campos específicos
+   * ✅ Import da tabela conversations adicionado às dependências
+   * ✅ Teste confirmado: atendimento "Aninha Moreira P" criado e editado com sucesso
+   * ✅ Sistema de atendimentos 100% funcional: POST 201, PUT 200, GET 200
+   * Status: Criação e edição de atendimentos operacional sem erros
 ```
 
 ## User Preferences
