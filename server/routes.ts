@@ -2990,7 +2990,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Rotas para Certificações
-  app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {
+  app.get("/api/certificacoes", noCacheMiddleware, authenticateToken, async (req: any, res) => {
     try {
       const { 
         modalidade, 

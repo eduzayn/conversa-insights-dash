@@ -77,6 +77,16 @@ export default function Certificacoes() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  // Função para forçar limpeza total do cache (para conexões lentas)
+  const forceRefreshPage = () => {
+    // Limpar todos os caches
+    queryClient.clear();
+    setDuplicatesCache({});
+    
+    // Forçar recarregamento completo da página
+    window.location.reload();
+  };
+
   // Função para calcular similaridade entre strings usando Levenshtein Distance
   const calculateSimilarity = (str1: string, str2: string): number => {
     const s1 = str1.toLowerCase().trim();
@@ -290,13 +300,15 @@ export default function Certificacoes() {
       dataFim,
       search: searchTerm,
       page: currentPage,
-      limit: pageSize
+      limit: pageSize,
+      _t: Date.now() // Timestamp para forçar bypass do cache
     }],
     queryFn: async () => {
       const params = new URLSearchParams({
         categoria: getCategoriaFromTab(activeTab),
         page: currentPage.toString(),
-        limit: pageSize.toString()
+        limit: pageSize.toString(),
+        _bust: Date.now().toString() // Cache busting timestamp
       });
       
       // REMOVIDO: Filtro automático por modalidade da aba (agora modalidade = formato de entrega)
@@ -319,14 +331,41 @@ export default function Certificacoes() {
         }
       }
       
-      const response = await apiRequest(`/api/certificacoes?${params}`);
-      return response;
+      // Headers adicionais para forçar bypass do cache
+      const response = await fetch(`/api/certificacoes?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'If-None-Match': '*' // Força bypass do ETag
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+      
+      return response.json();
     }
   });
 
-  // Resetar página quando filtros mudarem
+  // Resetar página quando filtros mudarem e limpar cache
   useEffect(() => {
     setCurrentPage(1);
+    
+    // Limpar cache da query de certificações quando muda de aba ou filtro
+    queryClient.removeQueries({ 
+      queryKey: ['/api/certificacoes'],
+      exact: false 
+    });
+    
+    // Forçar revalidação
+    queryClient.invalidateQueries({ 
+      queryKey: ['/api/certificacoes'],
+      exact: false 
+    });
   }, [activeTab, filterStatus, filterModalidade, filterPeriodo, searchTerm]);
 
   const certifications = certificationsData?.data || [];
@@ -651,14 +690,30 @@ export default function Certificacoes() {
                 </div>
               </div>
               
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Certificação
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={forceRefreshPage}
+                  className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                  title="Use se a página não carregar corretamente (problemas de cache)"
+                >
+                  🔄 Limpar Cache
+                </Button>
+                
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => setIsCreateDialogOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Certificação
+                </Button>
+              </div>
+            </div>
+                
+            {/* Dialog Nova Certificação */}
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Nova Certificação</DialogTitle>
                     <DialogDescription>
@@ -1397,6 +1452,8 @@ export default function Certificacoes() {
           </div>
         </main>
       </div>
+      
+      {/* Dialogs movidos para fora da estrutura principal */}
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -1724,12 +1781,83 @@ export default function Certificacoes() {
                 />
               </div>
               </div>
+            
+            <DialogFooter className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setSelectedCertification(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateCertification} className="bg-green-600 hover:bg-green-700 text-white">
+                Salvar
+              </Button>
+            </DialogFooter>
             </>
           )}
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setSelectedCertification(null)}>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal para criar novo curso */}
+      <Dialog open={isNewCourseDialogOpen} onOpenChange={setIsNewCourseDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Curso</DialogTitle>
+            <DialogDescription>
+              Cadastre um novo curso no sistema
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-course-name">Nome do Curso *</Label>
+              <Input
+                id="new-course-name"
+                value={newCourseData.nome}
+                onChange={(e) => setNewCourseData({ ...newCourseData, nome: e.target.value })}
+                placeholder="Ex: Licenciatura em História"
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-course-hours">Carga Horária (em horas) *</Label>
+              <Input
+                id="new-course-hours"
+                type="number"
+                value={newCourseData.cargaHoraria}
+                onChange={(e) => setNewCourseData({ ...newCourseData, cargaHoraria: e.target.value })}
+                placeholder="Ex: 1320"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewCourseDialogOpen(false)}>
               Cancelar
             </Button>
+            <Button onClick={handleCreateNewCourse} disabled={createCourseMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
+              {createCourseMutation.isPending ? 'Criando...' : 'Criar Curso'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AlertDialog para confirmação de exclusão */}
+      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta certificação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+export default Certificacoes;
             <Button onClick={() => selectedCertification && handleUpdateCertification(selectedCertification)} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
               {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
             </Button>
