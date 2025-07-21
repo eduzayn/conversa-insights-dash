@@ -27,7 +27,7 @@ interface Negociacao {
   categoria?: string;
   dataNegociacao: string;
   previsaoPagamento: string;
-  parcelasAtraso: number;
+  parcelasAtraso: number | string;
   dataVencimentoMaisAntiga: string;
   valorNegociado?: number;
   gatewayPagamento?: string;
@@ -208,7 +208,7 @@ const Negociacoes: React.FC = () => {
       clienteNome: '',
       dataNegociacao: hoje,
       previsaoPagamento: '',
-      parcelasAtraso: 0,
+      parcelasAtraso: '',
       dataVencimentoMaisAntiga: '',
       gatewayPagamento: '',
       observacoes: '',
@@ -826,7 +826,7 @@ const Negociacoes: React.FC = () => {
                     type="number"
                     min="0"
                     value={selectedNegociacao.parcelasAtraso}
-                    onChange={(e) => setSelectedNegociacao({...selectedNegociacao, parcelasAtraso: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setSelectedNegociacao({...selectedNegociacao, parcelasAtraso: e.target.value === '' ? '' : parseInt(e.target.value) || 0})}
                   />
                 </div>
                 <div>
