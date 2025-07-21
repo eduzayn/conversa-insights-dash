@@ -623,7 +623,11 @@ const EnviosUnicv: React.FC = () => {
                       <Input
                         name="dataEnvio"
                         type="date"
-                        defaultValue={selectedEnvio?.dataEnvio || new Date().toISOString().split('T')[0]}
+                        defaultValue={selectedEnvio?.dataEnvio || (() => {
+                          // Obter data local no formato YYYY-MM-DD (não UTC)
+                          const agora = new Date();
+                          return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                        })()}
                       />
                     </div>
 
