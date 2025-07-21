@@ -160,9 +160,50 @@ const Negociacoes: React.FC = () => {
     }
   });
 
+  // Função para validar data prevista de pagamento
+  const validateDataPrevisaPagamento = (data: Expirado): boolean => {
+    if (!data.dataPrevisaPagamento) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Data prevista de pagamento é obrigatória",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const inputDate = new Date(data.dataPrevisaPagamento + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (isNaN(inputDate.getTime())) {
+      toast({
+        title: "Data inválida",
+        description: "Por favor, insira uma data válida para a previsão de pagamento",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (inputDate < today) {
+      toast({
+        title: "Data inválida",
+        description: "A data prevista de pagamento não pode ser anterior à data atual",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   // Mutation para criar/atualizar expirado
   const expiradoMutation = useMutation({
     mutationFn: async (data: Expirado) => {
+      // Validar antes de enviar
+      if (!validateDataPrevisaPagamento(data)) {
+        throw new Error("Validação de data falhou");
+      }
+
       if (data.id) {
         return apiRequest(`/api/negociacoes-expirados/${data.id}`, {
           method: 'PUT',
@@ -1051,7 +1092,36 @@ const Negociacoes: React.FC = () => {
                     id="dataPrevisaPagamento"
                     type="date"
                     value={selectedExpirado.dataPrevisaPagamento || ''}
-                    onChange={(e) => setSelectedExpirado({...selectedExpirado, dataPrevisaPagamento: e.target.value})}
+                    onChange={(e) => {
+                      const newDate = e.target.value;
+                      
+                      // Validar se a data é válida e não está no passado
+                      if (newDate) {
+                        const inputDate = new Date(newDate + 'T00:00:00');
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        if (isNaN(inputDate.getTime())) {
+                          toast({
+                            title: "Data inválida",
+                            description: "Por favor, insira uma data válida",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        
+                        if (inputDate < today) {
+                          toast({
+                            title: "Data inválida",
+                            description: "A data prevista de pagamento não pode ser anterior à data atual",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                      }
+                      
+                      setSelectedExpirado({...selectedExpirado, dataPrevisaPagamento: newDate});
+                    }}
                     min={new Date().toISOString().split('T')[0]}
                     className="cursor-pointer"
                     tabIndex={0}
