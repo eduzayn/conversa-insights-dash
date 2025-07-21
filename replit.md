@@ -761,6 +761,16 @@ Changelog:
    * ✅ Logs de produção mais limpos e profissionais
    * ✅ Manutenção de logs críticos de erro em produção (sem informações sensíveis)
    * Status: Sistema de logging otimizado para produção, sem poluição de logs
+- Remoção Definitiva do Campo Subcategoria (21 Jul 2025):
+   * ✅ Campo `subcategoria` removido permanentemente da tabela certifications via SQL
+   * ✅ Schema shared/schema.ts atualizado: linha subcategoria eliminada
+   * ✅ Frontend client/Certificacoes.tsx limpo: SUBCATEGORIA_LABELS removido
+   * ✅ Arquivos de importação temporários deletados: import_*.ts, process_pdf_data.ts
+   * ✅ Estrutura unificada: 817 registros organizados apenas por categoria única
+   * ✅ Distribuição final: segunda_licenciatura (336), pos_graduacao (265), formacao_pedagogica (123), formacao_livre (74), diplomacao_competencia (16), capacitacao (2), sequencial (1)
+   * ✅ Sistema simplificado: redundância de 98% eliminada, conflitos de dados resolvidos
+   * ✅ Performance otimizada: queries mais simples, sem joins desnecessários
+   * Status: Campo subcategoria completamente eliminado, sistema unificado e funcionando
 ```
 
 ## User Preferences

@@ -38,11 +38,7 @@ const STATUS_LABELS = {
   'em_atraso': 'Em Atraso'
 };
 
-const SUBCATEGORIA_LABELS = {
-  'segunda_licenciatura': 'Segunda Licenciatura',
-  'formacao_pedagogica': 'Formação Pedagógica',
-  'pedagogia_bachareis': 'Pedagogia para Bacharéis e Tecnólogos'
-};
+
 
 const ACADEMIC_STATUS_LABELS = {
   'nao_possui': 'Não Possui',
