@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Atendimento } from "@/types/atendimento";
 
@@ -30,6 +31,7 @@ const atendimentoSchema = z.object({
   status: z.enum(['Concluído', 'Em andamento', 'Pendente']),
   resultado: z.enum(['venda_ganha', 'venda_perdida', 'aluno_satisfeito', 'sem_solucao', 'resolvido']).optional(),
   assunto: z.string().min(1, "Assunto é obrigatório"),
+  observacoes: z.string().optional(),
 });
 
 type AtendimentoFormData = z.infer<typeof atendimentoSchema>;
@@ -91,6 +93,7 @@ export const AtendimentoFormModal = ({
         status: atendimento.status || 'Pendente',
         resultado: atendimento.resultado || undefined,
         assunto: atendimento.assunto || "",
+        observacoes: atendimento.observacoes || "",
       });
     } else {
       form.reset({
@@ -103,6 +106,7 @@ export const AtendimentoFormModal = ({
         status: 'Pendente',
         resultado: undefined,
         assunto: "",
+        observacoes: "",
       });
     }
   }, [atendimento, form]);
@@ -337,6 +341,20 @@ export const AtendimentoFormModal = ({
                 <SelectItem value="resolvido">Resolvido</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="observacoes">Observações</Label>
+            <Textarea
+              id="observacoes"
+              {...form.register("observacoes")}
+              placeholder="Digite observações importantes sobre este atendimento (opcional)"
+              rows={3}
+              className="resize-none"
+            />
+            {form.formState.errors.observacoes && (
+              <p className="text-sm text-red-600">{form.formState.errors.observacoes.message}</p>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

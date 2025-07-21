@@ -138,6 +138,7 @@ export const conversations = pgTable("conversations", {
   equipe: text("equipe"), // Equipe responsável
   duracao: text("duracao"), // Duração do atendimento
   assunto: text("assunto"), // Assunto do atendimento
+  observacoes: text("observacoes"), // Observações importantes do atendente
   lastMessageAt: timestamp("last_message_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

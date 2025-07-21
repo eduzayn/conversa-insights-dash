@@ -120,6 +120,7 @@ export const AtendimentosTable = ({
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Duração</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Resultado CRM</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Observações</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Ações</th>
                 </tr>
               </thead>
@@ -159,6 +160,18 @@ export const AtendimentosTable = ({
                         </Badge>
                       ) : (
                         <span className="text-gray-400 text-sm">Não classificado</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 max-w-xs">
+                      {item.observacoes ? (
+                        <span 
+                          className="text-sm text-gray-700 block truncate" 
+                          title={item.observacoes}
+                        >
+                          {item.observacoes}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 italic text-sm">Sem observações</span>
                       )}
                     </td>
                     <td className="py-3 px-4">

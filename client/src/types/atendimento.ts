@@ -10,6 +10,7 @@ export interface Atendimento {
   status: 'Concluído' | 'Em andamento' | 'Pendente';
   resultado?: 'venda_ganha' | 'venda_perdida' | 'aluno_satisfeito' | 'sem_solucao' | 'resolvido';
   assunto?: string;
+  observacoes?: string;
 }
 
 export interface AtendimentosFilters {
@@ -32,4 +33,5 @@ export interface AtendimentoData {
   duracao: string;
   status: 'Concluído' | 'Em andamento' | 'Pendente';
   assunto?: string;
+  observacoes?: string;
 }
