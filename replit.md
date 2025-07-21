@@ -829,6 +829,18 @@ Changelog:
    * ✅ Senha criptografada com bcrypt e salva no PostgreSQL
    * ✅ Login funcional: erickmoreirap62@gmail.com / Zayn@2025
    * Status: Senha atualizada e sistema funcionando
+- Correção Crítica: Responsividade de Modais em Zoom 100% (21 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Modais só funcionavam em zoom 67%, não no padrão 100%
+   * ✅ DialogContent base modificado: max-w-lg → max-w-2xl com overflow-y otimizado
+   * ✅ FormDialog atualizado: nova classe modal-responsive (max-w-4xl, w-90vw, max-h-95vh)
+   * ✅ Classes CSS específicas criadas para diferentes zoom levels:
+     - .modal-responsive: width min(90vw, 48rem), max-height min(95vh, 45rem)
+     - .form-input-responsive: font-size max(16px, 1rem), min-height 44px
+   * ✅ Aplicado nos modais de Negociações e Expirados com maxWidth="2xl"
+   * ✅ Sistema testado e aprovado: modais completamente visíveis e utilizáveis em zoom 100%
+   * ✅ Mantida compatibilidade com zoom 67% e outras configurações
+   * ✅ Sistema DOM multicamada preservado (ErrorBoundary, domErrorHandler, cacheCleanup)
+   * Status: Responsividade completa implementada, todos os modais funcionando perfeitamente
 ```
 
 ## User Preferences
