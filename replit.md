@@ -866,7 +866,10 @@ Changelog:
      - Mantida: "Suporte" (única opção consolidada)
    * ✅ Valor padrão alterado de "Atendimento" para "Suporte" em todos os lugares
    * ✅ 9 equipes otimizadas no dropdown: Suporte, Vendas, Comercial, Cobrança, Tutoria, Secretaria Pós, Secretaria Segunda, Documentação, Análise Certificação
-   * Status: Modal otimizado com campo data automático e equipes consolidadas
+   * ✅ Modal expandido: largura aumentada de 600px para 800px para melhor usabilidade
+   * ✅ Campo "Nome do Lead" expandido: ocupa 2/3 da largura (col-span-2) para nomes longos
+   * ✅ Campos Data e Hora agrupados: layout otimizado com label único "Data e Hora"
+   * Status: Modal otimizado com campo data automático, equipes consolidadas e UI expandida
 ```
 
 ## User Preferences

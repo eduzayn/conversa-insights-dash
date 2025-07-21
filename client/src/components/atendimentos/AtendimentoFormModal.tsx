@@ -122,7 +122,7 @@ export const AtendimentoFormModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -132,7 +132,7 @@ export const AtendimentoFormModal = ({
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
+            <div className="col-span-2 space-y-2">
               <Label htmlFor="lead">Nome do Lead *</Label>
               <Input
                 id="lead"
@@ -145,27 +145,29 @@ export const AtendimentoFormModal = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="data">Data *</Label>
-              <Input
-                id="data"
-                type="date"
-                {...form.register("data")}
-              />
-              {form.formState.errors.data && (
-                <p className="text-sm text-red-600">{form.formState.errors.data.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hora">Hora *</Label>
-              <Input
-                id="hora"
-                type="time"
-                {...form.register("hora")}
-              />
-              {form.formState.errors.hora && (
-                <p className="text-sm text-red-600">{form.formState.errors.hora.message}</p>
-              )}
+              <Label>Data e Hora *</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Input
+                    id="data"
+                    type="date"
+                    {...form.register("data")}
+                  />
+                  {form.formState.errors.data && (
+                    <p className="text-sm text-red-600">{form.formState.errors.data.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Input
+                    id="hora"
+                    type="time"
+                    {...form.register("hora")}
+                  />
+                  {form.formState.errors.hora && (
+                    <p className="text-sm text-red-600">{form.formState.errors.hora.message}</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
