@@ -4463,8 +4463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Negociações Expirados
   app.get("/api/negociacoes-expirados", authenticateToken, async (req: any, res) => {
     try {
-      const { search } = req.query;
-      const expirados = await storage.getNegociacoesExpirados({ search });
+      const { search, status, dataInicio, dataFim } = req.query;
+      const expirados = await storage.getNegociacoesExpirados({ search, status, dataInicio, dataFim });
       res.json(expirados);
     } catch (error) {
       logger.error("Erro ao buscar negociações expirados:", error);

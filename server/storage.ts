@@ -2145,7 +2145,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Métodos para Negociações Expirados
-  async getNegociacoesExpirados(filters?: { search?: string }): Promise<NegociacaoExpirado[]> {
+  async getNegociacoesExpirados(filters?: { search?: string; status?: string; dataInicio?: string; dataFim?: string }): Promise<NegociacaoExpirado[]> {
     const conditions = [];
     
     if (filters?.search) {
@@ -2155,6 +2155,18 @@ export class DatabaseStorage implements IStorage {
           ilike(negociacoesExpirados.curso, `%${filters.search}%`)
         )
       );
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(negociacoesExpirados.statusProposta, filters.status));
+    }
+    
+    if (filters?.dataInicio) {
+      conditions.push(gte(negociacoesExpirados.dataExpiracao, filters.dataInicio));
+    }
+    
+    if (filters?.dataFim) {
+      conditions.push(lte(negociacoesExpirados.dataExpiracao, filters.dataFim));
     }
     
     if (conditions.length > 0) {

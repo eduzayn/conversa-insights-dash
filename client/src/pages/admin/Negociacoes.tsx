@@ -123,10 +123,13 @@ const Negociacoes: React.FC = () => {
 
   // Buscar expirados
   const { data: expirados = [], isLoading: loadingExpirados } = useQuery({
-    queryKey: ['/api/negociacoes-expirados', { search: searchTerm }],
+    queryKey: ['/api/negociacoes-expirados', { search: searchTerm, status: statusFilter, dataInicio, dataFim }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (dataInicio) params.append('dataInicio', dataInicio);
+      if (dataFim) params.append('dataFim', dataFim);
       return apiRequest(`/api/negociacoes-expirados?${params}`);
     }
   });
@@ -523,17 +526,74 @@ const Negociacoes: React.FC = () => {
 
             {/* Aba Expirados */}
             <TabsContent value="expirados" className="space-y-6">
-              <div className="flex justify-between items-center">
-                <Input
-                  placeholder="Buscar por nome ou curso..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-64"
-                />
-                <Button onClick={handleCreateExpirado}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Expirado
-                </Button>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <Input
+                    placeholder="Buscar por nome ou curso..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-64"
+                  />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="pendente">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          Pendente
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="enviada">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          Enviada
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="aceita">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Aceita
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="rejeitada">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Rejeitada
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Filtros de período */}
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-gray-600">Período:</Label>
+                    <Input
+                      type="date"
+                      placeholder="Data início"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="w-40"
+                    />
+                    <span className="text-gray-400">até</span>
+                    <Input
+                      type="date"
+                      placeholder="Data fim"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleCreateExpirado}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Expirado
+                  </Button>
+                </div>
               </div>
 
               <div className="grid gap-4">
