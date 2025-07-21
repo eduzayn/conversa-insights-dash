@@ -8,7 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { ForceRefreshButton } from "@/components/ForceRefreshButton";
+
 import Index from "./pages/admin/Index";
 import Login from "./pages/admin/Login";
 import Atendimentos from "./pages/admin/Atendimentos";
@@ -88,7 +88,6 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />
-          <ForceRefreshButton />
         </AuthProvider>
       </BrowserRouter>
       </ErrorBoundary>
