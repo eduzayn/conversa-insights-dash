@@ -9,11 +9,16 @@ import { AtendimentosHeader } from "@/components/atendimentos/AtendimentosHeader
 import { AtendimentosFilters } from "@/components/atendimentos/AtendimentosFilters";
 import { AtendimentosTable } from "@/components/atendimentos/AtendimentosTable";
 import { AtendimentoFormModal } from "@/components/atendimentos/AtendimentoFormModal";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
 const Atendimentos = () => {
   const { user, loading } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingAtendimento, setEditingAtendimento] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string | null }>({
+    isOpen: false,
+    id: null
+  });
   
   const {
     atendimentos,
@@ -65,9 +70,18 @@ const Atendimentos = () => {
   };
 
   const handleDeleteAtendimento = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este atendimento?')) {
-      deleteAtendimento(id);
+    setDeleteConfirm({ isOpen: true, id });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirm.id) {
+      deleteAtendimento(deleteConfirm.id);
+      setDeleteConfirm({ isOpen: false, id: null });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ isOpen: false, id: null });
   };
 
   const handleCloseModal = () => {
@@ -121,6 +135,16 @@ const Atendimentos = () => {
         atendimento={editingAtendimento}
         onSubmit={editingAtendimento ? updateAtendimento : createAtendimento}
         title={editingAtendimento ? 'Editar Atendimento' : 'Novo Atendimento'}
+      />
+
+      {/* Diálogo de Confirmação de Exclusão */}
+      <DeleteConfirmDialog
+        open={deleteConfirm.isOpen}
+        onOpenChange={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Confirmar exclusão do atendimento"
+        description="Tem certeza que deseja excluir este atendimento? Esta ação não pode ser desfeita."
+        entityName="atendimento"
       />
     </div>
   );

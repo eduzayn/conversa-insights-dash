@@ -7,7 +7,7 @@ import { storage } from "./storage";
 import { logger } from "./utils/logger";
 import { sql, eq, inArray } from "drizzle-orm";
 import { db } from "./db";
-import { users, conversations } from "@shared/schema"; 
+import { users, conversations, attendanceMessages, internalNotes } from "@shared/schema"; 
 import { 
   insertUserSchema, 
   insertRegistrationTokenSchema, 
@@ -1748,26 +1748,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
 
-      // Verificar se a conversa existe
-      const conversation = await storage.getConversation(parseInt(id));
-      if (!conversation) {
+      // Verificar se a conversa existe primeiro
+      const existingConversations = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, parseInt(id)));
+
+      if (existingConversations.length === 0) {
         return res.status(404).json({ message: "Atendimento não encontrado" });
       }
 
       // Excluir mensagens relacionadas primeiro
-      const messages = await storage.getConversationMessages(parseInt(id));
-      for (const message of messages) {
-        await storage.deleteAttendanceMessage(message.id);
-      }
+      await db
+        .delete(attendanceMessages)
+        .where(eq(attendanceMessages.conversationId, parseInt(id)));
 
       // Excluir notas internas relacionadas
-      const notes = await storage.getConversationNotes(parseInt(id));
-      for (const note of notes) {
-        await storage.deleteInternalNote(note.id);
-      }
+      await db
+        .delete(internalNotes)
+        .where(eq(internalNotes.conversationId, parseInt(id)));
 
       // Excluir a conversa
-      await storage.deleteConversation(parseInt(id));
+      await db
+        .delete(conversations)
+        .where(eq(conversations.id, parseInt(id)));
 
       res.json({ message: "Atendimento excluído com sucesso" });
     } catch (error) {

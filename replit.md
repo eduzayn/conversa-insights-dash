@@ -854,6 +854,18 @@ Changelog:
    * ✅ Teste confirmado: atendimento "Aninha Moreira P" criado e editado com sucesso
    * ✅ Sistema de atendimentos 100% funcional: POST 201, PUT 200, GET 200
    * Status: Criação e edição de atendimentos operacional sem erros
+- Correção Crítica: Sistema de Exclusão de Atendimentos e Diálogo de Confirmação (21 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro "storage.getConversation is not a function" na exclusão de atendimentos
+   * ✅ Função inexistente substituída por SQL direto usando Drizzle ORM
+   * ✅ Exclusão em cascata implementada: mensagens → notas internas → conversa
+   * ✅ Verificação de existência prévia antes da exclusão para evitar erros 404
+   * ✅ Imports das tabelas necessárias adicionados (attendanceMessages, internalNotes)
+   * ✅ Diálogo de confirmação melhorado: substituído window.confirm por DeleteConfirmDialog
+   * ✅ Interface padronizada seguindo design system do projeto
+   * ✅ Estado de loading implementado durante exclusão
+   * ✅ Sistema de cancelamento e confirmação com botões estilizados
+   * ✅ API DELETE /api/atendimentos/:id totalmente funcional
+   * Status: Exclusão de atendimentos funcionando corretamente com interface profissional
 - Sistema de Atendimentos Otimizado - Campo Data e Consolidação de Equipes (21 Jul 2025):
    * ✅ Campo "Data" implementado no modal de novo atendimento
    * ✅ Data automática preenchida com fuso horário de São Paulo (America/Sao_Paulo)
