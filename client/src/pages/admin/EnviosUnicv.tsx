@@ -53,6 +53,13 @@ const EnviosUnicv: React.FC = () => {
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [comboboxValue, setComboboxValue] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isNovoAlunoModalOpen, setIsNovoAlunoModalOpen] = useState(false);
+  const [novoAlunoData, setNovoAlunoData] = useState({
+    aluno: '',
+    cpf: '',
+    curso: '',
+    categoria: 'segunda_graduacao' as string
+  });
 
   const queryClient = useQueryClient();
 
@@ -180,6 +187,43 @@ const EnviosUnicv: React.FC = () => {
       // Atualizar lista para refletir estado atual
       queryClient.invalidateQueries({ 
         predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+      });
+    }
+  });
+
+  // Mutation para criar nova certificação
+  const novaCertificacaoMutation = useMutation({
+    mutationFn: async (data: typeof novoAlunoData) => {
+      return apiRequest('/api/certificacoes', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: (newCertificacao) => {
+      // Atualizar lista de certificações
+      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
+      
+      // Selecionar automaticamente a nova certificação
+      setComboboxValue(newCertificacao.id.toString());
+      
+      // Fechar modal e limpar dados
+      setIsNovoAlunoModalOpen(false);
+      setNovoAlunoData({
+        aluno: '',
+        cpf: '',
+        curso: '',
+        categoria: 'segunda_graduacao'
+      });
+      
+      toast({ title: "Sucesso", description: "Novo aluno adicionado com sucesso!" });
+    },
+    onError: (error: any) => {
+      console.error('Erro ao criar certificação:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Erro ao adicionar novo aluno";
+      toast({ 
+        title: "Erro", 
+        description: errorMessage, 
+        variant: "destructive" 
       });
     }
   });
@@ -487,81 +531,95 @@ const EnviosUnicv: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Label htmlFor="certificationId">Aluno (Certificação)</Label>
-                      <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={comboboxOpen}
-                            className="w-full justify-between"
-                          >
-                            {comboboxValue
-                              ? (allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)
-                                ? `${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
-                                : "Selecione um aluno..."
-                              : "Selecione um aluno..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput 
-                              placeholder="Buscar aluno por nome, CPF ou curso..." 
-                              className="h-9"
-                            />
-                            <CommandList className="max-h-60">
-                              <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
-                              <CommandGroup>
-                                {(allCertificacoes || []).filter(cert => cert && cert.id && cert.aluno && cert.cpf && cert.curso).map((cert: Certificacao) => (
-                                  <CommandItem
-                                    key={cert.id}
-                                    value={`${cert.aluno} ${cert.cpf} ${cert.curso}`}
-                                    onSelect={() => {
-                                      setComboboxValue(cert.id.toString());
-                                      setComboboxOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        comboboxValue === cert.id.toString() ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    <div className="flex flex-col">
-                                      <span className="font-medium">{cert.aluno}</span>
-                                      <span className="text-sm text-muted-foreground">
-                                        {cert.cpf} • {cert.curso}
-                                      </span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                                
-                                {/* Botão para carregar mais certificações */}
-                                {hasMoreCertificacoes && (
-                                  <div className="p-2 border-t">
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={loadMoreCertificacoes}
-                                      disabled={loadingCertificacoes}
-                                      className="w-full text-blue-600 hover:text-blue-700"
+                      <div className="flex gap-2">
+                        <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={comboboxOpen}
+                              className="flex-1 justify-between"
+                            >
+                              {comboboxValue
+                                ? (allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)
+                                  ? `${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
+                                  : "Selecione um aluno..."
+                                : "Selecione um aluno..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Buscar aluno por nome, CPF ou curso..." 
+                                className="h-9"
+                              />
+                              <CommandList className="max-h-60">
+                                <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
+                                <CommandGroup>
+                                  {(allCertificacoes || []).filter(cert => cert && cert.id && cert.aluno && cert.cpf && cert.curso).map((cert: Certificacao) => (
+                                    <CommandItem
+                                      key={cert.id}
+                                      value={`${cert.aluno} ${cert.cpf} ${cert.curso}`}
+                                      onSelect={() => {
+                                        setComboboxValue(cert.id.toString());
+                                        setComboboxOpen(false);
+                                      }}
                                     >
-                                      {loadingCertificacoes ? 'Carregando...' : 'Carregar mais alunos...'}
-                                    </Button>
-                                  </div>
-                                )}
-                              </CommandGroup>
-                              
-                              {/* Indicador de total carregado */}
-                              <div className="p-2 text-xs text-gray-500 text-center border-t">
-                                {(allCertificacoes || []).length} alunos carregados
-                                {!hasMoreCertificacoes && (allCertificacoes || []).length > 0 && ' (todos)'}
-                              </div>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          comboboxValue === cert.id.toString() ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{cert.aluno}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                          {cert.cpf} • {cert.curso}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                  
+                                  {/* Botão para carregar mais certificações */}
+                                  {hasMoreCertificacoes && (
+                                    <div className="p-2 border-t">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={loadMoreCertificacoes}
+                                        disabled={loadingCertificacoes}
+                                        className="w-full text-blue-600 hover:text-blue-700"
+                                      >
+                                        {loadingCertificacoes ? 'Carregando...' : 'Carregar mais alunos...'}
+                                      </Button>
+                                    </div>
+                                  )}
+                                </CommandGroup>
+                                
+                                {/* Indicador de total carregado */}
+                                <div className="p-2 text-xs text-gray-500 text-center border-t">
+                                  {(allCertificacoes || []).length} alunos carregados
+                                  {!hasMoreCertificacoes && (allCertificacoes || []).length > 0 && ' (todos)'}
+                                </div>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+
+                        {/* Botão para adicionar novo aluno */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setIsNovoAlunoModalOpen(true)}
+                          className="flex-shrink-0"
+                          title="Adicionar novo aluno"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                       
                       {/* Campo hidden para o formulário */}
                       <input 
@@ -687,6 +745,107 @@ const EnviosUnicv: React.FC = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            {/* Modal para adicionar novo aluno */}
+            <Dialog open={isNovoAlunoModalOpen} onOpenChange={setIsNovoAlunoModalOpen}>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Novo Aluno</DialogTitle>
+                  <DialogDescription>
+                    Cadastre um novo aluno no sistema para posterior envio UNICV
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (novoAlunoData.aluno && novoAlunoData.cpf && novoAlunoData.curso) {
+                    novaCertificacaoMutation.mutate(novoAlunoData);
+                  }
+                }} className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label htmlFor="novoAluno">Nome do Aluno *</Label>
+                      <Input
+                        id="novoAluno"
+                        placeholder="Digite o nome completo do aluno"
+                        value={novoAlunoData.aluno}
+                        onChange={(e) => setNovoAlunoData(prev => ({ ...prev, aluno: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="novoCpf">CPF *</Label>
+                      <Input
+                        id="novoCpf"
+                        placeholder="000.000.000-00"
+                        value={novoAlunoData.cpf}
+                        onChange={(e) => setNovoAlunoData(prev => ({ ...prev, cpf: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="novoCurso">Curso *</Label>
+                      <Input
+                        id="novoCurso"
+                        placeholder="Digite o nome do curso"
+                        value={novoAlunoData.curso}
+                        onChange={(e) => setNovoAlunoData(prev => ({ ...prev, curso: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="novaCategoria">Categoria *</Label>
+                      <Select 
+                        value={novoAlunoData.categoria}
+                        onValueChange={(value) => setNovoAlunoData(prev => ({ ...prev, categoria: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
+                          <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
+                          <SelectItem value="formacao_livre">Formação Livre</SelectItem>
+                          <SelectItem value="diplomacao_competencia">Diplomação por Competência</SelectItem>
+                          <SelectItem value="eja">EJA</SelectItem>
+                          <SelectItem value="graduacao">Graduação</SelectItem>
+                          <SelectItem value="capacitacao">Capacitação</SelectItem>
+                          <SelectItem value="sequencial">Sequencial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsNovoAlunoModalOpen(false);
+                        setNovoAlunoData({
+                          aluno: '',
+                          cpf: '',
+                          curso: '',
+                          categoria: 'segunda_graduacao'
+                        });
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={novaCertificacaoMutation.isPending}
+                    >
+                      {novaCertificacaoMutation.isPending ? 'Adicionando...' : 'Adicionar Aluno'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>
