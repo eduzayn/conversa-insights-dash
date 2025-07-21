@@ -317,11 +317,15 @@ const Negociacoes: React.FC = () => {
   }, [isCreateModalOpen]);
 
   const handleCreateExpirado = () => {
+    // Obter data local no formato YYYY-MM-DD (não UTC)
+    const agora = new Date();
+    const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     setSelectedExpirado({
       clienteNome: '',
       curso: '',
       categoria: '',
       dataExpiracao: '',
+      dataProposta: hoje,
       statusProposta: 'pendente',
       observacoes: '',
       colaboradorResponsavel: ''
