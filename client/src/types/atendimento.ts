@@ -9,6 +9,7 @@ export interface Atendimento {
   duracao: string;
   status: 'Concluído' | 'Em andamento' | 'Pendente';
   resultado?: 'venda_ganha' | 'venda_perdida' | 'aluno_satisfeito' | 'sem_solucao' | 'resolvido';
+  assunto?: string;
 }
 
 export interface AtendimentosFilters {
@@ -30,4 +31,5 @@ export interface AtendimentoData {
   equipe: string;
   duracao: string;
   status: 'Concluído' | 'Em andamento' | 'Pendente';
+  assunto?: string;
 }

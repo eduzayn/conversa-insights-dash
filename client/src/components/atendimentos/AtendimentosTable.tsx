@@ -116,6 +116,7 @@ export const AtendimentosTable = ({
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Hora</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Atendente</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Equipe</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Assunto</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Duração</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Resultado CRM</th>
@@ -132,6 +133,15 @@ export const AtendimentosTable = ({
                       <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                         {item.equipe}
                       </Badge>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">
+                      {item.assunto ? (
+                        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">
+                          {item.assunto}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400 italic">Não informado</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-gray-600">{item.duracao}</td>
                     <td className="py-3 px-4">

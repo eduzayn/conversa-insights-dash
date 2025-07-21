@@ -29,6 +29,7 @@ const atendimentoSchema = z.object({
   duracao: z.string().min(1, "Duração é obrigatória"),
   status: z.enum(['Concluído', 'Em andamento', 'Pendente']),
   resultado: z.enum(['venda_ganha', 'venda_perdida', 'aluno_satisfeito', 'sem_solucao', 'resolvido']).optional(),
+  assunto: z.string().min(1, "Assunto é obrigatório"),
 });
 
 type AtendimentoFormData = z.infer<typeof atendimentoSchema>;
@@ -73,6 +74,7 @@ export const AtendimentoFormModal = ({
       duracao: "00:30",
       status: 'Pendente',
       resultado: undefined,
+      assunto: "",
     }
   });
 
@@ -88,6 +90,7 @@ export const AtendimentoFormModal = ({
         duracao: atendimento.duracao || "00:30",
         status: atendimento.status || 'Pendente',
         resultado: atendimento.resultado || undefined,
+        assunto: atendimento.assunto || "",
       });
     } else {
       form.reset({
@@ -99,6 +102,7 @@ export const AtendimentoFormModal = ({
         duracao: "00:30",
         status: 'Pendente',
         resultado: undefined,
+        assunto: "",
       });
     }
   }, [atendimento, form]);
@@ -231,6 +235,43 @@ export const AtendimentoFormModal = ({
               />
               {form.formState.errors.duracao && (
                 <p className="text-sm text-red-600">{form.formState.errors.duracao.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="assunto">Assunto *</Label>
+              <Select
+                value={form.watch("assunto")}
+                onValueChange={(value) => form.setValue("assunto", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o assunto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Troca de Curso">Troca de Curso</SelectItem>
+                  <SelectItem value="Certificação Pós">Certificação Pós</SelectItem>
+                  <SelectItem value="Certificação Segunda">Certificação Segunda</SelectItem>
+                  <SelectItem value="Diploma em Atraso">Diploma em Atraso</SelectItem>
+                  <SelectItem value="Segunda Via de Boleto">Segunda Via de Boleto</SelectItem>
+                  <SelectItem value="Declaração de Matrícula">Declaração de Matrícula</SelectItem>
+                  <SelectItem value="Aproveitamento de Disciplina">Aproveitamento de Disciplina</SelectItem>
+                  <SelectItem value="Desbloqueio Plataforma">Desbloqueio Plataforma</SelectItem>
+                  <SelectItem value="Abertura de Chamado UNICV">Abertura de Chamado UNICV</SelectItem>
+                  <SelectItem value="Suporte Plataforma">Suporte Plataforma</SelectItem>
+                  <SelectItem value="TCC">TCC</SelectItem>
+                  <SelectItem value="Estágio">Estágio</SelectItem>
+                  <SelectItem value="Praticas Pedagógicas">Praticas Pedagógicas</SelectItem>
+                  <SelectItem value="Negociação">Negociação</SelectItem>
+                  <SelectItem value="Extensão">Extensão</SelectItem>
+                  <SelectItem value="Quitação">Quitação</SelectItem>
+                  <SelectItem value="Emissão de Contratos">Emissão de Contratos</SelectItem>
+                  <SelectItem value="Documentação">Documentação</SelectItem>
+                  <SelectItem value="Reclamação">Reclamação</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.formState.errors.assunto && (
+                <p className="text-sm text-red-600">{form.formState.errors.assunto.message}</p>
               )}
             </div>
 

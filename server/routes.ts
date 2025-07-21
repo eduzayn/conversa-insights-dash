@@ -1345,7 +1345,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           duracao: conv.duracao || duracao,
           status: conv.status === 'active' ? 'Em andamento' : 
                  conv.status === 'closed' ? 'Concluído' : 'Pendente',
-          resultado: conv.resultado || null
+          resultado: conv.resultado || null,
+          assunto: conv.assunto || null
         };
       }));
       
@@ -1625,7 +1626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar novo atendimento manual
   app.post("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
-      const { lead, hora, atendente, equipe, duracao, status, resultado } = req.body;
+      const { lead, hora, atendente, equipe, duracao, status, resultado, assunto } = req.body;
       
       // Validar dados obrigatórios
       if (!lead || !hora || !atendente || !equipe || !duracao || !status) {
@@ -1661,7 +1662,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hora: hora,
           atendente: atendente,
           equipe: equipe,
-          duracao: duracao
+          duracao: duracao,
+          assunto: assunto || null
         })
         .where(eq(conversations.id, conversation.id));
 
@@ -1674,7 +1676,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         equipe: conversation.equipe,
         duracao: conversation.duracao,
         status: status,
-        resultado: conversation.resultado
+        resultado: conversation.resultado,
+        assunto: assunto || null
       };
 
       res.status(201).json(atendimento);
@@ -1688,10 +1691,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/atendimentos/:id", authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { lead, hora, atendente, equipe, duracao, status, resultado } = req.body;
+      const { lead, hora, atendente, equipe, duracao, status, resultado, assunto } = req.body;
 
       console.log('PUT /api/atendimentos/:id - Dados recebidos:', { 
-        id, lead, hora, atendente, equipe, duracao, status, resultado 
+        id, lead, hora, atendente, equipe, duracao, status, resultado, assunto 
       });
 
       // Mapear status para formato do banco
@@ -1706,7 +1709,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hora: hora,
         atendente: atendente,
         equipe: equipe,
-        duracao: duracao
+        duracao: duracao,
+        assunto: assunto || null
       });
 
       console.log('Conversa atualizada:', updatedConversation);
@@ -1721,7 +1725,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           equipe: updatedConversation.equipe,
           duracao: updatedConversation.duracao,
           status: status,
-          resultado: updatedConversation.resultado
+          resultado: updatedConversation.resultado,
+          assunto: updatedConversation.assunto
         };
 
         res.json(atendimento);
