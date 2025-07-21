@@ -1092,36 +1092,7 @@ const Negociacoes: React.FC = () => {
                     id="dataPrevisaPagamento"
                     type="date"
                     value={selectedExpirado.dataPrevisaPagamento || ''}
-                    onChange={(e) => {
-                      const newDate = e.target.value;
-                      
-                      // Validar se a data é válida e não está no passado
-                      if (newDate) {
-                        const inputDate = new Date(newDate + 'T00:00:00');
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        
-                        if (isNaN(inputDate.getTime())) {
-                          toast({
-                            title: "Data inválida",
-                            description: "Por favor, insira uma data válida",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        
-                        if (inputDate < today) {
-                          toast({
-                            title: "Data inválida",
-                            description: "A data prevista de pagamento não pode ser anterior à data atual",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                      }
-                      
-                      setSelectedExpirado({...selectedExpirado, dataPrevisaPagamento: newDate});
-                    }}
+                    onChange={(e) => setSelectedExpirado({...selectedExpirado, dataPrevisaPagamento: e.target.value})}
                     min={new Date().toISOString().split('T')[0]}
                     className="cursor-pointer"
                     tabIndex={0}
