@@ -936,6 +936,7 @@ const EnviosUnicv: React.FC = () => {
                     <Button 
                       type="submit" 
                       disabled={novaCertificacaoMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white"
                     >
                       {novaCertificacaoMutation.isPending ? 'Adicionando...' : 'Adicionar Aluno'}
                     </Button>

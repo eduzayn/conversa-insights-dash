@@ -1228,7 +1228,7 @@ const CertificadosPos = () => {
                 <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createCertificateMutation.isPending}>
+                <Button type="submit" disabled={createCertificateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
                   {createCertificateMutation.isPending ? 'Criando...' : 'Criar Certificado'}
                 </Button>
               </div>
@@ -1655,7 +1655,7 @@ const CertificadosPos = () => {
                     <Button type="button" variant="outline" onClick={() => setIsCreateTemplateModalOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit" disabled={createTemplateMutation.isPending}>
+                    <Button type="submit" disabled={createTemplateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
                       {createTemplateMutation.isPending ? 'Criando...' : 'Criar Modelo'}
                     </Button>
                   </div>
@@ -2078,7 +2078,7 @@ const CertificadosPos = () => {
                     <Button type="button" variant="outline" onClick={() => setIsEditTemplateModalOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit" disabled={updateTemplateMutation.isPending}>
+                    <Button type="submit" disabled={updateTemplateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
                       {updateTemplateMutation.isPending ? 'Atualizando...' : 'Atualizar Modelo'}
                     </Button>
                   </div>

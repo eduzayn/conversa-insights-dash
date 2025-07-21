@@ -783,15 +783,17 @@ Changelog:
    * Status: Padronização "Segunda Licenciatura" 100% completa em todo o sistema
 - Padronização Visual Botões Verdes - Sistema Completo (21 Jul 2025):
    * ✅ Certificacoes.tsx: 4 botões corrigidos (Nova Certificação, Criar, Salvar, Criar Curso)
-   * ✅ CertificadosPos.tsx: 3 botões corrigidos (Novo Certificado/Modelo, Criar Primeiro Modelo)
-   * ✅ MatrizesCurriculares.tsx: 3 botões corrigidos (Novo Curso, Nova Disciplina, Novo Professor)
+   * ✅ CertificadosPos.tsx: 6 botões corrigidos (Novo Certificado/Modelo, Criar Primeiro Modelo, Criar Certificado, Criar Modelo, Atualizar Modelo)
+   * ✅ MatrizesCurriculares.tsx: 6 botões corrigidos (Novo Curso, Nova Disciplina, Novo Professor, Criar/Atualizar Curso, Criar/Atualizar Disciplina, Cadastrar/Atualizar Professor)
    * ✅ GerenciarTokens.tsx: 1 botão corrigido (Gerar Token)
    * ✅ Negociacoes.tsx: 2 botões corrigidos (Nova Negociação, Novo Expirado)
-   * ✅ EnviosUnicv.tsx: 2 botões corrigidos (Novo Envio UNICV, Salvar)
-   * ✅ MatriculaSimplificada.tsx: 1 botão corrigido (Nova Matrícula)
+   * ✅ EnviosUnicv.tsx: 3 botões corrigidos (Novo Envio UNICV, Salvar, Adicionar Aluno)
+   * ✅ MatriculaSimplificada.tsx: 2 botões corrigidos (Nova Matrícula, Criar Matrícula)
+   * ✅ MODAIS INCLUÍDOS: Todos os botões de submit em modais de criação/edição agora são verdes
    * ✅ Padrão aplicado: bg-green-600 hover:bg-green-700 text-white
-   * ✅ Consistência visual: todos os botões de inclusão/criação agora são verdes
-   * Status: Padronização visual completa em todas as páginas administrativas
+   * ✅ Consistência visual: todos os botões de inclusão/criação/salvamento agora são verdes
+   * ✅ Total: 24 botões padronizados em 7 páginas administrativas
+   * Status: Padronização visual COMPLETA em páginas e modais do sistema administrativo
 ```
 
 ## User Preferences

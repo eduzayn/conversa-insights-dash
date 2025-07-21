@@ -563,6 +563,7 @@ export default function MatriculaSimplificada() {
                   <Button 
                     type="submit" 
                     disabled={createEnrollmentMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     {createEnrollmentMutation.isPending ? 'Criando...' : 'Criar Matrícula'}
                   </Button>

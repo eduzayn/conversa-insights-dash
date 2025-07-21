@@ -687,7 +687,7 @@ const MatrizesCurriculares = () => {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">
+          <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
             {course ? 'Atualizar' : 'Criar'} Curso
           </Button>
         </div>
@@ -815,7 +815,7 @@ const MatrizesCurriculares = () => {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">
+          <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
             {disciplina ? 'Atualizar' : 'Criar'} Disciplina
           </Button>
         </div>
@@ -945,7 +945,7 @@ const MatrizesCurriculares = () => {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">
+          <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
             {professor ? 'Atualizar' : 'Cadastrar'} Professor
           </Button>
         </div>
