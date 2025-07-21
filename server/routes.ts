@@ -1636,17 +1636,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dbStatus = status === 'Em andamento' ? 'active' : 
                       status === 'Concluído' ? 'closed' : 'pending';
 
-      // Primeiro criar ou buscar um lead
-      let leadRecord = await storage.getLeadByPhone(`+55${Date.now()}`);
-      if (!leadRecord) {
-        leadRecord = await storage.createLead({
-          name: lead,
-          phone: `+55${Date.now()}`, // Telefone fictício único
-          status: 'novo',
-          source: 'manual',
-          companyAccount: 'SUPORTE'
-        });
-      }
+      // Criar um lead para o atendimento manual
+      const leadRecord = await storage.createLead({
+        name: lead,
+        phone: `+55${Date.now()}`, // Telefone fictício único
+        status: 'novo',
+        source: 'manual',
+        companyAccount: 'SUPORTE'
+      });
 
       // Criar conversa manual (atendimento)
       const conversation = await storage.createConversation({
