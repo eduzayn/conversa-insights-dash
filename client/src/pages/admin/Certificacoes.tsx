@@ -711,15 +711,55 @@ export default function Certificacoes() {
               </div>
             </div>
                 
-            {/* Dialog Nova Certificação */}
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Nova Certificação</DialogTitle>
-                    <DialogDescription>
-                      Preencha os dados para criar uma nova certificação
-                    </DialogDescription>
-                  </DialogHeader>
+            {/* Tabs do sistema */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-9 bg-gray-100 h-12">
+                <TabsTrigger value="segunda_licenciatura" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Segunda Licenciatura</span>
+                  <span className="lg:hidden">2ª Lic</span>
+                </TabsTrigger>
+                <TabsTrigger value="pos_graduacao" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <GraduationCap className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Pós-Graduação</span>
+                  <span className="lg:hidden">Pós</span>
+                </TabsTrigger>
+                <TabsTrigger value="formacao_pedagogica" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Formação Pedagógica</span>
+                  <span className="lg:hidden">Form Ped</span>
+                </TabsTrigger>
+                <TabsTrigger value="formacao_livre" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <Users className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Formação Livre</span>
+                  <span className="lg:hidden">Livre</span>
+                </TabsTrigger>
+                <TabsTrigger value="diplomacao_competencia" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <Award className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Diplomação por Competência</span>
+                  <span className="lg:hidden">Dip Comp</span>
+                </TabsTrigger>
+                <TabsTrigger value="eja" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <School className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">EJA</span>
+                  <span className="lg:hidden">EJA</span>
+                </TabsTrigger>
+                <TabsTrigger value="graduacao" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <Scroll className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Graduação</span>
+                  <span className="lg:hidden">Grad</span>
+                </TabsTrigger>
+                <TabsTrigger value="capacitacao" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <Target className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Capacitação</span>
+                  <span className="lg:hidden">Cap</span>
+                </TabsTrigger>
+                <TabsTrigger value="sequencial" className="px-3 py-2 text-sm transition-all hover:bg-gray-200 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">
+                  <Layers className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Sequencial</span>
+                  <span className="lg:hidden">Seq</span>
+                </TabsTrigger>
+              </TabsList>
                   {/* Campo de Status em destaque no topo */}
                   <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <Label htmlFor="status" className="text-lg font-semibold text-blue-800">Status da Certificação</Label>
