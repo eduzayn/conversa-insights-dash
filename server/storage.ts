@@ -2175,18 +2175,27 @@ export class DatabaseStorage implements IStorage {
     
     const [newExpirado] = await db
       .insert(negociacoesExpirados)
-      .values({
-        ...insertData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(insertData)
       .returning();
     return newExpirado;
   }
 
   async updateNegociacaoExpirado(id: number, expirado: Partial<NegociacaoExpirado>): Promise<NegociacaoExpirado | undefined> {
-    // Preparar dados para atualização (mesmo tratamento que createNegociacaoExpirado)
-    const updateData: any = { ...expirado };
+    // Filtrar apenas campos permitidos para evitar problemas com campos automáticos
+    const allowedFields = [
+      'clienteNome', 'clienteEmail', 'clienteCpf', 'curso', 'categoria', 
+      'dataExpiracao', 'dataProposta', 'propostaReativacao', 'valorProposta', 
+      'statusProposta', 'observacoes', 'colaboradorResponsavel'
+    ];
+    
+    const updateData: any = {};
+    
+    // Copiar apenas campos permitidos
+    for (const field of allowedFields) {
+      if (field in expirado) {
+        updateData[field] = expirado[field as keyof NegociacaoExpirado];
+      }
+    }
     
     // Converter valorProposta para string se for number (para o tipo decimal do PostgreSQL)
     if (updateData.valorProposta !== undefined && updateData.valorProposta !== null) {
@@ -2203,7 +2212,7 @@ export class DatabaseStorage implements IStorage {
     
     const [updatedExpirado] = await db
       .update(negociacoesExpirados)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(negociacoesExpirados.id, id))
       .returning();
     return updatedExpirado || undefined;
