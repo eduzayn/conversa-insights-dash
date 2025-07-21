@@ -593,7 +593,7 @@ export default function Certificacoes() {
               
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     Nova Certificação
                   </Button>
@@ -940,7 +940,7 @@ export default function Certificacoes() {
                     <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button onClick={handleCreateCertification} disabled={createMutation.isPending}>
+                    <Button onClick={handleCreateCertification} disabled={createMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
                       {createMutation.isPending ? 'Criando...' : 'Criar'}
                     </Button>
                   </div>
@@ -1658,7 +1658,7 @@ export default function Certificacoes() {
             <Button variant="outline" onClick={() => setSelectedCertification(null)}>
               Cancelar
             </Button>
-            <Button onClick={() => selectedCertification && handleUpdateCertification(selectedCertification)} disabled={updateMutation.isPending}>
+            <Button onClick={() => selectedCertification && handleUpdateCertification(selectedCertification)} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
               {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
@@ -1703,7 +1703,7 @@ export default function Certificacoes() {
             <Button variant="outline" onClick={() => setIsNewCourseDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateNewCourse} disabled={createCourseMutation.isPending}>
+            <Button onClick={handleCreateNewCourse} disabled={createCourseMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
               {createCourseMutation.isPending ? 'Criando...' : 'Criar Curso'}
             </Button>
           </div>
