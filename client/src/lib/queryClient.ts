@@ -43,9 +43,6 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
       ...(authToken && { Authorization: `Bearer ${authToken}` }),
       ...options.headers,
     },

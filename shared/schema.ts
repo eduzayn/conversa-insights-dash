@@ -1061,6 +1061,7 @@ export const insertCertificationSchema = createInsertSchema(certifications).pick
   diploma: true,
   status: true,
   categoria: true,
+  subcategoria: true,
   prioridade: true,
   situacaoAnalise: true,
   dataInicio: true,
@@ -1437,9 +1438,8 @@ export type StudentCertificate = typeof studentCertificates.$inferSelect;
 export type InsertStudentCard = z.infer<typeof insertStudentCardSchema>;
 export type StudentCard = typeof studentCards.$inferSelect;
 
-// Comentado temporariamente - schemas de pagamento não implementados
-// export type InsertPayment = z.infer<typeof insertPaymentSchema>;
-// export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
 
 // Schemas de inserção para Portal do Professor
 export const insertSubjectSchema = createInsertSchema(subjects).pick({

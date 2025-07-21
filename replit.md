@@ -812,17 +812,6 @@ Changelog:
    * ✅ Senha criptografada com bcrypt e salva no PostgreSQL
    * ✅ Login funcional: erickmoreirap62@gmail.com / Zayn@2025
    * Status: Senha atualizada e sistema funcionando
-- Otimização Crítica: Cache de Certificações para Conexões Lentas (21 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: Página branca para usuárias Tamires Kele e Kamulle Vitória (home office)
-   * ✅ Causa: Algoritmo de duplicatas O(n²) + cache corrompido (status 304) + conexões lentas
-   * ✅ **Otimização 1 - Loading State:** Processamento assíncrono com setTimeout + timeout 10s
-   * ✅ **Otimização 2 - Headers Backend:** noCacheMiddleware em /api/certificacoes com ETag único
-   * ✅ **Otimização 3 - Headers Frontend:** Cache-Control, Pragma, If-None-Match em requisições
-   * ✅ **Otimização 4 - Cache Busting:** Timestamps únicos + limpeza automática React Query
-   * ✅ **Otimização 5 - Meta Tags HTML:** Headers no-cache no documento principal
-   * ✅ Botão "🔄 Limpar Cache" para usuárias com problemas de cache corrompido
-   * ✅ Sistema otimizado: carregamento imediato + processamento em background
-   * Status: Página de certificações funcionando para todas as conexões (rápidas e lentas)
 ```
 
 ## User Preferences
