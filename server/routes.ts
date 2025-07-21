@@ -4479,7 +4479,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(expirado);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+        // Formatação específica dos erros de validação em português
+        const fieldErrors = error.errors.map(err => {
+          const field = err.path[0];
+          return `${err.message}`;
+        });
+        
+        return res.status(400).json({ 
+          message: fieldErrors.length === 1 ? fieldErrors[0] : "Campos obrigatórios em falta",
+          details: fieldErrors,
+          validation: true
+        });
       }
       logger.error("Erro ao criar negociação expirado:", error);
       res.status(500).json({ message: "Erro interno do servidor" });

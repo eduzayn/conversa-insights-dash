@@ -1322,8 +1322,11 @@ export const insertNegociacaoSchema = z.object({
     invalid_type_error: "Previsão de pagamento deve ser um texto"
   }).min(1, "Previsão de pagamento não pode estar vazia")
     .refine((date) => {
-      const today = new Date().toISOString().split('T')[0];
-      return date >= today;
+      // Converte as datas para objetos Date para comparação mais robusta
+      const inputDate = new Date(date + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Remove horas para comparar apenas a data
+      return inputDate >= today;
     }, "Previsão de pagamento não pode ser anterior à data atual"),
   parcelasAtraso: z.number({
     required_error: "Número de parcelas em atraso é obrigatório",
@@ -1363,8 +1366,11 @@ export const insertNegociacaoExpiradoSchema = z.object({
   dataProposta: z.string().optional().nullable()
     .refine((date) => {
       if (!date) return true; // Permite valores vazios/null
-      const today = new Date().toISOString().split('T')[0];
-      return date >= today;
+      // Converte as datas para objetos Date para comparação mais robusta
+      const inputDate = new Date(date + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Remove horas para comparar apenas a data
+      return inputDate >= today;
     }, "Data da proposta não pode ser anterior à data atual"),
   propostaReativacao: z.string().optional().nullable(),
   valorProposta: z.union([z.string(), z.number()]).optional().nullable(),
