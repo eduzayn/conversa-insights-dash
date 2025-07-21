@@ -69,10 +69,9 @@ const EnviosUnicv: React.FC = () => {
   const [hasMoreCertificacoes, setHasMoreCertificacoes] = useState(true);
 
   const { data: certificacoes, isLoading: loadingCertificacoes } = useQuery({
-    queryKey: ['/api/certificacoes', { categoria: 'segunda_licenciatura,formacao_pedagogica', page: certificacoesPage, limit: 100 }],
+    queryKey: ['/api/certificacoes', { page: certificacoesPage, limit: 100 }],
     queryFn: async () => {
       const params = new URLSearchParams({
-        categoria: 'segunda_licenciatura,formacao_pedagogica',
         page: certificacoesPage.toString(),
         limit: '100'
       });
@@ -200,8 +199,16 @@ const EnviosUnicv: React.FC = () => {
       });
     },
     onSuccess: (newCertificacao) => {
-      // Atualizar lista de certificações
-      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
+      // Atualizar lista de certificações forçando reload da primeira página
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === '/api/certificacoes'
+      });
+      
+      // Resetar paginação para primeira página para garantir que veremos o novo item
+      setCertificacoesPage(1);
+      
+      // Adicionar o novo aluno à lista local imediatamente
+      setAllCertificacoes(prev => [newCertificacao, ...prev]);
       
       // Selecionar automaticamente a nova certificação
       setComboboxValue(newCertificacao.id.toString());
