@@ -27,7 +27,7 @@ interface EnvioUnicv {
   cpf: string;
   curso: string;
   categoria: string;
-  statusEnvio: 'nao_enviado' | 'enviado';
+  statusEnvio: 'nao_enviado' | 'enviado' | 'concluido' | 'retornado_pendencia';
   numeroOficio?: string;
   dataEnvio?: string;
   observacoes?: string;
@@ -280,6 +280,8 @@ const EnviosUnicv: React.FC = () => {
     switch (status) {
       case 'enviado': return 'default';
       case 'nao_enviado': return 'secondary';
+      case 'concluido': return 'default';
+      case 'retornado_pendencia': return 'destructive';
       default: return 'secondary';
     }
   };
@@ -288,7 +290,19 @@ const EnviosUnicv: React.FC = () => {
     switch (status) {
       case 'enviado': return 'Enviado';
       case 'nao_enviado': return 'Não Enviado';
+      case 'concluido': return 'Concluído';
+      case 'retornado_pendencia': return 'Retornado pendência';
       default: return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'enviado': return 'bg-blue-500';
+      case 'nao_enviado': return 'bg-gray-500';
+      case 'concluido': return 'bg-green-500';
+      case 'retornado_pendencia': return 'bg-red-500';
+      default: return 'bg-gray-500';
     }
   };
 
@@ -398,8 +412,30 @@ const EnviosUnicv: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem key="all-status" value="all">Todos os status</SelectItem>
-                        <SelectItem key="enviado" value="enviado">Enviado</SelectItem>
-                        <SelectItem key="nao_enviado" value="nao_enviado">Não Enviado</SelectItem>
+                        <SelectItem key="enviado" value="enviado">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            Enviado
+                          </div>
+                        </SelectItem>
+                        <SelectItem key="nao_enviado" value="nao_enviado">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                            Não Enviado
+                          </div>
+                        </SelectItem>
+                        <SelectItem key="concluido" value="concluido">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            Concluído
+                          </div>
+                        </SelectItem>
+                        <SelectItem key="retornado_pendencia" value="retornado_pendencia">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            Retornado pendência
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -672,8 +708,30 @@ const EnviosUnicv: React.FC = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem key="modal-nao_enviado" value="nao_enviado">Não Enviado</SelectItem>
-                          <SelectItem key="modal-enviado" value="enviado">Enviado</SelectItem>
+                          <SelectItem key="modal-nao_enviado" value="nao_enviado">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                              Não Enviado
+                            </div>
+                          </SelectItem>
+                          <SelectItem key="modal-enviado" value="enviado">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                              Enviado
+                            </div>
+                          </SelectItem>
+                          <SelectItem key="modal-concluido" value="concluido">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                              Concluído
+                            </div>
+                          </SelectItem>
+                          <SelectItem key="modal-retornado_pendencia" value="retornado_pendencia">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                              Retornado pendência
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

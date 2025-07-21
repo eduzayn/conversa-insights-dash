@@ -332,7 +332,7 @@ export const enviosUnicv = pgTable("envios_unicv", {
   cpf: text("cpf").notNull(),
   curso: text("curso").notNull(),
   categoria: text("categoria").notNull(),
-  statusEnvio: text("status_envio").notNull().default("nao_enviado"), // nao_enviado, enviado
+  statusEnvio: text("status_envio").notNull().default("nao_enviado"), // nao_enviado, enviado, concluido, retornado_pendencia
   numeroOficio: text("numero_oficio"),
   dataEnvio: date("data_envio"),
   observacoes: text("observacoes"),
