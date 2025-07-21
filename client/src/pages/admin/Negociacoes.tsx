@@ -67,6 +67,7 @@ const Negociacoes: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteExpiradoId, setDeleteExpiradoId] = useState<number | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -265,6 +266,48 @@ const Negociacoes: React.FC = () => {
       deleteNegociacaoMutation.mutate(deleteId);
     }
   }, [deleteId, deleteNegociacaoMutation]);
+
+  // Mutation para excluir expirado
+  const deleteExpiradoMutation = useMutation({
+    mutationFn: async (id: number) => {
+      try {
+        const response = await apiRequest(`/api/negociacoes-expirados/${id}`, {
+          method: 'DELETE',
+        });
+        return response;
+      } catch (error) {
+        console.error('Erro na exclusão de expirado:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/negociacoes-expirados'] });
+      setDeleteExpiradoId(null);
+      toast({
+        title: "Sucesso",
+        description: "Expirado excluído com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Erro capturado na mutação de expirado:', error);
+      setDeleteExpiradoId(null);
+      toast({
+        title: "Erro",
+        description: error?.message || "Erro ao excluir expirado",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteExpirado = useCallback((id: number) => {
+    setDeleteExpiradoId(id);
+  }, []);
+
+  const confirmDeleteExpirado = useCallback(() => {
+    if (deleteExpiradoId) {
+      deleteExpiradoMutation.mutate(deleteExpiradoId);
+    }
+  }, [deleteExpiradoId, deleteExpiradoMutation]);
 
   // Limpar estado ao fechar modal
   useEffect(() => {
@@ -680,6 +723,14 @@ const Negociacoes: React.FC = () => {
                               onClick={() => setSelectedExpirado(expirado)}
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteExpirado(expirado.id!)}
+                              className="text-red-600 hover:text-red-700 hover:border-red-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
@@ -1136,6 +1187,33 @@ const Negociacoes: React.FC = () => {
               disabled={deleteNegociacaoMutation.isPending}
             >
               {deleteNegociacaoMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* AlertDialog para confirmação de exclusão de expirado */}
+      <AlertDialog open={deleteExpiradoId !== null} onOpenChange={(open) => !open && setDeleteExpiradoId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir este expirado? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteExpiradoId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteExpirado}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={deleteExpiradoMutation.isPending}
+            >
+              {deleteExpiradoMutation.isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
