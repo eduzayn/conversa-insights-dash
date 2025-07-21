@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, FileText, Search, Plus, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_COLORS = {
@@ -24,14 +26,16 @@ const STATUS_LABELS = {
 
 function Certificacoes() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('pos');
+  const [activeTab, setActiveTab] = useState('pos_graduacao');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: certifications = [], isLoading } = useQuery({
+  const { data: certificationsResponse, isLoading } = useQuery({
     queryKey: ['/api/certifications', { categoria: activeTab, page: 1, limit: 50 }],
-    enabled: false // Desabilitado temporariamente para evitar erros
+    enabled: true
   });
 
-  const certificationsArray = Array.isArray(certifications) ? certifications : [];
+  const certifications = (certificationsResponse as any)?.data || [];
+  const totalCount = (certificationsResponse as any)?.total || 0;
 
   const handleBackToDashboard = () => {
     navigate('/');
@@ -80,7 +84,7 @@ function Certificacoes() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {certificationsArray.length === 0 ? (
+              {certifications.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <div className="text-lg font-medium text-gray-900 mb-2">
@@ -92,7 +96,7 @@ function Certificacoes() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {certificationsArray.slice(0, 10).map((cert: any, index: number) => (
+                  {certifications.map((cert: any, index: number) => (
                     <Card key={index} className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
