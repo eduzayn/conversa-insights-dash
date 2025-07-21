@@ -25,7 +25,8 @@ import {
   insertCertificateTemplateSchema,
   insertNegociacaoSchema,
   insertNegociacaoExpiradoSchema,
-  insertEnvioUnicvSchema
+  insertEnvioUnicvSchema,
+  insertEnvioFamarSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
@@ -4632,6 +4633,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(envio);
     } catch (error) {
       logger.error("Erro ao buscar envio UNICV:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ENVIOS FAMAR =====
+
+  // Buscar envios FAMAR
+  app.get("/api/envios-famar", authenticateToken, async (req: any, res) => {
+    try {
+      const { search, status, categoria } = req.query;
+      const envios = await storage.getEnviosFamar({ search, status, categoria });
+      res.json(envios);
+    } catch (error) {
+      logger.error("Erro ao buscar envios FAMAR:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar novo envio FAMAR
+  app.post("/api/envios-famar", authenticateToken, async (req: any, res) => {
+    try {
+      const envioData = insertEnvioFamarSchema.parse(req.body);
+      
+      // Corrigir data de envio para evitar problemas de timezone
+      if (envioData.dataEnvio) {
+        // Garantir que a data seja interpretada como local, não UTC
+        const localDate = new Date(envioData.dataEnvio + 'T12:00:00');
+        envioData.dataEnvio = localDate.toISOString().split('T')[0];
+      }
+      
+      const envio = await storage.createEnvioFamar(envioData);
+      res.status(201).json(envio);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      logger.error("Erro ao criar envio FAMAR:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar envio FAMAR
+  app.put("/api/envios-famar/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      // Corrigir data de envio para evitar problemas de timezone
+      if (updateData.dataEnvio) {
+        // Garantir que a data seja interpretada como local, não UTC
+        const localDate = new Date(updateData.dataEnvio + 'T12:00:00');
+        updateData.dataEnvio = localDate.toISOString().split('T')[0];
+      }
+      
+      const envio = await storage.updateEnvioFamar(parseInt(id), updateData);
+      if (!envio) {
+        return res.status(404).json({ message: "Envio FAMAR não encontrado" });
+      }
+      res.json(envio);
+    } catch (error) {
+      logger.error("Erro ao atualizar envio FAMAR:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar envio FAMAR
+  app.delete("/api/envios-famar/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteEnvioFamar(parseInt(id));
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Envio FAMAR não encontrado" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Erro ao deletar envio FAMAR:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar envio FAMAR por ID
+  app.get("/api/envios-famar/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const envio = await storage.getEnvioFamarById(parseInt(id));
+      if (!envio) {
+        return res.status(404).json({ message: "Envio FAMAR não encontrado" });
+      }
+      res.json(envio);
+    } catch (error) {
+      logger.error("Erro ao buscar envio FAMAR:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

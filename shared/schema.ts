@@ -351,6 +351,34 @@ export const insertEnvioUnicvSchema = createInsertSchema(enviosUnicv)
 export type EnvioUnicv = typeof enviosUnicv.$inferSelect;
 export type InsertEnvioUnicv = z.infer<typeof insertEnvioUnicvSchema>;
 
+// Tabela para envios FAMAR
+export const enviosFamar = pgTable("envios_famar", {
+  id: serial("id").primaryKey(),
+  certificationId: integer("certification_id").notNull().references(() => certifications.id),
+  aluno: text("aluno").notNull(),
+  cpf: text("cpf").notNull(),
+  curso: text("curso").notNull(),
+  categoria: text("categoria").notNull(),
+  statusEnvio: text("status_envio").notNull().default("nao_enviado"), // nao_enviado, enviado, concluido, retornado_pendencia
+  numeroOficio: text("numero_oficio"),
+  dataEnvio: date("data_envio"),
+  observacoes: text("observacoes"),
+  colaboradorResponsavel: text("colaborador_responsavel").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schemas Zod para envios FAMAR
+export const insertEnvioFamarSchema = createInsertSchema(enviosFamar)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
+export type EnvioFamar = typeof enviosFamar.$inferSelect;
+export type InsertEnvioFamar = z.infer<typeof insertEnvioFamarSchema>;
+
 // Tabela para matrículas dos alunos
 export const studentEnrollments = pgTable("student_enrollments", {
   id: serial("id").primaryKey(),

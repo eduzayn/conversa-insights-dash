@@ -116,7 +116,10 @@ import {
   type InsertNegociacaoExpirado,
   enviosUnicv,
   type EnvioUnicv,
-  type InsertEnvioUnicv
+  type InsertEnvioUnicv,
+  enviosFamar,
+  type EnvioFamar,
+  type InsertEnvioFamar
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql } from "drizzle-orm";
@@ -325,8 +328,15 @@ export interface IStorage {
   getEnviosUnicv(filters?: { search?: string; status?: string; categoria?: string }): Promise<EnvioUnicv[]>;
   createEnvioUnicv(envio: InsertEnvioUnicv): Promise<EnvioUnicv>;
   updateEnvioUnicv(id: number, envio: Partial<EnvioUnicv>): Promise<EnvioUnicv | undefined>;
-  deleteEnvioUnicv(id: number): Promise<void>;
+  deleteEnvioUnicv(id: number): Promise<boolean>;
   getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined>;
+
+  // Sistema de Envios FAMAR
+  getEnviosFamar(filters?: { search?: string; status?: string; categoria?: string }): Promise<EnvioFamar[]>;
+  createEnvioFamar(envio: InsertEnvioFamar): Promise<EnvioFamar>;
+  updateEnvioFamar(id: number, envio: Partial<EnvioFamar>): Promise<EnvioFamar | undefined>;
+  deleteEnvioFamar(id: number): Promise<boolean>;
+  getEnvioFamarById(id: number): Promise<EnvioFamar | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2409,6 +2419,86 @@ export class DatabaseStorage implements IStorage {
     const [envio] = await db.select().from(enviosUnicv).where(eq(enviosUnicv.id, id));
     return envio || undefined;
   }
+
+  // Sistema de Envios FAMAR
+  async getEnviosFamar(filters?: { search?: string; status?: string; categoria?: string }): Promise<EnvioFamar[]> {
+    const conditions = [];
+    
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(certifications.aluno, `%${filters.search}%`),
+          ilike(certifications.cpf, `%${filters.search}%`),
+          ilike(certifications.curso, `%${filters.search}%`)
+        )
+      );
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(enviosFamar.statusEnvio, filters.status));
+    }
+    
+    if (filters?.categoria) {
+      conditions.push(eq(certifications.categoria, filters.categoria));
+    }
+    
+    // Fazer JOIN com a tabela de certificações para pegar dados do aluno
+    const query = db.select({
+      id: enviosFamar.id,
+      certificationId: enviosFamar.certificationId,
+      aluno: certifications.aluno,
+      cpf: certifications.cpf,
+      curso: certifications.curso,
+      categoria: certifications.categoria,
+      statusEnvio: enviosFamar.statusEnvio,
+      numeroOficio: enviosFamar.numeroOficio,
+      dataEnvio: enviosFamar.dataEnvio,
+      observacoes: enviosFamar.observacoes,
+      colaboradorResponsavel: enviosFamar.colaboradorResponsavel,
+      createdAt: enviosFamar.createdAt,
+      updatedAt: enviosFamar.updatedAt
+    })
+    .from(enviosFamar)
+    .leftJoin(certifications, eq(enviosFamar.certificationId, certifications.id));
+    
+    if (conditions.length > 0) {
+      return await query.where(and(...conditions)).orderBy(desc(enviosFamar.createdAt));
+    }
+    
+    return await query.orderBy(desc(enviosFamar.createdAt));
+  }
+
+  async createEnvioFamar(envio: InsertEnvioFamar): Promise<EnvioFamar> {
+    const [newEnvio] = await db
+      .insert(enviosFamar)
+      .values({
+        ...envio,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newEnvio;
+  }
+
+  async updateEnvioFamar(id: number, envio: Partial<EnvioFamar>): Promise<EnvioFamar | undefined> {
+    const [updatedEnvio] = await db
+      .update(enviosFamar)
+      .set({ ...envio, updatedAt: new Date() })
+      .where(eq(enviosFamar.id, id))
+      .returning();
+    return updatedEnvio || undefined;
+  }
+
+  async deleteEnvioFamar(id: number): Promise<boolean> {
+    const result = await db.delete(enviosFamar).where(eq(enviosFamar.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getEnvioFamarById(id: number): Promise<EnvioFamar | undefined> {
+    const [envio] = await db.select().from(enviosFamar).where(eq(enviosFamar.id, id));
+    return envio || undefined;
+  }
+
   // Sistema de monitoramento automático das metas
   async updateGoalProgressForAttendance(userId: number): Promise<void> {
     const today = new Date().toISOString().split('T')[0];

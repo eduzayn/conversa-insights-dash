@@ -25,6 +25,7 @@ import IntegracaoAsaas from "./pages/admin/IntegracaoAsaas";
 import GerenciarTokens from "./pages/admin/GerenciarTokens";
 import Negociacoes from "./pages/admin/Negociacoes";
 import EnviosUnicv from "./pages/admin/EnviosUnicv";
+import EnviosFamar from "./pages/admin/EnviosFamar";
 import Register from "./pages/admin/Register";
 
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/gerenciar-tokens" element={<GerenciarTokens />} />
             <Route path="/negociacoes" element={<Negociacoes />} />
             <Route path="/envios-unicv" element={<EnviosUnicv />} />
+            <Route path="/envios-famar" element={<EnviosFamar />} />
 
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />

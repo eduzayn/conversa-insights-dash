@@ -51,6 +51,7 @@ const menuSections = [
       { label: 'Certificados Acadêmicos', path: '/certificados-pos' },
       { label: 'Gestão de Cursos', path: '/matrizes-curriculares' },
       { label: 'Envios UNICV', path: '/envios-unicv' },
+      { label: 'Envios FAMAR', path: '/envios-famar' },
     ]
   },
   {

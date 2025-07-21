@@ -20,7 +20,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-interface EnvioUnicv {
+interface EnvioFamar {
   id?: number;
   certificationId: number;
   aluno: string;
@@ -44,9 +44,9 @@ interface Certificacao {
   categoria: string;
 }
 
-const EnviosUnicv: React.FC = () => {
+const EnviosFamar: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedEnvio, setSelectedEnvio] = useState<EnvioUnicv | null>(null);
+  const [selectedEnvio, setSelectedEnvio] = useState<EnvioFamar | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoriaFilter, setCategoriaFilter] = useState('all');
@@ -114,28 +114,28 @@ const EnviosUnicv: React.FC = () => {
     queryFn: () => apiRequest('/api/users')
   });
 
-  // Buscar envios UNICV
+  // Buscar envios FAMAR
   const { data: envios = [], isLoading: loadingEnvios } = useQuery({
-    queryKey: ['/api/envios-unicv', { search: searchTerm, status: statusFilter, categoria: categoriaFilter }],
+    queryKey: ['/api/envios-famar', { search: searchTerm, status: statusFilter, categoria: categoriaFilter }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       if (categoriaFilter && categoriaFilter !== 'all') params.append('categoria', categoriaFilter);
-      return apiRequest(`/api/envios-unicv?${params}`);
+      return apiRequest(`/api/envios-famar?${params}`);
     }
   });
 
   // Mutation para criar/atualizar envio
   const envioMutation = useMutation({
-    mutationFn: async (data: EnvioUnicv) => {
+    mutationFn: async (data: EnvioFamar) => {
       if (data.id) {
-        return apiRequest(`/api/envios-unicv/${data.id}`, {
+        return apiRequest(`/api/envios-famar/${data.id}`, {
           method: 'PUT',
           body: JSON.stringify(data)
         });
       } else {
-        return apiRequest('/api/envios-unicv', {
+        return apiRequest('/api/envios-famar', {
           method: 'POST',
           body: JSON.stringify(data)
         });
@@ -144,36 +144,36 @@ const EnviosUnicv: React.FC = () => {
     onSuccess: () => {
       console.log('Invalidando cache após criação/edição...');
       queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+        predicate: (query) => query.queryKey[0] === '/api/envios-famar'
       });
       setIsCreateModalOpen(false);
       setSelectedEnvio(null);
-      toast({ title: "Sucesso", description: "Envio UNICV salvo com sucesso!" });
+      toast({ title: "Sucesso", description: "Envio FAMAR salvo com sucesso!" });
     },
     onError: () => {
-      toast({ title: "Erro", description: "Erro ao salvar envio UNICV", variant: "destructive" });
+      toast({ title: "Erro", description: "Erro ao salvar envio FAMAR", variant: "destructive" });
     }
   });
 
   // Mutation para deletar envio
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/envios-unicv/${id}`, {
+      return apiRequest(`/api/envios-famar/${id}`, {
         method: 'DELETE'
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+        predicate: (query) => query.queryKey[0] === '/api/envios-famar'
       });
-      toast({ title: "Sucesso", description: "Envio UNICV excluído com sucesso!" });
+      toast({ title: "Sucesso", description: "Envio FAMAR excluído com sucesso!" });
       setDeleteId(null);
     },
     onError: (error: any) => {
-      let errorMessage = "Erro ao excluir envio UNICV";
+      let errorMessage = "Erro ao excluir envio FAMAR";
       
       if (error?.message?.includes("não encontrado")) {
-        errorMessage = "Envio UNICV não encontrado. Pode ter sido excluído por outro usuário.";
+        errorMessage = "Envio FAMAR não encontrado. Pode ter sido excluído por outro usuário.";
       }
       
       toast({ 
@@ -185,7 +185,7 @@ const EnviosUnicv: React.FC = () => {
       
       // Atualizar lista para refletir estado atual
       queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+        predicate: (query) => query.queryKey[0] === '/api/envios-famar'
       });
     }
   });
@@ -242,7 +242,7 @@ const EnviosUnicv: React.FC = () => {
     const certificationId = parseInt(formData.get('certificationId') as string);
     const certificacao = allCertificacoes?.find((cert: Certificacao) => cert.id === certificationId);
     
-    const data: EnvioUnicv = {
+    const data: EnvioFamar = {
       certificationId,
       aluno: certificacao?.aluno || '',
       cpf: certificacao?.cpf || '',
@@ -259,7 +259,7 @@ const EnviosUnicv: React.FC = () => {
     envioMutation.mutate(data);
   };
 
-  const openEditModal = (envio: EnvioUnicv) => {
+  const openEditModal = (envio: EnvioFamar) => {
     setSelectedEnvio(envio);
     setComboboxValue(envio.certificationId.toString()); // Definir valor do combobox
     setIsCreateModalOpen(true);
@@ -321,8 +321,8 @@ const EnviosUnicv: React.FC = () => {
 
   const stats = {
     total: envios.length || 0,
-    enviados: envios.filter((envio: EnvioUnicv) => envio.statusEnvio === 'enviado').length || 0,
-    naoEnviados: envios.filter((envio: EnvioUnicv) => envio.statusEnvio === 'nao_enviado').length || 0,
+    enviados: envios.filter((envio: EnvioFamar) => envio.statusEnvio === 'enviado').length || 0,
+    naoEnviados: envios.filter((envio: EnvioFamar) => envio.statusEnvio === 'nao_enviado').length || 0,
   };
 
   return (
@@ -343,9 +343,9 @@ const EnviosUnicv: React.FC = () => {
                 Voltar
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Envios UNICV</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Envios FAMAR</h1>
                 <p className="text-gray-600 mt-2">
-                  Gerenciamento de envios de dados dos alunos para a UNICV
+                  Gerenciamento de envios de dados dos alunos para a FAMAR
                 </p>
               </div>
             </div>
@@ -468,7 +468,7 @@ const EnviosUnicv: React.FC = () => {
                           }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          Novo Envio UNICV
+                          Novo Envio FAMAR
                         </Button>
                       </DialogTrigger>
                     </Dialog>
@@ -480,9 +480,9 @@ const EnviosUnicv: React.FC = () => {
             {/* Tabela de Envios */}
             <Card>
               <CardHeader>
-                <CardTitle>Lista de Envios UNICV</CardTitle>
+                <CardTitle>Lista de Envios FAMAR</CardTitle>
                 <CardDescription>
-                  Todos os envios de dados de alunos para a UNICV
+                  Todos os envios de dados de alunos para a FAMAR
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -508,7 +508,7 @@ const EnviosUnicv: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {(envios || []).filter(envio => envio && envio.id).map((envio: EnvioUnicv) => (
+                        {(envios || []).filter(envio => envio && envio.id).map((envio: EnvioFamar) => (
                           <tr key={envio.id} className="border-b hover:bg-gray-50">
                             <td className="p-4">{envio.aluno}</td>
                             <td className="p-4">{envio.cpf}</td>
@@ -567,12 +567,12 @@ const EnviosUnicv: React.FC = () => {
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedEnvio ? 'Editar Envio UNICV' : 'Novo Envio UNICV'}
+                    {selectedEnvio ? 'Editar Envio FAMAR' : 'Novo Envio FAMAR'}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedEnvio 
-                      ? 'Edite as informações do envio UNICV'
-                      : 'Preencha as informações para criar um novo envio UNICV'
+                      ? 'Edite as informações do envio FAMAR'
+                      : 'Preencha as informações para criar um novo envio FAMAR'
                     }
                   </DialogDescription>
                 </DialogHeader>
@@ -825,7 +825,7 @@ const EnviosUnicv: React.FC = () => {
                     Confirmar Exclusão
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza de que deseja excluir este envio UNICV? Esta ação não pode ser desfeita.
+                    Tem certeza de que deseja excluir este envio FAMAR? Esta ação não pode ser desfeita.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -849,7 +849,7 @@ const EnviosUnicv: React.FC = () => {
                 <DialogHeader>
                   <DialogTitle>Adicionar Novo Aluno</DialogTitle>
                   <DialogDescription>
-                    Cadastre um novo aluno no sistema para posterior envio UNICV
+                    Cadastre um novo aluno no sistema para posterior envio FAMAR
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -951,4 +951,4 @@ const EnviosUnicv: React.FC = () => {
   );
 };
 
-export default EnviosUnicv;
+export default EnviosFamar;
