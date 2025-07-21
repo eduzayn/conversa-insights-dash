@@ -787,6 +787,10 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedNegociacao.dataNegociacao}
                     onChange={(e) => setSelectedNegociacao({...selectedNegociacao, dataNegociacao: e.target.value})}
+                    className="cursor-pointer"
+                    tabIndex={0}
+                    placeholder="dd/mm/aaaa"
+                    aria-label="Data da negociação"
                   />
                 </div>
                 <div>
@@ -796,6 +800,10 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedNegociacao.previsaoPagamento}
                     onChange={(e) => setSelectedNegociacao({...selectedNegociacao, previsaoPagamento: e.target.value})}
+                    className="cursor-pointer"
+                    tabIndex={0}
+                    placeholder="dd/mm/aaaa"
+                    aria-label="Previsão de pagamento"
                   />
                 </div>
               </div>
@@ -833,6 +841,10 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedNegociacao.dataVencimentoMaisAntiga}
                     onChange={(e) => setSelectedNegociacao({...selectedNegociacao, dataVencimentoMaisAntiga: e.target.value})}
+                    className="cursor-pointer"
+                    tabIndex={0}
+                    placeholder="dd/mm/aaaa"
+                    aria-label="Data do vencimento mais antigo"
                   />
                 </div>
                 <div>
@@ -1014,6 +1026,10 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedExpirado.dataExpiracao}
                     onChange={(e) => setSelectedExpirado({...selectedExpirado, dataExpiracao: e.target.value})}
+                    className="cursor-pointer"
+                    tabIndex={0}
+                    placeholder="dd/mm/aaaa"
+                    aria-label="Data de expiração do curso"
                   />
                 </div>
                 <div>
@@ -1023,6 +1039,10 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedExpirado.dataProposta || ''}
                     onChange={(e) => setSelectedExpirado({...selectedExpirado, dataProposta: e.target.value})}
+                    className="cursor-pointer"
+                    tabIndex={0}
+                    placeholder="dd/mm/aaaa"
+                    aria-label="Data da proposta de reativação"
                   />
                 </div>
               </div>
