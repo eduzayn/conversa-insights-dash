@@ -792,7 +792,8 @@ Changelog:
    * ✅ MODAIS INCLUÍDOS: Todos os botões de submit em modais de criação/edição agora são verdes
    * ✅ Padrão aplicado: bg-green-600 hover:bg-green-700 text-white
    * ✅ Consistência visual: todos os botões de inclusão/criação/salvamento agora são verdes
-   * ✅ Total: 24 botões padronizados em 7 páginas administrativas
+   * ✅ IntegracaoAsaas.tsx: 2 botões corrigidos (Criar Cobrança em ambas as implementações)
+   * ✅ Total: 26 botões padronizados em 8 páginas administrativas
    * Status: Padronização visual COMPLETA em páginas e modais do sistema administrativo
 ```
 
