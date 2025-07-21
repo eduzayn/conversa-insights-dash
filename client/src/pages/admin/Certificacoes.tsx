@@ -72,6 +72,8 @@ export default function Certificacoes() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [isProcessingDuplicates, setIsProcessingDuplicates] = useState(false);
+  const [duplicatesCache, setDuplicatesCache] = useState<{ [key: string]: any }>({});
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -331,9 +333,67 @@ export default function Certificacoes() {
   const totalCertifications = parseInt(certificationsData?.total) || 0;
   const totalPages = certificationsData?.totalPages || 1;
   
-  // Detectar certificações duplicadas/similares
-  const duplicates = detectDuplicates(certifications);
+  // Estado para duplicatas processadas de forma assíncrona
+  const [duplicates, setDuplicates] = useState<{ [key: string]: any }>({});
   const duplicateCount = Object.keys(duplicates).length;
+
+  // Processar duplicatas de forma assíncrona com timeout para conexões lentas
+  useEffect(() => {
+    if (!certifications || certifications.length === 0) {
+      setDuplicates({});
+      setIsProcessingDuplicates(false);
+      return;
+    }
+
+    // Criar chave de cache baseada nos dados atuais
+    const cacheKey = `${activeTab}-${certifications.length}-${JSON.stringify(certifications.slice(0, 5).map(c => c.id))}`;
+    
+    // Verificar se já temos resultado em cache
+    if (duplicatesCache[cacheKey]) {
+      setDuplicates(duplicatesCache[cacheKey]);
+      setIsProcessingDuplicates(false);
+      return;
+    }
+
+    setIsProcessingDuplicates(true);
+    
+    // Timeout de segurança para conexões lentas (máximo 10 segundos)
+    const safetyTimeout = setTimeout(() => {
+      console.warn('Processamento de duplicatas cancelado devido a timeout de segurança');
+      setIsProcessingDuplicates(false);
+      setDuplicates({});
+    }, 10000);
+
+    // Processar em chunks pequenos para não travar a UI
+    const processInChunks = async () => {
+      try {
+        const result = await new Promise<{ [key: string]: any }>((resolve) => {
+          setTimeout(() => {
+            const detectedDuplicates = detectDuplicates(certifications);
+            resolve(detectedDuplicates);
+          }, 100); // Pequeno delay para não travar a UI
+        });
+
+        clearTimeout(safetyTimeout);
+        
+        // Salvar no cache
+        setDuplicatesCache(prev => ({
+          ...prev,
+          [cacheKey]: result
+        }));
+        
+        setDuplicates(result);
+        setIsProcessingDuplicates(false);
+      } catch (error) {
+        console.error('Erro ao processar duplicatas:', error);
+        clearTimeout(safetyTimeout);
+        setIsProcessingDuplicates(false);
+        setDuplicates({});
+      }
+    };
+
+    processInChunks();
+  }, [certifications, activeTab]);
 
   // Função para gerar números de página
   const getPageNumbers = () => {
@@ -1008,8 +1068,20 @@ export default function Certificacoes() {
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
+                {/* Loading de processamento de duplicatas */}
+                {isProcessingDuplicates && (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <AlertDescription className="text-blue-800">
+                        <strong>Processando:</strong> Analisando certificações para detectar possíveis duplicatas...
+                      </AlertDescription>
+                    </div>
+                  </Alert>
+                )}
+
                 {/* Alerta de Duplicatas */}
-                {duplicateCount > 0 && (
+                {!isProcessingDuplicates && duplicateCount > 0 && (
                   <Alert className="border-orange-200 bg-orange-50">
                     <AlertTriangle className="h-4 w-4 text-orange-600" />
                     <AlertDescription className="text-orange-800">
