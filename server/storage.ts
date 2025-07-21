@@ -2185,9 +2185,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateNegociacaoExpirado(id: number, expirado: Partial<NegociacaoExpirado>): Promise<NegociacaoExpirado | undefined> {
+    // Preparar dados para atualização (mesmo tratamento que createNegociacaoExpirado)
+    const updateData: any = { ...expirado };
+    
+    // Converter valorProposta para string se for number (para o tipo decimal do PostgreSQL)
+    if (updateData.valorProposta !== undefined && updateData.valorProposta !== null) {
+      updateData.valorProposta = updateData.valorProposta.toString();
+    }
+    
+    // Para campos do tipo 'date' no Drizzle, garantir que sejam strings no formato YYYY-MM-DD
+    if (updateData.dataExpiracao && typeof updateData.dataExpiracao === 'string') {
+      updateData.dataExpiracao = updateData.dataExpiracao.split('T')[0];
+    }
+    if (updateData.dataProposta && typeof updateData.dataProposta === 'string') {
+      updateData.dataProposta = updateData.dataProposta.split('T')[0];
+    }
+    
     const [updatedExpirado] = await db
       .update(negociacoesExpirados)
-      .set({ ...expirado, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(negociacoesExpirados.id, id))
       .returning();
     return updatedExpirado || undefined;
