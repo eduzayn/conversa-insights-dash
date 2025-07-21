@@ -187,7 +187,7 @@ const Negociacoes: React.FC = () => {
     if (inputDate < today) {
       toast({
         title: "Data inválida",
-        description: "A data prevista de pagamento não pode ser anterior à data atual",
+        description: "A data da previsão de pagamento não deve ser inferior à data atual",
         variant: "destructive",
       });
       return false;
