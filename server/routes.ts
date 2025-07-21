@@ -2991,7 +2991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit = 50 
       } = req.query;
       
-      // Tratar categoria múltipla (ex: "segunda_graduacao,formacao_pedagogica")
+      // Tratar categoria múltipla (ex: "segunda_licenciatura,formacao_pedagogica")
       let categoriaFilter = categoria;
       if (categoria && typeof categoria === 'string' && categoria.includes(',')) {
         // Para múltiplas categorias, vamos buscar cada uma separadamente e combinar

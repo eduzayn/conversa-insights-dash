@@ -219,7 +219,7 @@ const EnviosUnicv: React.FC = () => {
         aluno: '',
         cpf: '',
         curso: '',
-        categoria: 'segunda_graduacao'
+        categoria: 'segunda_licenciatura'
       });
       
       toast({ title: "Sucesso", description: "Novo aluno adicionado com sucesso!" });
@@ -902,7 +902,7 @@ const EnviosUnicv: React.FC = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="segunda_graduacao">Segunda Licenciatura</SelectItem>
+                          <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                           <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
                           <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                           <SelectItem value="formacao_livre">Formação Livre</SelectItem>
@@ -926,7 +926,7 @@ const EnviosUnicv: React.FC = () => {
                           aluno: '',
                           cpf: '',
                           curso: '',
-                          categoria: 'segunda_graduacao'
+                          categoria: 'segunda_licenciatura'
                         });
                       }}
                     >

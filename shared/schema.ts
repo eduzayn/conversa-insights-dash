@@ -272,7 +272,7 @@ export const preRegisteredCourses = pgTable("pre_registered_courses", {
   id: serial("id").primaryKey(),
   nome: text("nome").notNull(),
   modalidade: text("modalidade").notNull(), // Pós-graduação, etc.
-  categoria: text("categoria").notNull(), // pos_graduacao, segunda_graduacao, etc.
+  categoria: text("categoria").notNull(), // pos_graduacao, segunda_licenciatura, etc.
   cargaHoraria: integer("carga_horaria").notNull(),
   area: text("area"), // Gestão Escolar, Saúde Mental, etc.
   ativo: boolean("ativo").default(true),

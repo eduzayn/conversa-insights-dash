@@ -771,6 +771,16 @@ Changelog:
    * ✅ Sistema simplificado: redundância de 98% eliminada, conflitos de dados resolvidos
    * ✅ Performance otimizada: queries mais simples, sem joins desnecessários
    * Status: Campo subcategoria completamente eliminado, sistema unificado e funcionando
+- Padronização Completa "Segunda Licenciatura" (21 Jul 2025):
+   * ✅ TODAS as referências "segunda_graduacao" atualizadas para "segunda_licenciatura"
+   * ✅ Modal Nova Certificação: dropdown corrigido de "Segunda Graduação" → "Segunda Licenciatura"
+   * ✅ Modal Editar Certificação: dropdown corrigido de "Segunda Graduação" → "Segunda Licenciatura"
+   * ✅ Página Certificados Acadêmicos: título card atualizado
+   * ✅ Página Envios UNICV: 4 referências corrigidas (value, arrays, defaults)
+   * ✅ Schema e rotas: comentários atualizados para nova terminologia
+   * ✅ Sistema unificado: terminologia consistente em todo o projeto
+   * ✅ Zero referências órfãs: busca completa confirmou limpeza total
+   * Status: Padronização "Segunda Licenciatura" 100% completa em todo o sistema
 ```
 
 ## User Preferences
