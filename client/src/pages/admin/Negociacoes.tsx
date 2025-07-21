@@ -351,7 +351,7 @@ const Negociacoes: React.FC = () => {
 
             {/* Aba Negociações */}
             <TabsContent value="negociacoes" className="space-y-6">
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-4">
                   <Input
                     placeholder="Buscar por nome ou CPF..."
@@ -407,12 +407,10 @@ const Negociacoes: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-end">
-                  <Button onClick={handleCreateNegociacao}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Negociação
-                  </Button>
-                </div>
+                <Button onClick={handleCreateNegociacao}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Negociação
+                </Button>
               </div>
 
               <div className="grid gap-4">
@@ -526,7 +524,7 @@ const Negociacoes: React.FC = () => {
 
             {/* Aba Expirados */}
             <TabsContent value="expirados" className="space-y-6">
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-4">
                   <Input
                     placeholder="Buscar por nome ou curso..."
@@ -588,12 +586,10 @@ const Negociacoes: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-end">
-                  <Button onClick={handleCreateExpirado}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Expirado
-                  </Button>
-                </div>
+                <Button onClick={handleCreateExpirado}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Expirado
+                </Button>
               </div>
 
               <div className="grid gap-4">
