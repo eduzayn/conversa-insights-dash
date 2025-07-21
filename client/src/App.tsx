@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/admin/Index";
 import Login from "./pages/admin/Login";
 import Atendimentos from "./pages/admin/Atendimentos";
@@ -42,10 +43,11 @@ import NotFound from "./pages/admin/NotFound";
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
+      <ErrorBoundary>
+        <Toaster />
+        <Sonner position="top-right" />
+        <BrowserRouter>
+          <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginHub />} />
             <Route path="/login-antigo" element={<LoginRouter />} />
@@ -87,6 +89,7 @@ const App = () => (
           <SupportChatButton />
         </AuthProvider>
       </BrowserRouter>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );
