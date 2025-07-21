@@ -4474,7 +4474,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/negociacoes-expirados", authenticateToken, async (req: any, res) => {
     try {
-      const expiradoData = insertNegociacaoExpiradoSchema.parse(req.body);
+      // Preencher automaticamente a data da proposta com a data atual
+      const dataAtual = new Date().toISOString().split('T')[0];
+      const bodyWithDefaults = {
+        ...req.body,
+        dataProposta: dataAtual
+      };
+      
+      const expiradoData = insertNegociacaoExpiradoSchema.parse(bodyWithDefaults);
       const expirado = await storage.createNegociacaoExpirado(expiradoData);
       res.status(201).json(expirado);
     } catch (error) {

@@ -48,6 +48,7 @@ interface Expirado {
   categoria: string;
   dataExpiracao: string;
   dataProposta?: string;
+  dataPrevisaPagamento: string;
   propostaReativacao?: string;
   valorProposta?: number;
   statusProposta: 'pendente' | 'enviada' | 'aceita' | 'rejeitada';
@@ -326,6 +327,7 @@ const Negociacoes: React.FC = () => {
       categoria: '',
       dataExpiracao: '',
       dataProposta: hoje,
+      dataPrevisaPagamento: '',
       statusProposta: 'pendente',
       observacoes: '',
       colaboradorResponsavel: ''
@@ -1044,17 +1046,17 @@ const Negociacoes: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="dataProposta">Data da Proposta</Label>
+                  <Label htmlFor="dataPrevisaPagamento">Data Prevista de Pagamento *</Label>
                   <Input
-                    id="dataProposta"
+                    id="dataPrevisaPagamento"
                     type="date"
-                    value={selectedExpirado.dataProposta || ''}
-                    onChange={(e) => setSelectedExpirado({...selectedExpirado, dataProposta: e.target.value})}
+                    value={selectedExpirado.dataPrevisaPagamento || ''}
+                    onChange={(e) => setSelectedExpirado({...selectedExpirado, dataPrevisaPagamento: e.target.value})}
                     min={new Date().toISOString().split('T')[0]}
                     className="cursor-pointer"
                     tabIndex={0}
                     placeholder="dd/mm/aaaa"
-                    aria-label="Data da proposta de reativação"
+                    aria-label="Data prevista para pagamento"
                   />
                 </div>
               </div>

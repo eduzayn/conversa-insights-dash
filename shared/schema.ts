@@ -314,6 +314,7 @@ export const negociacoesExpirados = pgTable("negociacoes_expirados", {
   categoria: text("categoria").notNull(),
   dataExpiracao: date("data_expiracao").notNull(),
   dataProposta: date("data_proposta"),
+  dataPrevisaPagamento: date("data_previsa_pagamento"),
   propostaReativacao: text("proposta_reativacao"),
   valorProposta: decimal("valor_proposta", { precision: 10, scale: 2 }),
   statusProposta: text("status_proposta").notNull().default("pendente"), // pendente, enviada, aceita, rejeitada
@@ -1363,15 +1364,18 @@ export const insertNegociacaoExpiradoSchema = z.object({
     required_error: "Data de expiração é obrigatória",
     invalid_type_error: "Data de expiração deve ser um texto"
   }).min(1, "Data de expiração não pode estar vazia"),
-  dataProposta: z.string().optional().nullable()
+  dataProposta: z.string().optional().nullable(),
+  dataPrevisaPagamento: z.string({
+    required_error: "Data prevista de pagamento é obrigatória",
+    invalid_type_error: "Data prevista de pagamento deve ser um texto"
+  }).min(1, "Data prevista de pagamento não pode estar vazia")
     .refine((date) => {
-      if (!date) return true; // Permite valores vazios/null
       // Converte as datas para objetos Date para comparação mais robusta
       const inputDate = new Date(date + 'T00:00:00');
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Remove horas para comparar apenas a data
       return inputDate >= today;
-    }, "Data da proposta não pode ser anterior à data atual"),
+    }, "Data prevista de pagamento não pode ser anterior à data atual"),
   propostaReativacao: z.string().optional().nullable(),
   valorProposta: z.union([z.string(), z.number()]).optional().nullable(),
   statusProposta: z.string().default("pendente"),
