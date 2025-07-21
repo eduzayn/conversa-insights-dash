@@ -823,12 +823,15 @@ Changelog:
    * ✅ Teste confirmado: sistema funcionando após autenticação (admin/password)
    * ✅ Sistema separado: UNICV e FAMAR operam independentemente
    * Status: Sistema FAMAR 100% implementado e operacional
-- Correção Senha Usuário Erick Moreira (21 Jul 2025):
-   * ✅ Usuário localizado: ID 11, username "Erick Moreira Pereira"
-   * ✅ Nova senha definida: "Zayn@2025" (solicitação do usuário)
-   * ✅ Senha criptografada com bcrypt e salva no PostgreSQL
-   * ✅ Login funcional: erickmoreirap62@gmail.com / Zayn@2025
-   * Status: Senha atualizada e sistema funcionando
+- Correção Crítica: Problema de Acesso Usuário Erick Moreira (21 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro de login causado por discrepância no campo username
+   * ✅ Usuário localizado: ID 11, username "Erick Moreira Pereira" (nome completo necessário)
+   * ✅ Senha atualizada e validada: "Zayn@2025" com nova hash bcrypt
+   * ✅ Espaços extras no username removidos com TRIM()
+   * ✅ API testada e confirmada: POST /api/auth/login retorna status 200
+   * ✅ Token JWT gerado com sucesso para usuário role agent
+   * ✅ Credenciais funcionais: username "Erick Moreira Pereira" / senha "Zayn@2025"
+   * Status: Sistema 100% funcional, usuário pode acessar normalmente
 - Correção Crítica: Responsividade de Modais em Zoom 100% (21 Jul 2025):
    * ✅ PROBLEMA RESOLVIDO: Modais só funcionavam em zoom 67%, não no padrão 100%
    * ✅ DialogContent base modificado: max-w-lg → max-w-2xl com overflow-y otimizado
