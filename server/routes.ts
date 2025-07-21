@@ -7,7 +7,7 @@ import { storage } from "./storage";
 import { logger } from "./utils/logger";
 import { sql, eq, inArray } from "drizzle-orm";
 import { db } from "./db";
-import { users } from "@shared/schema"; 
+import { users, conversations } from "@shared/schema"; 
 import { 
   insertUserSchema, 
   insertRegistrationTokenSchema, 
@@ -1641,30 +1641,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: lead,
         phone: `+55${Date.now()}`, // Telefone fictício único
         status: 'novo',
-        source: 'manual',
-        companyAccount: 'SUPORTE'
+        source: 'manual'
       });
 
       // Criar conversa manual (atendimento)
       const conversation = await storage.createConversation({
         leadId: leadRecord.id,
-        customerName: lead,
-        customerPhone: leadRecord.phone,
         status: dbStatus,
-        attendantId: req.user.id,
-        resultado: resultado || null,
-        companyAccount: 'SUPORTE',
-        hora: hora,
-        atendente: atendente,
-        equipe: equipe,
-        duracao: duracao
+        attendantId: req.user.id
       });
+
+      // Atualizar campos específicos diretamente no banco
+      await db.update(conversations)
+        .set({
+          customerName: lead,
+          customerPhone: leadRecord.phone,
+          resultado: resultado || null,
+          companyAccount: 'SUPORTE',
+          hora: hora,
+          atendente: atendente,
+          equipe: equipe,
+          duracao: duracao
+        })
+        .where(eq(conversations.id, conversation.id));
 
       // Retornar no formato de atendimento
       const atendimento = {
         id: conversation.id,
-        lead: conversation.customerName,
-        hora: conversation.hora,
+        lead: lead,
+        hora: hora,
         atendente: conversation.atendente,
         equipe: conversation.equipe,
         duracao: conversation.duracao,
