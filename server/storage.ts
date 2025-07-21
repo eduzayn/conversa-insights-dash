@@ -31,7 +31,8 @@ import {
   certificateTemplates,
   negociacoes,
   negociacoesExpirados,
-
+  enviosUnicv,
+  enviosFamar,
   simplifiedEnrollments,
   type User, 
   type InsertUser,
@@ -122,7 +123,7 @@ import {
   type InsertEnvioFamar
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql } from "drizzle-orm";
+import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql, gte, lte, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -190,7 +191,7 @@ export interface IStorage {
   updateUserActivity(id: number, activity: Partial<UserActivity>): Promise<UserActivity | undefined>;
   
   // Certifications
-  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; subcategoria?: string }): Promise<Certification[]>;
+  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; search?: string; page?: number; limit?: number; dataInicio?: string; dataFim?: string }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }>;
   createCertification(certification: InsertCertification): Promise<Certification>;
   updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
   deleteCertification(id: number): Promise<void>;
@@ -914,7 +915,6 @@ export class DatabaseStorage implements IStorage {
     curso?: string; 
     status?: string; 
     categoria?: string; 
-    subcategoria?: string;
     search?: string;
     page?: number;
     limit?: number;
@@ -935,9 +935,6 @@ export class DatabaseStorage implements IStorage {
       }
       if (filters.categoria) {
         conditions.push(eq(certifications.categoria, filters.categoria));
-      }
-      if (filters.subcategoria) {
-        conditions.push(eq(certifications.subcategoria, filters.subcategoria));
       }
       
       // Busca por nome, CPF ou curso (case-insensitive)
