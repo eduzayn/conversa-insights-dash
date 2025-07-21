@@ -521,9 +521,16 @@ const EnviosUnicv: React.FC = () => {
                               </span>
                             </td>
                             <td className="p-4">
-                              <Badge variant={getBadgeVariant(envio.statusEnvio)}>
+                              <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                envio.statusEnvio === 'enviado' ? 'bg-blue-100 text-blue-800' :
+                                envio.statusEnvio === 'nao_enviado' ? 'bg-gray-100 text-gray-800' :
+                                envio.statusEnvio === 'concluido' ? 'bg-green-100 text-green-800' :
+                                envio.statusEnvio === 'retornado_pendencia' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                <div className={`w-2 h-2 rounded-full ${getStatusColor(envio.statusEnvio)}`}></div>
                                 {getStatusLabel(envio.statusEnvio)}
-                              </Badge>
+                              </div>
                             </td>
                             <td className="p-4">{envio.numeroOficio || '-'}</td>
                             <td className="p-4">{formatDate(envio.dataEnvio || '')}</td>
