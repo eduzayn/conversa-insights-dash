@@ -99,6 +99,7 @@ export default function MatriculaSimplificada() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [formattedAmount, setFormattedAmount] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -279,8 +280,51 @@ export default function MatriculaSimplificada() {
     });
   };
 
+  // Função para formatar valor monetário brasileiro
+  const formatCurrencyInput = (value: string) => {
+    // Remove tudo que não é dígito
+    const cleanValue = value.replace(/\D/g, '');
+    
+    // Se vazio, retorna vazio
+    if (!cleanValue) return '';
+    
+    // Converte para número em centavos e depois para reais
+    const numValue = parseInt(cleanValue) / 100;
+    
+    // Formata para moeda brasileira
+    return numValue.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handleAmountChange = (value: string, field: any) => {
+    const formatted = formatCurrencyInput(value);
+    setFormattedAmount(formatted);
+    
+    // Extrai o valor numérico em centavos para o form
+    const cleanValue = value.replace(/\D/g, '');
+    if (cleanValue) {
+      const numValue = parseInt(cleanValue);
+      field.onChange(numValue);
+    } else {
+      field.onChange(0);
+    }
+  };
+
   const onSubmit = (data: EnrollmentFormData) => {
     createEnrollmentMutation.mutate(data);
+  };
+
+  // Limpar formulário quando modal fecha
+  const handleModalClose = (open: boolean) => {
+    if (!open) {
+      form.reset();
+      setFormattedAmount('');
+    }
+    setIsCreateDialogOpen(open);
   };
 
   return (
@@ -298,7 +342,7 @@ export default function MatriculaSimplificada() {
             Sistema de matrícula rápida com integração automática ao Asaas
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={handleModalClose}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -447,15 +491,14 @@ export default function MatriculaSimplificada() {
                         <FormLabel>Valor (R$) *</FormLabel>
                         <FormControl>
                           <Input 
-                            type="number" 
-                            step="0.01"
-                            placeholder="0.00" 
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) * 100)}
+                            type="text" 
+                            placeholder="R$ 0,00" 
+                            value={formattedAmount}
+                            onChange={(e) => handleAmountChange(e.target.value, field)}
                           />
                         </FormControl>
                         <FormDescription>
-                          Valor será convertido automaticamente para centavos
+                          Digite o valor em reais (ex: 1500 = R$ 15,00)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
