@@ -1,26 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, User, FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-
-// Componentes consolidados
-import { useCrudOperations } from "@/hooks/useCrudOperations";
-import { useFormValidation } from "@/hooks/useFormValidation";
-import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
-import { StatusBadge } from "@/components/common/StatusBadge";
-import { FormDialog } from "@/components/common/FormDialog";
-import { LoadingCard } from "@/components/common/LoadingCard";
-import { EmptyStateCard } from "@/components/common/EmptyStateCard";
 
 interface Negociacao {
   id?: number;
@@ -71,26 +66,13 @@ const Negociacoes: React.FC = () => {
   const [selectedExpirado, setSelectedExpirado] = useState<Expirado | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteExpiradoId, setDeleteExpiradoId] = useState<number | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
 
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-
-  // Hooks consolidados
-  const { validateRequired, validateDate, validateFutureDate } = useFormValidation();
-  
-  const negociacoesCrud = useCrudOperations<Negociacao>({
-    entityName: 'Negociação',
-    endpoint: '/api/negociacoes',
-    queryKeys: ['/api/negociacoes']
-  });
-
-  const expiradosCrud = useCrudOperations<Expirado>({
-    entityName: 'Curso Expirado',
-    endpoint: '/api/negociacoes-expirados',
-    queryKeys: ['/api/negociacoes-expirados']
-  });
 
   // Função para capturar erros de renderização
   const handleRenderError = (error: Error) => {
@@ -132,16 +114,133 @@ const Negociacoes: React.FC = () => {
     setRenderError(null);
   }, [negociacoes, expirados]);
 
-  // Validação usando hook consolidado
-  const validateExpirado = (data: Expirado): boolean => {
-    return (
-      validateRequired(data.clienteNome, 'Nome do Cliente') &&
-      validateRequired(data.curso, 'Curso') &&
-      validateRequired(data.categoria, 'Categoria') &&
-      validateDate(data.dataExpiracao, 'Data de Expiração') &&
-      validateFutureDate(data.dataPrevisaPagamento, 'Data Prevista de Pagamento')
-    );
+  // Mutation para criar/atualizar negociação
+  const negociacaoMutation = useMutation({
+    mutationFn: async (data: Negociacao) => {
+      if (isSubmitting) {
+        throw new Error('Submissão já em andamento');
+      }
+      
+      setIsSubmitting(true);
+      
+      if (data.id) {
+        return apiRequest(`/api/negociacoes/${data.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+      } else {
+        return apiRequest('/api/negociacoes', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/negociacoes'] });
+      setIsCreateModalOpen(false);
+      setSelectedNegociacao(null);
+      setIsSubmitting(false);
+      toast({ title: "Sucesso", description: "Negociação salva com sucesso!" });
+    },
+    onError: (error: any) => {
+      setIsSubmitting(false);
+      
+      // Extrair mensagem específica se for erro de validação
+      let errorMessage = "Erro ao salvar negociação";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({ 
+        title: "Erro", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Função para validar data prevista de pagamento
+  const validateDataPrevisaPagamento = (data: Expirado): boolean => {
+    if (!data.dataPrevisaPagamento) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Data prevista de pagamento é obrigatória",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const inputDate = new Date(data.dataPrevisaPagamento + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (isNaN(inputDate.getTime())) {
+      toast({
+        title: "Data inválida",
+        description: "Por favor, insira uma data válida para a previsão de pagamento",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (inputDate < today) {
+      toast({
+        title: "Data inválida",
+        description: "A data da previsão de pagamento não deve ser inferior à data atual",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
   };
+
+  // Mutation para criar/atualizar expirado
+  const expiradoMutation = useMutation({
+    mutationFn: async (data: Expirado) => {
+      // Validar antes de enviar
+      if (!validateDataPrevisaPagamento(data)) {
+        throw new Error("Validação de data falhou");
+      }
+
+      if (data.id) {
+        return apiRequest(`/api/negociacoes-expirados/${data.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+      } else {
+        return apiRequest('/api/negociacoes-expirados', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/negociacoes-expirados'] });
+      setSelectedExpirado(null);
+      toast({ title: "Sucesso", description: "Expirado salvo com sucesso!" });
+    },
+    onError: (error: any) => {
+      // Extrair mensagem específica se for erro de validação
+      let errorMessage = "Erro ao salvar expirado";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      // Se for erro de validação com detalhes
+      if (error?.details && Array.isArray(error.details)) {
+        errorMessage = error.details.join(', ');
+      }
+      
+      toast({ 
+        title: "Erro", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleCreateNegociacao = useCallback(() => {
     // Obter data local no formato YYYY-MM-DD (não UTC)
@@ -159,64 +258,88 @@ const Negociacoes: React.FC = () => {
       origem: 'certificacao',
       status: 'aguardando_pagamento'
     });
+    setIsSubmitting(false);
     setIsCreateModalOpen(true);
   }, []);
 
   const handleSaveNegociacao = useCallback(() => {
-    if (!selectedNegociacao) return;
+    if (selectedNegociacao && !isSubmitting && !negociacaoMutation.isPending) {
+      negociacaoMutation.mutate(selectedNegociacao);
+    }
+  }, [selectedNegociacao, isSubmitting, negociacaoMutation]);
 
-    // Validar campos obrigatórios
-    const isValid = (
-      validateRequired(selectedNegociacao.clienteNome, 'Nome do Cliente') &&
-      validateDate(selectedNegociacao.dataNegociacao, 'Data da Negociação') &&
-      validateFutureDate(selectedNegociacao.previsaoPagamento, 'Previsão de Pagamento') &&
-      validateRequired(selectedNegociacao.colaboradorResponsavel, 'Colaborador Responsável')
-    );
-
-    if (!isValid) return;
-
-    if (selectedNegociacao.id) {
-      negociacoesCrud.update.mutate({ 
-        id: selectedNegociacao.id, 
-        data: selectedNegociacao 
+  const deleteNegociacaoMutation = useMutation({
+    mutationFn: async (id: number) => {
+      try {
+        const response = await apiRequest(`/api/negociacoes/${id}`, {
+          method: 'DELETE',
+        });
+        return response;
+      } catch (error) {
+        console.error('Erro na exclusão:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/negociacoes'] });
+      setDeleteId(null);
+      toast({
+        title: "Sucesso",
+        description: "Negociação excluída com sucesso!",
       });
-    } else {
-      negociacoesCrud.create.mutate(selectedNegociacao);
-    }
-    
-    setIsCreateModalOpen(false);
-    setSelectedNegociacao(null);
-  }, [selectedNegociacao, negociacoesCrud, validateRequired, validateDate, validateFutureDate]);
-
-  const handleSaveExpirado = useCallback(() => {
-    if (!selectedExpirado) return;
-
-    if (!validateExpirado(selectedExpirado)) return;
-
-    if (selectedExpirado.id) {
-      expiradosCrud.update.mutate({ 
-        id: selectedExpirado.id, 
-        data: selectedExpirado 
+    },
+    onError: (error: any) => {
+      console.error('Erro capturado na mutação:', error);
+      setDeleteId(null);
+      toast({
+        title: "Erro",
+        description: error?.message || "Erro ao excluir negociação",
+        variant: "destructive",
       });
-    } else {
-      expiradosCrud.create.mutate(selectedExpirado);
-    }
-    
-    setSelectedExpirado(null);
-  }, [selectedExpirado, expiradosCrud, validateExpirado]);
+    },
+  });
 
-  const handleDeleteNegociacao = useCallback((id: number | undefined) => {
-    if (id) {
-      setDeleteId(id);
-    }
+  const handleDeleteNegociacao = useCallback((id: number) => {
+    setDeleteId(id);
   }, []);
 
   const confirmDeleteNegociacao = useCallback(() => {
     if (deleteId) {
-      negociacoesCrud.delete.mutate(deleteId);
-      setDeleteId(null);
+      deleteNegociacaoMutation.mutate(deleteId);
     }
-  }, [deleteId, negociacoesCrud]);
+  }, [deleteId, deleteNegociacaoMutation]);
+
+  // Mutation para excluir expirado
+  const deleteExpiradoMutation = useMutation({
+    mutationFn: async (id: number) => {
+      try {
+        const response = await apiRequest(`/api/negociacoes-expirados/${id}`, {
+          method: 'DELETE',
+        });
+        return response;
+      } catch (error) {
+        console.error('Erro na exclusão de expirado:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/negociacoes-expirados'] });
+      setDeleteExpiradoId(null);
+      toast({
+        title: "Sucesso",
+        description: "Expirado excluído com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Erro capturado na mutação de expirado:', error);
+      setDeleteExpiradoId(null);
+      toast({
+        title: "Erro",
+        description: error?.message || "Erro ao excluir expirado",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleDeleteExpirado = useCallback((id: number) => {
     setDeleteExpiradoId(id);
@@ -224,10 +347,16 @@ const Negociacoes: React.FC = () => {
 
   const confirmDeleteExpirado = useCallback(() => {
     if (deleteExpiradoId) {
-      expiradosCrud.delete.mutate(deleteExpiradoId);
-      setDeleteExpiradoId(null);
+      deleteExpiradoMutation.mutate(deleteExpiradoId);
     }
-  }, [deleteExpiradoId, expiradosCrud]);
+  }, [deleteExpiradoId, deleteExpiradoMutation]);
+
+  // Limpar estado ao fechar modal
+  useEffect(() => {
+    if (!isCreateModalOpen) {
+      setIsSubmitting(false);
+    }
+  }, [isCreateModalOpen]);
 
   const handleCreateExpirado = () => {
     // Obter data local no formato YYYY-MM-DD (não UTC)
@@ -246,9 +375,66 @@ const Negociacoes: React.FC = () => {
     });
   };
 
+  const getStatusBadge = (status: string | undefined | null) => {
+    // Garantir que status seja uma string válida
+    if (!status || typeof status !== 'string') {
+      return (
+        <Badge className="bg-gray-100 text-gray-800 flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+          Indefinido
+        </Badge>
+      );
+    }
+
+    const styles = {
+      'aguardando_pagamento': 'bg-yellow-100 text-yellow-800',
+      'recebido': 'bg-green-100 text-green-800', 
+      'acordo_quebrado': 'bg-red-100 text-red-800',
+      pendente: 'bg-yellow-100 text-yellow-800',
+      enviada: 'bg-purple-100 text-purple-800',
+      aceita: 'bg-green-100 text-green-800',
+      rejeitada: 'bg-red-100 text-red-800'
+    };
+    
+    const dotColors = {
+      'aguardando_pagamento': 'bg-yellow-500',
+      'recebido': 'bg-green-500',
+      'acordo_quebrado': 'bg-red-500',
+      pendente: 'bg-yellow-500',
+      enviada: 'bg-purple-500',
+      aceita: 'bg-green-500',
+      rejeitada: 'bg-red-500'
+    };
+    
+    const labels = {
+      'aguardando_pagamento': 'Aguardando pagamento',
+      'recebido': 'Recebido',
+      'acordo_quebrado': 'Acordo quebrado',
+      pendente: 'Pendente',
+      enviada: 'Enviada',
+      aceita: 'Aceita',
+      rejeitada: 'Rejeitada'
+    };
+    
+    const label = labels[status as keyof typeof labels] || status;
+    const dotColor = dotColors[status as keyof typeof dotColors] || 'bg-gray-500';
+    const styleClass = styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800';
+    
+    return (
+      <Badge className={`${styleClass} flex items-center gap-1`}>
+        <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
+        {label}
+      </Badge>
+    );
+  };
+
   // Proteção de autenticação - movida para após todos os hooks
   if (loading) {
-    return <LoadingCard message="Carregando página..." />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -387,17 +573,19 @@ const Negociacoes: React.FC = () => {
 
               <div className="grid gap-4">
                 {loadingNegociacoes ? (
-                  <LoadingCard message="Carregando negociações..." />
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="text-center">Carregando negociações...</div>
+                    </CardContent>
+                  </Card>
                 ) : negociacoes.length === 0 ? (
-                  <EmptyStateCard 
-                    icon={FileText}
-                    title="Nenhuma negociação encontrada"
-                    description="Crie uma nova negociação para começar"
-                    action={{
-                      label: "Nova Negociação",
-                      onClick: handleCreateNegociacao
-                    }}
-                  />
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <div className="text-lg font-medium text-gray-900">Nenhuma negociação encontrada</div>
+                      <div className="text-gray-600">Crie uma nova negociação para começar</div>
+                    </CardContent>
+                  </Card>
                 ) : (
                   negociacoes.map((negociacao: Negociacao, index: number) => (
                     <Card key={negociacao.id || `negociacao-${index}`} className="hover:shadow-md transition-shadow">
@@ -406,7 +594,7 @@ const Negociacoes: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="text-lg font-semibold">{negociacao.clienteNome}</h3>
-                              <StatusBadge status={negociacao.status} />
+                              {getStatusBadge(negociacao.status)}
                             </div>
                             
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
@@ -511,17 +699,19 @@ const Negociacoes: React.FC = () => {
 
               <div className="grid gap-4">
                 {loadingExpirados ? (
-                  <LoadingCard message="Carregando expirados..." />
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="text-center">Carregando expirados...</div>
+                    </CardContent>
+                  </Card>
                 ) : expirados.length === 0 ? (
-                  <EmptyStateCard 
-                    icon={AlertTriangle}
-                    title="Nenhum curso expirado encontrado"
-                    description="Os cursos expirados aparecerão aqui"
-                    action={{
-                      label: "Novo Expirado",
-                      onClick: handleCreateExpirado
-                    }}
-                  />
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <AlertTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <div className="text-lg font-medium text-gray-900">Nenhum curso expirado encontrado</div>
+                      <div className="text-gray-600">Os cursos expirados aparecerão aqui</div>
+                    </CardContent>
+                  </Card>
                 ) : (
                   expirados.map((expirado: Expirado, index: number) => (
                     <Card key={expirado.id || `expirado-${index}`} className="hover:shadow-md transition-shadow">
@@ -530,7 +720,7 @@ const Negociacoes: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="text-lg font-semibold">{expirado.clienteNome}</h3>
-                              <StatusBadge status={expirado.statusProposta} />
+                              {getStatusBadge(expirado.statusProposta)}
                             </div>
                             
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
@@ -608,15 +798,16 @@ const Negociacoes: React.FC = () => {
       </div>
 
       {/* Modal de Negociação */}
-      <FormDialog
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        title={selectedNegociacao?.id ? 'Editar Negociação' : 'Nova Negociação'}
-        description="Preencha os dados da negociação"
-        onSave={handleSaveNegociacao}
-        isLoading={negociacoesCrud.isLoading}
-        maxWidth="2xl"
-      >
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedNegociacao?.id ? 'Editar Negociação' : 'Nova Negociação'}
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os dados da negociação
+            </DialogDescription>
+          </DialogHeader>
           
           {selectedNegociacao && (
             <div className="grid gap-4 py-4">
@@ -798,18 +989,35 @@ const Negociacoes: React.FC = () => {
             </div>
           )}
           
-      </FormDialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsCreateModalOpen(false);
+              setSelectedNegociacao(null);
+              setIsSubmitting(false);
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSaveNegociacao}
+              disabled={!selectedNegociacao?.clienteNome || !selectedNegociacao?.dataNegociacao || !selectedNegociacao?.previsaoPagamento || !selectedNegociacao?.colaboradorResponsavel || isSubmitting || negociacaoMutation.isPending}
+            >
+              {isSubmitting || negociacaoMutation.isPending ? "Salvando..." : "Salvar Negociação"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Expirado */}
-      <FormDialog
-        open={!!selectedExpirado}
-        onOpenChange={(open) => !open && setSelectedExpirado(null)}
-        title={selectedExpirado?.id ? 'Editar Expirado' : 'Novo Expirado'}
-        description="Dados do curso expirado e proposta de reativação"
-        onSave={handleSaveExpirado}
-        isLoading={expiradosCrud.isLoading}
-        maxWidth="2xl"
-      >
+      <Dialog open={!!selectedExpirado} onOpenChange={(open) => !open && setSelectedExpirado(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedExpirado?.id ? 'Editar Expirado' : 'Novo Expirado'}
+            </DialogTitle>
+            <DialogDescription>
+              Dados do curso expirado e proposta de reativação
+            </DialogDescription>
+          </DialogHeader>
           
           {selectedExpirado && (
             <div className="grid gap-4 py-4">
@@ -1018,26 +1226,73 @@ const Negociacoes: React.FC = () => {
             </div>
           )}
           
-      </FormDialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedExpirado(null)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => selectedExpirado && expiradoMutation.mutate(selectedExpirado)}
+              disabled={!selectedExpirado?.clienteNome || !selectedExpirado?.curso || !selectedExpirado?.categoria || !selectedExpirado?.dataExpiracao || !selectedExpirado?.colaboradorResponsavel}
+            >
+              Salvar Expirado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Diálogos de confirmação consolidados */}
-      <DeleteConfirmDialog
-        open={deleteId !== null}
-        onOpenChange={(open) => !open && setDeleteId(null)}
-        onConfirm={confirmDeleteNegociacao}
-        isLoading={negociacoesCrud.delete.isPending}
-        title="Confirmar Exclusão"
-        description="Tem certeza de que deseja excluir esta negociação? Esta ação não pode ser desfeita."
-      />
+      {/* AlertDialog para confirmação de exclusão */}
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir esta negociação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteNegociacao}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={deleteNegociacaoMutation.isPending}
+            >
+              {deleteNegociacaoMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <DeleteConfirmDialog
-        open={deleteExpiradoId !== null}
-        onOpenChange={(open) => !open && setDeleteExpiradoId(null)}
-        onConfirm={confirmDeleteExpirado}
-        isLoading={expiradosCrud.delete.isPending}
-        title="Confirmar Exclusão"
-        description="Tem certeza de que deseja excluir este expirado? Esta ação não pode ser desfeita."
-      />
+      {/* AlertDialog para confirmação de exclusão de expirado */}
+      <AlertDialog open={deleteExpiradoId !== null} onOpenChange={(open) => !open && setDeleteExpiradoId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir este expirado? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteExpiradoId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteExpirado}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={deleteExpiradoMutation.isPending}
+            >
+              {deleteExpiradoMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
