@@ -71,6 +71,8 @@ const Negociacoes: React.FC = () => {
   const [selectedExpirado, setSelectedExpirado] = useState<Expirado | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteExpiradoId, setDeleteExpiradoId] = useState<number | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -108,11 +110,13 @@ const Negociacoes: React.FC = () => {
 
   // Buscar negociações
   const { data: negociacoes = [], isLoading: loadingNegociacoes } = useQuery({
-    queryKey: ['/api/negociacoes', { search: searchTerm, status: statusFilter }],
+    queryKey: ['/api/negociacoes', { search: searchTerm, status: statusFilter, dataInicio, dataFim }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (dataInicio) params.append('dataInicio', dataInicio);
+      if (dataFim) params.append('dataFim', dataFim);
       return apiRequest(`/api/negociacoes?${params}`);
     }
   });
@@ -344,8 +348,8 @@ const Negociacoes: React.FC = () => {
 
             {/* Aba Negociações */}
             <TabsContent value="negociacoes" className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div className="flex space-x-4">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <Input
                     placeholder="Buscar por nome ou CPF..."
                     value={searchTerm}
@@ -378,11 +382,34 @@ const Negociacoes: React.FC = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {/* Filtros de período */}
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-gray-600">Período:</Label>
+                    <Input
+                      type="date"
+                      placeholder="Data início"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="w-40"
+                    />
+                    <span className="text-gray-400">até</span>
+                    <Input
+                      type="date"
+                      placeholder="Data fim"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
                 </div>
-                <Button onClick={handleCreateNegociacao}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Negociação
-                </Button>
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleCreateNegociacao}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Negociação
+                  </Button>
+                </div>
               </div>
 
               <div className="grid gap-4">

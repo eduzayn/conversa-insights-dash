@@ -4402,8 +4402,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Negociações
   app.get("/api/negociacoes", authenticateToken, async (req: any, res) => {
     try {
-      const { search, status } = req.query;
-      const negociacoes = await storage.getNegociacoes({ search, status });
+      const { search, status, dataInicio, dataFim } = req.query;
+      const negociacoes = await storage.getNegociacoes({ search, status, dataInicio, dataFim });
       res.json(negociacoes);
     } catch (error) {
       logger.error("Erro ao buscar negociações:", error);

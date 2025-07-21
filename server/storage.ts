@@ -2035,7 +2035,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Métodos para Negociações
-  async getNegociacoes(filters?: { search?: string; status?: string }): Promise<Negociacao[]> {
+  async getNegociacoes(filters?: { search?: string; status?: string; dataInicio?: string; dataFim?: string }): Promise<Negociacao[]> {
     const conditions = [];
     
     if (filters?.search) {
@@ -2049,6 +2049,14 @@ export class DatabaseStorage implements IStorage {
     
     if (filters?.status) {
       conditions.push(eq(negociacoes.status, filters.status));
+    }
+    
+    if (filters?.dataInicio) {
+      conditions.push(gte(negociacoes.dataNegociacao, filters.dataInicio));
+    }
+    
+    if (filters?.dataFim) {
+      conditions.push(lte(negociacoes.dataNegociacao, filters.dataFim));
     }
     
     if (conditions.length > 0) {
