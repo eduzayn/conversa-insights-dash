@@ -403,7 +403,6 @@ export default function Certificacoes() {
         diploma: '',
         status: 'pendente',
         categoria: getCategoriaFromTab(activeTab),
-        subcategoria: '',
         tcc: 'nao_possui',
         praticasPedagogicas: 'nao_possui',
         estagio: 'nao_possui'
@@ -523,7 +522,7 @@ export default function Certificacoes() {
       return;
     }
 
-    const categoria = getCategoriaFromModalidade(newCertification.modalidade);
+    const categoria = getCategoriaFromTab(activeTab);
     const area = getAreaFromCourse(newCourseData.nome);
 
     const courseData = {
@@ -763,7 +762,7 @@ export default function Certificacoes() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                          <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                          <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                           <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                           <SelectItem value="formacao_livre">Formação Livre</SelectItem>
                           <SelectItem value="diplomacao_competencia">Diplomação por Competência</SelectItem>
@@ -1180,11 +1179,7 @@ export default function Certificacoes() {
                                 {certification.cargaHoraria && (
                                   <div className="text-sm text-gray-600">Carga Horária: {certification.cargaHoraria}h</div>
                                 )}
-                                {(activeTab === 'segunda' || activeTab === 'formacao_pedagogica') && certification.subcategoria && (
-                                  <div className="text-xs text-blue-600 mt-1">
-                                    {SUBCATEGORIA_LABELS[certification.subcategoria as keyof typeof SUBCATEGORIA_LABELS]}
-                                  </div>
-                                )}
+
                               </div>
                               <div>
                                 <div className="text-sm font-medium text-gray-700">Formato</div>
@@ -1396,13 +1391,13 @@ export default function Certificacoes() {
                   <Label htmlFor="edit-cpf">CPF</Label>
                   <Input
                     id="edit-cpf"
-                    value={selectedCertification.cpf}
+                    value={selectedCertification.cpf || ''}
                     onChange={(e) => setSelectedCertification({ ...selectedCertification, cpf: e.target.value })}
                   />
                 </div>
                 <div>
                   <Label htmlFor="edit-modalidade">Formato de Entrega</Label>
-                  <Select value={selectedCertification.modalidade} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, modalidade: value })}>
+                  <Select value={selectedCertification.modalidade || ''} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, modalidade: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -1472,7 +1467,7 @@ export default function Certificacoes() {
                   id="edit-cargaHoraria"
                   type="number"
                   value={selectedCertification.cargaHoraria || ''}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, cargaHoraria: e.target.value })}
+                  onChange={(e) => setSelectedCertification({ ...selectedCertification, cargaHoraria: parseInt(e.target.value) || 0 })}
                   placeholder="Horas"
                 />
               </div>
@@ -1484,7 +1479,7 @@ export default function Certificacoes() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                    <SelectItem value="segunda_graduacao">Segunda Graduação</SelectItem>
+                    <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
                     <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
                     <SelectItem value="formacao_livre">Formação Livre</SelectItem>
                     <SelectItem value="diplomacao_competencia">Diplomação por Competência</SelectItem>
