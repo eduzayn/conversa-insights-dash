@@ -47,6 +47,19 @@ const asaasService = new UnifiedAsaasService({
 // Configuração do serviço PDF
 const pdfService = new PDFService(storage);
 
+// Middleware para evitar cache em APIs críticas
+const noCacheMiddleware = (req: any, res: any, next: any) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Surrogate-Control': 'no-store',
+    'ETag': `"${Date.now()}-${Math.random()}"`, // ETag único para forçar revalidação
+    'Last-Modified': new Date().toUTCString()
+  });
+  next();
+};
+
 // Middleware para validar JWT
 export const authenticateToken = async (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
