@@ -58,7 +58,7 @@ const EnviosUnicv: React.FC = () => {
     aluno: '',
     cpf: '',
     curso: '',
-    categoria: 'segunda_graduacao' as string
+    categoria: 'segunda_licenciatura' as string
   });
 
   const queryClient = useQueryClient();
@@ -306,7 +306,7 @@ const EnviosUnicv: React.FC = () => {
     }
   };
 
-  const categorias = ['pos_graduacao', 'segunda_graduacao', 'formacao_pedagogica', 'formacao_livre', 'eja', 'graduacao', 'diplomacao_competencia', 'capacitacao', 'sequencial'];
+  const categorias = ['pos_graduacao', 'segunda_licenciatura', 'formacao_pedagogica', 'formacao_livre', 'eja', 'graduacao', 'diplomacao_competencia', 'capacitacao', 'sequencial'];
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
