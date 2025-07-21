@@ -538,25 +538,48 @@ const EnviosUnicv: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Label htmlFor="certificationId">Aluno (Certificação)</Label>
-                      <div className="flex gap-2">
-                        <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={comboboxOpen}
-                              className="flex-1 justify-between"
-                            >
-                              {comboboxValue
-                                ? (allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)
-                                  ? `${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
-                                  : "Selecione um aluno..."
-                                : "Selecione um aluno..."}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <Command>
+                      {selectedEnvio ? (
+                        // Modo EDIÇÃO: Mostrar dados do aluno atual (somente leitura)
+                        <div className="flex gap-2">
+                          <div className="flex-1 p-3 border border-gray-200 rounded-md bg-gray-50">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{selectedEnvio.aluno}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {selectedEnvio.cpf} • {selectedEnvio.curso}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0 w-10 h-10 border border-gray-200 rounded-md bg-gray-50 flex items-center justify-center">
+                            <span className="text-gray-400 text-sm">✓</span>
+                          </div>
+                          {/* Campo hidden para o formulário no modo edição */}
+                          <input 
+                            type="hidden" 
+                            name="certificationId" 
+                            value={selectedEnvio.certificationId}
+                          />
+                        </div>
+                      ) : (
+                        // Modo CRIAÇÃO: Permitir seleção de aluno
+                        <div className="flex gap-2">
+                          <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={comboboxOpen}
+                                className="flex-1 justify-between"
+                              >
+                                {comboboxValue
+                                  ? (allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)
+                                    ? `${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
+                                    : "Selecione um aluno..."
+                                  : "Selecione um aluno..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
                               <CommandInput 
                                 placeholder="Buscar aluno por nome, CPF ou curso..." 
                                 className="h-9"
@@ -613,28 +636,29 @@ const EnviosUnicv: React.FC = () => {
                               </CommandList>
                             </Command>
                           </PopoverContent>
-                        </Popover>
+                          </Popover>
 
-                        {/* Botão para adicionar novo aluno */}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setIsNovoAlunoModalOpen(true)}
-                          className="flex-shrink-0"
-                          title="Adicionar novo aluno"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      {/* Campo hidden para o formulário */}
-                      <input 
-                        type="hidden" 
-                        name="certificationId" 
-                        value={comboboxValue}
-                        required
-                      />
+                          {/* Botão para adicionar novo aluno */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setIsNovoAlunoModalOpen(true)}
+                            className="flex-shrink-0"
+                            title="Adicionar novo aluno"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          
+                          {/* Campo hidden para o formulário no modo criação */}
+                          <input 
+                            type="hidden" 
+                            name="certificationId" 
+                            value={comboboxValue}
+                            required
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div>
