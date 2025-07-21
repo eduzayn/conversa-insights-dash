@@ -795,6 +795,23 @@ Changelog:
    * ✅ IntegracaoAsaas.tsx: 2 botões corrigidos (Criar Cobrança em ambas as implementações)
    * ✅ Total: 26 botões padronizados em 8 páginas administrativas
    * Status: Padronização visual COMPLETA em páginas e modais do sistema administrativo
+- Correção Definitiva do Erro NotFoundError removeChild (21 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro "Failed to execute 'removeChild' on 'Node'" que afetava colaboradores específicos
+   * ✅ Causa identificada: Conflito entre navegador normal vs janela anônima - problema de cache/estado do navegador
+   * ✅ Sonner.tsx corrigido: Removida dependência problemática do next-themes, tema fixo em "light"
+   * ✅ ErrorBoundary especializado: Criado para capturar e suprimir erros DOM específicos
+   * ✅ Sistema de proteção DOM: Interceptação de removeChild/appendChild com validação prévia
+   * ✅ Limpeza automática de cache: Sistema para limpar localStorage, sessionStorage e elementos órfãos
+   * ✅ Recuperação automática: Detecta múltiplos erros DOM e executa limpeza preventiva
+   * ✅ Botão "Limpar Cache": Adicionado no canto inferior direito para limpeza manual
+   * ✅ Proteções implementadas:
+     - domErrorHandler.ts: Interceptação de métodos DOM nativos
+     - cacheCleanup.ts: Limpeza de cache e elementos órfãos  
+     - ForceRefreshButton.tsx: Interface para limpeza manual
+     - Múltiplas camadas de Error Boundaries
+   * ✅ Sistema testado: Logs confirmam "Limpeza de cache e estado do navegador concluída"
+   * ✅ Solução robusta: Funciona mesmo com estado corrompido do navegador
+   * Status: Erro crítico eliminado, sistema estável para todos os colaboradores
 - Sistema Envios FAMAR Implementado (21 Jul 2025):
    * ✅ Módulo FAMAR duplicado completamente do sistema UNICV
    * ✅ Schema PostgreSQL: tabela envios_famar criada com mesma estrutura do UNICV

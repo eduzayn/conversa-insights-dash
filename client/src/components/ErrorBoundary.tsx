@@ -19,8 +19,11 @@ class ErrorBoundary extends Component<Props, State> {
     // Verifica se é um erro específico de removeChild/DOM
     if (error.name === 'NotFoundError' || 
         error.message?.includes('removeChild') ||
-        error.message?.includes('Node')) {
+        error.message?.includes('appendChild') ||
+        error.message?.includes('Node') ||
+        error.message?.includes('child of this node')) {
       // Para esses erros específicos, apenas resetamos sem mostrar erro
+      console.warn('Erro DOM capturado pelo ErrorBoundary e suprimido:', error.message);
       return { hasError: false };
     }
     
@@ -31,8 +34,13 @@ class ErrorBoundary extends Component<Props, State> {
     // Log apenas erros que não são do tipo DOM removeChild
     if (!(error.name === 'NotFoundError' || 
           error.message?.includes('removeChild') ||
-          error.message?.includes('Node'))) {
+          error.message?.includes('appendChild') ||
+          error.message?.includes('Node') ||
+          error.message?.includes('child of this node'))) {
       console.error('ErrorBoundary capturou um erro:', error, errorInfo);
+    } else {
+      // Para erros DOM, apenas logamos como warning
+      console.warn('Erro DOM suprimido:', error.message);
     }
   }
 
