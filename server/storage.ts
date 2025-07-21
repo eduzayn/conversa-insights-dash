@@ -2318,9 +2318,9 @@ export class DatabaseStorage implements IStorage {
     if (filters?.search) {
       conditions.push(
         or(
-          ilike(enviosUnicv.aluno, `%${filters.search}%`),
-          ilike(enviosUnicv.cpf, `%${filters.search}%`),
-          ilike(enviosUnicv.curso, `%${filters.search}%`)
+          ilike(certifications.aluno, `%${filters.search}%`),
+          ilike(certifications.cpf, `%${filters.search}%`),
+          ilike(certifications.curso, `%${filters.search}%`)
         )
       );
     }
@@ -2330,14 +2330,33 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (filters?.categoria) {
-      conditions.push(eq(enviosUnicv.categoria, filters.categoria));
+      conditions.push(eq(certifications.categoria, filters.categoria));
     }
+    
+    // Fazer JOIN com a tabela de certificações para pegar dados do aluno
+    const query = db.select({
+      id: enviosUnicv.id,
+      certificationId: enviosUnicv.certificationId,
+      aluno: certifications.aluno,
+      cpf: certifications.cpf,
+      curso: certifications.curso,
+      categoria: certifications.categoria,
+      statusEnvio: enviosUnicv.statusEnvio,
+      numeroOficio: enviosUnicv.numeroOficio,
+      dataEnvio: enviosUnicv.dataEnvio,
+      observacoes: enviosUnicv.observacoes,
+      colaboradorResponsavel: enviosUnicv.colaboradorResponsavel,
+      createdAt: enviosUnicv.createdAt,
+      updatedAt: enviosUnicv.updatedAt
+    })
+    .from(enviosUnicv)
+    .leftJoin(certifications, eq(enviosUnicv.certificationId, certifications.id));
     
     if (conditions.length > 0) {
-      return await db.select().from(enviosUnicv).where(and(...conditions)).orderBy(desc(enviosUnicv.createdAt));
+      return await query.where(and(...conditions)).orderBy(desc(enviosUnicv.createdAt));
     }
     
-    return await db.select().from(enviosUnicv).orderBy(desc(enviosUnicv.createdAt));
+    return await query.orderBy(desc(enviosUnicv.createdAt));
   }
 
   async createEnvioUnicv(envio: InsertEnvioUnicv): Promise<EnvioUnicv> {
