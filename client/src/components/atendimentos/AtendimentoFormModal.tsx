@@ -77,6 +77,7 @@ export const AtendimentoFormModal = ({
       status: 'Pendente',
       resultado: undefined,
       assunto: "",
+      observacoes: "",
     }
   });
 

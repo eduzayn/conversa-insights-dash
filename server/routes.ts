@@ -1628,6 +1628,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { lead, hora, atendente, equipe, duracao, status, resultado, assunto, observacoes } = req.body;
       
+      console.log('POST /api/atendimentos - Dados recebidos:', { 
+        lead, hora, atendente, equipe, duracao, status, resultado, assunto, observacoes 
+      });
+      
       // Validar dados obrigatórios
       if (!lead || !hora || !atendente || !equipe || !duracao || !status) {
         return res.status(400).json({ message: "Campos obrigatórios: lead, hora, atendente, equipe, duracao, status" });
@@ -1668,18 +1672,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(conversations.id, conversation.id));
 
-      // Retornar no formato de atendimento
+      // Buscar a conversa atualizada do banco para garantir que todos os dados estão corretos
+      const updatedConversation = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversation.id))
+        .limit(1);
+
+      const conversationData = updatedConversation[0];
+
+      console.log('POST /api/atendimentos - Conversa criada e atualizada:', {
+        id: conversationData.id,
+        lead,
+        hora,
+        atendente,
+        equipe,
+        duracao,
+        status,
+        resultado,
+        assunto,
+        observacoes: conversationData.observacoes
+      });
+
+      // Retornar no formato de atendimento com dados reais do banco
       const atendimento = {
-        id: conversation.id,
-        lead: lead,
-        hora: hora,
-        atendente: conversation.atendente,
-        equipe: conversation.equipe,
-        duracao: conversation.duracao,
+        id: conversationData.id,
+        lead: conversationData.customerName,
+        hora: conversationData.hora,
+        atendente: conversationData.atendente,
+        equipe: conversationData.equipe,
+        duracao: conversationData.duracao,
         status: status,
-        resultado: conversation.resultado,
-        assunto: assunto || null,
-        observacoes: observacoes || null
+        resultado: conversationData.resultado,
+        assunto: conversationData.assunto,
+        observacoes: conversationData.observacoes
       };
 
       res.status(201).json(atendimento);
