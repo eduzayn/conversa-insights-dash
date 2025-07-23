@@ -10,6 +10,7 @@ import { Download, TrendingUp, Activity, Award, Target } from "lucide-react";
 import { AttendanceVolumeChart } from "@/components/charts/AttendanceVolumeChart";
 import { TeamProductivityChart } from "@/components/charts/TeamProductivityChart";
 import { useActivityMonitor } from "@/hooks/useActivityMonitor";
+import { useFiltersData } from "@/hooks/useFiltersData";
 
 const mockProductivityData = {
   individualData: [
@@ -59,6 +60,7 @@ const mockProductivityData = {
 
 const Produtividade = () => {
   const { user, loading } = useAuth();
+  const { data: filtersData, isLoading: filtersLoading } = useFiltersData();
   useActivityMonitor();
 
   // Proteção de autenticação - movida para após todos os hooks
@@ -122,9 +124,14 @@ const Produtividade = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="ana-santos">Ana Santos</SelectItem>
-                      <SelectItem value="bruna-reis">Bruna Reis</SelectItem>
-                      <SelectItem value="carlos-lima">Carlos Lima</SelectItem>
+                      {!filtersLoading && filtersData?.atendentes
+                        ?.filter(atendente => atendente !== 'Não atribuído')
+                        .sort()
+                        .map((atendente) => (
+                        <SelectItem key={atendente} value={atendente}>
+                          {atendente}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
 
@@ -134,9 +141,14 @@ const Produtividade = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todas">Todas</SelectItem>
-                      <SelectItem value="vendas">Vendas</SelectItem>
-                      <SelectItem value="comercial">Comercial</SelectItem>
-                      <SelectItem value="suporte">Suporte</SelectItem>
+                      {!filtersLoading && filtersData?.equipes
+                        ?.filter(equipe => equipe !== 'Não atribuído')
+                        .sort()
+                        .map((equipe) => (
+                        <SelectItem key={equipe} value={equipe}>
+                          {equipe}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
