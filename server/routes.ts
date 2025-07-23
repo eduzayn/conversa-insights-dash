@@ -1428,18 +1428,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar dados reais de atendentes e equipes do BotConversa
   app.get("/api/atendimentos/filters-data", authenticateToken, async (req: any, res) => {
     try {
+      // Buscar usuários ativos do sistema interno
+      const activeUsers = await storage.getAllUsers();
+      const atendentesInternos = activeUsers
+        .filter(user => user.isActive && user.username !== 'admin')
+        .map(user => user.username)
+        .sort();
+      
       const { BotConversaService } = await import('./services/botconversa');
       const botConversaService = new BotConversaService();
       
-      // Buscar managers das duas contas
+      // Buscar managers das duas contas para dados complementares
       const [supporteManagers, comercialManagers] = await Promise.all([
         botConversaService.getManagers('SUPORTE'),
         botConversaService.getManagers('COMERCIAL')
       ]);
       
-      // Combinar e processar managers
+      // Combinar managers do BotConversa
       const allManagers = [...supporteManagers, ...comercialManagers];
-      const atendentes = [...new Set(allManagers.map(m => m.full_name))].filter(Boolean).sort();
+      
+      // Usar atendentes do sistema interno como prioridade
+      const atendentes = atendentesInternos.length > 0 ? atendentesInternos : 
+        [...new Set(allManagers.map(m => m.full_name))].filter(Boolean).sort();
       
       // Mapear emails para equipes reais do BotConversa
       const emailToTeam = {
@@ -1505,7 +1515,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const statusFromDb = uniqueStatuses.length > 0 ? uniqueStatuses : allPossibleStatuses;
       
       res.json({
-        atendentes: [...atendentes, 'Não atribuído'].sort(),
+        atendentes: atendentesInternos.length > 0 ? 
+          [...atendentesInternos, 'Não atribuído'].sort() : 
+          [...atendentes, 'Não atribuído'].sort(),
         equipes: equipes,
         status: statusFromDb,
         managersData: allManagers.map(m => ({

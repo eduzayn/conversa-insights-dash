@@ -893,6 +893,17 @@ Changelog:
    * ✅ Logs de debug confirmaram funcionamento correto (POST/PUT/GET)
    * ✅ Teste confirmado: observações persistem e aparecem corretamente na interface
    * Status: Sistema de observações 100% funcional, pronto para deploy em produção
+- Integração Completa: Dados Reais na Página de Produtividade (23 Jul 2025):
+   * ✅ IMPLEMENTADO: Filtros de atendentes conectados aos usuários reais do sistema interno
+   * ✅ Endpoint `/api/atendimentos/filters-data` modificado para priorizar usuários ativos (is_active = true)
+   * ✅ Sistema de fallback para BotConversa mantido para compatibilidade
+   * ✅ Filtro de atendentes exclui automaticamente usuários desativados
+   * ✅ Usuários em ordem alfabética conforme solicitado
+   * ✅ Hook useFiltersData integrado na página de Produtividade
+   * ✅ Correção cirúrgica: apenas arquivos relacionados modificados
+   * ✅ Teste confirmado: 8 usuários ativos no sistema = 9 opções no select (incluindo "Não atribuído")
+   * ✅ Funcionalidade: desativar usuário remove automaticamente do filtro
+   * Status: Integração com dados reais 100% funcional na página de Produtividade
 ```
 
 ## User Preferences
