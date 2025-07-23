@@ -1346,7 +1346,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: conv.status === 'active' ? 'Em andamento' : 
                  conv.status === 'closed' ? 'Concluído' : 'Pendente',
           resultado: conv.resultado || null,
-          assunto: conv.assunto || null
+          assunto: conv.assunto || null,
+          observacoes: conv.observacoes || null
         };
       }));
       
