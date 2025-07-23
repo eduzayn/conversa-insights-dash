@@ -882,6 +882,17 @@ Changelog:
    * ✅ Campo "Nome do Lead" expandido: ocupa 2/3 da largura (col-span-2) para nomes longos
    * ✅ Campos Data e Hora agrupados: layout otimizado com label único "Data e Hora"
    * Status: Modal otimizado com campo data automático, equipes consolidadas e UI expandida
+- Correção Definitiva: Persistência de Observações no Diário de Atendimentos (23 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Campo observações não aparecia ao reabrir atendimentos editados
+   * ✅ Causa identificada: Campo observacoes ausente no mapeamento da rota GET /api/atendimentos
+   * ✅ Correção cirúrgica aplicada: adicionado observacoes: conv.observacoes || null na linha 1351
+   * ✅ Dados já estavam sendo salvos corretamente no banco PostgreSQL
+   * ✅ Problema era apenas na exibição - interface não recebia os dados do backend
+   * ✅ Sistema de criação e edição funcionando perfeitamente
+   * ✅ Campo observacoes adicionado aos defaultValues do formulário
+   * ✅ Logs de debug confirmaram funcionamento correto (POST/PUT/GET)
+   * ✅ Teste confirmado: observações persistem e aparecem corretamente na interface
+   * Status: Sistema de observações 100% funcional, pronto para deploy em produção
 ```
 
 ## User Preferences
