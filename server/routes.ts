@@ -1720,8 +1720,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeUsers = await storage.getAllUsers();
       const atendentesAtivos = activeUsers.filter(user => user.isActive && user.username !== 'admin');
       
-      // Buscar equipes ativas
-      const teams = await storage.getAllTeams();
+      // Obter equipes únicas dos atendimentos
+      const uniqueTeams = [...new Set(filteredConversations.map(conv => conv.equipe).filter(Boolean))];
       
       // 1. GRÁFICO DE VOLUME POR DIA (últimos 7 dias)
       const volumeData = [];
@@ -1745,7 +1745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           date: dayDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
         };
         
-        // Agregar por top 5 atendentes mais ativos
+        // Agregar por top 5 atendentes mais ativos do período total
         const attendantStats = atendentesAtivos.map(user => {
           const userConversations = dayConversations.filter(conv => {
             const matchesUsername = conv.atendente === user.username;
@@ -1768,18 +1768,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // 2. GRÁFICO DE PRODUTIVIDADE POR EQUIPE
-      const teamData = teams.map(team => {
+      const teamData = uniqueTeams.map(teamName => {
         const teamConversations = filteredConversations.filter(conv => {
-          return conv.equipe === team.name;
+          return conv.equipe === teamName;
         });
         
-        const teamUsers = atendentesAtivos.filter(user => user.teamName === team.name);
-        const atendentesAtivos_count = teamUsers.length;
+        const teamUsers = atendentesAtivos.filter(user => user.teamName === teamName);
+        const atendentesAtivos_count = teamUsers.length || 1; // Pelo menos 1 para evitar divisão por zero
         const totalAtendimentos = teamConversations.length;
-        const mediaAtendente = atendentesAtivos_count > 0 ? totalAtendimentos / atendentesAtivos_count : 0;
+        const mediaAtendente = totalAtendimentos / atendentesAtivos_count;
         
         return {
-          team: team.name,
+          team: teamName,
           atendimentos: totalAtendimentos,
           mediaAtendente: Math.round(mediaAtendente * 10) / 10,
           atendentesAtivos: atendentesAtivos_count
@@ -1809,7 +1809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         summary: {
           totalAtendimentos: filteredConversations.length,
           totalAtendentes: atendentesAtivos.length,
-          totalEquipes: teamData.length,
+          totalEquipes: uniqueTeams.length,
           periodoInicio: startDate.toLocaleDateString('pt-BR'),
           periodoFim: endDate.toLocaleDateString('pt-BR')
         }
