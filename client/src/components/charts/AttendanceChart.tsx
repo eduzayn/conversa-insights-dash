@@ -1,24 +1,34 @@
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
-
-const data = [
-  { day: "Seg", attendances: 45 },
-  { day: "Ter", attendances: 52 },
-  { day: "Qua", attendances: 48 },
-  { day: "Qui", attendances: 61 },
-  { day: "Sex", attendances: 55 },
-  { day: "Sáb", attendances: 32 },
-  { day: "Dom", attendances: 28 },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export const AttendanceChart = () => {
+  // Buscar dados reais dos gráficos
+  const { data: chartsData, isLoading } = useQuery({
+    queryKey: ["/api/dashboard/charts"],
+    refetchInterval: 60000, // Atualizar a cada 1 minuto
+  });
+
+  if (isLoading || !chartsData) {
+    return (
+      <div className="flex items-center justify-center h-[300px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const data = chartsData.attendancesByDay || [];
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="day" />
         <YAxis />
-        <Tooltip />
+        <Tooltip 
+          labelFormatter={(label) => `Dia: ${label}`}
+          formatter={(value) => [value, "Atendimentos"]}
+        />
         <Line 
           type="monotone" 
           dataKey="attendances" 
