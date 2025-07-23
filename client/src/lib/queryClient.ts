@@ -1,8 +1,43 @@
 import { QueryClient } from '@tanstack/react-query';
 
+// Default fetcher function for React Query
+const defaultQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
+  const url = queryKey[0];
+  
+  // Buscar token de autenticação
+  const adminToken = localStorage.getItem('token');
+  const professorToken = localStorage.getItem('professor_token');
+  const studentToken = localStorage.getItem('student_token');
+  
+  // Usar o token apropriado baseado na rota
+  let authToken = adminToken;
+  if (url.includes('/professor/') || url.includes('professor-login')) {
+    authToken = professorToken;
+  } else if (url.includes('/portal/aluno/') || url.includes('student-login')) {
+    authToken = studentToken;
+  }
+  
+  const config: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken && { Authorization: `Bearer ${authToken}` }),
+    },
+  };
+
+  const response = await fetch(url, config);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Erro na requisição' }));
+    throw new Error(errorData.message || `Erro HTTP ${response.status}`);
+  }
+  
+  return response.json();
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      queryFn: defaultQueryFn,
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutos
