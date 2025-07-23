@@ -1,36 +1,7 @@
 
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-
-const data = [
-  { 
-    team: "Vendas", 
-    atendimentos: 156, 
-    mediaAtendente: 31.2, 
-    tempoMedioOnline: 8.25,
-    atendentesAtivos: 5 
-  },
-  { 
-    team: "Suporte", 
-    atendimentos: 89, 
-    mediaAtendente: 29.7, 
-    tempoMedioOnline: 8.08,
-    atendentesAtivos: 3 
-  },
-  { 
-    team: "Comercial", 
-    atendimentos: 78, 
-    mediaAtendente: 19.5, 
-    tempoMedioOnline: 7.75,
-    atendentesAtivos: 4 
-  },
-  { 
-    team: "Financeiro", 
-    atendimentos: 45, 
-    mediaAtendente: 22.5, 
-    tempoMedioOnline: 7.5,
-    atendentesAtivos: 2 
-  }
-];
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -41,7 +12,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="text-sm text-gray-600">{`Atendentes Ativos: ${data.atendentesAtivos}`}</p>
         <p className="text-sm text-gray-600">{`Total Atendimentos: ${data.atendimentos}`}</p>
         <p className="text-sm text-gray-600">{`Média por Atendente: ${data.mediaAtendente}`}</p>
-        <p className="text-sm text-gray-600">{`Tempo Médio Online: ${data.tempoMedioOnline}h`}</p>
       </div>
     );
   }
@@ -49,9 +19,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const TeamProductivityChart = () => {
+  const { data: chartData, isLoading } = useQuery({
+    queryKey: ['productivity-charts'],
+    queryFn: () => apiRequest('/api/productivity/charts'),
+    staleTime: 2 * 60 * 1000 // 2 minutos
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-[300px] flex items-center justify-center">
+        <div className="text-gray-500">Carregando dados das equipes...</div>
+      </div>
+    );
+  }
+
+  const teamData = chartData?.teamData || [];
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
+      <BarChart data={teamData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="team" />
         <YAxis yAxisId="left" />

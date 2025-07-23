@@ -1692,6 +1692,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para dados dos gráficos de produtividade
+  app.get("/api/productivity/charts", authenticateToken, async (req: any, res) => {
+    try {
+      const { period = 'week' } = req.query;
+      
+      // Definir períodos de data com fuso horário do Brasil
+      const now = new Date();
+      const todayBrazil = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
+      let startDate: Date;
+      let endDate = new Date(todayBrazil);
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Calcular período para gráficos (últimos 7 dias para volume diário)
+      startDate = new Date(todayBrazil);
+      startDate.setDate(startDate.getDate() - 6); // Últimos 7 dias incluindo hoje
+      startDate.setHours(0, 0, 0, 0);
+      
+      // Buscar todas as conversas do período
+      const conversations = await storage.getConversations();
+      const filteredConversations = conversations.filter(conv => {
+        const convDate = new Date(conv.createdAt);
+        return convDate >= startDate && convDate <= endDate;
+      });
+      
+      // Buscar usuários ativos
+      const activeUsers = await storage.getAllUsers();
+      const atendentesAtivos = activeUsers.filter(user => user.isActive && user.username !== 'admin');
+      
+      // Buscar equipes ativas
+      const teams = await storage.getAllTeams();
+      
+      // 1. GRÁFICO DE VOLUME POR DIA (últimos 7 dias)
+      const volumeData = [];
+      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      
+      for (let i = 6; i >= 0; i--) {
+        const dayDate = new Date(todayBrazil);
+        dayDate.setDate(dayDate.getDate() - i);
+        dayDate.setHours(0, 0, 0, 0);
+        
+        const nextDay = new Date(dayDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        
+        const dayConversations = filteredConversations.filter(conv => {
+          const convDate = new Date(conv.createdAt);
+          return convDate >= dayDate && convDate < nextDay;
+        });
+        
+        const dayData: any = {
+          day: diasSemana[dayDate.getDay()],
+          date: dayDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+        };
+        
+        // Agregar por top 5 atendentes mais ativos
+        const attendantStats = atendentesAtivos.map(user => {
+          const userConversations = dayConversations.filter(conv => {
+            const matchesUsername = conv.atendente === user.username;
+            const matchesBotConversa = conv.botconversaManagerName === user.username;
+            const matchesSimilarName = conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase());
+            return matchesUsername || matchesBotConversa || matchesSimilarName;
+          });
+          return {
+            name: user.username,
+            count: userConversations.length
+          };
+        }).sort((a, b) => b.count - a.count).slice(0, 5);
+        
+        // Adicionar dados dos top 5 atendentes
+        attendantStats.forEach(stat => {
+          dayData[stat.name] = stat.count;
+        });
+        
+        volumeData.push(dayData);
+      }
+      
+      // 2. GRÁFICO DE PRODUTIVIDADE POR EQUIPE
+      const teamData = teams.map(team => {
+        const teamConversations = filteredConversations.filter(conv => {
+          return conv.equipe === team.name;
+        });
+        
+        const teamUsers = atendentesAtivos.filter(user => user.teamName === team.name);
+        const atendentesAtivos_count = teamUsers.length;
+        const totalAtendimentos = teamConversations.length;
+        const mediaAtendente = atendentesAtivos_count > 0 ? totalAtendimentos / atendentesAtivos_count : 0;
+        
+        return {
+          team: team.name,
+          atendimentos: totalAtendimentos,
+          mediaAtendente: Math.round(mediaAtendente * 10) / 10,
+          atendentesAtivos: atendentesAtivos_count
+        };
+      }).filter(team => team.atendimentos > 0); // Apenas equipes com atividade
+      
+      // 3. TOP PERFORMERS DO PERÍODO
+      const topPerformers = atendentesAtivos.map(user => {
+        const userConversations = filteredConversations.filter(conv => {
+          const matchesUsername = conv.atendente === user.username;
+          const matchesBotConversa = conv.botconversaManagerName === user.username;
+          const matchesSimilarName = conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase());
+          return matchesUsername || matchesBotConversa || matchesSimilarName;
+        });
+        
+        return {
+          name: user.username,
+          team: user.teamName || 'Suporte',
+          attendances: userConversations.length
+        };
+      }).sort((a, b) => b.attendances - a.attendances).slice(0, 5);
+      
+      res.json({
+        volumeData,
+        teamData,
+        topPerformers,
+        summary: {
+          totalAtendimentos: filteredConversations.length,
+          totalAtendentes: atendentesAtivos.length,
+          totalEquipes: teamData.length,
+          periodoInicio: startDate.toLocaleDateString('pt-BR'),
+          periodoFim: endDate.toLocaleDateString('pt-BR')
+        }
+      });
+      
+    } catch (error) {
+      logger.error("Erro ao buscar dados dos gráficos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   app.patch("/api/atendimentos/:id/status", authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;

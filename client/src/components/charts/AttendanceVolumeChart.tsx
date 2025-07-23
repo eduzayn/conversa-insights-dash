@@ -1,28 +1,57 @@
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
-const data = [
-  { day: "Seg", Ana: 23, Carlos: 19, Bruna: 27, Diego: 15, Elena: 31 },
-  { day: "Ter", Ana: 25, Carlos: 21, Bruna: 24, Diego: 18, Elena: 29 },
-  { day: "Qua", Ana: 22, Carlos: 17, Bruna: 26, Diego: 16, Elena: 33 },
-  { day: "Qui", Ana: 28, Carlos: 23, Bruna: 25, Diego: 19, Elena: 28 },
-  { day: "Sex", Ana: 26, Carlos: 20, Bruna: 29, Diego: 21, Elena: 35 },
-];
+const colors = ["#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6"];
 
 export const AttendanceVolumeChart = () => {
+  const { data: chartData, isLoading } = useQuery({
+    queryKey: ['productivity-charts'],
+    queryFn: () => apiRequest('/api/productivity/charts'),
+    staleTime: 2 * 60 * 1000 // 2 minutos
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-[300px] flex items-center justify-center">
+        <div className="text-gray-500">Carregando dados dos atendimentos...</div>
+      </div>
+    );
+  }
+
+  const volumeData = chartData?.volumeData || [];
+  
+  // Obter nomes dos atendentes para as linhas do gráfico
+  const attendants = volumeData.length > 0 ? 
+    Object.keys(volumeData[0]).filter(key => key !== 'day' && key !== 'date') : [];
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
+      <LineChart data={volumeData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="day" />
         <YAxis />
-        <Tooltip />
+        <Tooltip 
+          labelFormatter={(label, payload) => {
+            if (payload && payload.length > 0) {
+              const data = payload[0].payload;
+              return `${label} (${data.date})`;
+            }
+            return label;
+          }}
+        />
         <Legend />
-        <Line type="monotone" dataKey="Ana" stroke="#10B981" strokeWidth={2} />
-        <Line type="monotone" dataKey="Carlos" stroke="#3B82F6" strokeWidth={2} />
-        <Line type="monotone" dataKey="Bruna" stroke="#F59E0B" strokeWidth={2} />
-        <Line type="monotone" dataKey="Diego" stroke="#EF4444" strokeWidth={2} />
-        <Line type="monotone" dataKey="Elena" stroke="#8B5CF6" strokeWidth={2} />
+        {attendants.map((attendant, index) => (
+          <Line
+            key={attendant}
+            type="monotone"
+            dataKey={attendant}
+            stroke={colors[index % colors.length]}
+            strokeWidth={2}
+            name={attendant}
+          />
+        ))}
       </LineChart>
     </ResponsiveContainer>
   );
