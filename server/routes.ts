@@ -1584,7 +1584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeUsers = await storage.getAllUsers();
       const atendentesAtivos = activeUsers.filter(user => user.isActive && user.username !== 'admin');
       
-      // Calcular métricas separadas para hoje, ontem, semana e mês
+      // Calcular métricas individuais por atendente com períodos separados
       const individualMetrics = atendentesAtivos.map(user => {
         // Filtrar conversas do período selecionado
         const userConversations = filteredConversations.filter(conv => {
@@ -1594,13 +1594,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return matchesUsername || matchesBotConversa || matchesSimilarName;
         });
         
-        // Calcular atendimentos de HOJE especificamente
+        // Calcular atendimentos específicos para HOJE
         const todayStart = new Date(todayBrazil);
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date(todayBrazil);
         todayEnd.setHours(23, 59, 59, 999);
         
-        const todayConversations = conversations.filter(conv => {
+        const todayUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
           const matchesUser = conv.atendente === user.username || 
                             conv.botconversaManagerName === user.username ||
@@ -1608,28 +1608,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return convDate >= todayStart && convDate <= todayEnd && matchesUser;
         });
         
-        // Calcular atendimentos de ONTEM especificamente
-        const yesterdayStart = new Date(todayBrazil);
-        yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-        yesterdayStart.setHours(0, 0, 0, 0);
-        const yesterdayEnd = new Date(todayBrazil);
-        yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
-        yesterdayEnd.setHours(23, 59, 59, 999);
-        
-        const yesterdayConversations = conversations.filter(conv => {
-          const convDate = new Date(conv.createdAt);
-          const matchesUser = conv.atendente === user.username || 
-                            conv.botconversaManagerName === user.username ||
-                            (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()));
-          return convDate >= yesterdayStart && convDate <= yesterdayEnd && matchesUser;
-        });
-        
-        // Calcular atendimentos da SEMANA
+        // Calcular atendimentos específicos para ESTA SEMANA (últimos 7 dias)
         const weekStart = new Date(todayBrazil);
-        weekStart.setDate(weekStart.getDate() - 7);
+        weekStart.setDate(weekStart.getDate() - 6); // 7 dias incluindo hoje
         weekStart.setHours(0, 0, 0, 0);
         
-        const weekConversations = conversations.filter(conv => {
+        const weekUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
           const matchesUser = conv.atendente === user.username || 
                             conv.botconversaManagerName === user.username ||
@@ -1637,11 +1621,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return convDate >= weekStart && convDate <= todayEnd && matchesUser;
         });
         
-        // Calcular atendimentos do MÊS
+        // Calcular atendimentos específicos para ESTE MÊS
         const monthStart = new Date(todayBrazil.getFullYear(), todayBrazil.getMonth(), 1);
         monthStart.setHours(0, 0, 0, 0);
         
-        const monthConversations = conversations.filter(conv => {
+        const monthUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
           const matchesUser = conv.atendente === user.username || 
                             conv.botconversaManagerName === user.username ||
@@ -1653,33 +1637,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const atendimentosConcluidos = userConversations.filter(conv => conv.status === 'closed').length;
         const atendimentosAndamento = userConversations.filter(conv => conv.status === 'active').length;
         
-        // Determinar qual coluna "Hoje" deve mostrar
-        // Se hoje tem 0 atendimentos e ontem tem atendimentos, mostra dados de ontem
-        const todayCount = todayConversations.length;
-        const yesterdayCount = yesterdayConversations.length;
-        const displayTodayCount = todayCount > 0 ? todayCount : yesterdayCount;
-        
-        // Calcular tempo médio de resposta baseado no volume
+        // Calcular tempo médio de resposta (simulado baseado em volume)
         const avgResponseTime = totalAtendimentos > 0 ? 
           Math.max(60, 300 - totalAtendimentos * 5) : 300;
         
         const responseTimeFormatted = `${Math.floor(avgResponseTime / 60)}m ${avgResponseTime % 60}s`;
         
+        // Determinar equipe do usuário
         const userTeam = user.teamName || 'Suporte';
         
         return {
           name: user.username,
           team: userTeam,
-          todayAttendances: displayTodayCount, // Mostra ontem se hoje = 0
-          weekAttendances: weekConversations.length,
-          monthAttendances: monthConversations.length,
+          todayAttendances: todayUserConversations.length,
+          weekAttendances: weekUserConversations.length,
+          monthAttendances: monthUserConversations.length,
           totalAttendances: totalAtendimentos,
           completedAttendances: atendimentosConcluidos,
           activeAttendances: atendimentosAndamento,
           responseTime: responseTimeFormatted,
           responseTimeSeconds: avgResponseTime,
           dailyAverage: totalAtendimentos,
-          ranking: 0
+          ranking: 0 // Será calculado após ordenação
         };
       });
       
