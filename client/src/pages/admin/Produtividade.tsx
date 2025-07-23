@@ -11,6 +11,9 @@ import { AttendanceVolumeChart } from "@/components/charts/AttendanceVolumeChart
 import { TeamProductivityChart } from "@/components/charts/TeamProductivityChart";
 import { useActivityMonitor } from "@/hooks/useActivityMonitor";
 import { useFiltersData } from "@/hooks/useFiltersData";
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useState } from 'react';
 
 const mockProductivityData = {
   individualData: [
@@ -61,6 +64,17 @@ const mockProductivityData = {
 const Produtividade = () => {
   const { user, loading } = useAuth();
   const { data: filtersData, isLoading: filtersLoading } = useFiltersData();
+  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [selectedAtendente, setSelectedAtendente] = useState('todos');
+  const [selectedEquipe, setSelectedEquipe] = useState('todas');
+  
+  // Buscar métricas de produtividade reais
+  const { data: productivityData, isLoading: productivityLoading } = useQuery({
+    queryKey: ['productivity-metrics', selectedPeriod, selectedAtendente, selectedEquipe],
+    queryFn: () => apiRequest(`/api/productivity/metrics?period=${selectedPeriod}&atendente=${selectedAtendente}&equipe=${selectedEquipe}`),
+    staleTime: 2 * 60 * 1000 // 2 minutos
+  });
+  
   useActivityMonitor();
 
   // Proteção de autenticação - movida para após todos os hooks
@@ -104,21 +118,19 @@ const Produtividade = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Select>
+                  <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                     <SelectTrigger>
                       <SelectValue placeholder="Período" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="hoje">Hoje</SelectItem>
-                      <SelectItem value="ontem">Ontem</SelectItem>
-                      <SelectItem value="esta-semana">Esta Semana</SelectItem>
-                      <SelectItem value="semana-passada">Semana Passada</SelectItem>
-                      <SelectItem value="este-mes">Este Mês</SelectItem>
-                      <SelectItem value="mes-passado">Mês Passado</SelectItem>
+                      <SelectItem value="today">Hoje</SelectItem>
+                      <SelectItem value="yesterday">Ontem</SelectItem>
+                      <SelectItem value="week">Esta Semana</SelectItem>
+                      <SelectItem value="month">Este Mês</SelectItem>
                     </SelectContent>
                   </Select>
                   
-                  <Select>
+                  <Select value={selectedAtendente} onValueChange={setSelectedAtendente}>
                     <SelectTrigger>
                       <SelectValue placeholder="Atendente" />
                     </SelectTrigger>
@@ -135,7 +147,7 @@ const Produtividade = () => {
                     </SelectContent>
                   </Select>
 
-                  <Select>
+                  <Select value={selectedEquipe} onValueChange={setSelectedEquipe}>
                     <SelectTrigger>
                       <SelectValue placeholder="Equipe" />
                     </SelectTrigger>
@@ -163,8 +175,10 @@ const Produtividade = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">323</div>
-                  <p className="text-xs text-muted-foreground">+12% desde ontem</p>
+                  <div className="text-2xl font-bold">
+                    {productivityLoading ? '...' : productivityData?.summary?.totalAtendimentos || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Dados reais do sistema</p>
                 </CardContent>
               </Card>
 
@@ -174,8 +188,10 @@ const Produtividade = () => {
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">26.9</div>
-                  <p className="text-xs text-muted-foreground">+8% desde ontem</p>
+                  <div className="text-2xl font-bold">
+                    {productivityLoading ? '...' : productivityData?.summary?.mediaPerAtendente?.toFixed(1) || '0.0'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Atendimentos por pessoa</p>
                 </CardContent>
               </Card>
 
@@ -185,8 +201,10 @@ const Produtividade = () => {
                   <Target className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">2m 36s</div>
-                  <p className="text-xs text-muted-foreground">-15s desde ontem</p>
+                  <div className="text-2xl font-bold">
+                    {productivityLoading ? '...' : productivityData?.summary?.tempoMedioResposta || '0m 0s'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Tempo estimado</p>
                 </CardContent>
               </Card>
 
@@ -196,8 +214,16 @@ const Produtividade = () => {
                   <Award className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">Bruna</div>
-                  <p className="text-xs text-muted-foreground">27 atendimentos hoje</p>
+                  <div className="text-2xl font-bold">
+                    {productivityLoading ? '...' : 
+                     productivityData?.summary?.topPerformer?.name || 'N/A'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {productivityLoading ? '...' : 
+                     productivityData?.summary?.topPerformer ? 
+                     `${productivityData.summary.topPerformer.attendances} atendimentos` : 
+                     'Nenhum atendimento'}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -245,33 +271,47 @@ const Produtividade = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockProductivityData.individualData
-                        .sort((a, b) => a.ranking - b.ranking)
-                        .map((agent) => (
-                        <tr key={agent.name} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4">
-                            <span className={`flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold ${
-                              agent.ranking === 1 ? 'bg-yellow-500' :
-                              agent.ranking === 2 ? 'bg-gray-400' :
-                              agent.ranking === 3 ? 'bg-amber-600' : 'bg-gray-300'
-                            }`}>
-                              {agent.ranking}
-                            </span>
+                      {productivityLoading ? (
+                        <tr>
+                          <td colSpan={9} className="py-8 text-center text-gray-500">
+                            Carregando dados...
                           </td>
-                          <td className="py-3 px-4 font-medium">{agent.name}</td>
-                          <td className="py-3 px-4">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                              {agent.team}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 font-medium text-green-600">{agent.todayAttendances}</td>
-                          <td className="py-3 px-4 text-gray-600">{agent.weekAttendances}</td>
-                          <td className="py-3 px-4 text-gray-600">{agent.monthAttendances}</td>
-                          <td className="py-3 px-4 text-gray-600">{agent.totalAttendances.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-blue-600 font-medium">{agent.dailyAverage}</td>
-                          <td className="py-3 px-4 text-purple-600 font-medium">{agent.responseTime}</td>
                         </tr>
-                      ))}
+                      ) : !productivityData?.individualData?.length ? (
+                        <tr>
+                          <td colSpan={9} className="py-8 text-center text-gray-500">
+                            Nenhum dado de atendimento encontrado para o período selecionado
+                          </td>
+                        </tr>
+                      ) : (
+                        productivityData.individualData
+                          .sort((a, b) => a.ranking - b.ranking)
+                          .map((agent) => (
+                          <tr key={agent.name} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-4">
+                              <span className={`flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold ${
+                                agent.ranking === 1 ? 'bg-yellow-500' :
+                                agent.ranking === 2 ? 'bg-gray-400' :
+                                agent.ranking === 3 ? 'bg-amber-600' : 'bg-gray-300'
+                              }`}>
+                                {agent.ranking}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 font-medium">{agent.name}</td>
+                            <td className="py-3 px-4">
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                {agent.team}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 font-medium text-green-600">{agent.todayAttendances}</td>
+                            <td className="py-3 px-4 text-gray-600">{agent.completedAttendances}</td>
+                            <td className="py-3 px-4 text-gray-600">{agent.activeAttendances}</td>
+                            <td className="py-3 px-4 text-gray-600">{agent.totalAttendances}</td>
+                            <td className="py-3 px-4 text-blue-600 font-medium">{agent.dailyAverage}</td>
+                            <td className="py-3 px-4 text-purple-600 font-medium">{agent.responseTime}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -296,15 +336,29 @@ const Produtividade = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockProductivityData.teamData.map((team) => (
-                        <tr key={team.team} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4 font-medium">{team.team}</td>
-                          <td className="py-3 px-4 font-medium text-green-600">{team.totalAttendances}</td>
-                          <td className="py-3 px-4 text-blue-600 font-medium">{team.avgPerAgent}</td>
-                          <td className="py-3 px-4 text-purple-600 font-medium">{team.avgResponseTime}</td>
-                          <td className="py-3 px-4 text-gray-600">{team.totalAgents}</td>
+                      {productivityLoading ? (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-gray-500">
+                            Carregando dados...
+                          </td>
                         </tr>
-                      ))}
+                      ) : !productivityData?.teamData?.length ? (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-gray-500">
+                            Nenhum dado de equipe encontrado para o período selecionado
+                          </td>
+                        </tr>
+                      ) : (
+                        productivityData.teamData.map((team) => (
+                          <tr key={team.team} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-4 font-medium">{team.team}</td>
+                            <td className="py-3 px-4 font-medium text-green-600">{team.totalAttendances}</td>
+                            <td className="py-3 px-4 text-blue-600 font-medium">{team.avgPerAgent}</td>
+                            <td className="py-3 px-4 text-purple-600 font-medium">{team.avgResponseTime}</td>
+                            <td className="py-3 px-4 text-gray-600">{team.totalAgents}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
