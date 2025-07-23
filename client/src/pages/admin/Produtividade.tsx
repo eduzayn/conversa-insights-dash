@@ -263,6 +263,7 @@ const Produtividade = () => {
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Atendente</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Equipe</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Hoje</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Ontem</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Esta Semana</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Este Mês</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Total</th>
@@ -273,13 +274,13 @@ const Produtividade = () => {
                     <tbody>
                       {productivityLoading ? (
                         <tr>
-                          <td colSpan={9} className="py-8 text-center text-gray-500">
+                          <td colSpan={10} className="py-8 text-center text-gray-500">
                             Carregando dados...
                           </td>
                         </tr>
                       ) : !productivityData?.individualData?.length ? (
                         <tr>
-                          <td colSpan={9} className="py-8 text-center text-gray-500">
+                          <td colSpan={10} className="py-8 text-center text-gray-500">
                             Nenhum dado de atendimento encontrado para o período selecionado
                           </td>
                         </tr>
@@ -304,8 +305,9 @@ const Produtividade = () => {
                               </span>
                             </td>
                             <td className="py-3 px-4 font-medium text-green-600">{agent.todayAttendances}</td>
-                            <td className="py-3 px-4 text-gray-600">{agent.completedAttendances}</td>
-                            <td className="py-3 px-4 text-gray-600">{agent.activeAttendances}</td>
+                            <td className="py-3 px-4 font-medium text-blue-600">{agent.yesterdayAttendances || 0}</td>
+                            <td className="py-3 px-4 text-gray-600">{agent.weekAttendances || 0}</td>
+                            <td className="py-3 px-4 text-gray-600">{agent.monthAttendances || 0}</td>
                             <td className="py-3 px-4 text-gray-600">{agent.totalAttendances}</td>
                             <td className="py-3 px-4 text-blue-600 font-medium">{agent.dailyAverage}</td>
                             <td className="py-3 px-4 text-purple-600 font-medium">{agent.responseTime}</td>

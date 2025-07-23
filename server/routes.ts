@@ -1608,6 +1608,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return convDate >= todayStart && convDate <= todayEnd && matchesUser;
         });
         
+        // Calcular atendimentos específicos para ONTEM
+        const yesterdayStart = new Date(todayBrazil);
+        yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+        yesterdayStart.setHours(0, 0, 0, 0);
+        const yesterdayEnd = new Date(todayBrazil);
+        yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+        yesterdayEnd.setHours(23, 59, 59, 999);
+        
+        const yesterdayUserConversations = conversations.filter(conv => {
+          const convDate = new Date(conv.createdAt);
+          const matchesUser = conv.atendente === user.username || 
+                            conv.botconversaManagerName === user.username ||
+                            (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()));
+          return convDate >= yesterdayStart && convDate <= yesterdayEnd && matchesUser;
+        });
+        
         // Calcular atendimentos específicos para ESTA SEMANA (últimos 7 dias)
         const weekStart = new Date(todayBrazil);
         weekStart.setDate(weekStart.getDate() - 6); // 7 dias incluindo hoje
@@ -1650,6 +1666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: user.username,
           team: userTeam,
           todayAttendances: todayUserConversations.length,
+          yesterdayAttendances: yesterdayUserConversations.length,
           weekAttendances: weekUserConversations.length,
           monthAttendances: monthUserConversations.length,
           totalAttendances: totalAtendimentos,
