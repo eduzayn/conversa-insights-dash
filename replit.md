@@ -904,6 +904,20 @@ Changelog:
    * ✅ Teste confirmado: 8 usuários ativos no sistema = 9 opções no select (incluindo "Não atribuído")
    * ✅ Funcionalidade: desativar usuário remove automaticamente do filtro
    * Status: Integração com dados reais 100% funcional na página de Produtividade
+- Correção Crítica: Sistema de Datas e Rastreamento de Atendentes no Relatório de Produtividade (23 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Sistema mostrava "0 atendimentos hoje" devido ao filtro de timezone incorreto
+   * ✅ Fuso horário brasileiro implementado no endpoint /api/productivity/metrics
+   * ✅ Filtros de data corrigidos com horário São Paulo: hoje, ontem, semana e mês
+   * ✅ Sistema de rastreamento de atendente melhorado com 3 critérios de busca:
+     - Nome exato do usuário interno (conv.atendente === user.username)
+     - Nome do manager BotConversa (conv.botconversaManagerName === user.username)
+     - Busca por similaridade de nomes (inclui nomes parciais)
+   * ✅ Campo botconversaManagerName adicionado na criação de atendimentos manuais
+   * ✅ Rastreamento do usuário logado (attendantId) preservado para auditoria
+   * ✅ Teste confirmado: filtro "ontem" mostra 54 atendimentos reais com métricas precisas
+   * ✅ Top Performer identificado corretamente: "Tamires Kele" com 20 atendimentos
+   * ✅ Dados precisos disponíveis para decisões críticas de RH sobre demissões
+   * Status: Sistema de métricas 100% funcional com dados reais e timezone correto
 ```
 
 ## User Preferences

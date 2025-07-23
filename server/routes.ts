@@ -1539,27 +1539,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { period = 'today', atendente, equipe } = req.query;
       
-      // Definir períodos de data
+      // Definir períodos de data com fuso horário do Brasil
       const now = new Date();
+      const todayBrazil = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
       let startDate: Date;
-      let endDate = new Date(now);
+      let endDate = new Date(todayBrazil);
+      endDate.setHours(23, 59, 59, 999); // Final do dia
       
       switch (period) {
         case 'today':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          startDate = new Date(todayBrazil);
+          startDate.setHours(0, 0, 0, 0); // Início do dia
           break;
         case 'yesterday':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          startDate = new Date(todayBrazil);
+          startDate.setDate(startDate.getDate() - 1);
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(todayBrazil);
+          endDate.setDate(endDate.getDate() - 1);
+          endDate.setHours(23, 59, 59, 999);
           break;
         case 'week':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          startDate = new Date(todayBrazil);
+          startDate.setDate(startDate.getDate() - 7);
+          startDate.setHours(0, 0, 0, 0);
           break;
         case 'month':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          startDate = new Date(todayBrazil.getFullYear(), todayBrazil.getMonth(), 1);
+          startDate.setHours(0, 0, 0, 0);
           break;
         default:
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          startDate = new Date(todayBrazil);
+          startDate.setHours(0, 0, 0, 0);
       }
       
       // Buscar todas as conversas no período
@@ -1575,9 +1586,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calcular métricas individuais por atendente
       const individualMetrics = atendentesAtivos.map(user => {
-        const userConversations = filteredConversations.filter(conv => 
-          conv.botconversaManagerName === user.username || conv.atendente === user.username
-        );
+        const userConversations = filteredConversations.filter(conv => {
+          // Buscar por username do usuário interno ou nomes similares do BotConversa
+          const matchesUsername = conv.atendente === user.username;
+          const matchesBotConversa = conv.botconversaManagerName === user.username;
+          const matchesSimilarName = conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase());
+          
+          return matchesUsername || matchesBotConversa || matchesSimilarName;
+        });
         
         const totalAtendimentos = userConversations.length;
         const atendimentosConcluidos = userConversations.filter(conv => conv.status === 'closed').length;
@@ -1804,6 +1820,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         source: 'manual'
       });
 
+      // Buscar dados do usuário logado para rastreamento
+      const loggedUser = await storage.getUser(req.user.id);
+      
       // Criar conversa manual (atendimento)
       const conversation = await storage.createConversation({
         leadId: leadRecord.id,
@@ -1819,11 +1838,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultado: resultado || null,
           companyAccount: 'SUPORTE',
           hora: hora,
-          atendente: atendente,
+          atendente: atendente, // Usar nome selecionado no formulário
           equipe: equipe,
           duracao: duracao,
           assunto: assunto || null,
-          observacoes: observacoes || null
+          observacoes: observacoes || null,
+          attendantId: req.user.id, // Rastrear usuário logado
+          botconversaManagerName: loggedUser?.username // Para vinculação com métricas
         })
         .where(eq(conversations.id, conversation.id));
 
