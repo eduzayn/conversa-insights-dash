@@ -510,6 +510,7 @@ const EnviosUnicv: React.FC = () => {
                       <thead>
                         <tr className="border-b">
                           <th className="text-left p-4 font-medium">Aluno</th>
+                          <th className="text-left p-4 font-medium">Data de Cadastro</th>
                           <th className="text-left p-4 font-medium">CPF</th>
                           <th className="text-left p-4 font-medium">Curso</th>
                           <th className="text-left p-4 font-medium">Categoria</th>
@@ -523,6 +524,7 @@ const EnviosUnicv: React.FC = () => {
                         {(envios || []).filter(envio => envio && envio.id).map((envio: EnvioUnicv) => (
                           <tr key={envio.id} className="border-b hover:bg-gray-50">
                             <td className="p-4">{envio.aluno}</td>
+                            <td className="p-4">{formatDate(envio.dataCadastro || '')}</td>
                             <td className="p-4">{envio.cpf}</td>
                             <td className="p-4 max-w-xs truncate" title={envio.curso}>
                               {envio.curso}
