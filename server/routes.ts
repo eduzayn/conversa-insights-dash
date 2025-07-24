@@ -25,6 +25,7 @@ import {
   insertCertificateTemplateSchema,
   insertNegociacaoSchema,
   insertNegociacaoExpiradoSchema,
+  insertQuitacaoSchema,
   insertEnvioUnicvSchema,
   insertEnvioFamarSchema
 } from "@shared/schema";
@@ -5079,6 +5080,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       logger.error("Erro ao sincronizar negociações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== QUITAÇÕES =====
+
+  // Buscar quitações
+  app.get("/api/quitacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const { search, status, dataInicio, dataFim } = req.query;
+      const quitacoes = await storage.getQuitacoes({ search, status, dataInicio, dataFim });
+      res.json(quitacoes);
+    } catch (error) {
+      logger.error("Erro ao buscar quitações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar nova quitação
+  app.post("/api/quitacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const quitacaoData = insertQuitacaoSchema.parse(req.body);
+      
+      // Corrigir datas para evitar problemas de timezone
+      if (quitacaoData.dataQuitacao) {
+        const localDate = new Date(quitacaoData.dataQuitacao + 'T12:00:00');
+        quitacaoData.dataQuitacao = localDate.toISOString().split('T')[0];
+      }
+      
+      if (quitacaoData.dataUltimaParcelaQuitada) {
+        const localDate = new Date(quitacaoData.dataUltimaParcelaQuitada + 'T12:00:00');
+        quitacaoData.dataUltimaParcelaQuitada = localDate.toISOString().split('T')[0];
+      }
+      
+      const quitacao = await storage.createQuitacao(quitacaoData);
+      res.status(201).json(quitacao);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      logger.error("Erro ao criar quitação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar quitação
+  app.put("/api/quitacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      // Corrigir datas para evitar problemas de timezone
+      if (updateData.dataQuitacao) {
+        const localDate = new Date(updateData.dataQuitacao + 'T12:00:00');
+        updateData.dataQuitacao = localDate.toISOString().split('T')[0];
+      }
+      
+      if (updateData.dataUltimaParcelaQuitada) {
+        const localDate = new Date(updateData.dataUltimaParcelaQuitada + 'T12:00:00');
+        updateData.dataUltimaParcelaQuitada = localDate.toISOString().split('T')[0];
+      }
+      
+      const quitacao = await storage.updateQuitacao(parseInt(id), updateData);
+      if (!quitacao) {
+        return res.status(404).json({ message: "Quitação não encontrada" });
+      }
+      res.json(quitacao);
+    } catch (error) {
+      logger.error("Erro ao atualizar quitação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar quitação
+  app.delete("/api/quitacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteQuitacao(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Erro ao deletar quitação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

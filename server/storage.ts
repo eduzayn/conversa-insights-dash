@@ -31,6 +31,7 @@ import {
   certificateTemplates,
   negociacoes,
   negociacoesExpirados,
+  quitacoes,
   enviosUnicv,
   enviosFamar,
   simplifiedEnrollments,
@@ -115,6 +116,8 @@ import {
   type InsertNegociacao,
   type NegociacaoExpirado,
   type InsertNegociacaoExpirado,
+  type Quitacao,
+  type InsertQuitacao,
   enviosUnicv,
   type EnvioUnicv,
   type InsertEnvioUnicv,
@@ -338,6 +341,13 @@ export interface IStorage {
   updateEnvioFamar(id: number, envio: Partial<EnvioFamar>): Promise<EnvioFamar | undefined>;
   deleteEnvioFamar(id: number): Promise<boolean>;
   getEnvioFamarById(id: number): Promise<EnvioFamar | undefined>;
+
+  // Sistema de Quitações
+  getQuitacoes(filters?: { search?: string; status?: string; dataInicio?: string; dataFim?: string }): Promise<Quitacao[]>;
+  createQuitacao(quitacao: InsertQuitacao): Promise<Quitacao>;
+  updateQuitacao(id: number, quitacao: Partial<Quitacao>): Promise<Quitacao | undefined>;
+  deleteQuitacao(id: number): Promise<boolean>;
+  getQuitacaoById(id: number): Promise<Quitacao | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2552,6 +2562,112 @@ export class DatabaseStorage implements IStorage {
       default:
         return now.toISOString().split('T')[0];
     }
+  }
+
+  // Sistema de Quitações
+  async getQuitacoes(filters?: { search?: string; status?: string; dataInicio?: string; dataFim?: string }): Promise<Quitacao[]> {
+    let query = db.select().from(quitacoes);
+    
+    const conditions = [];
+    
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(quitacoes.clienteNome, `%${filters.search}%`),
+          ilike(quitacoes.clienteCpf, `%${filters.search}%`),
+          ilike(quitacoes.cursoReferencia, `%${filters.search}%`)
+        )
+      );
+    }
+    
+    if (filters?.status && filters.status !== 'all') {
+      conditions.push(eq(quitacoes.status, filters.status));
+    }
+    
+    if (filters?.dataInicio) {
+      conditions.push(gte(quitacoes.dataQuitacao, filters.dataInicio));
+    }
+    
+    if (filters?.dataFim) {
+      conditions.push(lte(quitacoes.dataQuitacao, filters.dataFim));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(quitacoes.createdAt));
+  }
+
+  async createQuitacao(quitacao: InsertQuitacao): Promise<Quitacao> {
+    const [newQuitacao] = await db
+      .insert(quitacoes)
+      .values({
+        ...quitacao,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newQuitacao;
+  }
+
+  async updateQuitacao(id: number, data: Partial<Quitacao>): Promise<Quitacao | undefined> {
+    // Campos permitidos para atualização
+    const allowedFields = [
+      'clienteNome', 'clienteCpf', 'cursoReferencia', 'dataQuitacao', 
+      'valorQuitado', 'dataUltimaParcelaQuitada', 'parcelasQuitadas', 
+      'gatewayPagamento', 'colaboradorResponsavel', 'status', 'observacoes'
+    ];
+    
+    const updateData: any = { updatedAt: new Date() };
+    
+    // Filtrar apenas campos permitidos
+    Object.keys(data).forEach(key => {
+      if (allowedFields.includes(key) && data[key as keyof Quitacao] !== undefined) {
+        if (key === 'dataQuitacao' || key === 'dataUltimaParcelaQuitada') {
+          // Garantir formato de data correto
+          const dateValue = data[key as keyof Quitacao] as string;
+          if (dateValue && typeof dateValue === 'string') {
+            updateData[key] = dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
+          }
+        } else if (key === 'valorQuitado') {
+          // Tratar valor como decimal
+          const value = data[key as keyof Quitacao];
+          if (typeof value === 'string') {
+            updateData[key] = value.replace(',', '.');
+          } else {
+            updateData[key] = value;
+          }
+        } else {
+          updateData[key] = data[key as keyof Quitacao];
+        }
+      }
+    });
+
+    const [updatedQuitacao] = await db
+      .update(quitacoes)
+      .set(updateData)
+      .where(eq(quitacoes.id, id))
+      .returning();
+    
+    return updatedQuitacao || undefined;
+  }
+
+  async deleteQuitacao(id: number): Promise<boolean> {
+    const result = await db
+      .delete(quitacoes)
+      .where(eq(quitacoes.id, id));
+    
+    return result.rowCount > 0;
+  }
+
+  async getQuitacaoById(id: number): Promise<Quitacao | undefined> {
+    const [quitacao] = await db
+      .select()
+      .from(quitacoes)
+      .where(eq(quitacoes.id, id));
+    
+    return quitacao || undefined;
   }
 }
 

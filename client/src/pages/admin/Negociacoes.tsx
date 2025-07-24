@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy, CheckCircle2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
 import { useNavigate, Navigate } from "react-router-dom";
@@ -64,18 +64,37 @@ interface Expirado {
   updatedAt?: string;
 }
 
+interface Quitacao {
+  id?: number;
+  clienteNome: string;
+  clienteCpf: string;
+  cursoReferencia: string;
+  dataQuitacao: string;
+  valorQuitado: number | string;
+  dataUltimaParcelaQuitada: string;
+  parcelasQuitadas: number | string;
+  gatewayPagamento: string;
+  colaboradorResponsavel: string;
+  status: 'quitado' | 'aguardando_pagamento';
+  observacoes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const Negociacoes: React.FC = () => {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('negociacoes');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedNegociacao, setSelectedNegociacao] = useState<Negociacao | null>(null);
   const [selectedExpirado, setSelectedExpirado] = useState<Expirado | null>(null);
+  const [selectedQuitacao, setSelectedQuitacao] = useState<Quitacao | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteExpiradoId, setDeleteExpiradoId] = useState<number | null>(null);
+  const [deleteQuitacaoId, setDeleteQuitacaoId] = useState<number | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -93,6 +112,12 @@ const Negociacoes: React.FC = () => {
     entityName: 'Curso Expirado',
     endpoint: '/api/negociacoes-expirados',
     queryKeys: ['/api/negociacoes-expirados']
+  });
+
+  const quitacoesCrud = useCrudOperations<Quitacao>({
+    entityName: 'Quitação',
+    endpoint: '/api/quitacoes',
+    queryKeys: ['/api/quitacoes']
   });
 
   // Função para capturar erros de renderização
@@ -135,10 +160,23 @@ const Negociacoes: React.FC = () => {
     }
   });
 
+  // Buscar quitações
+  const { data: quitacoes = [], isLoading: loadingQuitacoes } = useQuery({
+    queryKey: ['/api/quitacoes', { search: searchTerm, status: statusFilter, dataInicio, dataFim }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (dataInicio) params.append('dataInicio', dataInicio);
+      if (dataFim) params.append('dataFim', dataFim);
+      return apiRequest(`/api/quitacoes?${params}`);
+    }
+  });
+
   // Reset error state quando dados mudam
   useEffect(() => {
     setRenderError(null);
-  }, [negociacoes, expirados]);
+  }, [negociacoes, expirados, quitacoes]);
 
   // Validação usando hook consolidado
   const validateExpirado = (data: Expirado): boolean => {
@@ -292,6 +330,59 @@ const Negociacoes: React.FC = () => {
     setSelectedExpirado(expiradoDuplicado);
   }, []);
 
+  // Funções para Quitações
+  const handleDeleteQuitacao = useCallback((id: number) => {
+    setDeleteQuitacaoId(id);
+  }, []);
+
+  const confirmDeleteQuitacao = useCallback(() => {
+    if (deleteQuitacaoId) {
+      quitacoesCrud.delete.mutate(deleteQuitacaoId);
+      setDeleteQuitacaoId(null);
+    }
+  }, [deleteQuitacaoId, quitacoesCrud]);
+
+  const handleCreateQuitacao = () => {
+    // Obter data local no formato YYYY-MM-DD (não UTC)
+    const agora = new Date();
+    const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    setSelectedQuitacao({
+      clienteNome: '',
+      clienteCpf: '',
+      cursoReferencia: '',
+      dataQuitacao: hoje,
+      valorQuitado: '',
+      dataUltimaParcelaQuitada: hoje,
+      parcelasQuitadas: '',
+      gatewayPagamento: '',
+      colaboradorResponsavel: '',
+      status: 'quitado',
+      observacoes: ''
+    });
+  };
+
+  const handleSaveQuitacao = useCallback(() => {
+    if (!selectedQuitacao) return;
+
+    // Validar campos obrigatórios
+    const isValid = (
+      validateRequired(selectedQuitacao.clienteNome, 'Nome do Cliente') &&
+      validateRequired(selectedQuitacao.clienteCpf, 'CPF do Cliente') &&
+      validateRequired(selectedQuitacao.cursoReferencia, 'Curso de Referência') &&
+      validateDate(selectedQuitacao.dataQuitacao, 'Data de Quitação') &&
+      validateDate(selectedQuitacao.dataUltimaParcelaQuitada, 'Data da Última Parcela Quitada')
+    );
+
+    if (!isValid) return;
+
+    if (selectedQuitacao.id) {
+      quitacoesCrud.update.mutate({ id: selectedQuitacao.id, data: selectedQuitacao });
+    } else {
+      quitacoesCrud.create.mutate(selectedQuitacao);
+    }
+    setSelectedQuitacao(null);
+  }, [selectedQuitacao, quitacoesCrud, validateRequired, validateDate]);
+
   // Proteção de autenticação - movida para após todos os hooks
   if (loading) {
     return <LoadingCard message="Carregando página..." />;
@@ -371,20 +462,27 @@ const Negociacoes: React.FC = () => {
 
         <div className="flex-1 overflow-auto p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-gray-100 rounded-lg">
+            <TabsList className="grid w-full grid-cols-3 h-12 p-1 bg-gray-100 rounded-lg">
               <TabsTrigger 
                 value="negociacoes" 
-                className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                className="flex items-center gap-2 px-3 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
               >
                 <FileText className="w-4 h-4" />
                 Negociações
               </TabsTrigger>
               <TabsTrigger 
                 value="expirados" 
-                className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                className="flex items-center gap-2 px-3 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
               >
                 <AlertTriangle className="w-4 h-4" />
                 Expirados
+              </TabsTrigger>
+              <TabsTrigger 
+                value="quitacoes" 
+                className="flex items-center gap-2 px-3 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Quitações
               </TabsTrigger>
             </TabsList>
 
@@ -749,6 +847,131 @@ const Negociacoes: React.FC = () => {
                 )}
               </div>
             </TabsContent>
+
+            {/* Aba Quitações */}
+            <TabsContent value="quitacoes" className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <Input
+                    placeholder="Buscar por nome, CPF ou curso..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-64"
+                  />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="quitado">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Quitado
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="aguardando_pagamento">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          Aguardando Pagamento
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      placeholder="Data início"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="w-40"
+                    />
+                    <Input
+                      type="date"
+                      placeholder="Data fim"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleCreateQuitacao}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Quitação
+                </Button>
+              </div>
+
+              {loadingQuitacoes ? (
+                <LoadingCard message="Carregando quitações..." />
+              ) : quitacoes.length === 0 ? (
+                <EmptyStateCard 
+                  icon={CheckCircle2}
+                  title="Nenhuma quitação encontrada"
+                  description="Não há quitações cadastradas que correspondam aos filtros aplicados."
+                />
+              ) : (
+                <div className="grid gap-4">
+                  {quitacoes.map((quitacao: Quitacao) => (
+                    <Card key={quitacao.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                          <div className="md:col-span-2">
+                            <h3 className="font-semibold text-gray-900">{quitacao.clienteNome}</h3>
+                            <p className="text-sm text-gray-600">CPF: {quitacao.clienteCpf}</p>
+                          </div>
+                          
+                          <div>
+                            <p className="font-medium text-gray-900">{quitacao.cursoReferencia}</p>
+                            <p className="text-sm text-gray-600">
+                              Data: {new Date(quitacao.dataQuitacao + 'T00:00:00').toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              R$ {typeof quitacao.valorQuitado === 'number' 
+                                ? quitacao.valorQuitado.toFixed(2).replace('.', ',') 
+                                : Number(quitacao.valorQuitado).toFixed(2).replace('.', ',')}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Parcelas: {quitacao.parcelasQuitadas}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <StatusBadge status={quitacao.status} />
+                            <p className="text-sm text-gray-600 mt-1">{quitacao.gatewayPagamento}</p>
+                          </div>
+                          
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedQuitacao(quitacao)}
+                              className="min-h-[44px] px-3"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => quitacao.id && handleDeleteQuitacao(quitacao.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] px-3"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
           </Tabs>
         </div>
       </div>
@@ -1196,6 +1419,195 @@ const Negociacoes: React.FC = () => {
         title="Confirmar Exclusão"
         description="Tem certeza de que deseja excluir este expirado? Esta ação não pode ser desfeita."
       />
+
+      <DeleteConfirmDialog
+        open={deleteQuitacaoId !== null}
+        onOpenChange={(open) => !open && setDeleteQuitacaoId(null)}
+        onConfirm={confirmDeleteQuitacao}
+        isLoading={quitacoesCrud.delete.isPending}
+        title="Confirmar Exclusão"
+        description="Tem certeza de que deseja excluir esta quitação? Esta ação não pode ser desfeita."
+      />
+
+      {/* Modal para Quitações */}
+      <FormDialog
+        open={selectedQuitacao !== null}
+        onOpenChange={(open) => !open && setSelectedQuitacao(null)}
+        title={selectedQuitacao?.id ? "Editar Quitação" : "Nova Quitação"}
+        description="Preencha os dados da quitação"
+        onSave={handleSaveQuitacao}
+        isLoading={quitacoesCrud.create.isPending || quitacoesCrud.update.isPending}
+        maxWidth="2xl"
+      >
+        {selectedQuitacao && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="clienteNome">Nome do Cliente *</Label>
+                <Input
+                  id="clienteNome"
+                  value={selectedQuitacao.clienteNome}
+                  onChange={(e) => setSelectedQuitacao({...selectedQuitacao, clienteNome: e.target.value})}
+                  placeholder="Nome completo"
+                  className="form-input-responsive"
+                />
+              </div>
+              <div>
+                <Label htmlFor="clienteCpf">CPF do Cliente *</Label>
+                <Input
+                  id="clienteCpf"
+                  value={selectedQuitacao.clienteCpf}
+                  onChange={(e) => setSelectedQuitacao({...selectedQuitacao, clienteCpf: e.target.value})}
+                  placeholder="000.000.000-00"
+                  className="form-input-responsive"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="cursoReferencia">Curso de Referência *</Label>
+              <Input
+                id="cursoReferencia"
+                value={selectedQuitacao.cursoReferencia}
+                onChange={(e) => setSelectedQuitacao({...selectedQuitacao, cursoReferencia: e.target.value})}
+                placeholder="Nome do curso"
+                className="form-input-responsive"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="dataQuitacao">Data de Quitação *</Label>
+                <Input
+                  id="dataQuitacao"
+                  type="date"
+                  value={selectedQuitacao.dataQuitacao}
+                  onChange={(e) => setSelectedQuitacao({...selectedQuitacao, dataQuitacao: e.target.value})}
+                  className="cursor-pointer form-input-responsive"
+                />
+              </div>
+              <div>
+                <Label htmlFor="dataUltimaParcelaQuitada">Data da Última Parcela Quitada *</Label>
+                <Input
+                  id="dataUltimaParcelaQuitada"
+                  type="date"
+                  value={selectedQuitacao.dataUltimaParcelaQuitada}
+                  onChange={(e) => setSelectedQuitacao({...selectedQuitacao, dataUltimaParcelaQuitada: e.target.value})}
+                  className="cursor-pointer form-input-responsive"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="valorQuitado">Valor Quitado (R$) *</Label>
+                <Input
+                  id="valorQuitado"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={selectedQuitacao.valorQuitado}
+                  onChange={(e) => setSelectedQuitacao({...selectedQuitacao, valorQuitado: e.target.value})}
+                  placeholder="0,00"
+                  className="form-input-responsive"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parcelasQuitadas">Número de Parcelas Quitadas *</Label>
+                <Input
+                  id="parcelasQuitadas"
+                  type="number"
+                  min="1"
+                  value={selectedQuitacao.parcelasQuitadas}
+                  onChange={(e) => setSelectedQuitacao({...selectedQuitacao, parcelasQuitadas: e.target.value})}
+                  placeholder="12"
+                  className="form-input-responsive"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="gatewayPagamento">Gateway de Pagamento *</Label>
+                <Select
+                  value={selectedQuitacao.gatewayPagamento}
+                  onValueChange={(value) => setSelectedQuitacao({...selectedQuitacao, gatewayPagamento: value})}
+                >
+                  <SelectTrigger className="form-input-responsive">
+                    <SelectValue placeholder="Selecionar gateway" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Asaas">Asaas</SelectItem>
+                    <SelectItem value="Mercado Pago">Mercado Pago</SelectItem>
+                    <SelectItem value="PagSeguro">PagSeguro</SelectItem>
+                    <SelectItem value="Pix">Pix</SelectItem>
+                    <SelectItem value="Boleto">Boleto</SelectItem>
+                    <SelectItem value="Transferência">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="status">Status da Quitação *</Label>
+                <Select
+                  value={selectedQuitacao.status}
+                  onValueChange={(value: 'quitado' | 'aguardando_pagamento') => setSelectedQuitacao({...selectedQuitacao, status: value})}
+                >
+                  <SelectTrigger className="form-input-responsive">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quitado">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        Quitado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aguardando_pagamento">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                        Aguardando Pagamento
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="colaboradorResponsavel">Colaborador Responsável *</Label>
+              <Select
+                value={selectedQuitacao.colaboradorResponsavel}
+                onValueChange={(value) => setSelectedQuitacao({...selectedQuitacao, colaboradorResponsavel: value})}
+              >
+                <SelectTrigger className="form-input-responsive">
+                  <SelectValue placeholder="Selecionar colaborador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {colaboradores
+                    .filter((colab: any) => colab && colab.role && (colab.role === 'admin' || colab.role === 'agent'))
+                    .map((colab: any, index: number) => (
+                      <SelectItem key={colab.id || `colab-quit-${index}`} value={colab.username || ''}>
+                        {colab.username || 'Usuário sem nome'} {colab.email ? `(${colab.email})` : ''}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="observacoes">Observações</Label>
+              <Textarea
+                id="observacoes"
+                value={selectedQuitacao.observacoes || ''}
+                onChange={(e) => setSelectedQuitacao({...selectedQuitacao, observacoes: e.target.value})}
+                placeholder="Informações adicionais sobre a quitação"
+                rows={3}
+                className="form-input-responsive"
+              />
+            </div>
+          </div>
+        )}
+      </FormDialog>
     </div>
   );
 };
