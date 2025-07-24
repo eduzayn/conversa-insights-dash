@@ -1150,6 +1150,7 @@ const Negociacoes: React.FC = () => {
                       <SelectItem value="edunext_fadyc">Edunext Fadyc</SelectItem>
                       <SelectItem value="lytex_zayn">Lytex Zayn</SelectItem>
                       <SelectItem value="lytex_fadyc">Lytex Fadyc</SelectItem>
+                      <SelectItem value="vivaedu">VivaEdu</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1586,6 +1587,7 @@ const Negociacoes: React.FC = () => {
                     <SelectItem value="edunext_fadyc">Edunext Fadyc</SelectItem>
                     <SelectItem value="lytex_zayn">Lytex Zayn</SelectItem>
                     <SelectItem value="lytex_fadyc">Lytex Fadyc</SelectItem>
+                    <SelectItem value="vivaedu">VivaEdu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

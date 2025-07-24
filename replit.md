@@ -980,6 +980,14 @@ Changelog:
    * ✅ Layout responsivo com grid ajustado de 5 para 6 colunas
    * ✅ Teste funcional confirmado pelo usuário: "Ficou perfeita"
    * Status: Campo "Curso de Referência" 100% implementado e funcionando
+- Gateway de Pagamento "VivaEdu" Adicionado (24 Jul 2025):
+   * ✅ Gateway "VivaEdu" adicionado em todos os modais de pagamento
+   * ✅ Modal de criação/edição de negociações atualizado
+   * ✅ Modal de criação/edição de quitações atualizado
+   * ✅ Dropdown de gateways expandido: Asaas União, Asaas Fadyc, Edunext Zayn, Edunext Fadyc, Lytex Zayn, Lytex Fadyc, VivaEdu
+   * ✅ Implementação consistente em todos os SelectItem components
+   * ✅ Sistema funcionando sem quebras ou regressões
+   * Status: Gateway VivaEdu totalmente integrado no sistema
 ```
 
 ## User Preferences
