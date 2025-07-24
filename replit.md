@@ -968,6 +968,18 @@ Changelog:
    * ✅ Métricas de produtividade agora precisas: atendimentos permanecem na data original
    * ✅ Distorções em relatórios diários eliminadas: status/resultado não altera data do atendimento
    * Status: Sistema de tracking temporal 100% correto, métricas confiáveis para RH
+- Campo "Curso de Referência" em Negociações Implementado (24 Jul 2025):
+   * ✅ Coluna curso_referencia adicionada à tabela negociacoes no PostgreSQL
+   * ✅ Schema Drizzle atualizado com novo campo opcional
+   * ✅ Validação Zod expandida para incluir cursoReferencia
+   * ✅ Interface TypeScript da negociação atualizada
+   * ✅ Campo adicionado ao modal de criação/edição de negociações
+   * ✅ Campo exibido na listagem posicionado antes da "Previsão de Pagamento"
+   * ✅ Storage layer atualizado com campo permitido na atualização
+   * ✅ Campo implementado com valor padrão vazio e placeholder explicativo
+   * ✅ Layout responsivo com grid ajustado de 5 para 6 colunas
+   * ✅ Teste funcional confirmado pelo usuário: "Ficou perfeita"
+   * Status: Campo "Curso de Referência" 100% implementado e funcionando
 ```
 
 ## User Preferences
