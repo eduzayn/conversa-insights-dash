@@ -1779,6 +1779,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const atendimentosConcluidos = userConversations.filter(conv => conv.status === 'closed').length;
         const atendimentosAndamento = userConversations.filter(conv => conv.status === 'active').length;
         
+        // CORREÇÃO CRÍTICA: Calcular total correto somando períodos específicos
+        // Evita duplicatas usando Set para garantir que não conte o mesmo atendimento múltiplas vezes
+        const allPeriodConversations = new Set([
+          ...todayUserConversations.map(c => c.id),
+          ...yesterdayUserConversations.map(c => c.id), 
+          ...weekUserConversations.map(c => c.id),
+          ...monthUserConversations.map(c => c.id)
+        ]);
+        const totalCorreto = allPeriodConversations.size;
+        
         // Calcular tempo médio de resposta (simulado baseado em volume)
         const avgResponseTime = totalAtendimentos > 0 ? 
           Math.max(60, 300 - totalAtendimentos * 5) : 300;
@@ -1795,7 +1805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           yesterdayAttendances: yesterdayUserConversations.length,
           weekAttendances: weekUserConversations.length,
           monthAttendances: monthUserConversations.length,
-          totalAttendances: totalAtendimentos,
+          totalAttendances: totalCorreto,
           completedAttendances: atendimentosConcluidos,
           activeAttendances: atendimentosAndamento,
           responseTime: responseTimeFormatted,
