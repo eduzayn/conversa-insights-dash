@@ -361,6 +361,25 @@ const Negociacoes: React.FC = () => {
     });
   };
 
+  const handleDuplicateQuitacao = useCallback((quitacao: Quitacao) => {
+    // Obter data local atual no formato YYYY-MM-DD (não UTC)
+    const agora = new Date();
+    const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    
+    // Clonar todos os dados da quitação original, removendo o ID e atualizando a data
+    const quitacaoDuplicada = {
+      ...quitacao,
+      id: undefined, // Remove ID para criar nova quitação
+      dataQuitacao: hoje, // Atualiza para data atual
+      dataUltimaParcelaQuitada: hoje, // Atualiza para data atual
+      observacoes: `${quitacao.observacoes || ''} [DUPLICADO]`.trim(), // Marca como duplicado
+      createdAt: undefined,
+      updatedAt: undefined
+    };
+    
+    setSelectedQuitacao(quitacaoDuplicada);
+  }, []);
+
   const handleSaveQuitacao = useCallback(() => {
     if (!selectedQuitacao) return;
 
@@ -965,14 +984,25 @@ const Negociacoes: React.FC = () => {
                               size="sm"
                               onClick={() => setSelectedQuitacao(quitacao)}
                               className="min-h-[44px] px-3"
+                              title="Editar quitação"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => handleDuplicateQuitacao(quitacao)}
+                              className="min-h-[44px] px-3"
+                              title="Duplicar quitação"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => quitacao.id && handleDeleteQuitacao(quitacao.id)}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] px-3"
+                              title="Excluir quitação"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
