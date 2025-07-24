@@ -30,6 +30,7 @@ interface EnvioUnicv {
   statusEnvio: 'nao_enviado' | 'enviado' | 'concluido' | 'retornado_pendencia';
   numeroOficio?: string;
   dataEnvio?: string;
+  dataCadastro?: string;
   observacoes?: string;
   colaboradorResponsavel: string;
   createdAt?: string;
@@ -43,6 +44,16 @@ interface Certificacao {
   curso: string;
   categoria: string;
 }
+
+// Função para obter data atual no fuso horário de São Paulo
+const getCurrentDateSaoPaulo = () => {
+  return new Date().toLocaleDateString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).split('/').reverse().join('-'); // Converte para formato YYYY-MM-DD
+};
 
 const EnviosUnicv: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -251,6 +262,7 @@ const EnviosUnicv: React.FC = () => {
       statusEnvio: formData.get('statusEnvio') as 'nao_enviado' | 'enviado',
       numeroOficio: formData.get('numeroOficio') as string || undefined,
       dataEnvio: formData.get('dataEnvio') as string || undefined,
+      dataCadastro: formData.get('dataCadastro') as string || undefined,
       observacoes: formData.get('observacoes') as string || undefined,
       colaboradorResponsavel: formData.get('colaboradorResponsavel') as string,
       ...(selectedEnvio?.id && { id: selectedEnvio.id })
@@ -782,6 +794,17 @@ const EnviosUnicv: React.FC = () => {
                           const agora = new Date();
                           return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
                         })()}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="dataCadastro">Data de Cadastro</Label>
+                      <Input
+                        name="dataCadastro"
+                        type="date"
+                        defaultValue={selectedEnvio?.dataCadastro || getCurrentDateSaoPaulo()}
+                        readOnly={!selectedEnvio} // Somente leitura para novos registros (preenchimento automático)
+                        className={!selectedEnvio ? "bg-gray-50" : ""}
                       />
                     </div>
 

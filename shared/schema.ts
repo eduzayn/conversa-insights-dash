@@ -336,6 +336,7 @@ export const enviosUnicv = pgTable("envios_unicv", {
   statusEnvio: text("status_envio").notNull().default("nao_enviado"), // nao_enviado, enviado, concluido, retornado_pendencia
   numeroOficio: text("numero_oficio"),
   dataEnvio: date("data_envio"),
+  dataCadastro: date("data_cadastro"),
   observacoes: text("observacoes"),
   colaboradorResponsavel: text("colaborador_responsavel").notNull(),
   createdAt: timestamp("created_at").defaultNow(),

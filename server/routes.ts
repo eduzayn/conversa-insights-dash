@@ -5109,6 +5109,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         envioData.dataEnvio = localDate.toISOString().split('T')[0];
       }
       
+      // Corrigir data de cadastro para evitar problemas de timezone
+      if (envioData.dataCadastro) {
+        // Garantir que a data seja interpretada como local, não UTC
+        const localDate = new Date(envioData.dataCadastro + 'T12:00:00');
+        envioData.dataCadastro = localDate.toISOString().split('T')[0];
+      }
+      
       const envio = await storage.createEnvioUnicv(envioData);
       res.status(201).json(envio);
     } catch (error) {
@@ -5131,6 +5138,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Garantir que a data seja interpretada como local, não UTC
         const localDate = new Date(updateData.dataEnvio + 'T12:00:00');
         updateData.dataEnvio = localDate.toISOString().split('T')[0];
+      }
+      
+      // Corrigir data de cadastro para evitar problemas de timezone
+      if (updateData.dataCadastro) {
+        // Garantir que a data seja interpretada como local, não UTC
+        const localDate = new Date(updateData.dataCadastro + 'T12:00:00');
+        updateData.dataCadastro = localDate.toISOString().split('T')[0];
       }
       
       const envio = await storage.updateEnvioUnicv(parseInt(id), updateData);

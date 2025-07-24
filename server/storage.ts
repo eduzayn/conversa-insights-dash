@@ -2371,6 +2371,7 @@ export class DatabaseStorage implements IStorage {
       statusEnvio: enviosUnicv.statusEnvio,
       numeroOficio: enviosUnicv.numeroOficio,
       dataEnvio: enviosUnicv.dataEnvio,
+      dataCadastro: enviosUnicv.dataCadastro,
       observacoes: enviosUnicv.observacoes,
       colaboradorResponsavel: enviosUnicv.colaboradorResponsavel,
       createdAt: enviosUnicv.createdAt,
