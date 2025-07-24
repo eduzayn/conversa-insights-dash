@@ -1847,16 +1847,7 @@ const Negociacoes: React.FC = () => {
                 </div>
               </div>
               
-              <div>
-                <Label htmlFor="propostaReativacao">Proposta de Reativação</Label>
-                <Textarea
-                  id="propostaReativacao"
-                  value={selectedExpirado.propostaReativacao || ''}
-                  onChange={(e) => setSelectedExpirado({...selectedExpirado, propostaReativacao: e.target.value})}
-                  placeholder="Descreva a proposta de reativação oferecida ao cliente"
-                  rows={3}
-                />
-              </div>
+              
               
               <div>
                 <div className="flex items-center justify-between mb-2">
