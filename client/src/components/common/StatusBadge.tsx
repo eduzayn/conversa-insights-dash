@@ -85,6 +85,12 @@ const DEFAULT_STATUS_CONFIGS: Record<string, StatusConfig> = {
     label: 'Em Correção',
     className: 'bg-yellow-100 text-yellow-800',
     dotColor: 'bg-yellow-500'
+  },
+  // Status de quitações
+  'quitado': {
+    label: 'Quitado',
+    className: 'bg-green-50 text-green-700 border border-green-200',
+    dotColor: 'bg-green-400'
   }
 };
 
