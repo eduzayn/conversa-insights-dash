@@ -1550,12 +1550,12 @@ const Negociacoes: React.FC = () => {
                     <SelectValue placeholder="Selecionar gateway" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Asaas">Asaas</SelectItem>
-                    <SelectItem value="Mercado Pago">Mercado Pago</SelectItem>
-                    <SelectItem value="PagSeguro">PagSeguro</SelectItem>
-                    <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Boleto">Boleto</SelectItem>
-                    <SelectItem value="Transferência">Transferência</SelectItem>
+                    <SelectItem value="asaas_uniao">Asaas União</SelectItem>
+                    <SelectItem value="asaas_fadyc">Asaas Fadyc</SelectItem>
+                    <SelectItem value="edunext_zayn">Edunext Zayn</SelectItem>
+                    <SelectItem value="edunext_fadyc">Edunext Fadyc</SelectItem>
+                    <SelectItem value="lytex_zayn">Lytex Zayn</SelectItem>
+                    <SelectItem value="lytex_fadyc">Lytex Fadyc</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
