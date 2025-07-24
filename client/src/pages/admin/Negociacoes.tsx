@@ -353,7 +353,7 @@ const Negociacoes: React.FC = () => {
       dataQuitacao: hoje,
       valorQuitado: '',
       dataUltimaParcelaQuitada: hoje,
-      parcelasQuitadas: '',
+      parcelasQuitadas: '1',
       gatewayPagamento: '',
       colaboradorResponsavel: '',
       status: 'quitado',
@@ -367,18 +367,31 @@ const Negociacoes: React.FC = () => {
     // Validar campos obrigatórios
     const isValid = (
       validateRequired(selectedQuitacao.clienteNome, 'Nome do Cliente') &&
-      validateRequired(selectedQuitacao.clienteCpf, 'CPF do Cliente') &&
       validateRequired(selectedQuitacao.cursoReferencia, 'Curso de Referência') &&
       validateDate(selectedQuitacao.dataQuitacao, 'Data de Quitação') &&
-      validateDate(selectedQuitacao.dataUltimaParcelaQuitada, 'Data da Última Parcela Quitada')
+      validateRequired(selectedQuitacao.colaboradorResponsavel, 'Colaborador Responsável')
     );
 
     if (!isValid) return;
 
+    // Preparar dados para envio com conversões corretas
+    const quitacaoData = {
+      ...selectedQuitacao,
+      parcelasQuitadas: parseInt(selectedQuitacao.parcelasQuitadas) || 1,
+      valorQuitado: typeof selectedQuitacao.valorQuitado === 'string' 
+        ? parseFloat(selectedQuitacao.valorQuitado.replace(',', '.')) 
+        : selectedQuitacao.valorQuitado,
+      // Garantir que campos opcionais vazios sejam null em vez de string vazia
+      clienteCpf: selectedQuitacao.clienteCpf || null,
+      dataUltimaParcelaQuitada: selectedQuitacao.dataUltimaParcelaQuitada || null,
+      gatewayPagamento: selectedQuitacao.gatewayPagamento || null,
+      observacoes: selectedQuitacao.observacoes || null
+    };
+
     if (selectedQuitacao.id) {
-      quitacoesCrud.update.mutate({ id: selectedQuitacao.id, data: selectedQuitacao });
+      quitacoesCrud.update.mutate({ id: selectedQuitacao.id, data: quitacaoData });
     } else {
-      quitacoesCrud.create.mutate(selectedQuitacao);
+      quitacoesCrud.create.mutate(quitacaoData);
     }
     setSelectedQuitacao(null);
   }, [selectedQuitacao, quitacoesCrud, validateRequired, validateDate]);
