@@ -271,6 +271,9 @@ export const AtendimentoFormModal = ({
                   <SelectItem value="Quitação">Quitação</SelectItem>
                   <SelectItem value="Emissão de Contratos">Emissão de Contratos</SelectItem>
                   <SelectItem value="Documentação">Documentação</SelectItem>
+                  <SelectItem value="Taxa de Tentativas">Taxa de Tentativas</SelectItem>
+                  <SelectItem value="Nota Fiscal">Nota Fiscal</SelectItem>
+                  <SelectItem value="Troca de Financeiro">Troca de Financeiro</SelectItem>
                   <SelectItem value="Reclamação">Reclamação</SelectItem>
                   <SelectItem value="Outros">Outros</SelectItem>
                 </SelectContent>
