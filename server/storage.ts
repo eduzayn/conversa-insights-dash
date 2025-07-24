@@ -2222,7 +2222,7 @@ export class DatabaseStorage implements IStorage {
     const allowedFields = [
       'clienteNome', 'clienteEmail', 'clienteCpf', 'curso', 'categoria', 
       'dataExpiracao', 'dataProposta', 'propostaReativacao', 'valorProposta', 
-      'statusProposta', 'observacoes', 'colaboradorResponsavel'
+      'gatewayPagamento', 'statusProposta', 'observacoes', 'colaboradorResponsavel'
     ];
     
     const updateData: any = {};

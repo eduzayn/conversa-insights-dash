@@ -319,6 +319,7 @@ export const negociacoesExpirados = pgTable("negociacoes_expirados", {
   dataPrevisaPagamento: date("data_previsa_pagamento"),
   propostaReativacao: text("proposta_reativacao"),
   valorProposta: decimal("valor_proposta", { precision: 10, scale: 2 }),
+  gatewayPagamento: text("gateway_pagamento"),
   statusProposta: text("status_proposta").notNull().default("pendente"), // pendente, enviada, aceita, rejeitada
   observacoes: text("observacoes"),
   colaboradorResponsavel: text("colaborador_responsavel").notNull(),
@@ -1427,6 +1428,7 @@ export const insertNegociacaoExpiradoSchema = z.object({
     }, "Data prevista de pagamento não pode ser anterior à data atual"),
   propostaReativacao: z.string().optional().nullable(),
   valorProposta: z.union([z.string(), z.number()]).optional().nullable(),
+  gatewayPagamento: z.string().optional().nullable(),
   statusProposta: z.string().default("pendente"),
   observacoes: z.string().optional().nullable(),
   colaboradorResponsavel: z.string({

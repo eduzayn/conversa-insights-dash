@@ -57,6 +57,7 @@ interface Expirado {
   dataPrevisaPagamento: string;
   propostaReativacao?: string;
   valorProposta?: number;
+  gatewayPagamento?: string;
   statusProposta: 'pendente' | 'enviada' | 'aceita' | 'rejeitada';
   observacoes: string;
   colaboradorResponsavel: string;
@@ -306,6 +307,7 @@ const Negociacoes: React.FC = () => {
       dataExpiracao: '',
       dataProposta: hoje,
       dataPrevisaPagamento: '',
+      gatewayPagamento: '',
       statusProposta: 'pendente',
       observacoes: '',
       colaboradorResponsavel: ''
@@ -800,7 +802,7 @@ const Negociacoes: React.FC = () => {
                               <StatusBadge status={expirado.statusProposta} />
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Curso:</span>
                                 <div className="font-medium">{expirado.curso}</div>
@@ -831,6 +833,12 @@ const Negociacoes: React.FC = () => {
                                     ? `R$ ${Number(expirado.valorProposta).toFixed(2).replace('.', ',')}` 
                                     : 'Não informado'
                                   }
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Gateway de Pagamento:</span>
+                                <div className="font-medium text-purple-600">
+                                  {expirado.gatewayPagamento || 'Não informado'}
                                 </div>
                               </div>
                               <div>
@@ -1333,7 +1341,24 @@ const Negociacoes: React.FC = () => {
                   />
                 </div>
                 <div>
-                  {/* Campo vazio para manter layout em 2 colunas */}
+                  <Label htmlFor="gatewayPagamento">Gateway de Pagamento</Label>
+                  <Select
+                    value={selectedExpirado.gatewayPagamento || ''}
+                    onValueChange={(value) => setSelectedExpirado({...selectedExpirado, gatewayPagamento: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar gateway" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asaas_uniao">Asaas União</SelectItem>
+                      <SelectItem value="asaas_fadyc">Asaas Fadyc</SelectItem>
+                      <SelectItem value="edunext_zayn">Edunext Zayn</SelectItem>
+                      <SelectItem value="edunext_fadyc">Edunext Fadyc</SelectItem>
+                      <SelectItem value="lytex_zayn">Lytex Zayn</SelectItem>
+                      <SelectItem value="lytex_fadyc">Lytex Fadyc</SelectItem>
+                      <SelectItem value="vivaedu">VivaEdu</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
