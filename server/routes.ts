@@ -2039,13 +2039,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const atendimento = {
           id: updatedConversation.id,
           lead: updatedConversation.customerName || `Cliente ${updatedConversation.id}`,
-          hora: new Date(updatedConversation.createdAt).toLocaleTimeString('pt-BR', { 
+          hora: updatedConversation.hora || new Date(updatedConversation.createdAt).toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
             minute: '2-digit' 
           }),
-          atendente: updatedConversation.attendantId ? `Atendente ${updatedConversation.attendantId}` : 'Não atribuído',
-          equipe: updatedConversation.attendantId ? 'Atendimento' : 'Não atribuído',
-          duracao: updatedConversation.status === 'closed' ? '15m' : 'Em andamento',
+          atendente: updatedConversation.atendente || `Atendente ${updatedConversation.attendantId}` || 'Não atribuído',
+          equipe: updatedConversation.equipe || 'Suporte',
+          duracao: updatedConversation.duracao || (updatedConversation.status === 'closed' ? '15m' : 'Em andamento'),
           status: updatedConversation.status === 'active' ? 'Em andamento' : 
                  updatedConversation.status === 'closed' ? 'Concluído' : 'Pendente'
         };
@@ -2079,13 +2079,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const atendimento = {
           id: updatedConversation.id,
           lead: updatedConversation.customerName || `Cliente ${updatedConversation.id}`,
-          hora: new Date(updatedConversation.createdAt).toLocaleTimeString('pt-BR', { 
+          hora: updatedConversation.hora || new Date(updatedConversation.createdAt).toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
             minute: '2-digit' 
           }),
-          atendente: updatedConversation.attendantId ? `Atendente ${updatedConversation.attendantId}` : 'Não atribuído',
-          equipe: updatedConversation.attendantId ? 'Atendimento' : 'Não atribuído',
-          duracao: updatedConversation.status === 'closed' ? '15m' : 'Em andamento',
+          atendente: updatedConversation.atendente || `Atendente ${updatedConversation.attendantId}` || 'Não atribuído',
+          equipe: updatedConversation.equipe || 'Suporte',
+          duracao: updatedConversation.duracao || (updatedConversation.status === 'closed' ? '15m' : 'Em andamento'),
           status: updatedConversation.status === 'active' ? 'Em andamento' : 
                  updatedConversation.status === 'closed' ? 'Concluído' : 'Pendente',
           resultado: updatedConversation.resultado

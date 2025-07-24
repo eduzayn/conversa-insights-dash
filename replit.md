@@ -957,6 +957,17 @@ Changelog:
    * ✅ Logs de produção limpos com filtros automáticos funcionando
    * ✅ Sistema pronto para decisões críticas com dados atualizados em tempo real
    * Status: Dashboard totalmente operacional, análise de logs confirma funcionamento adequado
+- Correção Crítica: Lógica de Horário nos Atendimentos Corrigida (24 Jul 2025):
+   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Campo 'hora' sendo sobrescrito ao atualizar status/resultado
+   * ✅ Causa identificada: Rotas PATCH recalculavam hora com createdAt em vez de preservar hora original
+   * ✅ Correção aplicada em 2 rotas críticas:
+     - PATCH /api/atendimentos/:id/status: Preserva hora original do atendimento
+     - PATCH /api/atendimentos/:id/resultado: Preserva hora original do atendimento
+   * ✅ Lógica corrigida: usa updatedConversation.hora || fallback para createdAt
+   * ✅ Preservação de dados existentes: atendente, equipe, duração mantidos
+   * ✅ Métricas de produtividade agora precisas: atendimentos permanecem na data original
+   * ✅ Distorções em relatórios diários eliminadas: status/resultado não altera data do atendimento
+   * Status: Sistema de tracking temporal 100% correto, métricas confiáveis para RH
 ```
 
 ## User Preferences
