@@ -1810,7 +1810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           activeAttendances: atendimentosAndamento,
           responseTime: responseTimeFormatted,
           responseTimeSeconds: avgResponseTime,
-          dailyAverage: totalAtendimentos,
+          dailyAverage: parseFloat((totalCorreto / 7).toFixed(2)), // Média diária baseada em 7 dias (semana)
           ranking: 0 // Será calculado após ordenação
         };
       });
