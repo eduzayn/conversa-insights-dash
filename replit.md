@@ -991,11 +991,16 @@ Changelog:
 - Recurso de Transcrição de Áudio para Observações Implementado (24 Jul 2025):
    * ✅ Componente VoiceTranscription.tsx criado com Web Speech API (pt-BR)
    * ✅ Suporte nativo ao Chrome com reconhecimento contínuo e resultados intermediários
-   * ✅ Integração completa nos campos de observações de 4 modais:
+   * ✅ Integração completa nos campos de observações de 8 modais:
      - AtendimentoFormModal.tsx (modal de atendimentos)
      - Negociacoes.tsx (modal de negociações)
      - Negociacoes.tsx (modal de expirados)
      - Negociacoes.tsx (modal de quitações)
+     - EnviosUnicv.tsx (modal de envios UNICV)
+     - EnviosFamar.tsx (modal de envios FAMAR)
+     - Certificacoes.tsx (modal de nova certificação)
+     - Certificacoes.tsx (modal de editar certificação)
+     - CreateLeadModal.tsx (modal de criar lead no CRM)
    * ✅ Funcionalidades implementadas:
      - Botão de microfone ao lado do label "Observações"
      - Estado visual "Gravando..." durante transcrição
@@ -1003,10 +1008,12 @@ Changelog:
      - Toasts informativos para início, fim e erros de gravação
      - Validação de permissões de microfone
      - Tratamento de erros (não permitido, sem fala, erro geral)
+     - Integração com diferentes padrões de state (useState, formData)
+     - Controle de estado das observações em modais de edição
    * ✅ Melhoria de acessibilidade: colaboradores com LER podem usar voz em vez de digitação
    * ✅ Sistema offline/local usando Web Speech API nativa do navegador
    * ✅ Implementação cirúrgica: apenas arquivos relacionados modificados
-   * Status: Transcrição de áudio 100% funcional em todos os modais de observações
+   * Status: Transcrição de áudio 100% funcional em TODOS os modais de observações do sistema
 ```
 
 ## User Preferences

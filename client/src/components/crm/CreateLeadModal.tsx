@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { VoiceTranscription } from '@/components/common/VoiceTranscription';
 import { toast } from 'sonner';
 
 interface CreateLeadModalProps {
@@ -180,7 +181,16 @@ export const CreateLeadModal = ({ open, onOpenChange, onCreateLead }: CreateLead
           </div>
 
           <div>
-            <Label htmlFor="notes">Observações</Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="notes">Observações</Label>
+              <VoiceTranscription
+                onTranscript={(transcript) => {
+                  const currentValue = formData.notes || '';
+                  const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                  setFormData(prev => ({ ...prev, notes: newValue }));
+                }}
+              />
+            </div>
             <Textarea
               id="notes"
               value={formData.notes}

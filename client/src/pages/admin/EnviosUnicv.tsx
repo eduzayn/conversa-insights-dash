@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
+import { VoiceTranscription } from "@/components/common/VoiceTranscription";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -71,6 +72,7 @@ const EnviosUnicv: React.FC = () => {
     curso: '',
     categoria: 'segunda_licenciatura' as string
   });
+  const [observacoesText, setObservacoesText] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -159,6 +161,7 @@ const EnviosUnicv: React.FC = () => {
       });
       setIsCreateModalOpen(false);
       setSelectedEnvio(null);
+      setObservacoesText(''); // Limpar observações após salvar
       toast({ title: "Sucesso", description: "Envio UNICV salvo com sucesso!" });
     },
     onError: () => {
@@ -274,6 +277,7 @@ const EnviosUnicv: React.FC = () => {
   const openEditModal = (envio: EnvioUnicv) => {
     setSelectedEnvio(envio);
     setComboboxValue(envio.certificationId.toString()); // Definir valor do combobox
+    setObservacoesText(envio.observacoes || ''); // Definir observações
     setIsCreateModalOpen(true);
   };
 
@@ -477,6 +481,7 @@ const EnviosUnicv: React.FC = () => {
                           onClick={() => {
                             setSelectedEnvio(null);
                             setComboboxValue(''); // Limpar combobox ao criar novo
+                            setObservacoesText(''); // Limpar observações ao criar novo
                           }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -811,11 +816,19 @@ const EnviosUnicv: React.FC = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <Label htmlFor="observacoes">Observações</Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="observacoes">Observações</Label>
+                        <VoiceTranscription
+                          onTranscript={(transcript) => {
+                            setObservacoesText(prev => prev + (prev ? ' ' : '') + transcript);
+                          }}
+                        />
+                      </div>
                       <Textarea
                         name="observacoes"
                         placeholder="Observações sobre o envio..."
-                        defaultValue={selectedEnvio?.observacoes}
+                        value={observacoesText}
+                        onChange={(e) => setObservacoesText(e.target.value)}
                         rows={3}
                       />
                     </div>

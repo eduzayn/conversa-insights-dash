@@ -21,6 +21,7 @@ import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import type { Certification } from '@shared/schema';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { VoiceTranscription } from '@/components/common/VoiceTranscription';
 
 const STATUS_COLORS = {
   'pendente': 'bg-yellow-100 text-yellow-800',
@@ -927,7 +928,16 @@ export default function Certificacoes() {
                     </div>
 
                     <div className="col-span-3">
-                      <Label htmlFor="observacao">Observação</Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="observacao">Observação</Label>
+                        <VoiceTranscription
+                          onTranscript={(transcript) => {
+                            const currentValue = newCertification.observacao || '';
+                            const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                            setNewCertification({ ...newCertification, observacao: newValue });
+                          }}
+                        />
+                      </div>
                       <Textarea
                         id="observacao"
                         value={newCertification.observacao}
@@ -1644,7 +1654,16 @@ export default function Certificacoes() {
               </div>
 
               <div className="col-span-3">
-                <Label htmlFor="edit-observacao">Observação</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="edit-observacao">Observação</Label>
+                  <VoiceTranscription
+                    onTranscript={(transcript) => {
+                      const currentValue = selectedCertification.observacao || '';
+                      const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                      setSelectedCertification({ ...selectedCertification, observacao: newValue });
+                    }}
+                  />
+                </div>
                 <Textarea
                   id="edit-observacao"
                   value={selectedCertification.observacao || ''}
