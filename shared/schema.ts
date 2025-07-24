@@ -326,6 +326,24 @@ export const negociacoesExpirados = pgTable("negociacoes_expirados", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela para quitações
+export const quitacoes = pgTable("quitacoes", {
+  id: serial("id").primaryKey(),
+  clienteNome: text("cliente_nome").notNull(),
+  clienteCpf: text("cliente_cpf"),
+  cursoReferencia: text("curso_referencia").notNull(),
+  dataQuitacao: date("data_quitacao").notNull(),
+  valorQuitado: decimal("valor_quitado", { precision: 10, scale: 2 }).notNull(),
+  dataUltimaParcelaQuitada: date("data_ultima_parcela_quitada"),
+  parcelasQuitadas: integer("parcelas_quitadas").notNull(),
+  gatewayPagamento: text("gateway_pagamento"),
+  colaboradorResponsavel: text("colaborador_responsavel").notNull(),
+  status: text("status").notNull().default("aguardando_pagamento"), // quitado, aguardando_pagamento
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Tabela para envios UNICV
 export const enviosUnicv = pgTable("envios_unicv", {
   id: serial("id").primaryKey(),
@@ -1422,6 +1440,45 @@ export type Negociacao = typeof negociacoes.$inferSelect;
 
 export type InsertNegociacaoExpirado = z.infer<typeof insertNegociacaoExpiradoSchema>;
 export type NegociacaoExpirado = typeof negociacoesExpirados.$inferSelect;
+
+// Schema para quitações com validação em português
+export const insertQuitacaoSchema = z.object({
+  clienteNome: z.string({
+    required_error: "Nome do cliente é obrigatório",
+    invalid_type_error: "Nome do cliente deve ser um texto"
+  }).min(1, "Nome do cliente é obrigatório"),
+  clienteCpf: z.string().optional().nullable(),
+  cursoReferencia: z.string({
+    required_error: "Curso de referência é obrigatório",
+    invalid_type_error: "Curso de referência deve ser um texto"
+  }).min(1, "Curso de referência é obrigatório"),
+  dataQuitacao: z.string({
+    required_error: "Data da quitação é obrigatória",
+    invalid_type_error: "Data da quitação deve ser um texto"
+  }).min(1, "Data da quitação não pode estar vazia"),
+  valorQuitado: z.union([z.string(), z.number()], {
+    required_error: "Valor quitado é obrigatório",
+    invalid_type_error: "Valor quitado deve ser um número"
+  }).refine((val) => {
+    const num = typeof val === 'string' ? parseFloat(val.replace(',', '.')) : val;
+    return !isNaN(num) && num > 0;
+  }, "Valor quitado deve ser um número maior que zero"),
+  dataUltimaParcelaQuitada: z.string().optional().nullable(),
+  parcelasQuitadas: z.number({
+    required_error: "Número de parcelas quitadas é obrigatório",
+    invalid_type_error: "Parcelas quitadas deve ser um número"
+  }).min(1, "Número de parcelas quitadas deve ser maior que zero"),
+  gatewayPagamento: z.string().optional().nullable(),
+  colaboradorResponsavel: z.string({
+    required_error: "Colaborador responsável é obrigatório",
+    invalid_type_error: "Colaborador responsável deve ser um texto"
+  }).min(1, "Colaborador responsável não pode estar vazio"),
+  status: z.string().default("aguardando_pagamento"),
+  observacoes: z.string().optional().nullable()
+});
+
+export type InsertQuitacao = z.infer<typeof insertQuitacaoSchema>;
+export type Quitacao = typeof quitacoes.$inferSelect;
 
 // Tipos para Portal do Aluno
 export type InsertStudentEnrollment = z.infer<typeof insertStudentEnrollmentSchema>;
