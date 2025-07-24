@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy, CheckCircle2 } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy, CheckCircle2, BarChart3, TrendingUp, Users, DollarSign, Calendar, Target } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
 import { useNavigate, Navigate } from "react-router-dom";
@@ -85,7 +86,7 @@ interface Quitacao {
 
 const Negociacoes: React.FC = () => {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('negociacoes');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedNegociacao, setSelectedNegociacao] = useState<Negociacao | null>(null);
   const [selectedExpirado, setSelectedExpirado] = useState<Expirado | null>(null);
@@ -98,6 +99,9 @@ const Negociacoes: React.FC = () => {
   const [deleteExpiradoId, setDeleteExpiradoId] = useState<number | null>(null);
   const [deleteQuitacaoId, setDeleteQuitacaoId] = useState<number | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
+  
+  // Estados para dashboard
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
   const navigate = useNavigate();
 
@@ -129,6 +133,8 @@ const Negociacoes: React.FC = () => {
     }
     setRenderError(error.message);
   };
+
+
 
   // Buscar colaboradores (usuários admin e agentes)
   const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
@@ -179,6 +185,100 @@ const Negociacoes: React.FC = () => {
   useEffect(() => {
     setRenderError(null);
   }, [negociacoes, expirados, quitacoes]);
+
+  // Função para calcular dados do dashboard
+  const calculateDashboardData = useCallback(() => {
+    if (!negociacoes || !expirados || !quitacoes) return null;
+
+    // Métricas gerais
+    const totalNegociacoes = negociacoes.length;
+    const totalExpirados = expirados.length;
+    const totalQuitacoes = quitacoes.length;
+    
+    // Valores totais
+    const valorTotalNegociacoes = negociacoes.reduce((sum, n) => sum + (Number(n.valorNegociado) || 0), 0);
+    const valorTotalQuitacoes = quitacoes.reduce((sum, q) => sum + (Number(q.valorQuitado) || 0), 0);
+    const valorTotalExpirados = expirados.reduce((sum, e) => sum + (Number(e.valorProposta) || 0), 0);
+    
+    // Status das negociações
+    const negociacoesStatus = negociacoes.reduce((acc, n) => {
+      acc[n.status] = (acc[n.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Status dos expirados
+    const expiradosStatus = expirados.reduce((acc, e) => {
+      acc[e.statusProposta] = (acc[e.statusProposta] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Status das quitações
+    const quitacoesStatus = quitacoes.reduce((acc, q) => {
+      acc[q.status] = (acc[q.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Dados para gráficos
+    const statusChartData = [
+      { name: 'Negociações', value: totalNegociacoes, color: '#3B82F6' },
+      { name: 'Expirados', value: totalExpirados, color: '#EF4444' },
+      { name: 'Quitações', value: totalQuitacoes, color: '#10B981' }
+    ];
+    
+    const valueChartData = [
+      { name: 'Negociações', value: valorTotalNegociacoes, color: '#3B82F6' },
+      { name: 'Expirados', value: valorTotalExpirados, color: '#EF4444' },
+      { name: 'Quitações', value: valorTotalQuitacoes, color: '#10B981' }
+    ];
+    
+    // Gráfico de evolução mensal (últimos 6 meses)
+    const monthlyData = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      const negociacoesMonth = negociacoes.filter(n => n.dataNegociacao?.startsWith(monthKey)).length;
+      const expiradosMonth = expirados.filter(e => e.dataExpiracao?.startsWith(monthKey)).length;
+      const quitacoesMonth = quitacoes.filter(q => q.dataQuitacao?.startsWith(monthKey)).length;
+      
+      monthlyData.push({
+        month: date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
+        negociacoes: negociacoesMonth,
+        expirados: expiradosMonth,
+        quitacoes: quitacoesMonth
+      });
+    }
+    
+    return {
+      totals: {
+        negociacoes: totalNegociacoes,
+        expirados: totalExpirados,
+        quitacoes: totalQuitacoes
+      },
+      values: {
+        negociacoes: valorTotalNegociacoes,
+        expirados: valorTotalExpirados,
+        quitacoes: valorTotalQuitacoes
+      },
+      statusData: {
+        negociacoes: negociacoesStatus,
+        expirados: expiradosStatus,
+        quitacoes: quitacoesStatus
+      },
+      chartData: {
+        statusChart: statusChartData,
+        valueChart: valueChartData,
+        monthlyChart: monthlyData
+      }
+    };
+  }, [negociacoes, expirados, quitacoes]);
+
+  // Atualizar dados do dashboard quando os dados mudarem
+  useEffect(() => {
+    const data = calculateDashboardData();
+    setDashboardData(data);
+  }, [calculateDashboardData]);
 
   // Validação usando hook consolidado
   const validateExpirado = (data: Expirado): boolean => {
@@ -497,7 +597,14 @@ const Negociacoes: React.FC = () => {
 
         <div className="flex-1 overflow-auto p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 h-12 p-1 bg-gray-100 rounded-lg">
+            <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-gray-100 rounded-lg">
+              <TabsTrigger 
+                value="dashboard" 
+                className="flex items-center gap-2 px-3 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Dashboard
+              </TabsTrigger>
               <TabsTrigger 
                 value="negociacoes" 
                 className="flex items-center gap-2 px-3 py-3 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
@@ -520,6 +627,175 @@ const Negociacoes: React.FC = () => {
                 Quitações
               </TabsTrigger>
             </TabsList>
+
+            {/* Aba Dashboard */}
+            <TabsContent value="dashboard" className="space-y-6">
+              {dashboardData ? (
+                <div className="space-y-6">
+                  {/* Cards de Métricas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Total Negociações</p>
+                            <p className="text-2xl font-bold text-blue-600">{dashboardData.totals.negociacoes}</p>
+                          </div>
+                          <FileText className="h-8 w-8 text-blue-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Total Expirados</p>
+                            <p className="text-2xl font-bold text-red-600">{dashboardData.totals.expirados}</p>
+                          </div>
+                          <AlertTriangle className="h-8 w-8 text-red-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Total Quitações</p>
+                            <p className="text-2xl font-bold text-green-600">{dashboardData.totals.quitacoes}</p>
+                          </div>
+                          <CheckCircle2 className="h-8 w-8 text-green-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Valor Total</p>
+                            <p className="text-2xl font-bold text-purple-600">
+                              R$ {(dashboardData.values.negociacoes + dashboardData.values.expirados + dashboardData.values.quitacoes).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          <DollarSign className="h-8 w-8 text-purple-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Gráficos */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Gráfico de Distribuição por Tipo */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Distribuição por Tipo</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={dashboardData.chartData.statusChart}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={100}
+                              fill="#8884d8"
+                              dataKey="value"
+                              label={({ name, value }) => `${name}: ${value}`}
+                            >
+                              {dashboardData.chartData.statusChart.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Gráfico de Valores por Tipo */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Valores por Tipo</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={dashboardData.chartData.valueChart}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis tickFormatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`} />
+                            <Tooltip formatter={(value) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']} />
+                            <Bar dataKey="value" fill="#3B82F6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Gráfico de Evolução Mensal */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="text-lg font-semibold mb-4">Evolução Mensal (Últimos 6 Meses)</h3>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart data={dashboardData.chartData.monthlyChart}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis />
+                          <Tooltip />
+                          <Line type="monotone" dataKey="negociacoes" stroke="#3B82F6" strokeWidth={2} name="Negociações" />
+                          <Line type="monotone" dataKey="expirados" stroke="#EF4444" strokeWidth={2} name="Expirados" />
+                          <Line type="monotone" dataKey="quitacoes" stroke="#10B981" strokeWidth={2} name="Quitações" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* Resumo de Status */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-blue-600">Status das Negociações</h3>
+                        <div className="space-y-2">
+                          {Object.entries(dashboardData.statusData.negociacoes).map(([status, count]) => (
+                            <div key={status} className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600 capitalize">{status.replace('_', ' ')}</span>
+                              <span className="font-semibold">{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-red-600">Status dos Expirados</h3>
+                        <div className="space-y-2">
+                          {Object.entries(dashboardData.statusData.expirados).map(([status, count]) => (
+                            <div key={status} className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600 capitalize">{status.replace('_', ' ')}</span>
+                              <span className="font-semibold">{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-green-600">Status das Quitações</h3>
+                        <div className="space-y-2">
+                          {Object.entries(dashboardData.statusData.quitacoes).map(([status, count]) => (
+                            <div key={status} className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600 capitalize">{status.replace('_', ' ')}</span>
+                              <span className="font-semibold">{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              ) : (
+                <LoadingCard message="Carregando dados do dashboard..." />
+              )}
+            </TabsContent>
 
             {/* Aba Negociações */}
             <TabsContent value="negociacoes" className="space-y-6">
