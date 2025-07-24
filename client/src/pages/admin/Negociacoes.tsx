@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
 import { useNavigate, Navigate } from "react-router-dom";
@@ -166,6 +166,25 @@ const Negociacoes: React.FC = () => {
       origem: 'certificacao',
       status: 'aguardando_pagamento'
     });
+    setIsCreateModalOpen(true);
+  }, []);
+
+  const handleDuplicateNegociacao = useCallback((negociacao: Negociacao) => {
+    // Obter data local atual no formato YYYY-MM-DD (não UTC)
+    const agora = new Date();
+    const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    
+    // Clonar todos os dados da negociação original, removendo o ID e atualizando a data
+    const negociacaoDuplicada = {
+      ...negociacao,
+      id: undefined, // Remove ID para criar nova negociação
+      dataNegociacao: hoje, // Atualiza para data atual
+      observacoes: `${negociacao.observacoes} [DUPLICADO]`, // Marca como duplicado
+      createdAt: undefined,
+      updatedAt: undefined
+    };
+    
+    setSelectedNegociacao(negociacaoDuplicada);
     setIsCreateModalOpen(true);
   }, []);
 
@@ -495,6 +514,15 @@ const Negociacoes: React.FC = () => {
                           </div>
                           
                           <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicateNegociacao(negociacao)}
+                              className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                              title="Duplicar negociação"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
