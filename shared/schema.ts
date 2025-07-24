@@ -291,6 +291,7 @@ export const negociacoes = pgTable("negociacoes", {
   clienteTelefone: text("cliente_telefone"),
   curso: text("curso"),
   categoria: text("categoria"),
+  cursoReferencia: text("curso_referencia"), // Campo para o curso de referência da negociação
   dataNegociacao: date("data_negociacao").notNull(),
   previsaoPagamento: date("previsao_pagamento").notNull(),
   parcelasAtraso: integer("parcelas_atraso").notNull().default(0),
@@ -1343,6 +1344,7 @@ export const insertNegociacaoSchema = z.object({
   clienteTelefone: z.string().optional().nullable(),
   curso: z.string().optional().nullable(),
   categoria: z.string().optional().nullable(),
+  cursoReferencia: z.string().optional().nullable(),
   dataNegociacao: z.string({
     required_error: "Data da negociação é obrigatória",
     invalid_type_error: "Data da negociação deve ser um texto"

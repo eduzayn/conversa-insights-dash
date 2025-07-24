@@ -30,6 +30,7 @@ interface Negociacao {
   clienteTelefone?: string;
   curso?: string;
   categoria?: string;
+  cursoReferencia?: string;
   dataNegociacao: string;
   previsaoPagamento: string;
   parcelasAtraso: number | string;
@@ -156,6 +157,7 @@ const Negociacoes: React.FC = () => {
     const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     setSelectedNegociacao({
       clienteNome: '',
+      cursoReferencia: '',
       dataNegociacao: hoje,
       previsaoPagamento: '',
       parcelasAtraso: '',
@@ -456,7 +458,7 @@ const Negociacoes: React.FC = () => {
                               <StatusBadge status={negociacao.status} />
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Data Negociação:</span>
                                 <div className="font-medium">
@@ -470,6 +472,12 @@ const Negociacoes: React.FC = () => {
                                     })() 
                                     : 'Não informado'
                                   }
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Curso de Referência:</span>
+                                <div className="font-medium">
+                                  {negociacao.cursoReferencia || 'Não informado'}
                                 </div>
                               </div>
                               <div>
@@ -751,6 +759,17 @@ const Negociacoes: React.FC = () => {
                     placeholder="000.000.000-00"
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="cursoReferencia">Curso de Referência</Label>
+                <Input
+                  id="cursoReferencia"
+                  value={selectedNegociacao.cursoReferencia || ''}
+                  onChange={(e) => setSelectedNegociacao({...selectedNegociacao, cursoReferencia: e.target.value})}
+                  placeholder="Digite o nome do curso referente a esta negociação"
+                  className="form-input-responsive"
+                />
               </div>
               
               <div className="grid grid-cols-2 gap-4">

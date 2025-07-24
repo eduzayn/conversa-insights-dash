@@ -2108,7 +2108,7 @@ export class DatabaseStorage implements IStorage {
     // Preparar dados para atualização - apenas campos que podem ser atualizados
     const allowedFields = [
       'clienteNome', 'clienteEmail', 'clienteCpf', 'clienteTelefone',
-      'curso', 'categoria', 'dataNegociacao', 'previsaoPagamento',
+      'curso', 'categoria', 'cursoReferencia', 'dataNegociacao', 'previsaoPagamento',
       'parcelasAtraso', 'dataVencimentoMaisAntiga', 'valorNegociado',
       'gatewayPagamento', 'observacoes', 'colaboradorResponsavel',
       'origem', 'status'
