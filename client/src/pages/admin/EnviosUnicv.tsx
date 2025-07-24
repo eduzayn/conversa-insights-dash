@@ -816,7 +816,7 @@ const EnviosUnicv: React.FC = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between">
                         <Label htmlFor="observacoes">Observações</Label>
                         <VoiceTranscription
                           onTranscript={(transcript) => {

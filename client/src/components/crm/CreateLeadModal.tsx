@@ -181,7 +181,7 @@ export const CreateLeadModal = ({ open, onOpenChange, onCreateLead }: CreateLead
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between">
               <Label htmlFor="notes">Observações</Label>
               <VoiceTranscription
                 onTranscript={(transcript) => {

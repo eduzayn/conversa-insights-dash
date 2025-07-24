@@ -928,7 +928,7 @@ export default function Certificacoes() {
                     </div>
 
                     <div className="col-span-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between">
                         <Label htmlFor="observacao">Observação</Label>
                         <VoiceTranscription
                           onTranscript={(transcript) => {
@@ -1654,7 +1654,7 @@ export default function Certificacoes() {
               </div>
 
               <div className="col-span-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between">
                   <Label htmlFor="edit-observacao">Observação</Label>
                   <VoiceTranscription
                     onTranscript={(transcript) => {
