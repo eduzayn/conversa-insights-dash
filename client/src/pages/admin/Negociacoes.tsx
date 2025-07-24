@@ -102,6 +102,8 @@ const Negociacoes: React.FC = () => {
   
   // Estados para dashboard
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardDateStart, setDashboardDateStart] = useState('');
+  const [dashboardDateEnd, setDashboardDateEnd] = useState('');
 
   const navigate = useNavigate();
 
@@ -190,30 +192,61 @@ const Negociacoes: React.FC = () => {
   const calculateDashboardData = useCallback(() => {
     if (!negociacoes || !expirados || !quitacoes) return null;
 
+    // Aplicar filtros de data
+    const filteredNegociacoes = negociacoes.filter(n => {
+      if (!dashboardDateStart && !dashboardDateEnd) return true;
+      const dataItem = n.dataNegociacao;
+      if (!dataItem) return true;
+      
+      if (dashboardDateStart && dataItem < dashboardDateStart) return false;
+      if (dashboardDateEnd && dataItem > dashboardDateEnd) return false;
+      return true;
+    });
+
+    const filteredExpirados = expirados.filter(e => {
+      if (!dashboardDateStart && !dashboardDateEnd) return true;
+      const dataItem = e.dataExpiracao;
+      if (!dataItem) return true;
+      
+      if (dashboardDateStart && dataItem < dashboardDateStart) return false;
+      if (dashboardDateEnd && dataItem > dashboardDateEnd) return false;
+      return true;
+    });
+
+    const filteredQuitacoes = quitacoes.filter(q => {
+      if (!dashboardDateStart && !dashboardDateEnd) return true;
+      const dataItem = q.dataQuitacao;
+      if (!dataItem) return true;
+      
+      if (dashboardDateStart && dataItem < dashboardDateStart) return false;
+      if (dashboardDateEnd && dataItem > dashboardDateEnd) return false;
+      return true;
+    });
+
     // Métricas gerais
-    const totalNegociacoes = negociacoes.length;
-    const totalExpirados = expirados.length;
-    const totalQuitacoes = quitacoes.length;
+    const totalNegociacoes = filteredNegociacoes.length;
+    const totalExpirados = filteredExpirados.length;
+    const totalQuitacoes = filteredQuitacoes.length;
     
     // Valores totais
-    const valorTotalNegociacoes = negociacoes.reduce((sum, n) => sum + (Number(n.valorNegociado) || 0), 0);
-    const valorTotalQuitacoes = quitacoes.reduce((sum, q) => sum + (Number(q.valorQuitado) || 0), 0);
-    const valorTotalExpirados = expirados.reduce((sum, e) => sum + (Number(e.valorProposta) || 0), 0);
+    const valorTotalNegociacoes = filteredNegociacoes.reduce((sum, n) => sum + (Number(n.valorNegociado) || 0), 0);
+    const valorTotalQuitacoes = filteredQuitacoes.reduce((sum, q) => sum + (Number(q.valorQuitado) || 0), 0);
+    const valorTotalExpirados = filteredExpirados.reduce((sum, e) => sum + (Number(e.valorProposta) || 0), 0);
     
     // Status das negociações
-    const negociacoesStatus = negociacoes.reduce((acc, n) => {
+    const negociacoesStatus = filteredNegociacoes.reduce((acc, n) => {
       acc[n.status] = (acc[n.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     
     // Status dos expirados
-    const expiradosStatus = expirados.reduce((acc, e) => {
+    const expiradosStatus = filteredExpirados.reduce((acc, e) => {
       acc[e.statusProposta] = (acc[e.statusProposta] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     
     // Status das quitações
-    const quitacoesStatus = quitacoes.reduce((acc, q) => {
+    const quitacoesStatus = filteredQuitacoes.reduce((acc, q) => {
       acc[q.status] = (acc[q.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -238,9 +271,9 @@ const Negociacoes: React.FC = () => {
       date.setMonth(date.getMonth() - i);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
-      const negociacoesMonth = negociacoes.filter(n => n.dataNegociacao?.startsWith(monthKey)).length;
-      const expiradosMonth = expirados.filter(e => e.dataExpiracao?.startsWith(monthKey)).length;
-      const quitacoesMonth = quitacoes.filter(q => q.dataQuitacao?.startsWith(monthKey)).length;
+      const negociacoesMonth = filteredNegociacoes.filter(n => n.dataNegociacao?.startsWith(monthKey)).length;
+      const expiradosMonth = filteredExpirados.filter(e => e.dataExpiracao?.startsWith(monthKey)).length;
+      const quitacoesMonth = filteredQuitacoes.filter(q => q.dataQuitacao?.startsWith(monthKey)).length;
       
       monthlyData.push({
         month: date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
@@ -272,7 +305,7 @@ const Negociacoes: React.FC = () => {
         monthlyChart: monthlyData
       }
     };
-  }, [negociacoes, expirados, quitacoes]);
+  }, [negociacoes, expirados, quitacoes, dashboardDateStart, dashboardDateEnd]);
 
   // Atualizar dados do dashboard quando os dados mudarem
   useEffect(() => {
@@ -630,6 +663,51 @@ const Negociacoes: React.FC = () => {
 
             {/* Aba Dashboard */}
             <TabsContent value="dashboard" className="space-y-6">
+              {/* Filtros do Dashboard */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium text-gray-600">
+                        Filtro por Período:
+                        {(dashboardDateStart || dashboardDateEnd) && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            Ativo
+                          </span>
+                        )}
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="date"
+                        placeholder="Data início"
+                        value={dashboardDateStart}
+                        onChange={(e) => setDashboardDateStart(e.target.value)}
+                        className="w-40"
+                      />
+                      <span className="text-gray-400">até</span>
+                      <Input
+                        type="date"
+                        placeholder="Data fim"
+                        value={dashboardDateEnd}
+                        onChange={(e) => setDashboardDateEnd(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setDashboardDateStart('');
+                        setDashboardDateEnd('');
+                      }}
+                      className="text-sm"
+                    >
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               {dashboardData ? (
                 <div className="space-y-6">
                   {/* Cards de Métricas */}
