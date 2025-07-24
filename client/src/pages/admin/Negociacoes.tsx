@@ -274,6 +274,24 @@ const Negociacoes: React.FC = () => {
     });
   };
 
+  const handleDuplicateExpirado = useCallback((expirado: Expirado) => {
+    // Obter data local atual no formato YYYY-MM-DD (não UTC)
+    const agora = new Date();
+    const hoje = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    
+    // Clonar todos os dados do expirado original, removendo o ID e atualizando datas
+    const expiradoDuplicado = {
+      ...expirado,
+      id: undefined, // Remove ID para criar novo expirado
+      dataProposta: hoje, // Atualiza para data atual
+      observacoes: `${expirado.observacoes || ''} [DUPLICADO]`.trim(), // Marca como duplicado
+      createdAt: undefined,
+      updatedAt: undefined
+    };
+    
+    setSelectedExpirado(expiradoDuplicado);
+  }, []);
+
   // Proteção de autenticação - movida para após todos os hooks
   if (loading) {
     return <LoadingCard message="Carregando página..." />;
@@ -699,6 +717,15 @@ const Negociacoes: React.FC = () => {
                           </div>
                           
                           <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicateExpirado(expirado)}
+                              className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                              title="Duplicar expirado"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
