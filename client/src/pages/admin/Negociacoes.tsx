@@ -309,9 +309,11 @@ const Negociacoes: React.FC = () => {
 
   // Atualizar dados do dashboard quando os dados mudarem
   useEffect(() => {
-    const data = calculateDashboardData();
-    setDashboardData(data);
-  }, [calculateDashboardData]);
+    if (negociacoes && expirados && quitacoes) {
+      const data = calculateDashboardData();
+      setDashboardData(data);
+    }
+  }, [negociacoes, expirados, quitacoes, dashboardDateStart, dashboardDateEnd]);
 
   // Validação usando hook consolidado
   const validateExpirado = (data: Expirado): boolean => {
@@ -1271,6 +1273,12 @@ const Negociacoes: React.FC = () => {
                           Aguardando Pagamento
                         </div>
                       </SelectItem>
+                      <SelectItem value="vencido">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Vencido
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <div className="flex gap-2">
@@ -2025,7 +2033,7 @@ const Negociacoes: React.FC = () => {
                 <Label htmlFor="status">Status da Quitação *</Label>
                 <Select
                   value={selectedQuitacao.status}
-                  onValueChange={(value: 'quitado' | 'aguardando_pagamento') => setSelectedQuitacao({...selectedQuitacao, status: value})}
+                  onValueChange={(value: 'quitado' | 'aguardando_pagamento' | 'vencido') => setSelectedQuitacao({...selectedQuitacao, status: value})}
                 >
                   <SelectTrigger className="form-input-responsive">
                     <SelectValue />
@@ -2041,6 +2049,12 @@ const Negociacoes: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
                         Aguardando Pagamento
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="vencido">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        Vencido
                       </div>
                     </SelectItem>
                   </SelectContent>

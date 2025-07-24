@@ -101,6 +101,11 @@ const DEFAULT_STATUS_CONFIGS: Record<string, StatusConfig> = {
     label: 'Quitado',
     className: 'bg-green-50 text-green-700 border border-green-200',
     dotColor: 'bg-green-400'
+  },
+  'vencido': {
+    label: 'Vencido',
+    className: 'bg-red-50 text-red-700 border border-red-200',
+    dotColor: 'bg-red-400'
   }
 };
 

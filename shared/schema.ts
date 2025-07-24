@@ -339,7 +339,7 @@ export const quitacoes = pgTable("quitacoes", {
   parcelasQuitadas: integer("parcelas_quitadas").notNull(),
   gatewayPagamento: text("gateway_pagamento"),
   colaboradorResponsavel: text("colaborador_responsavel").notNull(),
-  status: text("status").notNull().default("aguardando_pagamento"), // quitado, aguardando_pagamento
+  status: text("status").notNull().default("aguardando_pagamento"), // quitado, aguardando_pagamento, vencido
   observacoes: text("observacoes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
