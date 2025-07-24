@@ -1398,7 +1398,7 @@ const Negociacoes: React.FC = () => {
                   <Label htmlFor="statusProposta">Status da Proposta</Label>
                   <Select
                     value={selectedExpirado.statusProposta}
-                    onValueChange={(value: 'pendente' | 'enviada' | 'aceita' | 'rejeitada') => setSelectedExpirado({...selectedExpirado, statusProposta: value})}
+                    onValueChange={(value: 'pendente' | 'enviada' | 'aceita' | 'rejeitada' | 'pago' | 'aguardando_pagamento' | 'vencida') => setSelectedExpirado({...selectedExpirado, statusProposta: value})}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -1428,6 +1428,24 @@ const Negociacoes: React.FC = () => {
                           Rejeitada
                         </div>
                       </SelectItem>
+                      <SelectItem value="pago">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          Pago
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="aguardando_pagamento">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                          Aguardando Pagamento
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="vencida">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                          Vencida
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -1449,6 +1467,18 @@ const Negociacoes: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
                         <span>Rejeitada</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span>Pago</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                        <span>Aguardando Pagamento</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                        <span>Vencida</span>
                       </div>
                     </div>
                   </div>

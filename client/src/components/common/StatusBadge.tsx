@@ -44,6 +44,16 @@ const DEFAULT_STATUS_CONFIGS: Record<string, StatusConfig> = {
     className: 'bg-red-100 text-red-800',
     dotColor: 'bg-red-500'
   },
+  'pago': {
+    label: 'Pago',
+    className: 'bg-blue-100 text-blue-800',
+    dotColor: 'bg-blue-500'
+  },
+  'vencida': {
+    label: 'Vencida',
+    className: 'bg-gray-100 text-gray-800',
+    dotColor: 'bg-gray-500'
+  },
   // Status de certificações
   'em_andamento': {
     label: 'Em Andamento',

@@ -320,7 +320,7 @@ export const negociacoesExpirados = pgTable("negociacoes_expirados", {
   propostaReativacao: text("proposta_reativacao"),
   valorProposta: decimal("valor_proposta", { precision: 10, scale: 2 }),
   gatewayPagamento: text("gateway_pagamento"),
-  statusProposta: text("status_proposta").notNull().default("pendente"), // pendente, enviada, aceita, rejeitada
+  statusProposta: text("status_proposta").notNull().default("pendente"), // pendente, enviada, aceita, rejeitada, pago, aguardando_pagamento, vencida
   observacoes: text("observacoes"),
   colaboradorResponsavel: text("colaborador_responsavel").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
