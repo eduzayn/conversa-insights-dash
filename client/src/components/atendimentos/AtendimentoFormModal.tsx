@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VoiceTranscription } from "@/components/common/VoiceTranscription";
 import { Atendimento } from "@/types/atendimento";
 
 // Função para obter data atual no fuso de São Paulo
@@ -348,7 +349,18 @@ export const AtendimentoFormModal = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="observacoes">Observações</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="observacoes">Observações</Label>
+              <VoiceTranscription
+                onTranscript={(transcript) => {
+                  const currentValue = form.getValues("observacoes") || "";
+                  const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                  form.setValue("observacoes", newValue);
+                }}
+                isDisabled={form.formState.isSubmitting}
+                className="text-xs"
+              />
+            </div>
             <Textarea
               id="observacoes"
               {...form.register("observacoes")}

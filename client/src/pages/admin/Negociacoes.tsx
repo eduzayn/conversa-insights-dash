@@ -21,6 +21,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { FormDialog } from "@/components/common/FormDialog";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { EmptyStateCard } from "@/components/common/EmptyStateCard";
+import { VoiceTranscription } from "@/components/common/VoiceTranscription";
 
 interface Negociacao {
   id?: number;
@@ -1219,7 +1220,17 @@ const Negociacoes: React.FC = () => {
               </div>
               
               <div>
-                <Label htmlFor="observacoes">Observações</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <VoiceTranscription
+                    onTranscript={(transcript) => {
+                      const currentValue = selectedNegociacao.observacoes || "";
+                      const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                      setSelectedNegociacao({...selectedNegociacao, observacoes: newValue});
+                    }}
+                    className="text-xs"
+                  />
+                </div>
                 <Textarea
                   id="observacoes"
                   value={selectedNegociacao.observacoes}
@@ -1456,7 +1467,17 @@ const Negociacoes: React.FC = () => {
               </div>
               
               <div>
-                <Label htmlFor="observacoes">Observações</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <VoiceTranscription
+                    onTranscript={(transcript) => {
+                      const currentValue = selectedExpirado.observacoes || "";
+                      const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                      setSelectedExpirado({...selectedExpirado, observacoes: newValue});
+                    }}
+                    className="text-xs"
+                  />
+                </div>
                 <Textarea
                   id="observacoes"
                   value={selectedExpirado.observacoes}
@@ -1665,7 +1686,17 @@ const Negociacoes: React.FC = () => {
             </div>
             
             <div>
-              <Label htmlFor="observacoes">Observações</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="observacoes">Observações</Label>
+                <VoiceTranscription
+                  onTranscript={(transcript) => {
+                    const currentValue = selectedQuitacao.observacoes || "";
+                    const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
+                    setSelectedQuitacao({...selectedQuitacao, observacoes: newValue});
+                  }}
+                  className="text-xs"
+                />
+              </div>
               <Textarea
                 id="observacoes"
                 value={selectedQuitacao.observacoes || ''}

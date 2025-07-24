@@ -988,6 +988,25 @@ Changelog:
    * ✅ Implementação consistente em todos os SelectItem components
    * ✅ Sistema funcionando sem quebras ou regressões
    * Status: Gateway VivaEdu totalmente integrado no sistema
+- Recurso de Transcrição de Áudio para Observações Implementado (24 Jul 2025):
+   * ✅ Componente VoiceTranscription.tsx criado com Web Speech API (pt-BR)
+   * ✅ Suporte nativo ao Chrome com reconhecimento contínuo e resultados intermediários
+   * ✅ Integração completa nos campos de observações de 4 modais:
+     - AtendimentoFormModal.tsx (modal de atendimentos)
+     - Negociacoes.tsx (modal de negociações)
+     - Negociacoes.tsx (modal de expirados)
+     - Negociacoes.tsx (modal de quitações)
+   * ✅ Funcionalidades implementadas:
+     - Botão de microfone ao lado do label "Observações"
+     - Estado visual "Gravando..." durante transcrição
+     - Texto transcrito adicionado ao campo existente (não sobrescreve)
+     - Toasts informativos para início, fim e erros de gravação
+     - Validação de permissões de microfone
+     - Tratamento de erros (não permitido, sem fala, erro geral)
+   * ✅ Melhoria de acessibilidade: colaboradores com LER podem usar voz em vez de digitação
+   * ✅ Sistema offline/local usando Web Speech API nativa do navegador
+   * ✅ Implementação cirúrgica: apenas arquivos relacionados modificados
+   * Status: Transcrição de áudio 100% funcional em todos os modais de observações
 ```
 
 ## User Preferences
