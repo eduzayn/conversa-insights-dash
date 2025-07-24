@@ -1454,13 +1454,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
+        // Formatar data de criação para exibição
+        const dataEntrada = new Date(conv.createdAt).toLocaleDateString('pt-BR');
+        const horaEntrada = conv.hora || new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+
         return {
           id: conv.id,
           lead: conv.customerName || conv.customerPhone || `Cliente ${conv.id}`,
-          hora: conv.hora || new Date(conv.createdAt).toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          }),
+          data: dataEntrada, // Data de entrada formatada
+          hora: horaEntrada, // Hora do atendimento
           atendente: conv.atendente || attendantName,
           equipe: conv.equipe || equipe,
           duracao: conv.duracao || duracao,

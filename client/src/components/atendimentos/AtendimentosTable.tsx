@@ -7,6 +7,18 @@ import { Edit, Trash2 } from "lucide-react";
 import { Atendimento } from "@/types/atendimento";
 import { useEffect, useRef } from "react";
 
+// Função para formatar data de entrada de atendimento
+const formatDataEntrada = (atendimento: Atendimento) => {
+  // Combinar data e hora existentes do atendimento
+  if (atendimento.data && atendimento.hora) {
+    // Formato: "23/07/2025 18:04"
+    return `${atendimento.data} ${atendimento.hora}`;
+  }
+  
+  // Fallback: só hora se não tiver data
+  return atendimento.hora || 'Não informado';
+};
+
 interface AtendimentosTableProps {
   atendimentos: Atendimento[];
   isLoading: boolean;
@@ -113,7 +125,7 @@ export const AtendimentosTable = ({
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Nome do Lead</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Hora</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Data de Entrada</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Atendente</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Equipe</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Assunto</th>
@@ -128,7 +140,7 @@ export const AtendimentosTable = ({
                 {atendimentos.map((item) => (
                   <tr key={item.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4 font-medium">{item.lead}</td>
-                    <td className="py-3 px-4 text-gray-600">{item.hora}</td>
+                    <td className="py-3 px-4 text-gray-600">{formatDataEntrada(item)}</td>
                     <td className="py-3 px-4 text-gray-600">{item.atendente}</td>
                     <td className="py-3 px-4">
                       <Badge variant="secondary" className="bg-blue-100 text-blue-800">
