@@ -140,18 +140,21 @@ export const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({
       size="sm"
       onClick={isListening ? stopListening : startListening}
       disabled={isDisabled}
-      className={`flex items-center gap-2 ${className}`}
+      className={`flex items-center gap-2 ${isListening 
+        ? 'border-red-500 bg-red-50 hover:bg-red-100' 
+        : 'border-blue-500 bg-blue-50 hover:bg-blue-100 text-blue-700'
+      } ${className}`}
       title={isListening ? "Parar gravação" : "Iniciar transcrição de voz"}
     >
       {isListening ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin text-red-500" />
-          <span className="text-red-500">Gravando...</span>
+          <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+          <span className="text-red-600 font-medium">Gravando...</span>
         </>
       ) : (
         <>
-          <Mic className="w-4 h-4" />
-          <span>Falar</span>
+          <Mic className="w-4 h-4 text-blue-600" />
+          <span className="text-blue-700 font-medium">Falar</span>
         </>
       )}
     </Button>
