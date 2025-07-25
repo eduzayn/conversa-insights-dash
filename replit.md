@@ -1015,6 +1015,7 @@ Changelog:
    * ✅ Implementação cirúrgica: apenas arquivos relacionados modificados
    * ✅ Posicionamento do microfone ajustado: microfone posicionado do lado direito do label "Observações" conforme solicitado
    * ✅ Layout uniformizado: flex justify-between aplicado em todos os modais para consistência visual
+   * ✅ ELEMENTO UI ESPECÍFICO REMOVIDO: Textarea deletado definitivamente no arquivo Negociacoes.tsx linha 1852 conforme solicitação precisa do usuário
    * Status: Transcrição de áudio 100% funcional em TODOS os modais de observações do sistema
 ```
 
