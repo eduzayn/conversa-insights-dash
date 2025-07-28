@@ -1073,6 +1073,8 @@ Changelog:
    * ✅ ESPAÇO OTIMIZADO: Layout mais limpo com foco nas informações essenciais do processo
    * ✅ ORGANIZAÇÃO MELHORADA: Documentação agora ocupa posição principal na terceira coluna
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas exibição da listagem alterada, modal de edição mantido intacto
+   * ✅ REORGANIZAÇÃO FINAL: Colunas reorganizadas para melhor fluxo lógico
+   * ✅ ESTRUTURA FINAL: 1-2) Dados Aluno, 3) Documentação, 4) Plataforma/Financeiro, 5) Campos Acadêmicos, 6) Datas
    * Status: Layout otimizado focando apenas em dados relevantes para análise de certificações
 ```
 
