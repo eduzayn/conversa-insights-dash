@@ -23,7 +23,7 @@ export const AtendimentosHeader = ({
     <>
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Diário de Atendimentos</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Diário de Atendimentos e Tarefas</h1>
           <p className="text-gray-600">
             Visualize todos os atendimentos
           </p>
