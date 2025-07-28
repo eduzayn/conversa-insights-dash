@@ -1060,6 +1060,14 @@ Changelog:
    * ✅ DADOS HISTÓRICOS: Informações originais mantidas integralmente no campo observação com tag "MIGRAÇÃO DE DADOS:"
    * ✅ EXEMPLO MIGRADO: Aluno Kevny agora tem dropdowns funcionais e textos preservados nas observações
    * Status: Sistema totalmente padronizado mantendo integridade histórica dos dados
+- Sistema de Cores Padronizado - Consistência Visual Entre Modais e Listagem (28 Jul 2025):
+   * ✅ CORES ESPECÍFICAS CRIADAS: Constantes independentes para Documentação, Financeiro e Plataforma
+   * ✅ CORRESPONDÊNCIA EXATA: Badges da listagem agora usam as mesmas cores das bolinhas dos modais
+   * ✅ DOCUMENTAÇÃO: Pendente (amarelo), Aprovada (verde), Reprovada (vermelho)
+   * ✅ FINANCEIRO: Em dia (verde), Quitado (azul), Inadimplente (vermelho), Expirado (cinza)
+   * ✅ PLATAFORMA: Pendente (amarelo), Aprovada (verde)
+   * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas badges específicos atualizados preservando funcionalidade existente
+   * Status: Sistema visual 100% consistente entre modais e listagem de certificações
 ```
 
 ## User Preferences

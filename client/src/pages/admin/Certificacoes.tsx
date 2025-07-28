@@ -55,6 +55,44 @@ const ACADEMIC_STATUS_COLORS = {
   'em_correcao': 'bg-yellow-100 text-yellow-800'
 };
 
+// Cores específicas para Documentação, Financeiro e Plataforma (correspondem às bolinhas dos modais)
+const DOCUMENTATION_STATUS_COLORS = {
+  'pendente': 'bg-yellow-100 text-yellow-800',
+  'aprovada': 'bg-green-100 text-green-800',
+  'reprovada': 'bg-red-100 text-red-800'
+};
+
+const FINANCIAL_STATUS_COLORS = {
+  'em_dia': 'bg-green-100 text-green-800',
+  'quitado': 'bg-blue-100 text-blue-800',
+  'inadimplente': 'bg-red-100 text-red-800',
+  'expirado': 'bg-gray-100 text-gray-800'
+};
+
+const PLATFORM_STATUS_COLORS = {
+  'pendente': 'bg-yellow-100 text-yellow-800',
+  'aprovada': 'bg-green-100 text-green-800'
+};
+
+// Labels específicos para os status
+const DOCUMENTATION_STATUS_LABELS = {
+  'pendente': 'Pendente',
+  'aprovada': 'Aprovada',
+  'reprovada': 'Reprovada'
+};
+
+const FINANCIAL_STATUS_LABELS = {
+  'em_dia': 'Em dia',
+  'quitado': 'Quitado',
+  'inadimplente': 'Inadimplente',
+  'expirado': 'Expirado'
+};
+
+const PLATFORM_STATUS_LABELS = {
+  'pendente': 'Pendente',
+  'aprovada': 'Aprovada'
+};
+
 export default function Certificacoes() {
   const [activeTab, setActiveTab] = useState('pos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -1198,19 +1236,19 @@ export default function Certificacoes() {
                                 <div className="text-sm font-medium text-gray-700">Formato de Entrega</div>
                                 <div className="text-sm">{certification.modalidade}</div>
                                 <div className="text-sm font-medium text-gray-700 mt-2">Documentação</div>
-                                <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.documentacao as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
-                                  {ACADEMIC_STATUS_LABELS[certification.documentacao as keyof typeof ACADEMIC_STATUS_LABELS] || certification.documentacao || 'Não informado'}
+                                <Badge variant="outline" className={`text-xs ${DOCUMENTATION_STATUS_COLORS[certification.documentacao as keyof typeof DOCUMENTATION_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                  {DOCUMENTATION_STATUS_LABELS[certification.documentacao as keyof typeof DOCUMENTATION_STATUS_LABELS] || certification.documentacao || 'Não informado'}
                                 </Badge>
                               </div>
                               
                               <div>
                                 <div className="text-sm font-medium text-gray-700">Atividades Plataforma</div>
-                                <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.plataforma as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
-                                  {ACADEMIC_STATUS_LABELS[certification.plataforma as keyof typeof ACADEMIC_STATUS_LABELS] || certification.plataforma || 'Não informado'}
+                                <Badge variant="outline" className={`text-xs ${PLATFORM_STATUS_COLORS[certification.plataforma as keyof typeof PLATFORM_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                  {PLATFORM_STATUS_LABELS[certification.plataforma as keyof typeof PLATFORM_STATUS_LABELS] || certification.plataforma || 'Não informado'}
                                 </Badge>
                                 <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
-                                <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.financeiro as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
-                                  {ACADEMIC_STATUS_LABELS[certification.financeiro as keyof typeof ACADEMIC_STATUS_LABELS] || certification.financeiro || 'Não informado'}
+                                <Badge variant="outline" className={`text-xs ${FINANCIAL_STATUS_COLORS[certification.financeiro as keyof typeof FINANCIAL_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                  {FINANCIAL_STATUS_LABELS[certification.financeiro as keyof typeof FINANCIAL_STATUS_LABELS] || certification.financeiro || 'Não informado'}
                                 </Badge>
                               </div>
                               
