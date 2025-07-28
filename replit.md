@@ -1023,6 +1023,14 @@ Changelog:
    * ✅ Implementação cirúrgica no arquivo AtendimentoFormModal.tsx sem afetar outras funcionalidades
    * ✅ 5 novos assuntos específicos para correções acadêmicas e análises administrativas
    * Status: Modal de atendimentos expandido com novos assuntos funcionais
+- Correção Crítica: Ranking de Produtividade Individual Corrigido (28 Jul 2025):
+   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Daniela Tovar com 18 atendimentos hoje estava em 6º lugar incorretamente
+   * ✅ Causa identificada: Ordenação por totalAttendances (total geral) em vez de todayAttendances (hoje)
+   * ✅ Correção aplicada no endpoint /api/productivity/metrics: ordenação prioriza atendimentos de hoje
+   * ✅ Lógica de ranking modificada: primeiro critério = atendimentos hoje, segundo critério = total geral (desempate)
+   * ✅ Implementação cirúrgica no server/routes.ts linhas 1822-1835
+   * ✅ Sistema agora reflete corretamente a produtividade diária dos atendentes
+   * Status: Ranking de produtividade individual calculando corretamente baseado no desempenho do dia
 ```
 
 ## User Preferences

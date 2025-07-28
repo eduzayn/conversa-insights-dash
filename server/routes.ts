@@ -1816,8 +1816,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Ordenar por total de atendimentos e atribuir rankings
-      individualMetrics.sort((a, b) => b.totalAttendances - a.totalAttendances);
+      // CORREÇÃO CRÍTICA: Ordenar por atendimentos de HOJE (não total geral)
+      // Isso corrige o problema onde Daniela Tovar com 18 atendimentos hoje
+      // estava em 6º lugar por causa do total geral menor
+      individualMetrics.sort((a, b) => {
+        // Primeiro critério: atendimentos de hoje (prioritário)
+        if (b.todayAttendances !== a.todayAttendances) {
+          return b.todayAttendances - a.todayAttendances;
+        }
+        // Segundo critério: total geral (desempate)
+        return b.totalAttendances - a.totalAttendances;
+      });
       individualMetrics.forEach((metric, index) => {
         metric.ranking = index + 1;
       });
