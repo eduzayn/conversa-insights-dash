@@ -1064,7 +1064,7 @@ Changelog:
    * ✅ CORES ESPECÍFICAS CRIADAS: Constantes independentes para Documentação, Financeiro e Plataforma
    * ✅ CORRESPONDÊNCIA EXATA: Badges da listagem agora usam as mesmas cores das bolinhas dos modais
    * ✅ DOCUMENTAÇÃO: Pendente (amarelo), Aprovada (verde), Reprovada (vermelho)
-   * ✅ FINANCEIRO: Em dia (verde), Quitado (azul), Inadimplente (vermelho), Expirado (cinza)
+   * ✅ FINANCEIRO: Em dia (azul), Quitado (verde), Inadimplente (vermelho), Expirado (cinza)
    * ✅ PLATAFORMA: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas badges específicos atualizados preservando funcionalidade existente
    * Status: Sistema visual 100% consistente entre modais e listagem de certificações

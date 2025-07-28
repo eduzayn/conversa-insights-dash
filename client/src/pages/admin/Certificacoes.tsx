@@ -63,8 +63,8 @@ const DOCUMENTATION_STATUS_COLORS = {
 };
 
 const FINANCIAL_STATUS_COLORS = {
-  'em_dia': 'bg-green-100 text-green-800',
-  'quitado': 'bg-blue-100 text-blue-800',
+  'em_dia': 'bg-blue-100 text-blue-800',
+  'quitado': 'bg-green-100 text-green-800',
   'inadimplente': 'bg-red-100 text-red-800',
   'expirado': 'bg-gray-100 text-gray-800'
 };
