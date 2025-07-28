@@ -1051,6 +1051,15 @@ Changelog:
    * ✅ FALLBACK ROBUSTO: "Não informado" para campos vazios, "Não Possui" para campos acadêmicos
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas arquivo Certificacoes.tsx modificado conforme solicitado
    * Status: Cards expandidos exibindo 3x mais dados sem necessidade de abrir modais
+- Migração de Dados: Padronização de Dropdowns e Preservação de Informações (28 Jul 2025):
+   * ✅ PROBLEMA IDENTIFICADO: Campos Documentação, Financeiro e Plataforma tinham textos livres incompatíveis com dropdowns
+   * ✅ MIGRAÇÃO EXECUTADA: 789 registros migrados automaticamente via SQL
+   * ✅ TEXTOS PRESERVADOS: Todas as informações de texto livre transferidas para campo "observação"
+   * ✅ DROPDOWNS PADRONIZADOS: Campos agora usam apenas valores válidos (pendente, aprovada, reprovada, etc.)
+   * ✅ ESTRUTURA FINAL: Documentação, Financeiro e Plataforma com valores consistentes nos dropdowns
+   * ✅ DADOS HISTÓRICOS: Informações originais mantidas integralmente no campo observação com tag "MIGRAÇÃO DE DADOS:"
+   * ✅ EXEMPLO MIGRADO: Aluno Kevny agora tem dropdowns funcionais e textos preservados nas observações
+   * Status: Sistema totalmente padronizado mantendo integridade histórica dos dados
 ```
 
 ## User Preferences
