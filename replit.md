@@ -1051,6 +1051,17 @@ Changelog:
    * ✅ FALLBACK ROBUSTO: "Não informado" para campos vazios, "Não Possui" para campos acadêmicos
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas arquivo Certificacoes.tsx modificado conforme solicitado
    * Status: Cards expandidos exibindo 3x mais dados sem necessidade de abrir modais
+- Correção Crítica: Inconsistência de Dados entre Listagem e Modais de Edição (28 Jul 2025):
+   * ✅ PROBLEMA IDENTIFICADO: Dados apareciam preenchidos nos cards mas vazios nos modais de edição
+   * ✅ CAUSA RAIZ DESCOBERTA: Campos Documentação, Financeiro e Plataforma tinham valores de texto livre no banco mas dropdowns com valores fixos no modal
+   * ✅ VALORES NO BANCO: "Não encaminhou nenhuma documentação", "Quitada, iniciou em 20/07/2021..." (texto livre)
+   * ✅ VALORES NO MODAL: "pendente", "aprovada", "reprovada" (opções limitadas de dropdown)
+   * ✅ CORREÇÃO APLICADA: Campos Documentação, Atividades Plataforma e Financeiro convertidos de Select para Textarea
+   * ✅ CONSISTÊNCIA RESTAURADA: Modal de criação e edição agora usam campos de texto livre
+   * ✅ DADOS PRESERVADOS: Todos os valores existentes no banco mantidos integralmente
+   * ✅ VERIFICAÇÃO SQL: Confirmado que dados reais do aluno Kevny estavam corretos no PostgreSQL
+   * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas modais de certificações modificados, listagem mantida inalterada
+   * Status: Inconsistência de dados completamente resolvida, modais exibindo dados reais do banco
 ```
 
 ## User Preferences
