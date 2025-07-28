@@ -796,35 +796,89 @@ export default function Certificacoes() {
                     {/* Campos de status acadêmico */}
                     <div>
                       <Label htmlFor="documentacao">Documentação</Label>
-                      <Textarea
-                        id="documentacao"
-                        value={newCertification.documentacao}
-                        onChange={(e) => setNewCertification({ ...newCertification, documentacao: e.target.value })}
-                        placeholder="Status da documentação..."
-                        className="min-h-[80px]"
-                      />
+                      <Select value={newCertification.documentacao} onValueChange={(value) => setNewCertification({ ...newCertification, documentacao: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status da Documentação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Pendente
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovada">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              Aprovada
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="reprovada">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Reprovada
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div>
                       <Label htmlFor="plataforma">Atividades Plataforma</Label>
-                      <Textarea
-                        id="plataforma"
-                        value={newCertification.plataforma}
-                        onChange={(e) => setNewCertification({ ...newCertification, plataforma: e.target.value })}
-                        placeholder="Status das atividades na plataforma..."
-                        className="min-h-[80px]"
-                      />
+                      <Select value={newCertification.plataforma} onValueChange={(value) => setNewCertification({ ...newCertification, plataforma: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status das Atividades" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Pendente
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovada">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              Aprovada
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div>
                       <Label htmlFor="financeiro">Financeiro</Label>
-                      <Textarea
-                        id="financeiro"
-                        value={newCertification.financeiro}
-                        onChange={(e) => setNewCertification({ ...newCertification, financeiro: e.target.value })}
-                        placeholder="Status financeiro..."
-                        className="min-h-[80px]"
-                      />
+                      <Select value={newCertification.financeiro} onValueChange={(value) => setNewCertification({ ...newCertification, financeiro: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status Financeiro" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="em_dia">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              Em dia
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="quitado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                              Quitado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="inadimplente">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Inadimplente
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="expirado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                              Expirado
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Campos acadêmicos existentes */}
@@ -1489,35 +1543,89 @@ export default function Certificacoes() {
               {/* Campos de status acadêmico */}
               <div>
                 <Label htmlFor="edit-documentacao">Documentação</Label>
-                <Textarea
-                  id="edit-documentacao"
-                  value={selectedCertification.documentacao || ''}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, documentacao: e.target.value })}
-                  placeholder="Status da documentação..."
-                  className="min-h-[80px]"
-                />
+                <Select value={selectedCertification.documentacao || 'pendente'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, documentacao: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Pendente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovada">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Aprovada
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="reprovada">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Reprovada
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <Label htmlFor="edit-plataforma">Atividades Plataforma</Label>
-                <Textarea
-                  id="edit-plataforma"
-                  value={selectedCertification.plataforma || ''}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, plataforma: e.target.value })}
-                  placeholder="Status das atividades na plataforma..."
-                  className="min-h-[80px]"
-                />
+                <Select value={selectedCertification.plataforma || 'pendente'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, plataforma: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Pendente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovada">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Aprovada
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <Label htmlFor="edit-financeiro">Financeiro</Label>
-                <Textarea
-                  id="edit-financeiro"
-                  value={selectedCertification.financeiro || ''}
-                  onChange={(e) => setSelectedCertification({ ...selectedCertification, financeiro: e.target.value })}
-                  placeholder="Status financeiro..."
-                  className="min-h-[80px]"
-                />
+                <Select value={selectedCertification.financeiro || 'em_dia'} onValueChange={(value) => setSelectedCertification({ ...selectedCertification, financeiro: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="em_dia">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Em dia
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="quitado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        Quitado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="inadimplente">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Inadimplente
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="expirado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                        Expirado
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Campos acadêmicos existentes */}
