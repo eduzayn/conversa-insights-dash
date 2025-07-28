@@ -1077,6 +1077,18 @@ Changelog:
    * ✅ ESTRUTURA FINAL: 1-2) Dados Aluno, 3) Documentação, 4) Plataforma/Financeiro, 5) Campos Acadêmicos, 6) Datas
    * ✅ CORES ACADÊMICAS AJUSTADAS: Não Possui (verde claro), Aprovado (verde forte), Reprovado (vermelho), Em Correção (amarelo)
    * Status: Layout otimizado focando apenas em dados relevantes para análise de certificações
+- Consistência Visual Completa Entre Badges e Modais (28 Jul 2025):
+   * ✅ CORREÇÃO CRÍTICA: Campo Financeiro no modal de edição corrigido (Quitado: verde, Em dia: azul)
+   * ✅ BOLINHAS COLORIDAS ADICIONADAS: Campos acadêmicos TCC, Práticas Pedagógicas e Estágio com indicadores visuais
+   * ✅ MODAL NOVA CERTIFICAÇÃO CORRIGIDO: Todas as cores sincronizadas com badges da listagem
+   * ✅ MODAL EDITAR CERTIFICAÇÃO CORRIGIDO: Correspondência perfeita entre dropdowns e badges
+   * ✅ CORES PADRONIZADAS EM AMBOS OS MODAIS:
+     - Financeiro: Em dia (azul), Quitado (verde), Inadimplente (vermelho), Expirado (cinza)
+     - Acadêmicos: Não Possui (verde claro), Aprovado (verde forte), Reprovado (vermelho), Em Correção (amarelo)
+     - Documentação: Pendente (amarelo), Aprovada (verde), Reprovada (vermelho)
+     - Plataforma: Pendente (amarelo), Aprovada (verde)
+   * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas cores dos dropdowns alteradas sem afetar funcionalidades
+   * Status: Sistema visual 100% consistente em toda a aplicação - badges da listagem = bolinhas dos modais
 ```
 
 ## User Preferences

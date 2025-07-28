@@ -893,13 +893,13 @@ export default function Certificacoes() {
                         <SelectContent>
                           <SelectItem value="em_dia">
                             <div className="flex items-center">
-                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
                               Em dia
                             </div>
                           </SelectItem>
                           <SelectItem value="quitado">
                             <div className="flex items-center">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
                               Quitado
                             </div>
                           </SelectItem>
@@ -927,10 +927,30 @@ export default function Certificacoes() {
                           <SelectValue placeholder="Status do TCC" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="nao_possui">Não Possui</SelectItem>
-                          <SelectItem value="aprovado">Aprovado</SelectItem>
-                          <SelectItem value="reprovado">Reprovado</SelectItem>
-                          <SelectItem value="em_correcao">Em Correção</SelectItem>
+                          <SelectItem value="nao_possui">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-300 rounded-full mr-2"></div>
+                              Não Possui
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-700 rounded-full mr-2"></div>
+                              Aprovado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="reprovado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Reprovado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="em_correcao">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Em Correção
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -942,10 +962,30 @@ export default function Certificacoes() {
                           <SelectValue placeholder="Status das Práticas" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="nao_possui">Não Possui</SelectItem>
-                          <SelectItem value="aprovado">Aprovado</SelectItem>
-                          <SelectItem value="reprovado">Reprovado</SelectItem>
-                          <SelectItem value="em_correcao">Em Correção</SelectItem>
+                          <SelectItem value="nao_possui">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-300 rounded-full mr-2"></div>
+                              Não Possui
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-700 rounded-full mr-2"></div>
+                              Aprovado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="reprovado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Reprovado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="em_correcao">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Em Correção
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -957,10 +997,30 @@ export default function Certificacoes() {
                           <SelectValue placeholder="Status do Estágio" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="nao_possui">Não Possui</SelectItem>
-                          <SelectItem value="aprovado">Aprovado</SelectItem>
-                          <SelectItem value="reprovado">Reprovado</SelectItem>
-                          <SelectItem value="em_correcao">Em Correção</SelectItem>
+                          <SelectItem value="nao_possui">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-300 rounded-full mr-2"></div>
+                              Não Possui
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="aprovado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-green-700 rounded-full mr-2"></div>
+                              Aprovado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="reprovado">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              Reprovado
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="em_correcao">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                              Em Correção
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1638,13 +1698,13 @@ export default function Certificacoes() {
                   <SelectContent>
                     <SelectItem value="em_dia">
                       <div className="flex items-center">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
                         Em dia
                       </div>
                     </SelectItem>
                     <SelectItem value="quitado">
                       <div className="flex items-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
                         Quitado
                       </div>
                     </SelectItem>
@@ -1672,10 +1732,30 @@ export default function Certificacoes() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nao_possui">Não Possui</SelectItem>
-                    <SelectItem value="aprovado">Aprovado</SelectItem>
-                    <SelectItem value="reprovado">Reprovado</SelectItem>
-                    <SelectItem value="em_correcao">Em Correção</SelectItem>
+                    <SelectItem value="nao_possui">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-300 rounded-full mr-2"></div>
+                        Não Possui
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-700 rounded-full mr-2"></div>
+                        Aprovado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="reprovado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Reprovado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="em_correcao">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Em Correção
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1687,10 +1767,30 @@ export default function Certificacoes() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nao_possui">Não Possui</SelectItem>
-                    <SelectItem value="aprovado">Aprovado</SelectItem>
-                    <SelectItem value="reprovado">Reprovado</SelectItem>
-                    <SelectItem value="em_correcao">Em Correção</SelectItem>
+                    <SelectItem value="nao_possui">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-300 rounded-full mr-2"></div>
+                        Não Possui
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-700 rounded-full mr-2"></div>
+                        Aprovado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="reprovado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Reprovado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="em_correcao">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Em Correção
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1702,10 +1802,30 @@ export default function Certificacoes() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nao_possui">Não Possui</SelectItem>
-                    <SelectItem value="aprovado">Aprovado</SelectItem>
-                    <SelectItem value="reprovado">Reprovado</SelectItem>
-                    <SelectItem value="em_correcao">Em Correção</SelectItem>
+                    <SelectItem value="nao_possui">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-300 rounded-full mr-2"></div>
+                        Não Possui
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="aprovado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-700 rounded-full mr-2"></div>
+                        Aprovado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="reprovado">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        Reprovado
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="em_correcao">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        Em Correção
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
