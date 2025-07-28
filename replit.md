@@ -1039,6 +1039,18 @@ Changelog:
    * ✅ Implementação cirúrgica em client/src/pages/admin/Negociacoes.tsx e shared/schema.ts
    * ✅ Sistema agora permite datas passadas em campos de previsão de pagamento conforme solicitado
    * Status: Restrições de datas retroativas completamente removidas, sistema funcional
+- Expansão Completa dos Cards de Análise de Certificações (28 Jul 2025):
+   * ✅ LAYOUT EXPANDIDO: Grid alterado de 4 para 6 colunas para acomodar mais dados
+   * ✅ COLUNA 1-2 (ALUNO): Nome expandido para col-span-2, adicionado telefone quando disponível
+   * ✅ COLUNA 3 (DOCUMENTAÇÃO): Novo campo "Documentação" com badge colorido baseado no status
+   * ✅ COLUNA 4 (PLATAFORMA/FINANCEIRO): "Atividades Plataforma" e "Financeiro" com badges de status
+   * ✅ COLUNA 5 (DATAS): Mantido "Data Inicio" e "Data Entrega" da certificação
+   * ✅ COLUNA 6 (ACADÊMICOS): TCC, Práticas Pedagógicas, Estágio sempre visíveis + Tutoria quando disponível
+   * ✅ BADGES PADRONIZADOS: Sistema unificado de cores para todos os status acadêmicos
+   * ✅ OBSERVAÇÕES TRUNCADAS: Texto limitado a 50 caracteres para economizar espaço
+   * ✅ FALLBACK ROBUSTO: "Não informado" para campos vazios, "Não Possui" para campos acadêmicos
+   * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas arquivo Certificacoes.tsx modificado conforme solicitado
+   * Status: Cards expandidos exibindo 3x mais dados sem necessidade de abrir modais
 ```
 
 ## User Preferences

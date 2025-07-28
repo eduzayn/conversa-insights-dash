@@ -1176,8 +1176,8 @@ export default function Certificacoes() {
                               </div>
                             )}
                             <div className="flex items-start justify-between">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1">
-                              <div>
+                            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 flex-1">
+                              <div className="col-span-2">
                                 <div className="flex items-center gap-3 mb-2">
                                   <div className="font-semibold text-lg">{certification.aluno}</div>
                                   <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
@@ -1189,46 +1189,67 @@ export default function Certificacoes() {
                                 {certification.cargaHoraria && (
                                   <div className="text-sm text-gray-600">Carga Horária: {certification.cargaHoraria}h</div>
                                 )}
-
+                                {certification.telefone && (
+                                  <div className="text-sm text-gray-600">Telefone: {certification.telefone}</div>
+                                )}
                               </div>
+                              
                               <div>
-                                <div className="text-sm font-medium text-gray-700">Formato</div>
+                                <div className="text-sm font-medium text-gray-700">Formato de Entrega</div>
                                 <div className="text-sm">{certification.modalidade}</div>
-                                <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
-                                <div className="text-sm">{certification.financeiro}</div>
+                                <div className="text-sm font-medium text-gray-700 mt-2">Documentação</div>
+                                <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.documentacao as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                  {ACADEMIC_STATUS_LABELS[certification.documentacao as keyof typeof ACADEMIC_STATUS_LABELS] || certification.documentacao || 'Não informado'}
+                                </Badge>
                               </div>
+                              
+                              <div>
+                                <div className="text-sm font-medium text-gray-700">Atividades Plataforma</div>
+                                <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.plataforma as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                  {ACADEMIC_STATUS_LABELS[certification.plataforma as keyof typeof ACADEMIC_STATUS_LABELS] || certification.plataforma || 'Não informado'}
+                                </Badge>
+                                <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
+                                <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.financeiro as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                  {ACADEMIC_STATUS_LABELS[certification.financeiro as keyof typeof ACADEMIC_STATUS_LABELS] || certification.financeiro || 'Não informado'}
+                                </Badge>
+                              </div>
+                              
                               <div>
                                 <div className="text-sm font-medium text-gray-700">Data Inicio Certificação</div>
                                 <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
                                 <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega Certificação</div>
                                 <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
                               </div>
+                              
                               <div>
                                 {/* Campos acadêmicos específicos */}
-                                <div className="mt-2 space-y-1">
-                                  {certification.tcc && certification.tcc !== 'nao_possui' && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium">TCC:</span>
-                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.tcc as keyof typeof ACADEMIC_STATUS_COLORS]}`}>
-                                        {ACADEMIC_STATUS_LABELS[certification.tcc as keyof typeof ACADEMIC_STATUS_LABELS]}
-                                      </Badge>
-                                    </div>
-                                  )}
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">TCC:</span>
+                                    <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.tcc as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                      {ACADEMIC_STATUS_LABELS[certification.tcc as keyof typeof ACADEMIC_STATUS_LABELS] || 'Não Possui'}
+                                    </Badge>
+                                  </div>
                                   
-                                  {certification.praticasPedagogicas && certification.praticasPedagogicas !== 'nao_possui' && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium">Práticas:</span>
-                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.praticasPedagogicas as keyof typeof ACADEMIC_STATUS_COLORS]}`}>
-                                        {ACADEMIC_STATUS_LABELS[certification.praticasPedagogicas as keyof typeof ACADEMIC_STATUS_LABELS]}
-                                      </Badge>
-                                    </div>
-                                  )}
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">Práticas:</span>
+                                    <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.praticasPedagogicas as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                      {ACADEMIC_STATUS_LABELS[certification.praticasPedagogicas as keyof typeof ACADEMIC_STATUS_LABELS] || 'Não Possui'}
+                                    </Badge>
+                                  </div>
                                   
-                                  {certification.estagio && certification.estagio !== 'nao_possui' && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">Estágio:</span>
+                                    <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.estagio as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                      {ACADEMIC_STATUS_LABELS[certification.estagio as keyof typeof ACADEMIC_STATUS_LABELS] || 'Não Possui'}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {certification.tutoria && (
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium">Estágio:</span>
-                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.estagio as keyof typeof ACADEMIC_STATUS_COLORS]}`}>
-                                        {ACADEMIC_STATUS_LABELS[certification.estagio as keyof typeof ACADEMIC_STATUS_LABELS]}
+                                      <span className="text-xs font-medium">Tutoria:</span>
+                                      <Badge variant="outline" className={`text-xs ${ACADEMIC_STATUS_COLORS[certification.tutoria as keyof typeof ACADEMIC_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                                        {ACADEMIC_STATUS_LABELS[certification.tutoria as keyof typeof ACADEMIC_STATUS_LABELS] || certification.tutoria}
                                       </Badge>
                                     </div>
                                   )}
@@ -1236,7 +1257,7 @@ export default function Certificacoes() {
                                 
                                 {certification.observacao && (
                                   <div className="text-sm text-gray-600 mt-2">
-                                    <strong>Obs:</strong> {certification.observacao}
+                                    <strong>Obs:</strong> {certification.observacao.length > 50 ? certification.observacao.substring(0, 50) + '...' : certification.observacao}
                                   </div>
                                 )}
                               </div>
