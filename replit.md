@@ -1075,6 +1075,7 @@ Changelog:
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas exibição da listagem alterada, modal de edição mantido intacto
    * ✅ REORGANIZAÇÃO FINAL: Colunas reorganizadas para melhor fluxo lógico
    * ✅ ESTRUTURA FINAL: 1-2) Dados Aluno, 3) Documentação, 4) Plataforma/Financeiro, 5) Campos Acadêmicos, 6) Datas
+   * ✅ CORES ACADÊMICAS AJUSTADAS: Não Possui (verde claro), Aprovado (verde forte), Reprovado (vermelho), Em Correção (amarelo)
    * Status: Layout otimizado focando apenas em dados relevantes para análise de certificações
 ```
 

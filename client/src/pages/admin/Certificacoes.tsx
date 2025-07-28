@@ -49,8 +49,8 @@ const ACADEMIC_STATUS_LABELS = {
 };
 
 const ACADEMIC_STATUS_COLORS = {
-  'nao_possui': 'bg-gray-100 text-gray-800',
-  'aprovado': 'bg-green-100 text-green-800',
+  'nao_possui': 'bg-green-50 text-green-700',
+  'aprovado': 'bg-green-200 text-green-900',
   'reprovado': 'bg-red-100 text-red-800',
   'em_correcao': 'bg-yellow-100 text-yellow-800'
 };
