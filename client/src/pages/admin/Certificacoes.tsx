@@ -1233,9 +1233,7 @@ export default function Certificacoes() {
                               </div>
                               
                               <div>
-                                <div className="text-sm font-medium text-gray-700">Formato de Entrega</div>
-                                <div className="text-sm">{certification.modalidade}</div>
-                                <div className="text-sm font-medium text-gray-700 mt-2">Documentação</div>
+                                <div className="text-sm font-medium text-gray-700">Documentação</div>
                                 <Badge variant="outline" className={`text-xs ${DOCUMENTATION_STATUS_COLORS[certification.documentacao as keyof typeof DOCUMENTATION_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
                                   {DOCUMENTATION_STATUS_LABELS[certification.documentacao as keyof typeof DOCUMENTATION_STATUS_LABELS] || certification.documentacao || 'Não informado'}
                                 </Badge>

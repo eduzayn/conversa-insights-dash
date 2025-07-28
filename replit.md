@@ -1068,6 +1068,12 @@ Changelog:
    * ✅ PLATAFORMA: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas badges específicos atualizados preservando funcionalidade existente
    * Status: Sistema visual 100% consistente entre modais e listagem de certificações
+- Otimização Layout Certificações - Remoção Campo Irrelevante (28 Jul 2025):
+   * ✅ CAMPO "FORMATO DE ENTREGA" REMOVIDO: Campo não relevante para processo de certificação eliminado da listagem
+   * ✅ ESPAÇO OTIMIZADO: Layout mais limpo com foco nas informações essenciais do processo
+   * ✅ ORGANIZAÇÃO MELHORADA: Documentação agora ocupa posição principal na terceira coluna
+   * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas exibição da listagem alterada, modal de edição mantido intacto
+   * Status: Layout otimizado focando apenas em dados relevantes para análise de certificações
 ```
 
 ## User Preferences
