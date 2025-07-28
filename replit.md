@@ -1017,6 +1017,12 @@ Changelog:
    * ✅ Layout uniformizado: flex justify-between aplicado em todos os modais para consistência visual
    * ✅ ELEMENTO UI ESPECÍFICO REMOVIDO: Textarea deletado definitivamente no arquivo Negociacoes.tsx linha 1852 conforme solicitação precisa do usuário
    * Status: Transcrição de áudio 100% funcional em TODOS os modais de observações do sistema
+- Expansão de Assuntos no Modal de Atendimentos (28 Jul 2025):
+   * ✅ Novos assuntos adicionados ao dropdown de "Assunto" no modal de editar atendimento
+   * ✅ Assuntos implementados: "Correção TCC", "Correção Práticas", "Correção Estágio", "Correção Atividades Música", "Análises"
+   * ✅ Implementação cirúrgica no arquivo AtendimentoFormModal.tsx sem afetar outras funcionalidades
+   * ✅ 5 novos assuntos específicos para correções acadêmicas e análises administrativas
+   * Status: Modal de atendimentos expandido com novos assuntos funcionais
 ```
 
 ## User Preferences
