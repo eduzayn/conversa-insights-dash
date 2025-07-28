@@ -1457,7 +1457,6 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedNegociacao.previsaoPagamento}
                     onChange={(e) => setSelectedNegociacao({...selectedNegociacao, previsaoPagamento: e.target.value})}
-                    min={new Date().toISOString().split('T')[0]}
                     className="cursor-pointer"
                     tabIndex={0}
                     placeholder="dd/mm/aaaa"
@@ -1691,7 +1690,6 @@ const Negociacoes: React.FC = () => {
                     type="date"
                     value={selectedExpirado.dataPrevisaPagamento || ''}
                     onChange={(e) => setSelectedExpirado({...selectedExpirado, dataPrevisaPagamento: e.target.value})}
-                    min={new Date().toISOString().split('T')[0]}
                     className="cursor-pointer"
                     tabIndex={0}
                     placeholder="dd/mm/aaaa"

@@ -1371,14 +1371,7 @@ export const insertNegociacaoSchema = z.object({
   previsaoPagamento: z.string({
     required_error: "Previsão de pagamento é obrigatória", 
     invalid_type_error: "Previsão de pagamento deve ser um texto"
-  }).min(1, "Previsão de pagamento não pode estar vazia")
-    .refine((date) => {
-      // Converte as datas para objetos Date para comparação mais robusta
-      const inputDate = new Date(date + 'T00:00:00');
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Remove horas para comparar apenas a data
-      return inputDate >= today;
-    }, "Previsão de pagamento não pode ser anterior à data atual"),
+  }).min(1, "Previsão de pagamento não pode estar vazia"),
   parcelasAtraso: z.number({
     required_error: "Número de parcelas em atraso é obrigatório",
     invalid_type_error: "Parcelas em atraso deve ser um número"
@@ -1418,14 +1411,7 @@ export const insertNegociacaoExpiradoSchema = z.object({
   dataPrevisaPagamento: z.string({
     required_error: "Data prevista de pagamento é obrigatória",
     invalid_type_error: "Data prevista de pagamento deve ser um texto"
-  }).min(1, "Data prevista de pagamento não pode estar vazia")
-    .refine((date) => {
-      // Converte as datas para objetos Date para comparação mais robusta
-      const inputDate = new Date(date + 'T00:00:00');
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Remove horas para comparar apenas a data
-      return inputDate >= today;
-    }, "Data prevista de pagamento não pode ser anterior à data atual"),
+  }).min(1, "Data prevista de pagamento não pode estar vazia"),
   propostaReativacao: z.string().optional().nullable(),
   valorProposta: z.union([z.string(), z.number()]).optional().nullable(),
   gatewayPagamento: z.string().optional().nullable(),

@@ -1031,6 +1031,14 @@ Changelog:
    * ✅ Implementação cirúrgica no server/routes.ts linhas 1822-1835
    * ✅ Sistema agora reflete corretamente a produtividade diária dos atendentes
    * Status: Ranking de produtividade individual calculando corretamente baseado no desempenho do dia
+- Remoção de Restrições de Datas Retroativas - Previsão de Pagamento (28 Jul 2025):
+   * ✅ MUDANÇA DE SOLICITAÇÃO: Usuário alterou preferência sobre restrição de datas retroativas
+   * ✅ Frontend corrigido: Atributos min={new Date().toISOString().split('T')[0]} removidos de 2 campos
+   * ✅ Campos afetados: Modal Negociações (linha 1460) e Modal Expirados (linha 1694)
+   * ✅ Backend corrigido: Validações .refine() removidas dos schemas insertNegociacaoSchema e insertNegociacaoExpiradoSchema
+   * ✅ Implementação cirúrgica em client/src/pages/admin/Negociacoes.tsx e shared/schema.ts
+   * ✅ Sistema agora permite datas passadas em campos de previsão de pagamento conforme solicitado
+   * Status: Restrições de datas retroativas completamente removidas, sistema funcional
 ```
 
 ## User Preferences
