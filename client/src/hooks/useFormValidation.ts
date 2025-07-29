@@ -94,22 +94,8 @@ export function useFormValidation() {
   };
 
   const validateFutureDate = (date: string, fieldName: string = "Data"): boolean => {
-    if (!validateDate(date, fieldName)) return false;
-
-    const inputDate = new Date(date + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (inputDate < today) {
-      toast({
-        title: "Data inválida",
-        description: `${fieldName} não pode ser anterior à data atual`,
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    return true;
+    // Removida restrição de data futura - agora aceita qualquer data válida (retroativa, atual ou futura)
+    return validateDate(date, fieldName);
   };
 
   const validateNumber = (value: any, fieldName: string, min?: number, max?: number): boolean => {

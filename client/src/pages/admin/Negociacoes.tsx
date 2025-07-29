@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -101,7 +101,6 @@ const Negociacoes: React.FC = () => {
   const [renderError, setRenderError] = useState<string | null>(null);
   
   // Estados para dashboard
-  const [dashboardData, setDashboardData] = useState<any>(null);
   const [dashboardDateStart, setDashboardDateStart] = useState('');
   const [dashboardDateEnd, setDashboardDateEnd] = useState('');
 
@@ -188,8 +187,8 @@ const Negociacoes: React.FC = () => {
     setRenderError(null);
   }, [negociacoes, expirados, quitacoes]);
 
-  // Função para calcular dados do dashboard
-  const calculateDashboardData = useCallback(() => {
+  // Calcular dados do dashboard usando useMemo (mais seguro que useCallback + useEffect)
+  const dashboardData = useMemo(() => {
     if (!negociacoes || !expirados || !quitacoes) return null;
 
     // Aplicar filtros de data
@@ -305,14 +304,6 @@ const Negociacoes: React.FC = () => {
         monthlyChart: monthlyData
       }
     };
-  }, [negociacoes, expirados, quitacoes, dashboardDateStart, dashboardDateEnd]);
-
-  // Atualizar dados do dashboard quando os dados mudarem
-  useEffect(() => {
-    if (negociacoes && expirados && quitacoes) {
-      const data = calculateDashboardData();
-      setDashboardData(data);
-    }
   }, [negociacoes, expirados, quitacoes, dashboardDateStart, dashboardDateEnd]);
 
   // Validação usando hook consolidado
