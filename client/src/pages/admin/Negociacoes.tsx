@@ -1145,12 +1145,11 @@ const Negociacoes: React.FC = () => {
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="mb-2">
                               <h3 className="text-lg font-semibold">{expirado.clienteNome}</h3>
-                              <StatusBadge status={expirado.statusProposta} />
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-7 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Curso:</span>
                                 <div className="font-medium">{expirado.curso}</div>
@@ -1187,6 +1186,12 @@ const Negociacoes: React.FC = () => {
                                 <span className="text-gray-500">Gateway de Pagamento:</span>
                                 <div className="font-medium text-purple-600">
                                   {expirado.gatewayPagamento || 'Não informado'}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Status da Proposta:</span>
+                                <div className="font-medium">
+                                  <StatusBadge status={expirado.statusProposta} />
                                 </div>
                               </div>
                               <div>

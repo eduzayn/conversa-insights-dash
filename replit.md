@@ -1017,6 +1017,24 @@ Changelog:
    * ✅ Layout uniformizado: flex justify-between aplicado em todos os modais para consistência visual
    * ✅ ELEMENTO UI ESPECÍFICO REMOVIDO: Textarea deletado definitivamente no arquivo Negociacoes.tsx linha 1852 conforme solicitação precisa do usuário
    * Status: Transcrição de áudio 100% funcional em TODOS os modais de observações do sistema
+- Remoção Definitiva de Restrições de Datas Retroativas + Correção Loop Infinito (29 Jul 2025):
+   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Validação de datas futuras removida completamente
+   * ✅ Hook useFormValidation.ts: função validateFutureDate modificada para aceitar qualquer data
+   * ✅ Mensagem "Previsão de Pagamento não pode ser anterior à data atual" eliminada definitivamente
+   * ✅ Sistema agora permite datas passadas, presentes e futuras sem restrições
+   * ✅ LOOP INFINITO CORRIGIDO: Substituído useCallback + useEffect por useMemo em Negociacoes.tsx
+   * ✅ Conflito de variável dashboardData resolvido (removida declaração useState duplicada)
+   * ✅ Sistema 100% estável: aplicação funciona normalmente sem re-renders infinitos
+   * ✅ Implementação cirúrgica: apenas arquivos específicos modificados
+   * Status: Restrições de data removidas definitivamente, sistema estável e funcional
+- Campo "Status da Proposta" Adicionado à Listagem de Expirados (29 Jul 2025):
+   * ✅ INCONSISTÊNCIA UI CORRIGIDA: Status da proposta agora aparece na listagem principal
+   * ✅ Grid expandida de 6 para 7 colunas para acomodar novo campo
+   * ✅ StatusBadge movido para dentro da grid como solicitado
+   * ✅ Campo posicionado entre "Gateway de Pagamento" e "Responsável"
+   * ✅ Implementação sem duplicação de código: reaproveitado componente StatusBadge existente
+   * ✅ Layout responsivo mantido com breakpoints md:grid-cols-7
+   * Status: Campo "Status da Proposta" totalmente integrado na listagem de expirados
 - Expansão de Assuntos no Modal de Atendimentos (28 Jul 2025):
    * ✅ Novos assuntos adicionados ao dropdown de "Assunto" no modal de editar atendimento
    * ✅ Assuntos implementados: "Correção TCC", "Correção Práticas", "Correção Estágio", "Correção Atividades Música", "Análises"
