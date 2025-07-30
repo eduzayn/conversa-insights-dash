@@ -77,7 +77,12 @@ const LoginHub = () => {
                   <Button 
                     size="lg" 
                     className={`w-full h-12 bg-gradient-to-r ${option.gradient} hover:${option.hoverGradient} text-white font-semibold text-lg shadow-lg transition-all duration-200`}
-                    onClick={() => navigate(option.route)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Navegando para:', option.route);
+                      navigate(option.route);
+                    }}
                   >
                     Acessar Portal
                   </Button>
