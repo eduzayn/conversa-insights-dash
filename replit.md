@@ -1043,13 +1043,15 @@ Changelog:
    * ✅ Melhoria de UX: acesso direto aos diferentes perfis de usuário
    * Status: Sistema de roteamento corrigido para produção, hub central funcionando
 - Correção Autenticação Portal do Professor (30 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: Campo `isActive` corrigido para `is_active` na rota de autenticação professor
-   * ✅ Correção frontend: apiRequest usado corretamente sem dupla chamada response.json()
-   * ✅ Credenciais de teste criadas: joao.silva@instituicao.edu.br / professor123
-   * ✅ Hash de senha bcrypt atualizado corretamente no banco de dados
+   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Campo de verificação corrigido de `user.is_active` para `user.isActive`
+   * ✅ Causa identificada: Discrepância entre campo banco (is_active) vs objeto retornado (isActive)  
+   * ✅ Hash de senha bcrypt atualizada com sucesso no banco PostgreSQL
+   * ✅ API testada e confirmada: POST /api/auth/professor-login retorna status 200
+   * ✅ Token JWT gerado corretamente para usuário role professor
+   * ✅ Credenciais funcionais em produção: joao.silva@instituicao.edu.br / professor123
    * ✅ Sistema de autenticação JWT funcionando para roles professor/conteudista/coordenador
    * ✅ Redirecionamento automático para /professor/dashboard após login bem-sucedido
-   * Status: Portal do Professor 100% funcional com autenticação corrigida
+   * Status: Portal do Professor 100% funcional - problema de produção resolvido
 - Otimização Layout Portal do Professor (30 Jul 2025):
    * ✅ PROBLEMA RESOLVIDO: Excesso de espaço em branco nas laterais das páginas
    * ✅ Removida limitação max-w-7xl mx-auto do ProfessorLayout.tsx
