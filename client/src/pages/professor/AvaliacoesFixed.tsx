@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UniversalSelect } from "@/components/ui/universal-select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -224,58 +225,57 @@ export default function Avaliacoes() {
             
             <div>
               <Label htmlFor="disciplina">Disciplina</Label>
-              <Select value={selectedDisciplina} onValueChange={(value) => {
-                setSelectedDisciplina(value);
-                setCurrentPage(1);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as disciplinas</SelectItem>
-                  {(disciplinas as any[]).map((disciplina: any) => (
-                    <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                      {disciplina.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <UniversalSelect
+                value={selectedDisciplina}
+                onValueChange={(value: string) => {
+                  setSelectedDisciplina(value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Todas"
+                options={[
+                  { value: "todas", label: "Todas as disciplinas" },
+                  ...(disciplinas as any[]).map((disciplina: any) => ({
+                    value: disciplina.id.toString(),
+                    label: disciplina.nome
+                  }))
+                ]}
+              />
             </div>
             
             <div>
               <Label htmlFor="tipo">Tipo</Label>
-              <Select value={selectedTipo} onValueChange={(value) => {
-                setSelectedTipo(value);
-                setCurrentPage(1);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os tipos</SelectItem>
-                  <SelectItem value="avaliacao">Avaliação</SelectItem>
-                  <SelectItem value="simulado">Simulado</SelectItem>
-                  <SelectItem value="prova">Prova</SelectItem>
-                </SelectContent>
-              </Select>
+              <UniversalSelect
+                value={selectedTipo}
+                onValueChange={(value: string) => {
+                  setSelectedTipo(value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Todos"
+                options={[
+                  { value: "todos", label: "Todos os tipos" },
+                  { value: "avaliacao", label: "Avaliação" },
+                  { value: "simulado", label: "Simulado" },
+                  { value: "prova", label: "Prova" }
+                ]}
+              />
             </div>
             
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={selectedStatus} onValueChange={(value) => {
-                setSelectedStatus(value);
-                setCurrentPage(1);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os status</SelectItem>
-                  <SelectItem value="rascunho">Rascunho</SelectItem>
-                  <SelectItem value="publicado">Publicado</SelectItem>
-                  <SelectItem value="arquivado">Arquivado</SelectItem>
-                </SelectContent>
-              </Select>
+              <UniversalSelect
+                value={selectedStatus}
+                onValueChange={(value: string) => {
+                  setSelectedStatus(value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Todos"
+                options={[
+                  { value: "todos", label: "Todos os status" },
+                  { value: "rascunho", label: "Rascunho" },
+                  { value: "publicado", label: "Publicado" },
+                  { value: "arquivado", label: "Arquivado" }
+                ]}
+              />
             </div>
           </div>
           

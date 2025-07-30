@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StableSelect } from "@/components/ui/stable-select";
+import { UniversalSelect } from "@/components/ui/universal-select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -205,20 +205,20 @@ export default function Disciplinas() {
 
               <div className="space-y-2">
                 <Label htmlFor="area">Área de Conhecimento</Label>
-                <StableSelect
+                <UniversalSelect
                   value={formData.area}
                   onValueChange={(value) => handleInputChange("area", value)}
                   placeholder="Selecione uma área"
                   selectKey={selectKey}
                   options={[
-                    { value: "ciencias-exatas", label: "Ciências Exatas", key: "ciencias-exatas" },
-                    { value: "ciencias-humanas", label: "Ciências Humanas", key: "ciencias-humanas" },
-                    { value: "ciencias-biologicas", label: "Ciências Biológicas", key: "ciencias-biologicas" },
-                    { value: "engenharia", label: "Engenharia", key: "engenharia" },
-                    { value: "saude", label: "Saúde", key: "saude" },
-                    { value: "educacao", label: "Educação", key: "educacao" },
-                    { value: "artes", label: "Artes", key: "artes" },
-                    { value: "linguistica", label: "Linguística", key: "linguistica" }
+                    { value: "ciencias-exatas", label: "Ciências Exatas" },
+                    { value: "ciencias-humanas", label: "Ciências Humanas" },
+                    { value: "ciencias-biologicas", label: "Ciências Biológicas" },
+                    { value: "engenharia", label: "Engenharia" },
+                    { value: "saude", label: "Saúde" },
+                    { value: "educacao", label: "Educação" },
+                    { value: "artes", label: "Artes" },
+                    { value: "linguistica", label: "Linguística" }
                   ]}
                 />
               </div>
@@ -335,40 +335,40 @@ export default function Disciplinas() {
               <Filter className="h-4 w-4 text-gray-500" />
               
               {/* Filtro por Área */}
-              <StableSelect
+              <UniversalSelect
                 value={selectedArea}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setSelectedArea(value);
                   resetPage();
                 }}
                 className="w-[180px]"
                 selectKey={`area-filter-${selectKey}`}
                 options={[
-                  { value: "todas", label: "Todas as Áreas", key: "todas-areas" },
-                  { value: "ciencias-exatas", label: "Ciências Exatas", key: "ciencias-exatas-filter" },
-                  { value: "ciencias-humanas", label: "Ciências Humanas", key: "ciencias-humanas-filter" },
-                  { value: "ciencias-biologicas", label: "Ciências Biológicas", key: "ciencias-biologicas-filter" },
-                  { value: "engenharia", label: "Engenharia", key: "engenharia-filter" },
-                  { value: "saude", label: "Saúde", key: "saude-filter" },
-                  { value: "educacao", label: "Educação", key: "educacao-filter" },
-                  { value: "artes", label: "Artes", key: "artes-filter" },
-                  { value: "linguistica", label: "Linguística", key: "linguistica-filter" }
+                  { value: "todas", label: "Todas as Áreas" },
+                  { value: "ciencias-exatas", label: "Ciências Exatas" },
+                  { value: "ciencias-humanas", label: "Ciências Humanas" },
+                  { value: "ciencias-biologicas", label: "Ciências Biológicas" },
+                  { value: "engenharia", label: "Engenharia" },
+                  { value: "saude", label: "Saúde" },
+                  { value: "educacao", label: "Educação" },
+                  { value: "artes", label: "Artes" },
+                  { value: "linguistica", label: "Linguística" }
                 ]}
               />
 
               {/* Filtro por Status */}
-              <StableSelect
+              <UniversalSelect
                 value={selectedStatus}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setSelectedStatus(value);
                   resetPage();
                 }}
                 className="w-[140px]"
                 selectKey={`status-filter-${selectKey}`}
                 options={[
-                  { value: "todos", label: "Todos Status", key: "todos-status" },
-                  { value: "ativa", label: "Ativa", key: "ativa-status" },
-                  { value: "inativa", label: "Inativa", key: "inativa-status" }
+                  { value: "todos", label: "Todos Status" },
+                  { value: "ativa", label: "Ativa" },
+                  { value: "inativa", label: "Inativa" }
                 ]}
               />
             </div>
