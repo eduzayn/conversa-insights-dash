@@ -179,10 +179,14 @@ export const UniversalSelect = React.memo(({
         <div
           ref={optionsRef}
           className={cn(
-            "absolute z-[9999] mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-lg",
-            "animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
+            "absolute z-[9999] mt-1 max-h-80 w-full overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-lg",
+            "animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
           )}
           role="listbox"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'hsl(var(--border)) transparent'
+          }}
         >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-sm text-muted-foreground text-center">
@@ -194,7 +198,7 @@ export const UniversalSelect = React.memo(({
                 key={`${option.value}-${index}`}
                 onClick={() => !option.disabled && handleSelectOption(option.value)}
                 className={cn(
-                  "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm outline-none transition-colors",
+                  "relative flex cursor-pointer select-none items-center px-3 py-3 text-sm outline-none transition-colors min-h-[40px]",
                   "hover:bg-accent hover:text-accent-foreground",
                   "focus:bg-accent focus:text-accent-foreground",
                   option.disabled && "cursor-not-allowed opacity-50 hover:bg-transparent",
@@ -205,7 +209,7 @@ export const UniversalSelect = React.memo(({
                 aria-selected={option.value === value}
                 onMouseEnter={() => !option.disabled && setHighlightedIndex(index)}
               >
-                <span className="block truncate pr-2">{option.label}</span>
+                <span className="block w-full text-left pr-2 break-words">{option.label}</span>
                 {option.value === value && (
                   <Check className="ml-auto h-4 w-4 shrink-0" />
                 )}
