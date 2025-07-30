@@ -41,7 +41,16 @@ export default function Conteudos() {
       if (!selectedSubject || selectedSubject === 'all') {
         return [];
       }
-      return await (await fetch(`/api/professor/contents?subjectId=${selectedSubject}`)).json();
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/professor/contents?subjectId=${selectedSubject}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao buscar conteúdos');
+      }
+      return await response.json();
     },
     enabled: !!selectedSubject && selectedSubject !== 'all',
   });
@@ -82,7 +91,8 @@ export default function Conteudos() {
         title: "Sucesso",
         description: "Conteúdo excluído com sucesso!",
       });
-      // Invalidar cache para atualizar a listagem
+      // Invalidar cache específico para a disciplina selecionada
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents', selectedSubject] });
       queryClient.invalidateQueries({ queryKey: ['/api/professor/contents'] });
       setDeleteContentId(null);
     },
@@ -126,7 +136,7 @@ export default function Conteudos() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Sucesso",
         description: "Conteúdo criado com sucesso!",
@@ -142,7 +152,8 @@ export default function Conteudos() {
       });
       setEditingContent(null);
       setActiveTab("listar");
-      // Invalidar cache para atualizar a listagem
+      // Invalidar cache específico para a disciplina selecionada
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents', selectedSubject] });
       queryClient.invalidateQueries({ queryKey: ['/api/professor/contents'] });
     },
     onError: (error: Error) => {
