@@ -35,23 +35,8 @@ export default function Conteudos() {
   });
 
   // Query para buscar conteúdos baseado na disciplina selecionada
-  const { data: contents = [], isLoading: contentsLoading } = useQuery<any[]>({
-    queryKey: ['/api/professor/contents', selectedSubject],
-    queryFn: async () => {
-      if (!selectedSubject || selectedSubject === 'all') {
-        return [];
-      }
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/professor/contents?subjectId=${selectedSubject}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Erro ao buscar conteúdos');
-      }
-      return await response.json();
-    },
+  const { data: contents = [], isLoading: contentsLoading, error: contentsError } = useQuery<any[]>({
+    queryKey: [`/api/professor/contents?subjectId=${selectedSubject}`],
     enabled: !!selectedSubject && selectedSubject !== 'all',
   });
 
@@ -91,9 +76,8 @@ export default function Conteudos() {
         title: "Sucesso",
         description: "Conteúdo excluído com sucesso!",
       });
-      // Invalidar cache específico para a disciplina selecionada
-      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents', selectedSubject] });
-      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents'] });
+      // Invalidar cache específico usando a mesma chave do query
+      queryClient.invalidateQueries({ queryKey: [`/api/professor/contents?subjectId=${selectedSubject}`] });
       setDeleteContentId(null);
     },
     onError: (error: Error) => {
@@ -152,9 +136,8 @@ export default function Conteudos() {
       });
       setEditingContent(null);
       setActiveTab("listar");
-      // Invalidar cache específico para a disciplina selecionada
-      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents', selectedSubject] });
-      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents'] });
+      // Invalidar cache específico usando a mesma chave do query
+      queryClient.invalidateQueries({ queryKey: [`/api/professor/contents?subjectId=${selectedSubject}`] });
     },
     onError: (error: Error) => {
       toast({
