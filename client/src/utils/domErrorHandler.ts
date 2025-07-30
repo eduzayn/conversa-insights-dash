@@ -89,3 +89,67 @@ export const cleanupPortals = () => {
     }
   });
 };
+
+// Função especializada para limpar componentes Select corrompidos
+export const cleanupCorruptedSelects = () => {
+  try {
+    // Localizar todos os elementos Select com estado potencialmente corrompido
+    const selectTriggers = document.querySelectorAll('[data-radix-select-trigger]');
+    const selectContents = document.querySelectorAll('[data-radix-select-content]');
+    
+    // Limpar triggers com estado inconsistente
+    selectTriggers.forEach(trigger => {
+      try {
+        const state = trigger.getAttribute('data-state');
+        const ariaExpanded = trigger.getAttribute('aria-expanded');
+        
+        // Detectar estados inconsistentes
+        if ((state === 'open' && ariaExpanded === 'false') || 
+            (state === 'closed' && ariaExpanded === 'true')) {
+          console.warn('Select com estado inconsistente detectado - corrigindo');
+          trigger.setAttribute('data-state', 'closed');
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+        
+        // Verificar se há texto concatenado no value (indicador de corrupção)
+        const valueElement = trigger.querySelector('[data-radix-select-value]');
+        if (valueElement && valueElement.textContent && valueElement.textContent.length > 50) {
+          console.warn('Select com conteúdo corrompido detectado - limpando');
+          valueElement.textContent = '';
+          trigger.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } catch (error) {
+        console.warn('Erro ao corrigir trigger Select:', error);
+      }
+    });
+    
+    // Limpar content elements órfãos
+    selectContents.forEach(content => {
+      try {
+        if (!document.body.contains(content) || !content.parentNode) {
+          content.remove();
+        }
+      } catch (error) {
+        console.warn('Erro ao remover content Select órfão:', error);
+      }
+    });
+    
+    // Forçar re-render de Selects em estado duvidoso
+    const allSelects = document.querySelectorAll('button[role="combobox"]');
+    allSelects.forEach(select => {
+      try {
+        const event = new Event('focus');
+        select.dispatchEvent(event);
+        setTimeout(() => {
+          const blurEvent = new Event('blur');
+          select.dispatchEvent(blurEvent);
+        }, 10);
+      } catch (error) {
+        console.warn('Erro ao forçar re-render de Select:', error);
+      }
+    });
+    
+  } catch (error) {
+    console.warn('Erro na limpeza de Selects corrompidos:', error);
+  }
+};

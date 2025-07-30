@@ -43,6 +43,11 @@ export const performBrowserCleanup = () => {
 
 export const cleanupOrphanedElements = () => {
   try {
+    // Importar função de limpeza específica para Selects
+    import('./domErrorHandler').then(({ cleanupCorruptedSelects, cleanupPortals }) => {
+      cleanupCorruptedSelects();
+      cleanupPortals();
+    }).catch(e => console.warn('Erro ao importar funções de limpeza DOM:', e));
     // Remove portais Radix órfãos
     const radixPortals = document.querySelectorAll('[data-radix-portal]');
     radixPortals.forEach(portal => {

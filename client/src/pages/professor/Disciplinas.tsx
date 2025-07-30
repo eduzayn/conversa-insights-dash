@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StableSelect } from "@/components/ui/stable-select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -32,6 +33,7 @@ export default function Disciplinas() {
   const queryClient = useQueryClient();
   const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectKey, setSelectKey] = useState(0); // Force re-render do Select
   const [formData, setFormData] = useState({
     nome: "",
     codigo: "",
@@ -105,14 +107,14 @@ export default function Disciplinas() {
     }
   });
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       nome: "",
       codigo: "",
@@ -120,7 +122,16 @@ export default function Disciplinas() {
       cargaHoraria: "",
       descricao: ""
     });
-  };
+    // Force re-render do Select para resolver problemas de estado
+    setSelectKey(prev => prev + 1);
+  }, []);
+
+  // Reset do Select quando modal abre/fecha
+  useEffect(() => {
+    if (isModalOpen) {
+      setSelectKey(prev => prev + 1);
+    }
+  }, [isModalOpen]);
 
   const handleSubmit = () => {
     createSubjectMutation.mutate(formData);
@@ -194,21 +205,22 @@ export default function Disciplinas() {
 
               <div className="space-y-2">
                 <Label htmlFor="area">Área de Conhecimento</Label>
-                <Select value={formData.area} onValueChange={(value) => handleInputChange("area", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma área" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ciencias-exatas">Ciências Exatas</SelectItem>
-                    <SelectItem value="ciencias-humanas">Ciências Humanas</SelectItem>
-                    <SelectItem value="ciencias-biologicas">Ciências Biológicas</SelectItem>
-                    <SelectItem value="engenharia">Engenharia</SelectItem>
-                    <SelectItem value="saude">Saúde</SelectItem>
-                    <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="artes">Artes</SelectItem>
-                    <SelectItem value="linguistica">Linguística</SelectItem>
-                  </SelectContent>
-                </Select>
+                <StableSelect
+                  value={formData.area}
+                  onValueChange={(value) => handleInputChange("area", value)}
+                  placeholder="Selecione uma área"
+                  selectKey={selectKey}
+                  options={[
+                    { value: "ciencias-exatas", label: "Ciências Exatas", key: "ciencias-exatas" },
+                    { value: "ciencias-humanas", label: "Ciências Humanas", key: "ciencias-humanas" },
+                    { value: "ciencias-biologicas", label: "Ciências Biológicas", key: "ciencias-biologicas" },
+                    { value: "engenharia", label: "Engenharia", key: "engenharia" },
+                    { value: "saude", label: "Saúde", key: "saude" },
+                    { value: "educacao", label: "Educação", key: "educacao" },
+                    { value: "artes", label: "Artes", key: "artes" },
+                    { value: "linguistica", label: "Linguística", key: "linguistica" }
+                  ]}
+                />
               </div>
 
               <div className="space-y-2">
@@ -323,40 +335,42 @@ export default function Disciplinas() {
               <Filter className="h-4 w-4 text-gray-500" />
               
               {/* Filtro por Área */}
-              <Select value={selectedArea} onValueChange={(value) => {
-                setSelectedArea(value);
-                resetPage();
-              }}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as Áreas</SelectItem>
-                  <SelectItem value="ciencias-exatas">Ciências Exatas</SelectItem>
-                  <SelectItem value="ciencias-humanas">Ciências Humanas</SelectItem>
-                  <SelectItem value="ciencias-biologicas">Ciências Biológicas</SelectItem>
-                  <SelectItem value="engenharia">Engenharia</SelectItem>
-                  <SelectItem value="saude">Saúde</SelectItem>
-                  <SelectItem value="educacao">Educação</SelectItem>
-                  <SelectItem value="artes">Artes</SelectItem>
-                  <SelectItem value="linguistica">Linguística</SelectItem>
-                </SelectContent>
-              </Select>
+              <StableSelect
+                value={selectedArea}
+                onValueChange={(value) => {
+                  setSelectedArea(value);
+                  resetPage();
+                }}
+                className="w-[180px]"
+                selectKey={`area-filter-${selectKey}`}
+                options={[
+                  { value: "todas", label: "Todas as Áreas", key: "todas-areas" },
+                  { value: "ciencias-exatas", label: "Ciências Exatas", key: "ciencias-exatas-filter" },
+                  { value: "ciencias-humanas", label: "Ciências Humanas", key: "ciencias-humanas-filter" },
+                  { value: "ciencias-biologicas", label: "Ciências Biológicas", key: "ciencias-biologicas-filter" },
+                  { value: "engenharia", label: "Engenharia", key: "engenharia-filter" },
+                  { value: "saude", label: "Saúde", key: "saude-filter" },
+                  { value: "educacao", label: "Educação", key: "educacao-filter" },
+                  { value: "artes", label: "Artes", key: "artes-filter" },
+                  { value: "linguistica", label: "Linguística", key: "linguistica-filter" }
+                ]}
+              />
 
               {/* Filtro por Status */}
-              <Select value={selectedStatus} onValueChange={(value) => {
-                setSelectedStatus(value);
-                resetPage();
-              }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos Status</SelectItem>
-                  <SelectItem value="ativa">Ativa</SelectItem>
-                  <SelectItem value="inativa">Inativa</SelectItem>
-                </SelectContent>
-              </Select>
+              <StableSelect
+                value={selectedStatus}
+                onValueChange={(value) => {
+                  setSelectedStatus(value);
+                  resetPage();
+                }}
+                className="w-[140px]"
+                selectKey={`status-filter-${selectKey}`}
+                options={[
+                  { value: "todos", label: "Todos Status", key: "todos-status" },
+                  { value: "ativa", label: "Ativa", key: "ativa-status" },
+                  { value: "inativa", label: "Inativa", key: "inativa-status" }
+                ]}
+              />
             </div>
           </div>
 
