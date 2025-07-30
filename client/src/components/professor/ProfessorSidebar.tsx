@@ -45,7 +45,6 @@ export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
       path: "/professor/conteudos",
       icon: Video,
     },
-
     {
       label: "Avaliações e Simulados",
       path: "/professor/avaliacoes",
@@ -69,7 +68,7 @@ export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('professor_token');
     localStorage.removeItem('professor_data');
     navigate('/professor/login');
   };

@@ -1035,41 +1035,6 @@ Changelog:
    * ✅ Implementação sem duplicação de código: reaproveitado componente StatusBadge existente
    * ✅ Layout responsivo mantido com breakpoints md:grid-cols-7
    * Status: Campo "Status da Proposta" totalmente integrado na listagem de expirados
-- Correção Roteamento Produção - Hub Central de Login (30 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: URL raiz em produção estava indo direto para login administrativo
-   * ✅ Rota "/" alterada de <Index /> para <LoginHub /> no App.tsx
-   * ✅ URL de produção agora mostra os 3 portais de acesso conforme projetado
-   * ✅ Usuários podem escolher entre Portal Administrativo, Portal do Aluno ou Portal do Professor
-   * ✅ Melhoria de UX: acesso direto aos diferentes perfis de usuário
-   * Status: Sistema de roteamento corrigido para produção, hub central funcionando
-- Correção Autenticação Portal do Professor (30 Jul 2025):
-   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Campo de verificação corrigido de `user.is_active` para `user.isActive`
-   * ✅ Causa identificada: Discrepância entre campo banco (is_active) vs objeto retornado (isActive)  
-   * ✅ Hash de senha bcrypt atualizada com sucesso no banco PostgreSQL
-   * ✅ API testada e confirmada: POST /api/auth/professor-login retorna status 200
-   * ✅ Token JWT gerado corretamente para usuário role professor
-   * ✅ Credenciais funcionais em produção: joao.silva@instituicao.edu.br / professor123
-   * ✅ Sistema de autenticação JWT funcionando para roles professor/conteudista/coordenador
-   * ✅ Redirecionamento automático para /professor/dashboard após login bem-sucedido
-   * Status: Portal do Professor 100% funcional - problema de produção resolvido
-- Sistema de Disciplinas Portal do Professor Corrigido (30 Jul 2025):
-   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Carregamento de disciplinas estava falhando por falta de associações
-   * ✅ Causa identificada: Tabela professor_subjects vazia impedindo retorno de disciplinas via JOIN
-   * ✅ Associações criadas: Professor João Silva (ID 21) vinculado às disciplinas existentes
-   * ✅ Disciplinas disponíveis: Algoritmos e Estruturas de Dados I, Banco de Dados, POO
-   * ✅ API /api/professor/subjects funcionando corretamente (status 200)
-   * ✅ React Query configurado com queryFn customizado para autenticação JWT
-   * ✅ ContentForm recebendo disciplinas via props do componente pai
-   * ✅ Dropdown "Disciplina" no formulário de conteúdos totalmente funcional
-   * ✅ Sistema pronto para criação de conteúdos acadêmicos
-   * Status: Portal do Professor com sistema completo de disciplinas funcionando
-- Otimização Layout Portal do Professor (30 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: Excesso de espaço em branco nas laterais das páginas
-   * ✅ Removida limitação max-w-7xl mx-auto do ProfessorLayout.tsx
-   * ✅ Conteúdo agora usa toda a largura disponível da tela
-   * ✅ Melhor aproveitamento do espaço horizontal para dashboards e listagens
-   * ✅ Layout responsivo mantido sem quebras de design
-   * Status: Portal do Professor com layout otimizado para uso completo da tela
 - Expansão de Assuntos no Modal de Atendimentos (28 Jul 2025):
    * ✅ Novos assuntos adicionados ao dropdown de "Assunto" no modal de editar atendimento
    * ✅ Assuntos implementados: "Correção TCC", "Correção Práticas", "Correção Estágio", "Correção Atividades Música", "Análises"
@@ -1121,41 +1086,6 @@ Changelog:
    * ✅ PLATAFORMA: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas badges específicos atualizados preservando funcionalidade existente
    * Status: Sistema visual 100% consistente entre modais e listagem de certificações
-- Portal do Professor - Sistema de Exclusão Elegante e Integração de Disciplinas (30 Jul 2025):
-   * ✅ DIALOG DE EXCLUSÃO ELEGANTE: Substituído window.confirm() por DeleteConfirmDialog padronizado
-   * ✅ API COMPLETA: Endpoint DELETE /api/professor/contents/:id implementado no backend
-   * ✅ VALIDAÇÃO DE PERMISSÕES: Verificação de propriedade do conteúdo antes da exclusão
-   * ✅ FUNÇÃO getSubjectContentById: Adicionada ao storage.ts e interface IStorage
-   * ✅ INTEGRAÇÃO REAL DE DISCIPLINAS: Select conectado à API /api/professor/subjects
-   * ✅ CRIAÇÃO DE CONTEÚDOS: Formulário funcional com validação e feedback de sucesso/erro
-   * ✅ QUERIES OTIMIZADAS: Busca disciplinas do professor e conteúdos por disciplina selecionada
-   * ✅ SISTEMA COMPLETO: Listagem, criação, edição e exclusão de conteúdos totalmente funcionais
-   * ✅ INVALIDAÇÃO DE CACHE: React Query atualiza automaticamente a interface após operações
-   * Status: Portal do Professor com sistema de conteúdos 100% integrado e funcional
-- Correção Compatibilidade Entre Navegadores - Campo Select "Área de Conhecimento" (30 Jul 2025):
-   * ✅ PROBLEMA IDENTIFICADO: Campo Select funcionava bem em alguns navegadores mas ficava desconfigurado em outros
-   * ✅ CAUSA: Diferenças na renderização CSS entre Chrome, Firefox, Safari e Edge para componentes Radix UI
-   * ✅ SOLUÇÃO IMPLEMENTADA: CSS inline + CSS customizado em index.css para força consistência
-   * ✅ MELHORIAS ESPECÍFICAS:
-     - Estilos inline diretos (WebkitAppearance, MozAppearance, appearance: none)
-     - CSS com !important para forçar rendering uniforme entre navegadores
-     - Z-index fixo (9999) para dropdown em todos os navegadores
-     - Min-height padronizada (40px) para trigger em qualquer browser
-     - Suporte específico para @-moz-document e @supports para Firefox/Safari
-   * ✅ TESTES: Componente agora renderiza de forma idêntica em Chrome, Firefox, Safari e Edge
-   * ✅ IMPLEMENTAÇÃO: select.tsx otimizado + CSS layer components no index.css
-   * Status: Campo Select com compatibilidade 100% entre navegadores garantida
-- Correção Crítica: Autenticação JWT Portal do Professor (30 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: Erro 403 "Token inválido" no endpoint /api/professor/subjects
-   * ✅ CAUSA IDENTIFICADA: Inconsistência entre nomes de tokens (professor_token vs auth_token)
-   * ✅ CORREÇÃO CIRÚRGICA APLICADA:
-     - ProfessorLogin.tsx: alterado localStorage.setItem('professor_token') → localStorage.setItem('auth_token')
-     - queryClient.ts: alterado localStorage.getItem('professor_token') → localStorage.getItem('auth_token')
-     - Conteudos.tsx: removidos fetchers customizados, usando defaultQueryFn do React Query
-   * ✅ TIPOS TYPESCRIPT CORRIGIDOS: QueryKey readonly unknown[] para compatibilidade
-   * ✅ MELHORIA DE CÓDIGO: aproveitamento máximo do sistema de autenticação existente
-   * ✅ FUNCIONALIDADE RESTAURADA: Portal do Professor acessa disciplinas e conteúdos sem erro 403
-   * Status: Sistema de autenticação JWT funcionando corretamente para todos os roles
 - Otimização Layout Certificações - Remoção Campo Irrelevante (28 Jul 2025):
    * ✅ CAMPO "FORMATO DE ENTREGA" REMOVIDO: Campo não relevante para processo de certificação eliminado da listagem
    * ✅ ESPAÇO OTIMIZADO: Layout mais limpo com foco nas informações essenciais do processo
@@ -1177,16 +1107,6 @@ Changelog:
      - Plataforma: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas cores dos dropdowns alteradas sem afetar funcionalidades
    * Status: Sistema visual 100% consistente em toda a aplicação - badges da listagem = bolinhas dos modais
-- Correção Crítica do Sistema de Login do Professor (30 Jul 2025):
-   * ✅ PROBLEMA RESOLVIDO: Professor não conseguia acessar painel após inserir credenciais válidas
-   * ✅ CAUSA IDENTIFICADA: Inconsistência nas chaves do localStorage - login salvava 'auth_token' mas layout buscava 'professor_token'
-   * ✅ SOLUÇÃO APLICADA: Padronizado todas as referências para usar 'auth_token' consistentemente
-   * ✅ ARQUIVOS CORRIGIDOS:
-     - client/src/pages/professor/ProfessorPortalLayout.tsx: corrigido useEffect para buscar 'auth_token' 
-     - client/src/components/professor/ProfessorSidebar.tsx: corrigido logout para remover 'auth_token'
-   * ✅ RESULTADO: Sistema de login funcionando corretamente - redirecionamento automático para painel
-   * ✅ STATUS: Portal do Professor acessível normalmente com credenciais válidas
-   * Status: Sistema de autenticação do Portal do Professor 100% funcional
 ```
 
 ## User Preferences

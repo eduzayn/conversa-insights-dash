@@ -32,6 +32,8 @@ import {
   negociacoes,
   negociacoesExpirados,
   quitacoes,
+  enviosUnicv,
+  enviosFamar,
   simplifiedEnrollments,
   type User, 
   type InsertUser,
@@ -116,8 +118,10 @@ import {
   type InsertNegociacaoExpirado,
   type Quitacao,
   type InsertQuitacao,
+  enviosUnicv,
   type EnvioUnicv,
   type InsertEnvioUnicv,
+  enviosFamar,
   type EnvioFamar,
   type InsertEnvioFamar
 } from "@shared/schema";
@@ -241,12 +245,9 @@ export interface IStorage {
   createSubject(subject: InsertSubject): Promise<Subject>;
   updateSubject(id: number, subject: Partial<Subject>): Promise<Subject | undefined>;
   assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean): Promise<ProfessorSubject>;
-  createProfessorSubject(data: InsertProfessorSubject): Promise<ProfessorSubject>;
 
   // Portal do Professor - Subject Contents
   getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]>;
-  getAllSubjectContents(subjectId: number): Promise<SubjectContent[]>;
-  getSubjectContentById(id: number): Promise<SubjectContent | undefined>;
   createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent>;
   updateSubjectContent(id: number, content: Partial<SubjectContent>): Promise<SubjectContent | undefined>;
   deleteSubjectContent(id: number): Promise<void>;
@@ -1320,18 +1321,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSubject(subject: InsertSubject): Promise<Subject> {
-    // Gerar código único se não fornecido
-    let codigo = subject.codigo;
-    if (!codigo) {
-      // Gerar código baseado no timestamp para garantir unicidade
-      codigo = `DISC${Date.now().toString().slice(-8)}`;
-    }
-    
     const [newSubject] = await db
       .insert(subjects)
       .values({
         ...subject,
-        codigo,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1361,17 +1354,6 @@ export class DatabaseStorage implements IStorage {
     return assignment;
   }
 
-  async createProfessorSubject(data: InsertProfessorSubject): Promise<ProfessorSubject> {
-    const [assignment] = await db
-      .insert(professorSubjects)
-      .values({
-        ...data,
-        assignedAt: new Date(),
-      })
-      .returning();
-    return assignment;
-  }
-
   // Portal do Professor - Subject Contents
   async getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]> {
     const conditions = [eq(subjectContents.subjectId, subjectId)];
@@ -1384,14 +1366,6 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(subjectContents)
       .where(and(...conditions))
-      .orderBy(asc(subjectContents.ordem));
-  }
-
-  async getAllSubjectContents(subjectId: number): Promise<SubjectContent[]> {
-    return await db
-      .select()
-      .from(subjectContents)
-      .where(eq(subjectContents.subjectId, subjectId))
       .orderBy(asc(subjectContents.ordem));
   }
 
@@ -1414,15 +1388,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(subjectContents.id, id))
       .returning();
     return updatedContent || undefined;
-  }
-
-  async getSubjectContentById(id: number): Promise<SubjectContent | undefined> {
-    const [content] = await db
-      .select()
-      .from(subjectContents)
-      .where(eq(subjectContents.id, id))
-      .limit(1);
-    return content || undefined;
   }
 
   async deleteSubjectContent(id: number): Promise<void> {
@@ -1724,6 +1689,7 @@ export class DatabaseStorage implements IStorage {
       .insert(academicDisciplines)
       .values({
         ...discipline,
+        isActive: discipline.isActive ?? true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -2022,7 +1988,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         status: 'emitido',
         emitidoPor,
-        dataEmissao: new Date().toISOString().split('T')[0],
+        dataEmissao: new Date(),
         registroId: `REG-${Date.now()}`,
         pdfUrl: `https://certificados.edu.br/${id}/${randomUUID()}.pdf`,
         updatedAt: new Date()
@@ -2454,7 +2420,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEnvioUnicv(id: number): Promise<boolean> {
     const result = await db.delete(enviosUnicv).where(eq(enviosUnicv.id, id));
-    return (result.rowCount || 0) > 0;
+    return result.rowCount > 0;
   }
 
   async getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined> {
@@ -2533,7 +2499,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEnvioFamar(id: number): Promise<boolean> {
     const result = await db.delete(enviosFamar).where(eq(enviosFamar.id, id));
-    return (result.rowCount || 0) > 0;
+    return result.rowCount > 0;
   }
 
   async getEnvioFamarById(id: number): Promise<EnvioFamar | undefined> {
@@ -2636,7 +2602,11 @@ export class DatabaseStorage implements IStorage {
   async createQuitacao(quitacao: InsertQuitacao): Promise<Quitacao> {
     const [newQuitacao] = await db
       .insert(quitacoes)
-      .values(quitacao)
+      .values({
+        ...quitacao,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
       .returning();
     return newQuitacao;
   }
@@ -2688,7 +2658,7 @@ export class DatabaseStorage implements IStorage {
       .delete(quitacoes)
       .where(eq(quitacoes.id, id));
     
-    return (result.rowCount || 0) > 0;
+    return result.rowCount > 0;
   }
 
   async getQuitacaoById(id: number): Promise<Quitacao | undefined> {

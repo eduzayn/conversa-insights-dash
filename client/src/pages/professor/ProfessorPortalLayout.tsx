@@ -4,7 +4,6 @@ import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
 import ProfessorDashboard from "./ProfessorDashboard";
 import Disciplinas from "./Disciplinas";
 import Conteudos from "./Conteudos";
-
 import Avaliacoes from "./Avaliacoes";
 import Submissoes from "./Submissoes";
 import Relatorios from "./Relatorios";
@@ -25,7 +24,7 @@ export default function ProfessorPortalLayout() {
 
   useEffect(() => {
     // Verificar se há dados do professor no localStorage
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('professor_token');
     const data = localStorage.getItem('professor_data');
     
     if (!token || !data) {
@@ -56,7 +55,6 @@ export default function ProfessorPortalLayout() {
         <Route path="dashboard" element={<ProfessorDashboard />} />
         <Route path="disciplinas" element={<Disciplinas />} />
         <Route path="conteudos" element={<Conteudos />} />
-
         <Route path="avaliacoes" element={<Avaliacoes />} />
         <Route path="submissoes" element={<Submissoes />} />
         <Route path="relatorios" element={<Relatorios />} />

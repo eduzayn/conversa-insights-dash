@@ -20,16 +20,23 @@ export default function ProfessorLogin() {
     setError("");
 
     try {
-      const data = await apiRequest("/api/auth/professor-login", {
+      const response = await apiRequest("/api/auth/professor-login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro ao fazer login");
+      }
+
+      const data = await response.json();
       
       // Salvar dados do professor no localStorage
-      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('professor_token', data.token);
       localStorage.setItem('professor_data', JSON.stringify(data.professor));
       
       // Redirecionar para o dashboard do professor

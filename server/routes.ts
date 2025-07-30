@@ -4000,8 +4000,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar nova disciplina
   app.post("/api/professor/subjects", authenticateToken, async (req: any, res) => {
     try {
-      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
-        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      if (!['coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas coordenadores" });
       }
 
       const { nome, codigo, descricao, cargaHoraria, area } = req.body;
@@ -4011,12 +4011,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         descricao,
         cargaHoraria,
         area
-      });
-
-      // Associar disciplina ao professor que a criou
-      await storage.createProfessorSubject({
-        professorId: req.user.id,
-        subjectId: subject.id
       });
 
       res.status(201).json(subject);
@@ -4046,23 +4040,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota alternativa sem autenticação para debugging
-  app.get("/api/debug/contents", async (req: any, res) => {
-    try {
-      const { subjectId } = req.query;
-      if (!subjectId) {
-        return res.status(400).json({ message: "ID da disciplina é obrigatório" });
-      }
-
-      // Buscar todos os conteúdos da disciplina sem filtro de professor
-      const contents = await storage.getAllSubjectContents(parseInt(subjectId as string));
-      res.json(contents);
-    } catch (error) {
-      logger.error("Erro ao buscar conteúdos:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
   // Criar novo conteúdo
   app.post("/api/professor/contents", authenticateToken, async (req: any, res) => {
     try {
@@ -4084,106 +4061,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(content);
     } catch (error) {
       logger.error("Erro ao criar conteúdo:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Atualizar conteúdo
-  app.put("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
-    try {
-      if (!['professor', 'conteudista', 'coordenador', 'admin'].includes(req.user.role)) {
-        return res.status(403).json({ message: "Acesso negado - apenas professores" });
-      }
-
-      const contentId = parseInt(req.params.id);
-      if (isNaN(contentId)) {
-        return res.status(400).json({ message: "ID do conteúdo inválido" });
-      }
-
-      // Verificar se o conteúdo existe
-      const existingContent = await storage.getSubjectContentById(contentId);
-      if (!existingContent) {
-        return res.status(404).json({ message: "Conteúdo não encontrado" });
-      }
-
-      // Administradores podem editar qualquer conteúdo
-      // Professores só podem editar seus próprios conteúdos
-      if (req.user.role !== 'admin' && existingContent.professorId !== req.user.id) {
-        return res.status(403).json({ message: "Você não tem permissão para editar este conteúdo" });
-      }
-
-      const { subjectId, titulo, tipo, conteudo, descricao, ordem } = req.body;
-
-      const updatedContent = await storage.updateSubjectContent(contentId, {
-        subjectId,
-        titulo,
-        tipo,
-        conteudo,
-        descricao,
-        ordem
-      });
-
-      res.json(updatedContent);
-    } catch (error) {
-      logger.error("Erro ao atualizar conteúdo:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Incrementar visualizações
-  app.post("/api/professor/contents/:id/view", authenticateToken, async (req: any, res) => {
-    try {
-      const contentId = parseInt(req.params.id);
-      if (isNaN(contentId)) {
-        return res.status(400).json({ message: "ID do conteúdo inválido" });
-      }
-
-      // Verificar se o conteúdo existe
-      const content = await storage.getSubjectContentById(contentId);
-      if (!content) {
-        return res.status(404).json({ message: "Conteúdo não encontrado" });
-      }
-
-      // Incrementar contador de visualizações
-      const updatedContent = await storage.updateSubjectContent(contentId, {
-        visualizacoes: (content.visualizacoes || 0) + 1
-      });
-
-      res.json({ visualizacoes: updatedContent?.visualizacoes || 0 });
-    } catch (error) {
-      logger.error("Erro ao incrementar visualizações:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Excluir conteúdo
-  app.delete("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
-    try {
-      if (!['professor', 'conteudista', 'coordenador', 'admin'].includes(req.user.role)) {
-        return res.status(403).json({ message: "Acesso negado - apenas professores" });
-      }
-
-      const contentId = parseInt(req.params.id);
-      if (isNaN(contentId)) {
-        return res.status(400).json({ message: "ID do conteúdo inválido" });
-      }
-
-      // Verificar se o conteúdo existe
-      const content = await storage.getSubjectContentById(contentId);
-      if (!content) {
-        return res.status(404).json({ message: "Conteúdo não encontrado" });
-      }
-
-      // Administradores podem excluir qualquer conteúdo
-      // Professores só podem excluir seus próprios conteúdos
-      if (req.user.role !== 'admin' && content.professorId !== req.user.id) {
-        return res.status(403).json({ message: "Você não tem permissão para excluir este conteúdo" });
-      }
-
-      await storage.deleteSubjectContent(contentId);
-      res.json({ message: "Conteúdo excluído com sucesso" });
-    } catch (error) {
-      logger.error("Erro ao excluir conteúdo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
