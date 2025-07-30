@@ -317,7 +317,8 @@ export default function Certificacoes() {
   });
   const editPreRegisteredCourses = Array.isArray(editPreRegisteredCoursesData) ? editPreRegisteredCoursesData : [];
 
-  const { data: certificationsData, isLoading } = useQuery({
+  // Busca de certificações com tratamento robusto para resolver problema específico do usuário Erick
+  const { data: certificationsData, isLoading, error: certificationsError, refetch } = useQuery({
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
       status: filterStatus,
@@ -356,8 +357,37 @@ export default function Certificacoes() {
         }
       }
       
+      // Adicionar timestamp para forçar cache refresh (resolve problemas de cache específicos)
+      params.append('_t', Date.now().toString());
+      
       const response = await apiRequest(`/api/certificacoes?${params}`);
       return response;
+    },
+    staleTime: 5000, // Cache reduzido para 5 segundos
+    refetchOnWindowFocus: true, // Recarregar ao focar na janela
+    retry: (failureCount, error: any) => {
+      // Log específico para debugging do problema do Erick Moreira
+      console.warn(`[CERTIFICAÇÕES] Tentativa ${failureCount + 1} - Erro:`, {
+        error: error?.message || error,
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent.substring(0, 100) // Primeiros 100 chars do user agent
+      });
+      
+      return failureCount < 3; // Tentar até 3 vezes
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
+    onError: (error: any) => {
+      // Log detalhado para identificar problemas específicos
+      console.error('[CERTIFICAÇÕES] Erro crítico ao carregar:', {
+        error: error?.message || error,
+        stack: error?.stack,
+        timestamp: new Date().toISOString(),
+        activeTab,
+        filters: { filterStatus, filterModalidade, filterPeriodo, searchTerm }
+      });
+      
+      toast.error('Problema ao carregar certificações. Clique em "Recarregar" ou reabra a página.');
     }
   });
 
@@ -612,7 +642,7 @@ export default function Certificacoes() {
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 p-4 md:p-6">
           <div className="space-y-6">
-            {/* Header com seta de retorno */}
+            {/* Header com seta de retorno e botão de recarregar específico para problema do Erick */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button
@@ -630,14 +660,43 @@ export default function Certificacoes() {
                 </div>
               </div>
               
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
+              {/* Botões de ação com tratamento de erro específico para problema do Erick */}
+              <div className="flex items-center space-x-2">
+                {certificationsError && (
+                  <div className="flex items-center space-x-2 mr-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log('[CERTIFICAÇÕES] Recarregamento manual - Problema específico do usuário Erick Moreira');
+                        refetch();
+                        toast.info('Recarregando análises de certificação...');
+                      }}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      🔄 Recarregar
+                    </Button>
+                    <div className="text-sm text-red-600">
+                      Erro ao carregar dados
+                    </div>
+                  </div>
+                )}
+                
+                {isLoading && (
+                  <div className="flex items-center text-sm text-gray-500 mr-4">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Carregando análises...
+                  </div>
+                )}
+                
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <DialogTrigger asChild>
                   <Button className="bg-green-600 hover:bg-green-700 text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     Nova Certificação
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                  </DialogTrigger>
+                  <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Nova Certificação</DialogTitle>
                     <DialogDescription>
@@ -1054,6 +1113,7 @@ export default function Certificacoes() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
 
             {/* Tabs */}
