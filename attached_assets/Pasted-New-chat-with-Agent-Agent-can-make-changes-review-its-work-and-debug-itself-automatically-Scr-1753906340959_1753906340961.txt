@@ -1,0 +1,138 @@
+New chat with Agent
+Agent can make changes, review its work, and debug itself automatically.
+
+Scroll to latest
+"message":"Rota não encontrada: GET /certificacoes","code":"ROUTE_NOT_FOUND","timestamp":"2025-07-30T19:49:34.630Z"}
+
+
+/
+
+Search
+Time
+Deployment
+Source
+Log
+2025-07-30 16:40:02.67
+b4d30285
+User
+observacoes: null
+2025-07-30 16:44:01.23
+9d542147
+User
+> NODE_ENV=production node dist/index.js
+2025-07-30 16:44:03.16
+9d542147
+User
+Configurando servidor estático para produção...
+2025-07-30 16:44:03.17
+9d542147
+User
+Server running on port 5000
+2025-07-30 16:44:03.17
+9d542147
+User
+Environment: production
+2025-07-30 16:44:03.27
+9d542147
+User
+7:44:03 PM [express] serving on port 5000
+2025-07-30 16:44:04.11
+9d542147
+User
+[ERROR] GET / - Status: 404 {
+2025-07-30 16:44:04.11
+9d542147
+User
+error: 'Rota não encontrada: GET /',
+2025-07-30 16:44:04.11
+9d542147
+User
+stack: undefined,
+2025-07-30 16:44:04.11
+9d542147
+User
+timestamp: '2025-07-30T19:44:04.107Z'
+2025-07-30 16:44:04.11
+9d542147
+User
+}
+2025-07-30 16:44:51.51
+9d542147
+User
+7:44:51 PM [express] POST /api/certificacoes 201 in 2654ms :: {"id":884,"inicio":null,"aluno":"Ghedo…
+2025-07-30 16:44:51.92
+9d542147
+User
+7:44:51 PM [express] GET /api/certificacoes 200 in 195ms :: {"data":[{"id":884,"inicio":null,"aluno"…
+2025-07-30 16:46:37.43
+b4d30285
+System
+system: received signal terminated
+2025-07-30 16:47:15.62
+9d542147
+User
+7:47:15 PM [express] GET /api/atendimentos 304 in 3012ms :: {"data":[{"id":158,"lead":" Fabiana Ferr…
+2025-07-30 16:47:47.60
+9d542147
+User
+7:47:47 PM [express] GET /api/atendimentos 304 in 1756ms :: {"data":[{"id":158,"lead":" Fabiana Ferr…
+2025-07-30 16:48:19.64
+9d542147
+User
+7:48:19 PM [express] GET /api/atendimentos 304 in 1787ms :: {"data":[{"id":158,"lead":" Fabiana Ferr…
+2025-07-30 16:49:22.84
+9d542147
+User
+7:49:22 PM [express] GET /api/atendimentos 304 in 1760ms :: {"data":[{"id":365,"lead":"Fabiana da UN…
+2025-07-30 16:49:24.53
+9d542147
+User
+[ERROR] GET /certificacoes - Status: 404 {
+2025-07-30 16:49:24.53
+9d542147
+User
+error: 'Rota não encontrada: GET /certificacoes',
+2025-07-30 16:49:24.53
+9d542147
+User
+stack: undefined,
+2025-07-30 16:49:24.53
+9d542147
+User
+timestamp: '2025-07-30T19:49:24.535Z'
+2025-07-30 16:49:24.53
+9d542147
+User
+}
+2025-07-30 16:49:24.94
+9d542147
+User
+[ERROR] GET /favicon.ico - Status: 404 {
+2025-07-30 16:49:24.94
+9d542147
+User
+error: 'Rota não encontrada: GET /favicon.ico',
+2025-07-30 16:49:24.94
+9d542147
+User
+stack: undefined,
+2025-07-30 16:49:24.94
+9d542147
+User
+timestamp: '2025-07-30T19:49:24.942Z'
+2025-07-30 16:49:24.94
+9d542147
+User
+}
+2025-07-30 16:49:34.63
+9d542147
+User
+[ERROR] GET /certificacoes - Status: 404 {
+2025-07-30 16:49:34.63
+9d542147
+User
+error: 'Rota não encontrada: GET /certificacoes',
+2025-07-30 16:49:34.63
+9d542147
+User
+timestamp: '2025-07-30T19:49:34.630Z'
