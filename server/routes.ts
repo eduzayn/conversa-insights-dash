@@ -3464,7 +3464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Conteúdos de uma disciplina
+  // Conteúdos de uma disciplina (ou todos se subjectId não fornecido)
   app.get("/api/professor/contents", authenticateToken, async (req: any, res) => {
     try {
       if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
@@ -3472,11 +3472,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { subjectId } = req.query;
-      if (!subjectId) {
-        return res.status(400).json({ message: "ID da disciplina é obrigatório" });
+      let contents;
+      
+      if (subjectId) {
+        contents = await storage.getSubjectContents(parseInt(subjectId as string));
+      } else {
+        // Buscar todos os conteúdos quando subjectId não fornecido
+        contents = await storage.getAllSubjectContents();
       }
-
-      const contents = await storage.getSubjectContents(parseInt(subjectId as string));
+      
       res.json(contents);
     } catch (error) {
       logger.error("Erro ao buscar conteúdos:", error);
@@ -3491,13 +3495,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
-      const { subjectId, titulo, tipo, conteudo, descricao, ordem } = req.body;
+      const { subjectId, titulo, tipo, url, descricao, ordem } = req.body;
       const content = await storage.createSubjectContent({
         subjectId,
         professorId: req.user.id,
         titulo,
         tipo,
-        conteudo,
+        conteudo: url, // Mapear URL para o campo conteudo
         descricao,
         ordem
       });
@@ -3517,7 +3521,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { id } = req.params;
-      const content = await storage.updateSubjectContent(parseInt(id), req.body);
+      const { url, ...otherData } = req.body;
+      
+      // Mapear URL para o campo conteudo se fornecido
+      const updateData = url ? { ...otherData, conteudo: url } : req.body;
+      
+      const content = await storage.updateSubjectContent(parseInt(id), updateData);
       if (!content) {
         return res.status(404).json({ message: "Conteúdo não encontrado" });
       }

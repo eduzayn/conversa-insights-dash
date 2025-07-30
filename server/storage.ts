@@ -1395,6 +1395,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(subjectContents.ordem));
   }
 
+  async getAllSubjectContents(): Promise<SubjectContent[]> {
+    // Buscar todos os conteúdos para o professor
+    return await db
+      .select()
+      .from(subjectContents)
+      .orderBy(asc(subjectContents.subjectId), asc(subjectContents.ordem));
+  }
+
   async createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent> {
     const [newContent] = await db
       .insert(subjectContents)
