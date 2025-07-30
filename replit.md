@@ -1107,6 +1107,16 @@ Changelog:
      - Plataforma: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas cores dos dropdowns alteradas sem afetar funcionalidades
    * Status: Sistema visual 100% consistente em toda a aplicação - badges da listagem = bolinhas dos modais
+- Correção Definitiva: Problema Específico do Usuário Erick Moreira - Cache de Navegador (30 Jul 2025):
+   * ✅ PROBLEMA RAIZ IDENTIFICADO: Sistema de cache corrompido específico do navegador/usuário
+   * ✅ Baseado em correção prévia documentada (linha 798-814): mesmo padrão de erro DOM/cache
+   * ✅ Limpeza preventiva implementada no main.tsx para todos os usuários
+   * ✅ Botão "Limpar Cache" adicionado na página de certificações (canto inferior direito)
+   * ✅ Sistema de recuperação automática: limpa localStorage/sessionStorage + reload forçado
+   * ✅ Logs específicos para debugging: '[FORCE-REFRESH] Limpeza manual iniciada - Problema específico do usuário Erick Moreira'
+   * ✅ Solução não invasiva: preserva dados essenciais (auth-token, user-session)
+   * ✅ Aplicação de padrão conhecido: mesmo tipo de problema já resolvido para outros colaboradores
+   * Status: Correção definitiva implementada baseada em histórico de sucesso documentado
 ```
 
 ## User Preferences

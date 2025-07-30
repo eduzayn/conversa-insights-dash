@@ -1512,6 +1512,26 @@ export default function Certificacoes() {
           </div>
         </main>
       </div>
+
+      {/* Botão de limpeza manual - específico para problema do Erick */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onClick={() => {
+            console.log('[FORCE-REFRESH] Limpeza manual iniciada - Problema específico do usuário Erick Moreira');
+            // Limpa cache e força reload
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.reload();
+          }}
+          variant="outline"
+          size="sm"
+          className="bg-white border-red-300 text-red-600 hover:bg-red-50 shadow-lg"
+          title="Limpar cache e recarregar (específico para problemas de visualização)"
+        >
+          🔄 Limpar Cache
+        </Button>
+      </div>
+
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">

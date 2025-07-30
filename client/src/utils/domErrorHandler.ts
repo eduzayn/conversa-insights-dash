@@ -1,89 +1,96 @@
-// Sistema robusto para tratar erros de manipulação DOM
+// Sistema de interceptação de erros DOM específicos
+// Baseado na correção definitiva documentada em replit.md linha 798-814
+
+let errorCount = 0;
+const MAX_ERRORS = 5;
+
 export const setupDOMErrorHandler = () => {
-  // Intercepta erros globais de DOM
+  // Interceptação de removeChild/appendChild com validação prévia
   const originalRemoveChild = Node.prototype.removeChild;
-  
-  (Node.prototype as any).removeChild = function(child: Node): Node {
+  const originalAppendChild = Node.prototype.appendChild;
+
+  Node.prototype.removeChild = function(child: Node): Node {
     try {
-      // Verifica se o nó ainda é filho antes de tentar remover
-      if (this.contains && this.contains(child)) {
-        return originalRemoveChild.call(this, child);
-      } else {
-        // Se não é mais filho, retorna o nó sem erro
-        console.warn('Tentativa de remover nó que não é mais filho - ignorando');
+      // Validação prévia antes de remover
+      if (this.contains && !this.contains(child)) {
+        console.warn('[DOM-HANDLER] Tentativa de remover elemento não pertencente ao pai:', child);
         return child;
       }
+      return originalRemoveChild.call(this, child);
     } catch (error) {
-      console.warn('Erro ao remover nó DOM - ignorando:', error);
+      console.warn('[DOM-HANDLER] Erro interceptado no removeChild:', error);
+      errorCount++;
+      
+      // Se muitos erros, executa limpeza automática
+      if (errorCount >= MAX_ERRORS) {
+        import('./cacheCleanup').then(({ cleanupBrowserState }) => {
+          console.log('[DOM-HANDLER] Executando limpeza automática após múltiplos erros DOM');
+          cleanupBrowserState();
+          errorCount = 0; // Reset contador
+        });
+      }
+      
       return child;
     }
   };
 
-  // Intercepta erros de appendChild também para prevenir problemas relacionados
-  const originalAppendChild = Node.prototype.appendChild;
-  
-  (Node.prototype as any).appendChild = function(child: Node): Node {
+  Node.prototype.appendChild = function(child: Node): Node {
     try {
       return originalAppendChild.call(this, child);
     } catch (error) {
-      console.warn('Erro ao adicionar nó DOM - tentando recuperar:', error);
-      // Tenta limpar e readicionar
-      try {
-        if (child.parentNode) {
-          child.parentNode.removeChild(child);
-        }
-        return originalAppendChild.call(this, child);
-      } catch (retryError) {
-        console.warn('Falha na recuperação de appendChild:', retryError);
-        return child;
+      console.warn('[DOM-HANDLER] Erro interceptado no appendChild:', error);
+      errorCount++;
+      
+      if (errorCount >= MAX_ERRORS) {
+        import('./cacheCleanup').then(({ cleanupBrowserState }) => {
+          console.log('[DOM-HANDLER] Executando limpeza automática após múltiplos erros DOM');
+          cleanupBrowserState();
+          errorCount = 0;
+        });
       }
+      
+      return child;
     }
   };
-
-  // Handler para erros não capturados
-  window.addEventListener('error', (event) => {
-    if (event.error?.name === 'NotFoundError' && 
-        event.error?.message?.includes('removeChild')) {
-      console.warn('Erro removeChild capturado e suprimido:', event.error);
-      event.preventDefault();
-      event.stopPropagation();
-      return false;
-    }
-  });
-
-  // Handler para promises rejeitadas
-  window.addEventListener('unhandledrejection', (event) => {
-    if (event.reason?.name === 'NotFoundError' && 
-        event.reason?.message?.includes('removeChild')) {
-      console.warn('Promise rejeitada removeChild capturada e suprimida:', event.reason);
-      event.preventDefault();
-      return false;
-    }
-  });
 };
 
+// Limpeza de portais órfãos (específico para problema do Erick)
 export const cleanupPortals = () => {
-  // Limpa portais órfãos que podem causar problemas
-  const portals = document.querySelectorAll('[data-radix-portal]');
-  portals.forEach(portal => {
-    try {
-      if (!portal.parentNode || portal.childNodes.length === 0) {
-        portal.remove();
+  try {
+    const portals = document.querySelectorAll('[data-radix-portal], [data-sonner-toaster]');
+    portals.forEach(portal => {
+      try {
+        if (portal.parentNode) {
+          portal.parentNode.removeChild(portal);
+        }
+      } catch (error) {
+        console.warn('[DOM-HANDLER] Erro ao remover portal órfão:', error);
       }
-    } catch (error) {
-      console.warn('Erro ao limpar portal:', error);
-    }
-  });
-  
-  // Limpa toasters órfãos
-  const toasters = document.querySelectorAll('[data-sonner-toaster], [data-radix-toast-viewport]');
-  toasters.forEach(toaster => {
-    try {
-      if (!toaster.parentNode || !document.body.contains(toaster)) {
-        toaster.remove();
+    });
+    console.log(`[DOM-HANDLER] ${portals.length} portais órfãos removidos`);
+  } catch (error) {
+    console.warn('[DOM-HANDLER] Erro na limpeza de portais:', error);
+  }
+};
+
+// Interceptação de erros globais do navegador
+export const setupGlobalErrorHandler = () => {
+  window.addEventListener('error', (event) => {
+    if (event.message.includes('removeChild') || event.message.includes('appendChild')) {
+      console.warn('[DOM-HANDLER] Erro DOM interceptado globalmente:', event.message);
+      event.preventDefault(); // Previne que o erro apareça no console
+      errorCount++;
+      
+      if (errorCount >= MAX_ERRORS) {
+        import('./cacheCleanup').then(({ cleanupBrowserState }) => {
+          console.log('[DOM-HANDLER] Limpeza automática iniciada por erro global');
+          cleanupBrowserState();
+          errorCount = 0;
+        });
       }
-    } catch (error) {
-      console.warn('Erro ao limpar toaster:', error);
     }
   });
 };
+
+export const getDOMErrorCount = () => errorCount;
+export const resetDOMErrorCount = () => { errorCount = 0; };
