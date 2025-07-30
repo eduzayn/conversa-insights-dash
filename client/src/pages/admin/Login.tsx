@@ -13,9 +13,9 @@ import { BarChart3, Eye, EyeOff, Users, Building, Network, CheckSquare } from "l
 import { COMPANIES, getDepartmentsByCompany } from "@shared/company-config";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("admin");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("password");
   const [name, setName] = useState("");
   const [token, setToken] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -175,7 +175,7 @@ const Login = () => {
                     placeholder="seu.username"
                     required
                   />
-                  <p className="text-xs text-gray-500">Use: admin / password</p>
+
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Senha</Label>
@@ -205,6 +205,16 @@ const Login = () => {
                 >
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
+
+                {/* Credenciais de teste - apenas desenvolvimento */}
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs font-medium text-blue-700 mb-2">✅ Credenciais de Teste (Desenvolvimento)</p>
+                  <div className="text-xs text-blue-600 space-y-1">
+                    <p><strong>Username:</strong> admin</p>
+                    <p><strong>Senha:</strong> password</p>
+                    <p><strong>Função:</strong> Administrador</p>
+                  </div>
+                </div>
               </form>
             </TabsContent>
             
