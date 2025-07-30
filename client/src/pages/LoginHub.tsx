@@ -58,8 +58,7 @@ const LoginHub = () => {
             return (
               <Card 
                 key={option.id}
-                className="shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border-0 bg-white/80 backdrop-blur-sm" 
-                onClick={() => navigate(option.route)}
+                className="shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-white/80 backdrop-blur-sm"
               >
                 <CardHeader className="text-center pb-6 pt-8">
                   <div className="flex justify-center mb-6">
@@ -78,6 +77,7 @@ const LoginHub = () => {
                   <Button 
                     size="lg" 
                     className={`w-full h-12 bg-gradient-to-r ${option.gradient} hover:${option.hoverGradient} text-white font-semibold text-lg shadow-lg transition-all duration-200`}
+                    onClick={() => navigate(option.route)}
                   >
                     Acessar Portal
                   </Button>
