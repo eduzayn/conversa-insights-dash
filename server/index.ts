@@ -45,19 +45,9 @@ async function startServer() {
   try {
     console.log("Iniciando servidor...");
     
-    // Registrar rotas
+    // Registrar rotas (incluindo configuração do Vite)
     const server = await registerRoutes(app);
     console.log("Rotas registradas com sucesso");
-    
-    // Configurar Vite apenas em desenvolvimento
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Configurando Vite para desenvolvimento...");
-      await setupVite(app);
-      console.log("Vite configurado com sucesso!");
-    } else {
-      // Em produção, servir arquivos estáticos
-      serveStatic(app);
-    }
     
     const port = process.env.PORT || 5000;
     server.listen(port, () => {

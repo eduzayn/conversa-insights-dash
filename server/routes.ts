@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
+import { setupVite, serveStatic } from "./vite";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
@@ -5434,13 +5435,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "pong", server: "running" });
   });
 
+  // ===== CONFIGURAÇÃO DO VITE/FRONTEND =====
+  
+  // Configurar Vite para desenvolvimento ou servir arquivos estáticos em produção
+  if (process.env.NODE_ENV === 'development') {
+    console.log("Configurando Vite para desenvolvimento...");
+    await setupVite(app, httpServer);
+    console.log("Vite configurado com sucesso!");
+  } else {
+    console.log("Configurando servidor estático para produção...");
+    serveStatic(app);
+  }
+
   // ===== MIDDLEWARES FINAIS =====
+  
+  // Middleware para rotas não encontradas (deve vir antes do error handler)
+  app.use(notFoundHandler);
   
   // Middleware de tratamento de erros (deve ser o último)
   app.use(globalErrorHandler);
-  
-  // Middleware para rotas não encontradas
-  app.use(notFoundHandler);
   
   logger.info('[SYSTEM] Sistema inicializado com middleware de segurança e tratamento de erros robustos');
   
