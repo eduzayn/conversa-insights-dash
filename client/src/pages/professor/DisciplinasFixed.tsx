@@ -23,6 +23,7 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
 export default function DisciplinasFixed() {
   const navigate = useNavigate();
@@ -31,6 +32,8 @@ export default function DisciplinasFixed() {
   const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDisciplina, setEditingDisciplina] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [disciplinaToDelete, setDisciplinaToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     nome: "",
     codigo: "",
@@ -123,9 +126,16 @@ export default function DisciplinasFixed() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteDisciplina = (disciplinaId: number) => {
-    if (window.confirm("Tem certeza que deseja excluir esta disciplina? Todos os conteúdos e avaliações relacionados também serão excluídos.")) {
-      deleteSubjectMutation.mutate(disciplinaId);
+  const handleDeleteDisciplina = (disciplina: any) => {
+    setDisciplinaToDelete(disciplina);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (disciplinaToDelete) {
+      deleteSubjectMutation.mutate(disciplinaToDelete.id);
+      setDeleteDialogOpen(false);
+      setDisciplinaToDelete(null);
     }
   };
 
@@ -400,7 +410,7 @@ export default function DisciplinasFixed() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDeleteDisciplina(disciplina.id)}
+                    onClick={() => handleDeleteDisciplina(disciplina)}
                     className="hover:bg-red-50 hover:text-red-600"
                     disabled={deleteSubjectMutation.isPending}
                   >
@@ -412,6 +422,17 @@ export default function DisciplinasFixed() {
           </Card>
         ))}
       </div>
+
+      {/* Diálogo de confirmação de exclusão */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Confirmar exclusão de disciplina"
+        description={`Tem certeza que deseja excluir a disciplina "${disciplinaToDelete?.nome}"? Todos os conteúdos e avaliações relacionados também serão excluídos permanentemente.`}
+        entityName="disciplina"
+        isLoading={deleteSubjectMutation.isPending}
+      />
     </div>
   );
 }

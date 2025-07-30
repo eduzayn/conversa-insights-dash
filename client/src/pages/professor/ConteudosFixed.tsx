@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload } from "lucide-react";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
 export default function ConteudosFixed() {
   const { toast } = useToast();
@@ -18,6 +19,8 @@ export default function ConteudosFixed() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [activeTab, setActiveTab] = useState("listar");
   const [editingContent, setEditingContent] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [contentToDelete, setContentToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     titulo: "",
     tipo: "video",
@@ -130,9 +133,16 @@ export default function ConteudosFixed() {
     setActiveTab("adicionar");
   };
 
-  const handleDeleteContent = (contentId: number) => {
-    if (window.confirm("Tem certeza que deseja excluir este conteúdo?")) {
-      deleteContentMutation.mutate(contentId);
+  const handleDeleteContent = (content: any) => {
+    setContentToDelete(content);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (contentToDelete) {
+      deleteContentMutation.mutate(contentToDelete.id);
+      setDeleteDialogOpen(false);
+      setContentToDelete(null);
     }
   };
 
@@ -330,7 +340,7 @@ export default function ConteudosFixed() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteContent(content.id)}
+                        onClick={() => handleDeleteContent(content)}
                         className="flex-1 hover:bg-red-50 hover:text-red-600"
                         disabled={deleteContentMutation.isPending}
                       >
@@ -461,6 +471,17 @@ export default function ConteudosFixed() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Diálogo de confirmação de exclusão */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Confirmar exclusão de conteúdo"
+        description={`Tem certeza que deseja excluir o conteúdo "${contentToDelete?.titulo}"? Esta ação não pode ser desfeita.`}
+        entityName="conteúdo"
+        isLoading={deleteContentMutation.isPending}
+      />
     </div>
   );
 }
