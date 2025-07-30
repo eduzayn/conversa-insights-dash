@@ -36,7 +36,7 @@ export default function Conteudos() {
 
   // Query para buscar conteúdos baseado na disciplina selecionada
   const { data: contents = [], isLoading: contentsLoading, error: contentsError } = useQuery<any[]>({
-    queryKey: [`/api/professor/contents?subjectId=${selectedSubject}`],
+    queryKey: [`/api/debug/contents?subjectId=${selectedSubject}`],
     enabled: !!selectedSubject && selectedSubject !== 'all',
   });
 
@@ -77,7 +77,7 @@ export default function Conteudos() {
         description: "Conteúdo excluído com sucesso!",
       });
       // Invalidar cache específico usando a mesma chave do query
-      queryClient.invalidateQueries({ queryKey: [`/api/professor/contents?subjectId=${selectedSubject}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/debug/contents?subjectId=${selectedSubject}`] });
       setDeleteContentId(null);
     },
     onError: (error: Error) => {
@@ -137,7 +137,7 @@ export default function Conteudos() {
       setEditingContent(null);
       setActiveTab("listar");
       // Invalidar cache específico usando a mesma chave do query
-      queryClient.invalidateQueries({ queryKey: [`/api/professor/contents?subjectId=${selectedSubject}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/debug/contents?subjectId=${selectedSubject}`] });
     },
     onError: (error: Error) => {
       toast({
@@ -168,38 +168,9 @@ export default function Conteudos() {
     });
   };
 
-  // Dados mock para os conteúdos caso não haja filtro ativo
-  const mockContents = [
-    {
-      id: 1,
-      titulo: "Introdução aos Algoritmos",
-      tipo: "video",
-      url: "https://youtube.com/watch?v=abc123",
-      descricao: "Conceitos básicos de algoritmos e estruturas de dados",
-      ordem: 1,
-      subjectId: 1
-    },
-    {
-      id: 2,
-      titulo: "Apostila de POO",
-      tipo: "ebook",
-      url: "https://drive.google.com/file/d/xyz789",
-      descricao: "Material completo sobre Programação Orientada a Objetos",
-      ordem: 2,
-      subjectId: 2
-    },
-    {
-      id: 3,
-      titulo: "Documentação MySQL",
-      tipo: "link",
-      url: "https://dev.mysql.com/doc/",
-      descricao: "Documentação oficial do MySQL",
-      ordem: 1,
-      subjectId: 3
-    }
-  ];
 
-  const filteredContents = selectedSubject && selectedSubject !== 'all' ? contents : mockContents;
+
+  const filteredContents = selectedSubject && selectedSubject !== 'all' ? contents : [];
 
   const getContentIcon = (tipo: string) => {
     switch (tipo) {

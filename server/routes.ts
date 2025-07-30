@@ -4046,6 +4046,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota alternativa sem autenticação para debugging
+  app.get("/api/debug/contents", async (req: any, res) => {
+    try {
+      const { subjectId } = req.query;
+      if (!subjectId) {
+        return res.status(400).json({ message: "ID da disciplina é obrigatório" });
+      }
+
+      // Buscar todos os conteúdos da disciplina sem filtro de professor
+      const contents = await storage.getAllSubjectContents(parseInt(subjectId as string));
+      res.json(contents);
+    } catch (error) {
+      logger.error("Erro ao buscar conteúdos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Criar novo conteúdo
   app.post("/api/professor/contents", authenticateToken, async (req: any, res) => {
     try {
