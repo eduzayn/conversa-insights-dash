@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { FileText, Clock, Users, Plus, Settings, BarChart3, Edit, Trash2, CheckCircle } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function AvaliacoesFixed() {
   const { toast } = useToast();
@@ -22,6 +23,17 @@ export default function AvaliacoesFixed() {
   const [editingEvaluation, setEditingEvaluation] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [evaluationToDelete, setEvaluationToDelete] = useState<any>(null);
+  const [selectedEvaluation, setSelectedEvaluation] = useState<any>(null);
+  const [questionFormData, setQuestionFormData] = useState({
+    enunciado: "",
+    tipo: "multipla_escolha",
+    alternativas: ["", "", "", ""],
+    gabarito: "",
+    explicacao: "",
+    peso: "1"
+  });
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     titulo: "",
     subjectId: "",
@@ -48,6 +60,28 @@ export default function AvaliacoesFixed() {
       const response = await apiRequest('/api/professor/evaluations');
       return response as any[];
     }
+  });
+
+  // Buscar questões de uma avaliação específica
+  const { data: questions = [] } = useQuery({
+    queryKey: ['/api/professor/evaluations', selectedEvaluation?.id, 'questions'],
+    queryFn: async () => {
+      if (!selectedEvaluation?.id) return [];
+      const response = await apiRequest(`/api/professor/evaluations/${selectedEvaluation.id}/questions`);
+      return response as any[];
+    },
+    enabled: !!selectedEvaluation?.id
+  });
+
+  // Buscar submissões de uma avaliação específica
+  const { data: submissions = [] } = useQuery({
+    queryKey: ['/api/professor/evaluations', selectedEvaluation?.id, 'submissions'],
+    queryFn: async () => {
+      if (!selectedEvaluation?.id) return [];
+      const response = await apiRequest(`/api/professor/evaluations/${selectedEvaluation.id}/submissions`);
+      return response as any[];
+    },
+    enabled: !!selectedEvaluation?.id
   });
 
   // Mutation para criar avaliação
@@ -89,6 +123,46 @@ export default function AvaliacoesFixed() {
     },
     onError: () => {
       toast({ title: 'Erro', description: 'Erro ao excluir avaliação', variant: 'destructive' });
+    }
+  });
+
+  // Mutation para criar questão
+  const createQuestionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest(`/api/professor/evaluations/${selectedEvaluation.id}/questions`, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          peso: parseInt(data.peso),
+          alternativas: data.tipo === 'multipla_escolha' ? data.alternativas : null
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Questão criada com sucesso!' });
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations', selectedEvaluation?.id, 'questions'] });
+      resetQuestionForm();
+      setQuestionDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao criar questão', variant: 'destructive' });
+    }
+  });
+
+  // Mutation para excluir questão
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: number) => {
+      return apiRequest(`/api/professor/evaluations/${selectedEvaluation.id}/questions/${questionId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast({ title: 'Sucesso', description: 'Questão excluída com sucesso!' });
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations', selectedEvaluation?.id, 'questions'] });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao excluir questão', variant: 'destructive' });
     }
   });
 
@@ -137,6 +211,52 @@ export default function AvaliacoesFixed() {
       instrucoes: ""
     });
     setEditingEvaluation(null);
+  };
+
+  const resetQuestionForm = () => {
+    setQuestionFormData({
+      enunciado: "",
+      tipo: "multipla_escolha",
+      alternativas: ["", "", "", ""],
+      gabarito: "",
+      explicacao: "",
+      peso: "1"
+    });
+    setEditingQuestion(null);
+  };
+
+  const handleQuestionInputChange = (field: string, value: string | string[]) => {
+    setQuestionFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAlternativeChange = (index: number, value: string) => {
+    const newAlternativas = [...questionFormData.alternativas];
+    newAlternativas[index] = value;
+    setQuestionFormData(prev => ({
+      ...prev,
+      alternativas: newAlternativas
+    }));
+  };
+
+  const handleCreateQuestion = () => {
+    if (!selectedEvaluation) return;
+    createQuestionMutation.mutate({
+      evaluationId: selectedEvaluation.id,
+      ...questionFormData
+    });
+  };
+
+  const handleViewQuestions = (avaliacao: any) => {
+    setSelectedEvaluation(avaliacao);
+    setActiveTab("banco");
+  };
+
+  const handleBackToList = () => {
+    setSelectedEvaluation(null);
+    setActiveTab("listar");
   };
 
   const handleSubmit = () => {
@@ -288,11 +408,11 @@ export default function AvaliacoesFixed() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => console.log("Ver resultados:", avaliacao.id)}
+                        onClick={() => handleViewQuestions(avaliacao)}
                         className="flex-1"
                       >
-                        <BarChart3 className="h-3 w-3 mr-1" />
-                        Resultados
+                        <Settings className="h-3 w-3 mr-1" />
+                        Questões
                       </Button>
                       <Button
                         variant="outline"
@@ -444,14 +564,103 @@ export default function AvaliacoesFixed() {
         <TabsContent value="banco">
           <Card>
             <CardHeader>
-              <CardTitle>Banco de Questões</CardTitle>
-              <CardDescription>Gerencie suas questões reutilizáveis</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>
+                    {selectedEvaluation ? `Questões - ${selectedEvaluation.titulo}` : "Banco de Questões"}
+                  </CardTitle>
+                  <CardDescription>
+                    {selectedEvaluation ? "Gerencie as questões desta avaliação" : "Gerencie suas questões reutilizáveis"}
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  {selectedEvaluation && (
+                    <Button variant="outline" onClick={handleBackToList}>
+                      Voltar
+                    </Button>
+                  )}
+                  {selectedEvaluation && (
+                    <Button onClick={() => setQuestionDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Questão
+                    </Button>
+                  )}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Banco de questões em desenvolvimento</p>
-              </div>
+              {selectedEvaluation ? (
+                <div className="space-y-4">
+                  {questions.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">Nenhuma questão criada ainda</p>
+                      <Button 
+                        onClick={() => setQuestionDialogOpen(true)} 
+                        className="mt-4 bg-green-600 hover:bg-green-700"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Primeira Questão
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {questions.map((question, index) => (
+                        <Card key={question.id} className="border">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant="outline">Questão {index + 1}</Badge>
+                                  <Badge className={question.tipo === 'multipla_escolha' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}>
+                                    {question.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 'Verdadeiro/Falso'}
+                                  </Badge>
+                                  <Badge variant="secondary">Peso: {question.peso}</Badge>
+                                </div>
+                                <p className="text-sm font-medium">{question.enunciado}</p>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deleteQuestionMutation.mutate(question.id)}
+                                className="hover:bg-red-50 hover:text-red-600"
+                                disabled={deleteQuestionMutation.isPending}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            {question.tipo === 'multipla_escolha' && question.alternativas && (
+                              <div className="space-y-2">
+                                {question.alternativas.map((alt: string, altIndex: number) => (
+                                  <div key={altIndex} className={`flex items-center gap-2 p-2 rounded ${question.gabarito === altIndex.toString() ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
+                                    <span className="font-mono text-sm">{String.fromCharCode(65 + altIndex)})</span>
+                                    <span className="text-sm">{alt}</span>
+                                    {question.gabarito === altIndex.toString() && (
+                                      <CheckCircle className="h-4 w-4 text-green-600 ml-auto" />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {question.explicacao && (
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                                <p className="text-sm text-blue-800"><strong>Explicação:</strong> {question.explicacao}</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Selecione uma avaliação para gerenciar suas questões</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -467,6 +676,124 @@ export default function AvaliacoesFixed() {
         entityName="avaliação"
         isLoading={deleteEvaluationMutation.isPending}
       />
+
+      {/* Modal para criar questão */}
+      <Dialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nova Questão</DialogTitle>
+            <DialogDescription>
+              Crie uma nova questão para a avaliação "{selectedEvaluation?.titulo}"
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="enunciado">Enunciado da Questão *</Label>
+              <Textarea
+                id="enunciado"
+                placeholder="Digite o enunciado da questão..."
+                value={questionFormData.enunciado}
+                onChange={(e) => handleQuestionInputChange('enunciado', e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="tipo">Tipo de Questão</Label>
+                <Select value={questionFormData.tipo} onValueChange={(value) => handleQuestionInputChange('tipo', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="multipla_escolha">Múltipla Escolha</SelectItem>
+                    <SelectItem value="verdadeiro_falso">Verdadeiro/Falso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="peso">Peso da Questão</Label>
+                <Input
+                  id="peso"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={questionFormData.peso}
+                  onChange={(e) => handleQuestionInputChange('peso', e.target.value)}
+                />
+              </div>
+            </div>
+
+            {questionFormData.tipo === 'multipla_escolha' && (
+              <div>
+                <Label>Alternativas</Label>
+                <div className="space-y-3 mt-2">
+                  {questionFormData.alternativas.map((alt, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <span className="font-mono text-sm w-6">{String.fromCharCode(65 + index)})</span>
+                      <Input
+                        placeholder={`Alternativa ${String.fromCharCode(65 + index)}`}
+                        value={alt}
+                        onChange={(e) => handleAlternativeChange(index, e.target.value)}
+                        className="flex-1"
+                      />
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="gabarito"
+                          value={index.toString()}
+                          checked={questionFormData.gabarito === index.toString()}
+                          onChange={(e) => handleQuestionInputChange('gabarito', e.target.value)}
+                          className="w-4 h-4 text-green-600"
+                        />
+                        <Label className="ml-2 text-sm">Correta</Label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {questionFormData.tipo === 'verdadeiro_falso' && (
+              <div>
+                <Label>Resposta Correta</Label>
+                <Select value={questionFormData.gabarito} onValueChange={(value) => handleQuestionInputChange('gabarito', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a resposta correta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="verdadeiro">Verdadeiro</SelectItem>
+                    <SelectItem value="falso">Falso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="explicacao">Explicação (Opcional)</Label>
+              <Textarea
+                id="explicacao"
+                placeholder="Explicação da resposta correta..."
+                value={questionFormData.explicacao}
+                onChange={(e) => handleQuestionInputChange('explicacao', e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuestionDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateQuestion} 
+              disabled={createQuestionMutation.isPending || !questionFormData.enunciado || !questionFormData.gabarito}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {createQuestionMutation.isPending ? 'Criando...' : 'Criar Questão'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

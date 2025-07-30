@@ -266,6 +266,7 @@ export interface IStorage {
   getEvaluationQuestions(evaluationId: number): Promise<EvaluationQuestion[]>;
   createEvaluationQuestion(question: InsertEvaluationQuestion): Promise<EvaluationQuestion>;
   updateEvaluationQuestion(id: number, question: Partial<EvaluationQuestion>): Promise<EvaluationQuestion | undefined>;
+  deleteEvaluationQuestion(id: number): Promise<void>;
 
   // Portal do Professor - Evaluation Submissions
   getEvaluationSubmissions(evaluationId: number): Promise<EvaluationSubmission[]>;
@@ -1520,6 +1521,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(evaluationQuestions.id, id))
       .returning();
     return updatedQuestion || undefined;
+  }
+
+  async deleteEvaluationQuestion(id: number): Promise<void> {
+    await db
+      .delete(evaluationQuestions)
+      .where(eq(evaluationQuestions.id, id));
   }
 
   // Portal do Professor - Evaluation Submissions
