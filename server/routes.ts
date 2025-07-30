@@ -152,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Validar token e retornar dados do usuário
+  // Validar token e retornar dados do usuário (UNIFICADO)
   app.get("/api/auth/me", authenticateToken, async (req: any, res) => {
     try {
       res.json({
@@ -240,24 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Verificar token (middleware de autenticação)
-  app.get("/api/auth/me", authenticateToken, (req: any, res) => {
-    res.json({
-      user: {
-        id: req.user.id,
-        username: req.user.username,
-        email: req.user.email,
-        name: req.user.name,
-        role: req.user.role,
-        companyAccount: req.user.companyAccount,
-        department: req.user.department,
-        cpf: req.user.cpf,
-        telefone: req.user.telefone,
-        dataNascimento: req.user.dataNascimento,
-        matriculaAtiva: req.user.matriculaAtiva
-      }
-    });
-  });
+  // Rota duplicada removida - usando apenas a versão unificada acima
 
   // Login para Portal do Aluno (usando e-mail e CPF como senha)
   app.post("/api/auth/student-login", async (req, res) => {
