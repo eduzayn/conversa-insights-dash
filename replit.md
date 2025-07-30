@@ -1042,6 +1042,14 @@ Changelog:
    * ✅ Usuários podem escolher entre Portal Administrativo, Portal do Aluno ou Portal do Professor
    * ✅ Melhoria de UX: acesso direto aos diferentes perfis de usuário
    * Status: Sistema de roteamento corrigido para produção, hub central funcionando
+- Correção Autenticação Portal do Professor (30 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Campo `isActive` corrigido para `is_active` na rota de autenticação professor
+   * ✅ Correção frontend: apiRequest usado corretamente sem dupla chamada response.json()
+   * ✅ Credenciais de teste criadas: joao.silva@instituicao.edu.br / professor123
+   * ✅ Hash de senha bcrypt atualizado corretamente no banco de dados
+   * ✅ Sistema de autenticação JWT funcionando para roles professor/conteudista/coordenador
+   * ✅ Redirecionamento automático para /professor/dashboard após login bem-sucedido
+   * Status: Portal do Professor 100% funcional com autenticação corrigida
 - Expansão de Assuntos no Modal de Atendimentos (28 Jul 2025):
    * ✅ Novos assuntos adicionados ao dropdown de "Assunto" no modal de editar atendimento
    * ✅ Assuntos implementados: "Correção TCC", "Correção Práticas", "Correção Estágio", "Correção Atividades Música", "Análises"
