@@ -1050,6 +1050,13 @@ Changelog:
    * ✅ Sistema de autenticação JWT funcionando para roles professor/conteudista/coordenador
    * ✅ Redirecionamento automático para /professor/dashboard após login bem-sucedido
    * Status: Portal do Professor 100% funcional com autenticação corrigida
+- Otimização Layout Portal do Professor (30 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Excesso de espaço em branco nas laterais das páginas
+   * ✅ Removida limitação max-w-7xl mx-auto do ProfessorLayout.tsx
+   * ✅ Conteúdo agora usa toda a largura disponível da tela
+   * ✅ Melhor aproveitamento do espaço horizontal para dashboards e listagens
+   * ✅ Layout responsivo mantido sem quebras de design
+   * Status: Portal do Professor com layout otimizado para uso completo da tela
 - Expansão de Assuntos no Modal de Atendimentos (28 Jul 2025):
    * ✅ Novos assuntos adicionados ao dropdown de "Assunto" no modal de editar atendimento
    * ✅ Assuntos implementados: "Correção TCC", "Correção Práticas", "Correção Estágio", "Correção Atividades Música", "Análises"
