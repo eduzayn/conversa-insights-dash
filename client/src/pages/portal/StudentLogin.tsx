@@ -26,8 +26,8 @@ export default function StudentLogin() {
   const form = useForm<StudentLoginForm>({
     resolver: zodResolver(studentLoginSchema),
     defaultValues: {
-      email: "",
-      cpf: ""
+      email: "joao.silva@email.com",
+      cpf: "123.456.789-01"
     }
   });
 
@@ -162,6 +162,16 @@ export default function StudentLogin() {
               <p className="mt-1">
                 Entre em contato com a secretaria acadêmica
               </p>
+            </div>
+
+            {/* Credenciais de teste - apenas desenvolvimento */}
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-xs font-medium text-green-700 mb-2">✅ Credenciais de Teste (Desenvolvimento)</p>
+              <div className="text-xs text-green-600 space-y-1">
+                <p><strong>E-mail:</strong> joao.silva@email.com</p>
+                <p><strong>CPF:</strong> 123.456.789-01</p>
+                <p><strong>Aluno:</strong> João Silva Santos</p>
+              </div>
             </div>
           </CardContent>
         </Card>
