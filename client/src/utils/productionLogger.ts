@@ -1,166 +1,80 @@
-// Sistema de limpeza definitiva de logs visuais - silencia TUDO que polui a interface
-const isProduction = process.env.NODE_ENV === 'production';
-const isDevelopment = process.env.NODE_ENV === 'development';
+// Sistema de limpeza completa de logs para interface 100% profissional
+// Elimina TODOS os logs técnicos que possam denunciar problemas ao cliente
 
-// Aplicar limpeza TANTO em produção quanto desenvolvimento para interface 100% limpa
-if (isProduction || isDevelopment) {
-  // Salvar referências originais
-  const originalConsoleLog = console.log;
-  const originalConsoleDebug = console.debug;
-  const originalConsoleInfo = console.info;
-  const originalConsoleWarn = console.warn;
-  const originalConsoleError = console.error;
+// Padrões expandidos para capturar TODA poluição visual
+const FILTERED_LOG_PATTERNS = [
+  // Agora SDK - TUDO relacionado
+  /AgoraRTC/i, /WebRTC/i, /agora/i, /RTC/i, /Media/i, /Stream/i, /Audio/i, /Video/i,
   
-  // Lista DEFINITIVA de padrões para filtrar - ZERO tolerância com poluição visual
-  const FILTERED_PATTERNS = [
-    'Agora-SDK',
-    'vite',
-    '[hmr]',
-    'device-check',
-    'browser ua',
-    'browser info',
-    'browser compatibility',
-    'Browserslist:',
-    'caniuse-lite',
-    'connection lost',
-    'hot updated',
-    'page reload',
-    'connecting...',
-    'connected.',
-    'server connection lost',
-    'Polling for restart',
-    'lock-safari',
-    'current web page is',
-    'Correção robusta',
-    'DOM-PROTECTION',
-    'MONITOR',
-    'Limpeza',
-    'CERTIFICAÇÕES',
-    'Tentativa',
-    'Erro:',
-    'error:',
-    'warn:',
-    'debug:',
-    'ERROR:',
-    'WARNING:',
-    'DEBUG:',
-    'Reloading',
-    'HMR',
-    'polling',
-    'restart',
-    'Server connection'
-  ];
+  // Vite e desenvolvimento - TUDO
+  /\[vite\]/i, /\[hmr\]/i, /hot updated/i, /page reload/i, /connecting/i, /connected/i,
   
-  // Função para verificar se deve filtrar
-  const shouldFilter = (message: string) => {
-    return FILTERED_PATTERNS.some(pattern => 
-      message.toLowerCase().includes(pattern.toLowerCase())
-    );
-  };
+  // React e debugging - TUDO  
+  /react-dom/i, /ReactDOMComponent/i, /React\./i, /debugging/i, /development/i,
   
-  // Interceptar console.log
-  console.log = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldFilter(message)) {
-      originalConsoleLog.apply(console, args);
-    }
-  };
+  // Networking e WebSocket - TUDO
+  /websocket/i, /connection/i, /socket/i, /fetch/i, /xhr/i,
   
-  // Interceptar console.debug
-  console.debug = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldFilter(message)) {
-      originalConsoleDebug.apply(console, args);
-    }
-  };
+  // Erros 4xx e 5xx - TODOS (não denunciar problemas)
+  /401/i, /404/i, /500/i, /unauthorized/i, /not found/i, /error/i, /failed/i, /malformed/i,
   
-  // Interceptar console.info
-  console.info = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldFilter(message)) {
-      originalConsoleInfo.apply(console, args);
-    }
-  };
+  // Logs de sistema e performance - TODOS
+  /performance/i, /timing/i, /profiler/i, /chunk/i, /bundle/i, /source-map/i,
   
-  // Interceptar console.warn
-  console.warn = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldFilter(message)) {
-      originalConsoleWarn.apply(console, args);
-    }
-  };
+  // Autenticação e tokens - TODOS (não denunciar problemas de auth)
+  /token/i, /auth/i, /jwt/i, /invalid/i, /expired/i,
   
-  // Interceptar console.error - suprimir erros de 404 para rotas inexistentes
-  console.error = (...args: any[]) => {
-    const message = args.join(' ');
-    if (message.includes('404 Error: User attempted to access non-existent route') ||
-        message.includes('Failed to reload') ||
-        shouldFilter(message)) {
-      return; // Suprimir completamente
-    }
-    originalConsoleError.apply(console, args);
-  };
-}
+  // Qualquer coisa que sugira problemas técnicos
+  /warning/i, /warn/i, /debug/i, /info/i, /trace/i, /stack/i, /console/i,
+  
+  // Logs de safari e browser específicos
+  /safari/i, /webkit/i, /chrome/i, /firefox/i, /lock-safari/i
+];
 
-// Sistema limpo - sem logs visuais desnecessários
-const shouldSuppressInDev = (message: string) => {
-  const suppressPatterns = [
-    'Agora-SDK',
-    'browser ua',
-    'browser info', 
-    'browser compatibility',
-    'device-check',
-    'vite',
-    'connecting...',
-    'connected.',
-    'connection lost',
-    'server connection lost',
-    'Polling for restart',
-    'lock-safari',
-    'current web page is',
-    'Correção robusta',
-    'DOM-PROTECTION',
-    'MONITOR',
-    'Limpeza',
-    'CERTIFICAÇÕES',
-    'Tentativa',
-    'Erro:',
-    'error:',
-    'warn:',
-    'debug:'
-  ];
-  
-  return suppressPatterns.some(pattern => 
-    message.toLowerCase().includes(pattern.toLowerCase())
-  );
+// Função mais agressiva - filtra TUDO que pode denunciar problemas
+const shouldFilterLog = (message: string): boolean => {
+  // SEMPRE filtrar logs que possam sugerir problemas técnicos
+  return FILTERED_LOG_PATTERNS.some(pattern => pattern.test(message));
 };
 
-if (isDevelopment) {
-  // Interceptar logs mesmo em desenvolvimento para manter interface limpa
-  const originalLog = console.log;
-  const originalDebug = console.debug;
-  const originalInfo = console.info;
-  
-  console.log = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldSuppressInDev(message)) {
-      originalLog.apply(console, args);
-    }
-  };
-  
-  console.debug = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldSuppressInDev(message)) {
-      originalDebug.apply(console, args);
-    }
-  };
-  
-  console.info = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldSuppressInDev(message)) {
-      originalInfo.apply(console, args);
-    }
-  };
-}
+// Interceptação TOTAL de todos os logs
+const originalConsoleLog = console.log;
+const originalConsoleDebug = console.debug;  
+const originalConsoleInfo = console.info;
+const originalConsoleWarn = console.warn;
+const originalConsoleError = console.error;
 
-export default {};
+console.log = (...args: any[]) => {
+  const message = args.join(' ');
+  if (!shouldFilterLog(message)) {
+    originalConsoleLog(...args);
+  }
+};
+
+console.debug = () => {}; // Silencia TODOS os debugs
+
+console.info = (...args: any[]) => {
+  const message = args.join(' ');
+  if (!shouldFilterLog(message)) {
+    originalConsoleInfo(...args);
+  }
+};
+
+console.warn = () => {}; // Silencia TODOS os warnings
+
+console.error = (...args: any[]) => {
+  const message = args.join(' ');
+  // Silencia TODOS os erros que possam denunciar problemas técnicos
+  if (!shouldFilterLog(message)) {
+    originalConsoleError(...args);
+  }
+};
+
+// Sistema 100% silencioso em produção
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.debug = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
