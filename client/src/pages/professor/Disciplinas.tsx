@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,11 @@ import {
   Video,
   Plus,
   Settings,
-  BarChart3
+  BarChart3,
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 export default function Disciplinas() {
@@ -36,6 +40,13 @@ export default function Disciplinas() {
     descricao: ""
   });
 
+  // Estados para filtros e paginação
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedArea, setSelectedArea] = useState("todas");
+  const [selectedStatus, setSelectedStatus] = useState("todos");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12); // 4 colunas x 3 linhas
+
   // Buscar disciplinas da API
   const { data: disciplinas = [], isLoading } = useQuery({
     queryKey: ['/api/professor/subjects'],
@@ -44,6 +55,32 @@ export default function Disciplinas() {
       return response as any[];
     }
   });
+
+  // Filtros e paginação
+  const filteredDisciplinas = useMemo(() => {
+    let filtered = disciplinas.filter((disciplina) => {
+      const matchesSearch = disciplina.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           disciplina.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           disciplina.area.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesArea = selectedArea === "todas" || disciplina.area === selectedArea;
+      const matchesStatus = selectedStatus === "todos" || disciplina.status === selectedStatus;
+      
+      return matchesSearch && matchesArea && matchesStatus;
+    });
+
+    return filtered;
+  }, [disciplinas, searchTerm, selectedArea, selectedStatus]);
+
+  // Paginação
+  const totalPages = Math.ceil(filteredDisciplinas.length / itemsPerPage);
+  const paginatedDisciplinas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredDisciplinas.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredDisciplinas, currentPage, itemsPerPage]);
+
+  // Reset da página quando filtros mudam
+  const resetPage = () => setCurrentPage(1);
 
   // Mutation para criar nova disciplina
   const createSubjectMutation = useMutation({
@@ -263,9 +300,81 @@ export default function Disciplinas() {
         </Card>
       </div>
 
+      {/* Filtros e Busca */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            {/* Busca */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar por nome, código ou área..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  resetPage();
+                }}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Filtros */}
+            <div className="flex gap-3 items-center">
+              <Filter className="h-4 w-4 text-gray-500" />
+              
+              {/* Filtro por Área */}
+              <Select value={selectedArea} onValueChange={(value) => {
+                setSelectedArea(value);
+                resetPage();
+              }}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as Áreas</SelectItem>
+                  <SelectItem value="ciencias-exatas">Ciências Exatas</SelectItem>
+                  <SelectItem value="ciencias-humanas">Ciências Humanas</SelectItem>
+                  <SelectItem value="ciencias-biologicas">Ciências Biológicas</SelectItem>
+                  <SelectItem value="engenharia">Engenharia</SelectItem>
+                  <SelectItem value="saude">Saúde</SelectItem>
+                  <SelectItem value="educacao">Educação</SelectItem>
+                  <SelectItem value="artes">Artes</SelectItem>
+                  <SelectItem value="linguistica">Linguística</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Filtro por Status */}
+              <Select value={selectedStatus} onValueChange={(value) => {
+                setSelectedStatus(value);
+                resetPage();
+              }}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos Status</SelectItem>
+                  <SelectItem value="ativa">Ativa</SelectItem>
+                  <SelectItem value="inativa">Inativa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Informações dos resultados */}
+          <div className="flex justify-between items-center mt-4 pt-4 border-t">
+            <div className="text-sm text-gray-600">
+              Exibindo {paginatedDisciplinas.length} de {filteredDisciplinas.length} disciplinas
+              {filteredDisciplinas.length !== disciplinas.length && (
+                <span className="text-blue-600"> (filtradas de {disciplinas.length} total)</span>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Disciplinas Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {disciplinas.map((disciplina) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {paginatedDisciplinas.map((disciplina) => (
           <Card 
             key={disciplina.id} 
             className={`cursor-pointer transition-all hover:shadow-lg ${
@@ -350,6 +459,112 @@ export default function Disciplinas() {
           </Card>
         ))}
       </div>
+
+      {/* Estado vazio quando não há resultados */}
+      {filteredDisciplinas.length === 0 && disciplinas.length > 0 && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma disciplina encontrada</h3>
+            <p className="text-gray-600 mb-4">
+              Tente ajustar os filtros ou termo de busca para encontrar as disciplinas desejadas.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedArea("todas");
+                setSelectedStatus("todos");
+                resetPage();
+              }}
+            >
+              Limpar Filtros
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Estado vazio quando não há disciplinas */}
+      {disciplinas.length === 0 && !isLoading && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma disciplina cadastrada</h3>
+            <p className="text-gray-600 mb-4">
+              Comece criando sua primeira disciplina para organizar conteúdos e avaliações.
+            </p>
+            <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Criar Primeira Disciplina
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Página {currentPage} de {totalPages}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+                
+                {/* Números das páginas */}
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = index + 1;
+                    } else if (currentPage <= 3) {
+                      pageNumber = index + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + index;
+                    } else {
+                      pageNumber = currentPage - 2 + index;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant={currentPage === pageNumber ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNumber}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="gap-1"
+                >
+                  Próxima
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Disciplina Selecionada - Detalhes */}
       {selectedDisciplina && (
