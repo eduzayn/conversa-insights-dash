@@ -180,18 +180,18 @@ export default function Disciplinas() {
               <div className="space-y-2">
                 <Label htmlFor="area">Área de Conhecimento</Label>
                 <Select value={formData.area} onValueChange={(value) => handleInputChange("area", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full min-h-[40px] bg-background border border-input">
                     <SelectValue placeholder="Selecione uma área" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ciencias-exatas">Ciências Exatas</SelectItem>
-                    <SelectItem value="ciencias-humanas">Ciências Humanas</SelectItem>
-                    <SelectItem value="ciencias-biologicas">Ciências Biológicas</SelectItem>
-                    <SelectItem value="engenharia">Engenharia</SelectItem>
-                    <SelectItem value="saude">Saúde</SelectItem>
-                    <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="artes">Artes</SelectItem>
-                    <SelectItem value="linguistica">Linguística</SelectItem>
+                  <SelectContent className="bg-background border border-input shadow-md z-50" position="popper" sideOffset={4}>
+                    <SelectItem value="ciencias-exatas" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Ciências Exatas</SelectItem>
+                    <SelectItem value="ciencias-humanas" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Ciências Humanas</SelectItem>
+                    <SelectItem value="ciencias-biologicas" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Ciências Biológicas</SelectItem>
+                    <SelectItem value="engenharia" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Engenharia</SelectItem>
+                    <SelectItem value="saude" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Saúde</SelectItem>
+                    <SelectItem value="educacao" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Educação</SelectItem>
+                    <SelectItem value="artes" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Artes</SelectItem>
+                    <SelectItem value="linguistica" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Linguística</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

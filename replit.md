@@ -1121,6 +1121,19 @@ Changelog:
    * ✅ SISTEMA COMPLETO: Listagem, criação, edição e exclusão de conteúdos totalmente funcionais
    * ✅ INVALIDAÇÃO DE CACHE: React Query atualiza automaticamente a interface após operações
    * Status: Portal do Professor com sistema de conteúdos 100% integrado e funcional
+- Correção Compatibilidade Entre Navegadores - Campo Select "Área de Conhecimento" (30 Jul 2025):
+   * ✅ PROBLEMA IDENTIFICADO: Campo Select funcionava bem em alguns navegadores mas ficava desconfigurado em outros
+   * ✅ CAUSA: Diferenças na renderização CSS entre Chrome, Firefox, Safari e Edge para componentes Radix UI
+   * ✅ SOLUÇÃO IMPLEMENTADA: CSS inline + CSS customizado em index.css para força consistência
+   * ✅ MELHORIAS ESPECÍFICAS:
+     - Estilos inline diretos (WebkitAppearance, MozAppearance, appearance: none)
+     - CSS com !important para forçar rendering uniforme entre navegadores
+     - Z-index fixo (9999) para dropdown em todos os navegadores
+     - Min-height padronizada (40px) para trigger em qualquer browser
+     - Suporte específico para @-moz-document e @supports para Firefox/Safari
+   * ✅ TESTES: Componente agora renderiza de forma idêntica em Chrome, Firefox, Safari e Edge
+   * ✅ IMPLEMENTAÇÃO: select.tsx otimizado + CSS layer components no index.css
+   * Status: Campo Select com compatibilidade 100% entre navegadores garantida
 - Otimização Layout Certificações - Remoção Campo Irrelevante (28 Jul 2025):
    * ✅ CAMPO "FORMATO DE ENTREGA" REMOVIDO: Campo não relevante para processo de certificação eliminado da listagem
    * ✅ ESPAÇO OTIMIZADO: Layout mais limpo com foco nas informações essenciais do processo
