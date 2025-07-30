@@ -44,7 +44,7 @@ export const NotificationSoundSelect: React.FC<NotificationSoundSelectProps> = (
       const audio = new Audio(sound.file);
       audio.volume = volume / 100;
       audio.play().catch(() => {
-        console.log('Não foi possível reproduzir o som');
+        // Não foi possível reproduzir o som
       });
     }
   };

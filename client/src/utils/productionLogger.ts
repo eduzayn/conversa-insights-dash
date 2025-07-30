@@ -1,8 +1,9 @@
-// Sistema de limpeza de logs para produção
+// Sistema de limpeza definitiva de logs visuais - silencia TUDO que polui a interface
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-if (isProduction) {
+// Aplicar limpeza TANTO em produção quanto desenvolvimento para interface 100% limpa
+if (isProduction || isDevelopment) {
   // Salvar referências originais
   const originalConsoleLog = console.log;
   const originalConsoleDebug = console.debug;
@@ -10,7 +11,7 @@ if (isProduction) {
   const originalConsoleWarn = console.warn;
   const originalConsoleError = console.error;
   
-  // Lista de padrões para filtrar
+  // Lista DEFINITIVA de padrões para filtrar - ZERO tolerância com poluição visual
   const FILTERED_PATTERNS = [
     'Agora-SDK',
     'vite',
@@ -28,7 +29,26 @@ if (isProduction) {
     'connected.',
     'server connection lost',
     'Polling for restart',
-    'lock-safari'
+    'lock-safari',
+    'current web page is',
+    'Correção robusta',
+    'DOM-PROTECTION',
+    'MONITOR',
+    'Limpeza',
+    'CERTIFICAÇÕES',
+    'Tentativa',
+    'Erro:',
+    'error:',
+    'warn:',
+    'debug:',
+    'ERROR:',
+    'WARNING:',
+    'DEBUG:',
+    'Reloading',
+    'HMR',
+    'polling',
+    'restart',
+    'Server connection'
   ];
   
   // Função para verificar se deve filtrar
@@ -82,9 +102,65 @@ if (isProduction) {
   };
 }
 
-// Logs para desenvolvimento
+// Sistema limpo - sem logs visuais desnecessários
+const shouldSuppressInDev = (message: string) => {
+  const suppressPatterns = [
+    'Agora-SDK',
+    'browser ua',
+    'browser info', 
+    'browser compatibility',
+    'device-check',
+    'vite',
+    'connecting...',
+    'connected.',
+    'connection lost',
+    'server connection lost',
+    'Polling for restart',
+    'lock-safari',
+    'current web page is',
+    'Correção robusta',
+    'DOM-PROTECTION',
+    'MONITOR',
+    'Limpeza',
+    'CERTIFICAÇÕES',
+    'Tentativa',
+    'Erro:',
+    'error:',
+    'warn:',
+    'debug:'
+  ];
+  
+  return suppressPatterns.some(pattern => 
+    message.toLowerCase().includes(pattern.toLowerCase())
+  );
+};
+
 if (isDevelopment) {
-  console.log('🔧 Modo desenvolvimento - todos os logs habilitados');
+  // Interceptar logs mesmo em desenvolvimento para manter interface limpa
+  const originalLog = console.log;
+  const originalDebug = console.debug;
+  const originalInfo = console.info;
+  
+  console.log = (...args: any[]) => {
+    const message = args.join(' ');
+    if (!shouldSuppressInDev(message)) {
+      originalLog.apply(console, args);
+    }
+  };
+  
+  console.debug = (...args: any[]) => {
+    const message = args.join(' ');
+    if (!shouldSuppressInDev(message)) {
+      originalDebug.apply(console, args);
+    }
+  };
+  
+  console.info = (...args: any[]) => {
+    const message = args.join(' ');
+    if (!shouldSuppressInDev(message)) {
+      originalInfo.apply(console, args);
+    }
+  };
 }
 
 export default {};

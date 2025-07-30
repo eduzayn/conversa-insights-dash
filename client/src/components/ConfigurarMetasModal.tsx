@@ -43,16 +43,7 @@ export const ConfigurarMetasModal = ({ open, onOpenChange }: ConfigurarMetasModa
 
   const handleSalvar = () => {
     // Aqui seria implementada a lógica para salvar a meta
-    console.log("Salvando meta:", {
-      tipoMeta,
-      aplicacao,
-      equipe,
-      colaborador,
-      indicador,
-      valorMeta,
-      moedas,
-      descricaoPremio
-    });
+    // Salvando meta silenciosamente
     onOpenChange(false);
   };
 

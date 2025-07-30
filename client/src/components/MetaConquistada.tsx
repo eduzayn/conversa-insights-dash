@@ -118,7 +118,7 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
         }, delay * 1000);
       });
     } catch (error) {
-      console.log('Erro ao reproduzir som avançado:', error);
+      // Erro ao reproduzir som avançado
     }
   };
 
@@ -127,7 +127,7 @@ export const MetaConquistada = ({ isVisible, onClose, conquista }: MetaConquista
       // Reproduz o áudio de comemoração completo com fogos, palmas e gritos
       playCelebrationAudio();
     } catch (error) {
-      console.log('Erro ao reproduzir som:', error);
+      // Erro ao reproduzir som
       // Fallback simples
       const beep = new AudioContext();
       const oscillator = beep.createOscillator();

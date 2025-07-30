@@ -113,16 +113,11 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
 
   const handleSendMessage = () => {
     if (!message.trim() || !currentUser) {
-      console.log('Mensagem vazia ou usuário não encontrado');
+      // Mensagem vazia ou usuário não encontrado
       return;
     }
 
-    console.log('Enviando mensagem:', {
-      chatId,
-      message: message.trim(),
-      currentUser: currentUser.name,
-      replyingTo: replyingTo?.id
-    });
+    // Enviando mensagem
 
     const messageToSend = {
       senderId: currentUser.id,
@@ -137,7 +132,7 @@ export const MessageInput = ({ chatId, currentUser }: MessageInputProps) => {
       } : undefined
     };
 
-    console.log('Dados da mensagem a enviar:', messageToSend);
+    // Dados da mensagem a enviar
 
     addMessage(chatId, messageToSend);
     setMessage("");

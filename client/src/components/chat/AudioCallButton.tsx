@@ -13,11 +13,7 @@ export const AudioCallButton = ({ chat, currentUser, onStartCall }: AudioCallBut
   if (!currentUser) return null;
 
   const handleStartCall = () => {
-    console.log('Iniciando chamada de áudio para:', {
-      chatId: chat.id,
-      chatName: chat.name,
-      participants: chat.participants.length
-    });
+    // Iniciando chamada de áudio
     onStartCall();
   };
 

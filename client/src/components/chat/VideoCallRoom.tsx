@@ -44,7 +44,7 @@ export const VideoCallRoom = ({
   useEffect(() => {
     const initAgora = async () => {
       try {
-        console.log('Inicializando Agora RTC...');
+        // Inicializando Agora RTC silenciosamente
         
         const agoraClient = AgoraRTC.createClient({ 
           mode: "rtc", 
@@ -53,7 +53,7 @@ export const VideoCallRoom = ({
 
         // Event listeners
         agoraClient.on("user-published", async (user, mediaType) => {
-          console.log('Usuário publicou:', user.uid, mediaType);
+          // Usuário publicou mídia
           await agoraClient.subscribe(user, mediaType);
           
           if (mediaType === "video") {
@@ -79,12 +79,10 @@ export const VideoCallRoom = ({
         });
 
         agoraClient.on("user-unpublished", (user) => {
-          console.log('Usuário saiu:', user.uid);
           setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
         });
 
         agoraClient.on("user-left", (user) => {
-          console.log('Usuário deixou o canal:', user.uid);
           setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
         });
 
@@ -95,7 +93,6 @@ export const VideoCallRoom = ({
         
         // Entrar no canal
         await agoraClient.join(APP_ID, channelName, token, currentUser?.id);
-        console.log('Conectado ao canal:', channelName);
 
         // Criar e publicar tracks locais
         const videoTrack = await AgoraRTC.createCameraVideoTrack();
@@ -106,12 +103,10 @@ export const VideoCallRoom = ({
 
         // Publicar tracks
         await agoraClient.publish([videoTrack, audioTrack]);
-        console.log('Tracks publicados com sucesso');
 
         setIsConnecting(false);
 
       } catch (err) {
-        console.error('Erro ao inicializar Agora:', err);
         setError('Erro ao conectar com o serviço de vídeo. Tente novamente.');
         setIsConnecting(false);
       }

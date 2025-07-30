@@ -43,11 +43,11 @@ export const AudioCallRoom = ({ chat, currentUser, onEndCall }: AudioCallRoomPro
 
   const handleToggleMute = () => {
     setIsMuted(!isMuted);
-    console.log('Microfone:', isMuted ? 'ativado' : 'desativado');
+    // Microfone controlado silenciosamente
   };
 
   const handleEndCall = () => {
-    console.log('Encerrando chamada de áudio');
+    // Encerrando chamada de áudio
     onEndCall();
   };
 
