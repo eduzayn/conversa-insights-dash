@@ -30,7 +30,7 @@ import {
   insertEnvioFamarSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { botConversaService, type BotConversaWebhookData } from "./services/botconversa";
+
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
@@ -347,8 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeAgents = users.filter(user => 
         user.isActive && 
         conversations.some(conv => 
-          conv.atendente === user.username || 
-          conv.botconversaManagerName === user.username
+          conv.atendente === user.username
         )
       ).length;
       
@@ -424,8 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Dados para gráfico de produtividade por atendente (top 5)
       const userProductivity = activeUsers.map(user => {
         const userConversations = conversations.filter(conv => 
-          conv.atendente === user.username || 
-          conv.botconversaManagerName === user.username ||
+          conv.atendente === user.username ||
           (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()))
         );
         
@@ -1313,32 +1311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sincronizar conversas do BotConversa
-  app.post("/api/atendimentos/sync", authenticateToken, async (req: any, res) => {
-    try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem sincronizar dados." });
-      }
-      
-      // Sincronizar ambas as contas
-      await Promise.all([
-        botConversaService.syncConversations('SUPORTE'),
-        botConversaService.syncConversations('COMERCIAL')
-      ]);
-      
-      res.json({ 
-        success: true, 
-        message: "Conversas sincronizadas com sucesso",
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error("Erro ao sincronizar conversas:", error);
-      res.status(500).json({ 
-        message: "Erro ao sincronizar conversas",
-        error: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
+  // Sistema de sincronização removido - sistema local apenas
 
   // Atendimentos com paginação
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
@@ -1347,19 +1320,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentPage = parseInt(page);
       const pageSize = parseInt(limit);
       
-      // Buscar apenas conversas reais do BotConversa (que tenham dados do BotConversa OU não tenham dados simulados)
-      let allConversations = await storage.getConversations();
-      
-      // Filtrar conversas simuladas - manter apenas as que têm customerPhone real ou são do BotConversa
-      let conversations = allConversations.filter(conv => {
-        // Manter conversas que não têm nomes simulados específicos
-        const isSimulated = (
-          conv.customerName === 'Ana Costa' || 
-          conv.customerName === 'João Santos' || 
-          conv.customerName === 'Maria Silva'
-        );
-        return !isSimulated;
-      });
+      // Buscar todas as conversas do sistema
+      let conversations = await storage.getConversations();
       
       // Buscar informações dos teams
       const teams = await storage.getTeams();
@@ -1383,59 +1345,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let attendantName = 'Não atribuído';
         let equipe = 'Não atribuído';
         
-        // Priorizar informações do BotConversa se disponíveis
-        if (conv.botconversaManagerName) {
-          attendantName = conv.botconversaManagerName;
-          
-          // Determinar equipe baseada no email do manager
-          if (conv.botconversaManagerEmail) {
-            // Mapear emails para equipes reais do BotConversa
-            const emailToTeam = {
-              // Conta COMERCIAL - Emails reais mapeados para departamentos
-              'yasminvitorino.office@gmail.com': 'Comercial',
-              'brenodantas28@gmail.com': 'Comercial', 
-              'jhonatapimenteljgc38@gmail.com': 'Comercial',
-              'amanda.silva@hotmail.com': 'Comercial',
-              'tamires.kele@gmail.com': 'Secretaria Pós',
-              'elaine.barros@gmail.com': 'Secretaria Pós',
-              'brunaalvesreis89@gmail.com': 'Secretaria Segunda',
-              'miguel.moura@gmail.com': 'Comercial',
-              'camila.aparecida@gmail.com': 'Comercial',
-              'julia.oliveira@gmail.com': 'Comercial',
-              'carla.araujo@gmail.com': 'Comercial',
-              'alana.matos@universidadebrasil.edu.br': 'Suporte',
-              'kamilla.videla@gmail.com': 'Financeiro',
-              'rhonda.pimentel@gmail.com': 'Cobrança',
-              'erick.moreira@gmail.com': 'Suporte',
-              'daniela.torres@gmail.com': 'Tutoria',
-              'ronan.cleomenti@gmail.com': 'Documentação',
-              
-              // Conta SUPORTE - Emails reais mapeados para departamentos
-              'lailsonmartins22@gmail.com': 'Comercial',
-              'leticiamalfarmacia@gmail.com': 'Cobrança',
-              'joilsonferreira@gmail.com': 'Suporte',
-              'miguelmauraferreira@gmail.com': 'Tutoria',
-              'leticiamalfarmacia24@gmail.com': 'Tutoria',
-              'erikabrasilsouza@gmail.com': 'Secretaria Pós',
-              'erikabrasilsouza68@gmail.com': 'Secretaria Pós',
-              'daniselenitorres@gmail.com': 'Secretaria Segunda',
-              'cristinarafael@gmail.com': 'Secretaria Segunda',
-              'aiaramattos@universidadebusf.edu.br': 'Suporte',
-              'kamillabellara@gmail.com': 'Financeiro',
-              'wendellacarioca@gmail.com': 'Documentação'
-            };
-            
-            equipe = emailToTeam[conv.botconversaManagerEmail] || 'Comercial';
-          }
-        } else {
-          // Fallback para atendente do sistema local
-          const attendant = conv.attendantId ? await storage.getUser(conv.attendantId) : null;
-          attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
-          
-          if (attendant) {
-            const attendantTeam = teams.find(t => t.id === attendant.teamId);
-            equipe = attendantTeam ? attendantTeam.name : 'Atendimento';
-          }
+        // Buscar informações do atendente do sistema
+        const attendant = conv.attendantId ? await storage.getUser(conv.attendantId) : null;
+        attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
+        
+        if (attendant) {
+          const attendantTeam = teams.find(t => t.id === attendant.teamId);
+          equipe = attendantTeam ? attendantTeam.name : 'Suporte';
         }
         
         // Formatar data de criação para exibição
@@ -1535,7 +1451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar dados reais de atendentes e equipes do BotConversa
+  // Endpoint para buscar dados de atendentes e equipes do sistema
   app.get("/api/atendimentos/filters-data", authenticateToken, async (req: any, res) => {
     try {
       // Buscar usuários ativos do sistema interno
@@ -1545,60 +1461,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(user => user.username)
         .sort();
       
-      const { BotConversaService } = await import('./services/botconversa');
-      const botConversaService = new BotConversaService();
-      
-      // Buscar managers das duas contas para dados complementares
-      const [supporteManagers, comercialManagers] = await Promise.all([
-        botConversaService.getManagers('SUPORTE'),
-        botConversaService.getManagers('COMERCIAL')
-      ]);
-      
-      // Combinar managers do BotConversa
-      const allManagers = [...supporteManagers, ...comercialManagers];
+      // Sistema local sem integração externa
+      const allManagers = [];
       
       // Usar atendentes do sistema interno como prioridade
       const atendentes = atendentesInternos.length > 0 ? atendentesInternos : 
         [...new Set(allManagers.map(m => m.full_name))].filter(Boolean).sort();
       
-      // Mapear emails para equipes reais do BotConversa
-      const emailToTeam = {
-        // Conta COMERCIAL - Emails reais mapeados para departamentos
-        'yasminvitorino.office@gmail.com': 'Comercial',
-        'brenodantas28@gmail.com': 'Comercial', 
-        'jhonatapimenteljgc38@gmail.com': 'Comercial',
-        'amanda.silva@hotmail.com': 'Comercial',
-        'tamires.kele@gmail.com': 'Secretaria Pós',
-        'elaine.barros@gmail.com': 'Secretaria Pós',
-        'brunaalvesreis89@gmail.com': 'Secretaria Segunda',
-        'miguel.moura@gmail.com': 'Comercial',
-        'camila.aparecida@gmail.com': 'Comercial',
-        'julia.oliveira@gmail.com': 'Comercial',
-        'carla.araujo@gmail.com': 'Comercial',
-        'alana.matos@universidadebrasil.edu.br': 'Suporte',
-        'kamilla.videla@gmail.com': 'Financeiro',
-        'rhonda.pimentel@gmail.com': 'Cobrança',
-        'erick.moreira@gmail.com': 'Suporte',
-        'daniela.torres@gmail.com': 'Tutoria',
-        'ronan.cleomenti@gmail.com': 'Documentação',
-        
-        // Conta SUPORTE - Emails reais mapeados para departamentos
-        'lailsonmartins22@gmail.com': 'Comercial',
-        'leticiamalfarmacia@gmail.com': 'Cobrança',
-        'joilsonferreira@gmail.com': 'Suporte',
-        'miguelmauraferreira@gmail.com': 'Tutoria',
-        'leticiamalfarmacia24@gmail.com': 'Tutoria',
-        'erikabrasilsouza@gmail.com': 'Secretaria Pós',
-        'erikabrasilsouza68@gmail.com': 'Secretaria Pós',
-        'daniselenitorres@gmail.com': 'Secretaria Segunda',
-        'cristinarafael@gmail.com': 'Secretaria Segunda',
-        'aiaramattos@universidadebusf.edu.br': 'Suporte',
-        'kamillabellara@gmail.com': 'Financeiro',
-        'wendellacarioca@gmail.com': 'Documentação'
-      };
+      // Mapeamento de equipes locais simplificado
+      const emailToTeam = {};
       
-      // Usar apenas as equipes reais do BotConversa baseadas nos departamentos identificados
-      const equipesReaisBotConversa = [
+      // Equipes do sistema local
+      const equipesLocais = [
         'Comercial',
         'Cobrança', 
         'Tutoria',
@@ -1611,7 +1485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Não atribuído'
       ];
       
-      const equipes = equipesReaisBotConversa.sort();
+      const equipes = equipesLocais.sort();
       
       // Buscar status reais das conversas do banco
       const conversations = await storage.getConversations();
@@ -1639,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       });
     } catch (error) {
-      logger.error("Erro ao buscar dados de filtros do BotConversa:", error);
+      logger.error("Erro ao buscar dados de filtros:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1699,9 +1573,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Filtrar conversas do período selecionado
         const userConversations = filteredConversations.filter(conv => {
           const matchesUsername = conv.atendente === user.username;
-          const matchesBotConversa = conv.botconversaManagerName === user.username;
           const matchesSimilarName = conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase());
-          return matchesUsername || matchesBotConversa || matchesSimilarName;
+          return matchesUsername || matchesSimilarName;
         });
         
         // Calcular atendimentos específicos para HOJE
@@ -1712,8 +1585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const todayUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
-          const matchesUser = conv.atendente === user.username || 
-                            conv.botconversaManagerName === user.username ||
+          const matchesUser = conv.atendente === user.username ||
                             (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()));
           return convDate >= todayStart && convDate <= todayEnd && matchesUser;
         });
@@ -1728,8 +1600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const yesterdayUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
-          const matchesUser = conv.atendente === user.username || 
-                            conv.botconversaManagerName === user.username ||
+          const matchesUser = conv.atendente === user.username ||
                             (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()));
           return convDate >= yesterdayStart && convDate <= yesterdayEnd && matchesUser;
         });
@@ -1741,8 +1612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const weekUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
-          const matchesUser = conv.atendente === user.username || 
-                            conv.botconversaManagerName === user.username ||
+          const matchesUser = conv.atendente === user.username ||
                             (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()));
           return convDate >= weekStart && convDate <= todayEnd && matchesUser;
         });
@@ -1753,8 +1623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const monthUserConversations = conversations.filter(conv => {
           const convDate = new Date(conv.createdAt);
-          const matchesUser = conv.atendente === user.username || 
-                            conv.botconversaManagerName === user.username ||
+          const matchesUser = conv.atendente === user.username ||
                             (conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase()));
           return convDate >= monthStart && convDate <= todayEnd && matchesUser;
         });
@@ -1935,9 +1804,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const attendantStats = atendentesAtivos.map(user => {
           const userConversations = dayConversations.filter(conv => {
             const matchesUsername = conv.atendente === user.username;
-            const matchesBotConversa = conv.botconversaManagerName === user.username;
             const matchesSimilarName = conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase());
-            return matchesUsername || matchesBotConversa || matchesSimilarName;
+            return matchesUsername || matchesSimilarName;
           });
           return {
             name: user.username,
@@ -1976,9 +1844,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const topPerformers = atendentesAtivos.map(user => {
         const userConversations = filteredConversations.filter(conv => {
           const matchesUsername = conv.atendente === user.username;
-          const matchesBotConversa = conv.botconversaManagerName === user.username;
           const matchesSimilarName = conv.atendente && conv.atendente.toLowerCase().includes(user.username.toLowerCase());
-          return matchesUsername || matchesBotConversa || matchesSimilarName;
+          return matchesUsername || matchesSimilarName;
         });
         
         return {
@@ -2021,28 +1888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (updatedConversation) {
-        // Sincronização bidirecional com BotConversa
-        if (updatedConversation.customerPhone) {
-          // Tentar determinar qual conta do BotConversa usar
-          const accountToUse = updatedConversation.botconversaManagerEmail?.includes('comercial') ||
-                               updatedConversation.botconversaManagerEmail?.includes('yasmin') ||
-                               updatedConversation.botconversaManagerEmail?.includes('breno') ||
-                               updatedConversation.botconversaManagerEmail?.includes('jhonata') 
-                               ? 'COMERCIAL' : 'SUPORTE';
-          
-          // Atualizar status no BotConversa (não bloqueia se falhar)
-          try {
-            await botConversaService.updateConversationStatusInBotConversa(
-              updatedConversation.customerPhone,
-              status,
-              accountToUse
-            );
-            console.log(`✓ Status sincronizado com BotConversa: ${status} para ${updatedConversation.customerPhone}`);
-          } catch (error) {
-            logger.error(`⚠️ Erro na sincronização com BotConversa:`, error);
-            // Não falha a operação local se houver erro no BotConversa
-          }
-        }
+        // Sistema local - sem sincronização externa
 
         const atendimento = {
           id: updatedConversation.id,
@@ -2159,7 +2005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assunto: assunto || null,
           observacoes: observacoes || null,
           attendantId: req.user.id, // Rastrear usuário logado
-          botconversaManagerName: loggedUser?.username // Para vinculação com métricas
+          // Sistema local sem integração externa
         })
         .where(eq(conversations.id, conversation.id));
 
@@ -2312,17 +2158,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       for (const conv of conversations) {
         // Adicionar atendentes
-        if (conv.botconversaManagerEmail) {
-          // Mapear email para nome do atendente
-          const managerNames: { [key: string]: string } = {
-            'carolgoncalves.consultoraeducacional@gmail.com': 'Carol Gonçalves',
-            'amanda@instituicaoeducacional.com': 'Amanda Santos',
-            'yasminvitorino.office@gmail.com': 'Yasmin Vitorino',
-            'brenodantas28@gmail.com': 'Breno Dantas',
-            'jhonatapimenteljgc38@gmail.com': 'Jhonata Pimentel'
-          };
-          const attendantName = managerNames[conv.botconversaManagerEmail] || conv.botconversaManagerEmail;
-          atendentesSet.add(attendantName);
+        // Sistema local - buscar atendente diretamente
+        if (conv.atendente) {
+          atendentesSet.add(conv.atendente);
         } else if (conv.attendantId) {
           const attendant = users.find(u => u.id === conv.attendantId);
           if (attendant) {
@@ -3098,415 +2936,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // ===== WEBHOOKS BOTCONVERSA =====
+  // ===== SISTEMA LOCAL - WEBHOOKS REMOVIDOS =====
   
-  // Webhook para conta de SUPORTE
-  app.post("/webhook/botconversa/suporte", async (req, res) => {
-    try {
-      console.log('Webhook Suporte recebido:', req.body);
-      
-      const webhookData: BotConversaWebhookData = req.body;
-      
-      // Validar dados básicos do webhook
-      if (!webhookData.subscriber || !webhookData.event_type) {
-        return res.status(400).json({ 
-          error: "Dados do webhook inválidos - subscriber e event_type são obrigatórios" 
-        });
-      }
-      
-      // Processar webhook
-      await botConversaService.processWebhook(webhookData, 'SUPORTE');
-      
-      // Emitir evento via WebSocket para atualizações em tempo real
-      io.emit('botconversa_webhook', {
-        account: 'SUPORTE',
-        event_type: webhookData.event_type,
-        subscriber: webhookData.subscriber
-      });
-      
-      res.status(200).json({ 
-        success: true, 
-        message: "Webhook processado com sucesso",
-        account: "SUPORTE",
-        event_type: webhookData.event_type
-      });
-      
-    } catch (error) {
-      logger.error("Erro ao processar webhook Suporte:", error);
-      res.status(500).json({ 
-        error: "Erro interno do servidor",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
-  
-  // Webhook para conta COMERCIAL
-  app.post("/webhook/botconversa/comercial", async (req, res) => {
-    try {
-      console.log('Webhook Comercial recebido:', req.body);
-      
-      const webhookData: BotConversaWebhookData = req.body;
-      
-      // Validar dados básicos do webhook
-      if (!webhookData.subscriber || !webhookData.event_type) {
-        return res.status(400).json({ 
-          error: "Dados do webhook inválidos - subscriber e event_type são obrigatórios" 
-        });
-      }
-      
-      // Processar webhook
-      await botConversaService.processWebhook(webhookData, 'COMERCIAL');
-      
-      // Emitir evento via WebSocket para atualizações em tempo real
-      io.emit('botconversa_webhook', {
-        account: 'COMERCIAL', 
-        event_type: webhookData.event_type,
-        subscriber: webhookData.subscriber
-      });
-      
-      res.status(200).json({ 
-        success: true, 
-        message: "Webhook processado com sucesso",
-        account: "COMERCIAL",
-        event_type: webhookData.event_type
-      });
-      
-    } catch (error) {
-      logger.error("Erro ao processar webhook Comercial:", error);
-      res.status(500).json({ 
-        error: "Erro interno do servidor",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
-  
-  // Endpoint para testar integração BotConversa
-  app.post("/api/botconversa/test", authenticateToken, async (req: any, res) => {
-    try {
-      const { account, phone } = req.body;
-      
-      if (!account || !phone) {
-        return res.status(400).json({ 
-          error: "Parâmetros obrigatórios: account ('SUPORTE' ou 'COMERCIAL') e phone" 
-        });
-      }
-      
-      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
-        return res.status(400).json({ 
-          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
-        });
-      }
-      
-      // Buscar subscriber no BotConversa
-      const subscriber = await botConversaService.getSubscriberByPhone(phone, account);
-      
-      if (subscriber) {
-        res.json({
-          success: true,
-          message: `Subscriber encontrado na conta ${account}`,
-          account,
-          phone,
-          subscriber: {
-            id: subscriber.id,
-            phone: subscriber.phone,
-            name: subscriber.name || 'Não informado',
-            email: subscriber.email || 'Não informado',
-            tags: subscriber.tags || [],
-            created_at: subscriber.created_at,
-            updated_at: subscriber.updated_at
-          }
-        });
-      } else {
-        res.json({
-          success: false,
-          message: `Subscriber não encontrado na conta ${account}. Isso é normal para testes - o telefone ${phone} não existe na base do BotConversa.`,
-          account,
-          phone,
-          suggestion: "Teste com um telefone real que existe na sua conta BotConversa ou use a funcionalidade de criar subscriber."
-        });
-      }
-      
-    } catch (error) {
-      logger.error("Erro ao testar integração:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
-      
-      // Analisar tipo de erro para resposta mais útil
-      if (errorMessage.includes('403')) {
-        res.status(403).json({ 
-          success: false,
-          error: "Erro de autenticação",
-          message: "Chave de API inválida ou sem permissão. Verifique se a chave está correta.",
-          details: errorMessage
-        });
-      } else if (errorMessage.includes('404')) {
-        res.json({ 
-          success: false,
-          message: "Subscriber não encontrado - comportamento normal para testes",
-          error: "Recurso não encontrado",
-          details: errorMessage
-        });
-      } else {
-        res.status(500).json({ 
-          success: false,
-          error: "Erro interno do servidor",
-          message: errorMessage,
-          suggestion: "Verifique a conectividade com a API BotConversa"
-        });
-      }
-    }
-  });
-  
-  // Endpoint para sincronizar dados do BotConversa
-  app.post("/api/botconversa/sync", authenticateToken, async (req: any, res) => {
-    try {
-      const { account } = req.body;
-      
-      if (!account) {
-        return res.status(400).json({ 
-          error: "Parâmetro obrigatório: account ('SUPORTE' ou 'COMERCIAL')" 
-        });
-      }
-      
-      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
-        return res.status(400).json({ 
-          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
-        });
-      }
-      
-      // Executar sincronização
-      await botConversaService.syncWithCRM(account);
-      
-      res.json({
-        success: true,
-        message: `Sincronização com conta ${account} concluída`
-      });
-      
-    } catch (error) {
-      logger.error("Erro na sincronização:", error);
-      res.status(500).json({ 
-        error: "Erro na sincronização",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
-  
-  // Endpoint para diagnóstico da API BotConversa
-  app.post("/api/botconversa/diagnose", authenticateToken, async (req: any, res) => {
-    try {
-      const { account = 'COMERCIAL' } = req.body;
-      const apiKey = account === 'SUPORTE' ? 
-        process.env.BOTCONVERSA_SUPORTE_KEY : 
-        process.env.BOTCONVERSA_COMERCIAL_KEY;
-      
-      const baseUrl = 'https://backend.botconversa.com.br/api/v1/webhook';
-      const results = [];
-      
-      // Testa diferentes formatos de autenticação
-      const testConfigs = [
-        { name: 'x-api-key', headers: { 'x-api-key': apiKey } },
-        { name: 'Authorization Bearer', headers: { 'Authorization': `Bearer ${apiKey}` } },
-        { name: 'Authorization Direct', headers: { 'Authorization': apiKey } },
-        { name: 'api-key', headers: { 'api-key': apiKey } }
-      ];
-      
-      for (const config of testConfigs) {
-        try {
-          const response = await fetch(`${baseUrl}/tags/`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'User-Agent': 'BotConversa-Analytics/1.0',
-              ...config.headers
-            }
-          });
-          
-          const responseText = await response.text();
-          results.push({
-            config: config.name,
-            status: response.status,
-            success: response.ok,
-            response: responseText.substring(0, 200) + (responseText.length > 200 ? '...' : '')
-          });
-          
-        } catch (error) {
-          results.push({
-            config: config.name,
-            status: 'ERROR',
-            success: false,
-            error: error.message
-          });
-        }
-      }
-      
-      res.json({
-        account,
-        apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'NÃO CONFIGURADA',
-        results
-      });
-      
-    } catch (error) {
-      logger.error("Erro no diagnóstico:", error);
-      res.status(500).json({ 
-        error: "Erro no diagnóstico",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
-
-  // Endpoint para testar roteamento automático
-  app.post("/api/routing/test", authenticateToken, async (req: any, res) => {
-    try {
-      const { account, tags, phone } = req.body;
-      
-      if (!account) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Parâmetro obrigatório: account" 
-        });
-      }
-
-      // Criar subscriber fictício para teste
-      const mockSubscriber = {
-        id: 'test-123',
-        phone: phone || '5531971761350',
-        name: 'Teste Roteamento',
-        tags: tags || ['Comercial', 'Muito Interesse'],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      // Testar roteamento
-      const { routingService } = await import('./services/routing.js');
-      const department = await routingService.routeSubscriber(mockSubscriber, account);
-      const assignedUser = await routingService.findBestAttendant(department, account);
-      const emails = routingService.getDepartmentEmails(department, account);
-      
-      return res.json({
-        success: true,
-        message: `Roteamento testado com sucesso para conta ${account}`,
-        routing: {
-          department,
-          assignedUser,
-          emails,
-          tags: mockSubscriber.tags
-        },
-        subscriber: mockSubscriber,
-        account
-      });
-    } catch (error) {
-      logger.error("Erro ao testar roteamento:", error);
-      return res.status(500).json({ 
-        success: false, 
-        error: "Erro interno do servidor",
-        message: "Erro ao processar teste de roteamento",
-        details: error.message
-      });
-    }
-  });
-
-  // Endpoint para buscar informações do fluxo de boas vindas
-  app.get("/api/botconversa/flows/:account", authenticateToken, async (req: any, res) => {
-    try {
-      const { account } = req.params;
-      
-      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
-        return res.status(400).json({ 
-          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
-        });
-      }
-      
-      // Buscar informações do fluxo de boas vindas
-      const flowInfo = await botConversaService.getWelcomeFlowInfo(account);
-      
-      res.json({ 
-        success: true,
-        account,
-        flow: flowInfo
-      });
-      
-    } catch (error) {
-      logger.error("Erro ao buscar fluxos:", error);
-      res.status(500).json({ 
-        error: "Erro interno do servidor",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
-
-  // Endpoint para análise comparativa do fluxo com CRM
-  app.get("/api/botconversa/flows/:account/analysis", authenticateToken, async (req: any, res) => {
-    try {
-      const { account } = req.params;
-      
-      if (account !== 'SUPORTE' && account !== 'COMERCIAL') {
-        return res.status(400).json({ 
-          error: "Account deve ser 'SUPORTE' ou 'COMERCIAL'" 
-        });
-      }
-      
-      // Buscar informações do fluxo
-      const flowInfo = await botConversaService.getWelcomeFlowInfo(account);
-      
-      // Buscar dados do CRM para comparação
-      const teams = await storage.getTeams();
-      const leads = await storage.getLeads();
-      const conversations = await storage.getConversations();
-      
-      // Análise comparativa
-      const analysis = {
-        flowInfo,
-        crmData: {
-          totalTeams: teams.length,
-          totalLeads: leads.length,
-          totalConversations: conversations.length,
-          leadsByStatus: leads.reduce((acc: any, lead) => {
-            acc[lead.status] = (acc[lead.status] || 0) + 1;
-            return acc;
-          }, {}),
-          conversationsByStatus: conversations.reduce((acc: any, conv) => {
-            acc[conv.status] = (acc[conv.status] || 0) + 1;
-            return acc;
-          }, {})
-        },
-        integration: {
-          webhookStatus: "active",
-          autoRouting: true,
-          departmentCoverage: Object.keys(flowInfo.departments).length,
-          routingRules: Object.keys(flowInfo.routingRules).length
-        },
-        recommendations: [
-          {
-            type: "improvement",
-            priority: "high",
-            description: "Expandir menu para incluir todos os 9 departamentos",
-            currentCoverage: Object.keys(flowInfo.routingRules).length,
-            targetCoverage: Object.keys(flowInfo.departments).length
-          },
-          {
-            type: "performance",
-            priority: "medium",
-            description: "Implementar balanceamento de carga para departamentos com poucos membros",
-            affectedDepartments: Object.entries(flowInfo.departments)
-              .filter(([, dept]: [string, any]) => dept.members < 2)
-              .map(([name]) => name)
-          }
-        ]
-      };
-      
-      res.json({ 
-        success: true,
-        account,
-        analysis
-      });
-      
-    } catch (error) {
-      logger.error("Erro ao analisar fluxo:", error);
-      res.status(500).json({ 
-        error: "Erro interno do servidor",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
-      });
-    }
-  });
+  // Sistema local - endpoints externos removidos
 
   // Rotas para Certificações
   app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {

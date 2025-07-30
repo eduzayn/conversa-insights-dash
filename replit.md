@@ -175,16 +175,7 @@ Changelog:
   * Notas internas para conversas
   * Progresso das metas e atividades de usuário
 - Sistema pronto para demonstração e uso
-- Integração BotConversa implementada:
-  * Configurações mapeadas para conta comercial (27 campos personalizados, 22 tags)
-  * Serviços de API configurados com tratamento de erros robusto
-  * Página de administração completa (/integracao-botconversa)
-  * Webhooks configurados para ambas as contas (suporte e comercial)
-  * Identificado número do bot comercial: +55 31 97176-1350
-  * Sistema de testes implementado com orientações claras para uso
-  * RESOLVIDO: Problema de autenticação solucionado - API usa header 'api-key' em vez de 'Authorization'
-  * Chaves API ativadas pelo suporte BotConversa (8 Jul 2025)
-  * Integração funcionando para ambas as contas: 182301/Comercial e 182331/Suporte
+- BotConversa: Sistema completamente removido do projeto conforme solicitação do usuário
 - Fase 2 - Configuração de Negócio implementada:
   * Mapeamento completo de departamentos para ambas as contas
   * Comercial: 16 membros em 9 departamentos com emails mapeados
@@ -328,16 +319,12 @@ Changelog:
    * ✅ 9 certificados de teste criados com diferentes status
    * ✅ Integração completa com base de dados PostgreSQL
    * Status: Sistema 100% funcional e pronto para uso em produção
-- Integração BotConversa Completa Implementada (9 Jul 2025):
-   * Endpoint /api/atendimentos migrado para dados reais do banco de dados
-   * Serviço BotConversaService expandido com métodos de sincronização automática
-   * Campos customerName e customerPhone adicionados ao schema de conversas
-   * Botão "Sincronizar BotConversa" implementado na interface de atendimentos
-   * Remoção completa de dados mock - sistema agora opera apenas com dados reais
-   * Integração funcional com 25 subscribers por conta (SUPORTE e COMERCIAL)
-   * Sistema de sincronização automática de conversas e leads implementado
-   * Chaves API configuradas para ambas as contas do BotConversa
-   * Interface de atendimentos totalmente funcional com dados reais das conversas
+- Sistema totalmente independente implementado (30 Jul 2025):
+   * Endpoint /api/atendimentos operando com dados locais do PostgreSQL
+   * Sistema de atendimento completamente autônomo sem dependências externas
+   * Campos de conversas preservados para histórico de dados
+   * Interface de atendimentos funcionando com dados reais do banco local
+   * Sistema 100% funcional sem integrações externas
 - Correção Bug Filtro de Cursos por Modalidade (9 Jul 2025):
    * RESOLVIDO: Problema de filtro de cursos para modalidades "Segunda licenciatura" e "Formação Pedagógica"
    * Causa identificada: Discrepância entre strings frontend/backend ("Formação pedagógica" vs "Formação Pedagógica")

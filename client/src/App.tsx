@@ -20,8 +20,7 @@ import Metas from "./pages/admin/Metas";
 import Crm from "./pages/admin/Crm";
 import Certificacoes from "./pages/admin/Certificacoes";
 import CertificadosPos from "./pages/admin/CertificadosPos";
-import IntegracaoBotConversa from "./pages/admin/IntegracaoBotConversa";
-import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
+
 import ChargesPage from "./pages/admin/financial/charges-page";
 import IntegracaoAsaas from "./pages/admin/IntegracaoAsaas";
 import GerenciarTokens from "./pages/admin/GerenciarTokens";
@@ -65,8 +64,7 @@ const App = () => (
             <Route path="/crm" element={<Crm />} />
             <Route path="/certificacoes" element={<Certificacoes />} />
             <Route path="/certificados-pos" element={<CertificadosPos />} />
-            <Route path="/integracao-botconversa" element={<IntegracaoBotConversa />} />
-            <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
+
             <Route path="/charges" element={<ChargesPage />} />
             <Route path="/cobrancas" element={<ChargesPage />} />
             <Route path="/integracao-asaas" element={<IntegracaoAsaas />} />

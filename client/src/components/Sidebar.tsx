@@ -69,7 +69,6 @@ const menuSections = [
     icon: Settings,
     iconColor: 'text-gray-600',
     items: [
-      { label: 'BotConversa', path: '/integracao-botconversa' },
       { label: 'Gerenciar Tokens', path: '/gerenciar-tokens' },
     ]
   }
@@ -104,9 +103,7 @@ export const Sidebar = () => {
     // }
   }, []);
 
-  const handleBotConversaAccess = () => {
-    window.open("https://app.botconversa.com.br/login/", "_blank");
-  };
+
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
@@ -173,17 +170,7 @@ export const Sidebar = () => {
           </Button>
         </div>
 
-        {/* BotConversa Access Button - Temporariamente oculto */}
-        {/* <div className="p-4">
-          <Button
-            onClick={handleBotConversaAccess}
-            className="w-full bg-green-600 hover:bg-green-700 text-white min-h-[44px]"
-            size={collapsed && !mobileOpen ? "sm" : "default"}
-          >
-            <ExternalLink className="h-4 w-4" />
-            {(!collapsed || mobileOpen) && <span className="ml-2">Acessar BotConversa</span>}
-          </Button>
-        </div> */}
+
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
