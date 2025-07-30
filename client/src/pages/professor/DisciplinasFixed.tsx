@@ -19,7 +19,9 @@ import {
   Video,
   Plus,
   Settings,
-  BarChart3
+  BarChart3,
+  Edit,
+  Trash2
 } from "lucide-react";
 
 export default function DisciplinasFixed() {
@@ -28,6 +30,7 @@ export default function DisciplinasFixed() {
   const queryClient = useQueryClient();
   const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDisciplina, setEditingDisciplina] = useState<any>(null);
   const [formData, setFormData] = useState({
     nome: "",
     codigo: "",
@@ -68,6 +71,64 @@ export default function DisciplinasFixed() {
     }
   });
 
+  // Mutation para atualizar disciplina
+  const updateSubjectMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      return apiRequest(`/api/professor/subjects/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...data,
+          cargaHoraria: parseInt(data.cargaHoraria)
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/subjects'] });
+      setIsModalOpen(false);
+      setEditingDisciplina(null);
+      resetForm();
+      toast({ title: 'Sucesso', description: 'Disciplina atualizada com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao atualizar disciplina', variant: 'destructive' });
+    }
+  });
+
+  // Mutation para deletar disciplina
+  const deleteSubjectMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/professor/subjects/${id}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/subjects'] });
+      toast({ title: 'Sucesso', description: 'Disciplina excluída com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao excluir disciplina', variant: 'destructive' });
+    }
+  });
+
+  const handleEditDisciplina = (disciplina: any) => {
+    setEditingDisciplina(disciplina);
+    setFormData({
+      nome: disciplina.nome,
+      codigo: disciplina.codigo,
+      area: disciplina.area,
+      cargaHoraria: disciplina.cargaHoraria.toString(),
+      descricao: disciplina.descricao || ""
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteDisciplina = (disciplinaId: number) => {
+    if (window.confirm("Tem certeza que deseja excluir esta disciplina? Todos os conteúdos e avaliações relacionados também serão excluídos.")) {
+      deleteSubjectMutation.mutate(disciplinaId);
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -83,10 +144,15 @@ export default function DisciplinasFixed() {
       cargaHoraria: "",
       descricao: ""
     });
+    setEditingDisciplina(null);
   };
 
   const handleSubmit = () => {
-    createSubjectMutation.mutate(formData);
+    if (editingDisciplina) {
+      updateSubjectMutation.mutate({ id: editingDisciplina.id, data: formData });
+    } else {
+      createSubjectMutation.mutate(formData);
+    }
   };
 
   if (isLoading) {
@@ -109,16 +175,16 @@ export default function DisciplinasFixed() {
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={resetForm}>
               <Plus className="h-4 w-4" />
               Nova Disciplina
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Criar Nova Disciplina</DialogTitle>
+              <DialogTitle>{editingDisciplina ? "Editar Disciplina" : "Criar Nova Disciplina"}</DialogTitle>
               <DialogDescription>
-                Adicione uma nova disciplina ao sistema e comece a gerenciar conteúdos e avaliações.
+                {editingDisciplina ? "Modifique as informações da disciplina" : "Adicione uma nova disciplina ao sistema e comece a gerenciar conteúdos e avaliações."}
               </DialogDescription>
             </DialogHeader>
             
@@ -190,10 +256,10 @@ export default function DisciplinasFixed() {
               </Button>
               <Button 
                 onClick={handleSubmit} 
-                disabled={createSubjectMutation.isPending}
+                disabled={createSubjectMutation.isPending || updateSubjectMutation.isPending}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {createSubjectMutation.isPending ? "Criando..." : "Criar Disciplina"}
+                {(createSubjectMutation.isPending || updateSubjectMutation.isPending) ? "Salvando..." : (editingDisciplina ? "Atualizar" : "Criar Disciplina")}
               </Button>
             </div>
           </DialogContent>
@@ -312,22 +378,33 @@ export default function DisciplinasFixed() {
                 >
                   {disciplina.isActive ? "Ativa" : "Inativa"}
                 </Badge>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditDisciplina(disciplina)}
+                    className="flex-1"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Editar
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => navigate(`/professor/conteudos?disciplina=${disciplina.id}`)}
+                    className="flex-1"
                   >
-                    <Settings className="h-4 w-4 mr-2" />
+                    <Settings className="h-3 w-3 mr-1" />
                     Gerenciar
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/professor/relatorios?disciplina=${disciplina.id}`)}
+                    onClick={() => handleDeleteDisciplina(disciplina.id)}
+                    className="hover:bg-red-50 hover:text-red-600"
+                    disabled={deleteSubjectMutation.isPending}
                   >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Relatórios
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
