@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { SubjectContent } from "@/../shared/schema";
-
-interface Subject {
-  id: number;
-  nome: string;
-  codigo: string;
-}
+import type { SubjectContent, Subject } from "@/types/professor";
 
 interface ContentModalProps {
   content: SubjectContent;

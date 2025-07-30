@@ -2,13 +2,7 @@ import { Video, BookOpen, Link as LinkIcon, FileText, Eye, Edit, Trash2 } from "
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SubjectContent } from "@/../shared/schema";
-
-interface Subject {
-  id: number;
-  nome: string;
-  codigo: string;
-}
+import type { SubjectContent, Subject } from "@/types/professor";
 
 interface ContentCardProps {
   content: SubjectContent;

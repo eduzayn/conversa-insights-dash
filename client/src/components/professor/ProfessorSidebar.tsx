@@ -40,6 +40,11 @@ export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
       path: "/professor/disciplinas",
       icon: BookOpen,
     },
+    {
+      label: "Aulas e Conteúdos",
+      path: "/professor/conteudos",
+      icon: Video,
+    },
 
     {
       label: "Avaliações e Simulados",

@@ -11,14 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import ContentForm from "@/components/professor/ContentForm";
 import ContentCard from "@/components/professor/ContentCard";
 import ContentModal from "@/components/professor/ContentModal";
-import { SubjectContent } from "@/../shared/schema";
-
-interface Subject {
-  id: number;
-  nome: string;
-  codigo: string;
-  descricao?: string;
-}
+import type { SubjectContent, Subject } from "@/types/professor";
 
 interface ContentStats {
   total: number;

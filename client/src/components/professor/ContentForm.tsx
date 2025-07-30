@@ -11,13 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { SubjectContent, insertSubjectContentSchema } from "@/../shared/schema";
-
-interface Subject {
-  id: number;
-  nome: string;
-  codigo: string;
-}
+import type { SubjectContent, Subject, InsertSubjectContent } from "@/types/professor";
 
 interface ContentFormProps {
   subjects: Subject[];
@@ -27,7 +21,7 @@ interface ContentFormProps {
   isModal?: boolean;
 }
 
-const contentFormSchema = insertSubjectContentSchema.extend({
+const contentFormSchema = z.object({
   subjectId: z.number().min(1, "Selecione uma disciplina"),
   titulo: z.string().min(1, "Título é obrigatório").max(100, "Título deve ter no máximo 100 caracteres"),
   tipo: z.enum(["video", "ebook", "link", "pdf"], {
@@ -35,6 +29,7 @@ const contentFormSchema = insertSubjectContentSchema.extend({
   }),
   conteudo: z.string().url("URL deve ser válida"),
   descricao: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
+  ordem: z.number().default(0),
 });
 
 type ContentFormData = z.infer<typeof contentFormSchema>;
