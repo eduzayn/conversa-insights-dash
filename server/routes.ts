@@ -3912,7 +3912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
-      if (!user.isActive) {
+      if (!user.is_active) {
         return res.status(401).json({ message: "Conta desativada" });
       }
 
