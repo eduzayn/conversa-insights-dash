@@ -26,8 +26,6 @@ export default function AvaliacoesFixed() {
     titulo: "",
     subjectId: "",
     tipo: "prova",
-    dataInicio: "",
-    dataFim: "",
     duracaoMinutos: "60",
     tentativasPermitidas: "1",
     notaMinima: "6",
@@ -100,8 +98,6 @@ export default function AvaliacoesFixed() {
       titulo: avaliacao.titulo,
       subjectId: avaliacao.subjectId.toString(),
       tipo: avaliacao.tipo,
-      dataInicio: avaliacao.dataInicio ? avaliacao.dataInicio.split('T')[0] : "",
-      dataFim: avaliacao.dataFim ? avaliacao.dataFim.split('T')[0] : "",
       duracaoMinutos: avaliacao.duracaoMinutos?.toString() || "60",
       tentativasPermitidas: avaliacao.tentativasPermitidas?.toString() || "1",
       notaMinima: avaliacao.notaMinima?.toString() || "6",
@@ -135,8 +131,6 @@ export default function AvaliacoesFixed() {
       titulo: "",
       subjectId: "",
       tipo: "prova",
-      dataInicio: "",
-      dataFim: "",
       duracaoMinutos: "60",
       tentativasPermitidas: "1",
       notaMinima: "6",
@@ -277,12 +271,9 @@ export default function AvaliacoesFixed() {
                       </div>
                     </div>
 
-                    {avaliacao.dataInicio && (
-                      <div className="text-xs text-gray-500">
-                        Período: {new Date(avaliacao.dataInicio).toLocaleDateString('pt-BR')} até {' '}
-                        {avaliacao.dataFim ? new Date(avaliacao.dataFim).toLocaleDateString('pt-BR') : 'Sem prazo'}
-                      </div>
-                    )}
+                    <div className="text-xs text-gray-500">
+                      Disponível durante todo o período do contrato
+                    </div>
 
                     <div className="flex gap-2 pt-2">
                       <Button
@@ -409,27 +400,7 @@ export default function AvaliacoesFixed() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dataInicio">Data de Início</Label>
-                  <Input
-                    id="dataInicio"
-                    type="date"
-                    value={formData.dataInicio}
-                    onChange={(e) => handleInputChange("dataInicio", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dataFim">Data de Fim</Label>
-                  <Input
-                    id="dataFim"
-                    type="date"
-                    value={formData.dataFim}
-                    onChange={(e) => handleInputChange("dataFim", e.target.value)}
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="notaMinima">Nota Mínima</Label>
                   <Input
