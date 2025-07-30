@@ -245,6 +245,7 @@ export interface IStorage {
 
   // Portal do Professor - Subject Contents
   getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]>;
+  getSubjectContentById(id: number): Promise<SubjectContent | undefined>;
   createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent>;
   updateSubjectContent(id: number, content: Partial<SubjectContent>): Promise<SubjectContent | undefined>;
   deleteSubjectContent(id: number): Promise<void>;
@@ -1404,6 +1405,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(subjectContents.id, id))
       .returning();
     return updatedContent || undefined;
+  }
+
+  async getSubjectContentById(id: number): Promise<SubjectContent | undefined> {
+    const [content] = await db
+      .select()
+      .from(subjectContents)
+      .where(eq(subjectContents.id, id))
+      .limit(1);
+    return content || undefined;
   }
 
   async deleteSubjectContent(id: number): Promise<void> {

@@ -8,22 +8,68 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/FileUpload";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload } from "lucide-react";
 
 export default function Conteudos() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [activeTab, setActiveTab] = useState("listar");
   const [editingContent, setEditingContent] = useState<any>(null);
+  const [deleteContentId, setDeleteContentId] = useState<number | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleEditContent = (content: any) => {
     setEditingContent(content);
     setActiveTab("adicionar");
   };
 
+  // Mutation para deletar conteúdo
+  const deleteContentMutation = useMutation({
+    mutationFn: async (contentId: number) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/professor/contents/${contentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao excluir conteúdo');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Conteúdo excluído com sucesso!",
+      });
+      // Invalidar cache para atualizar a listagem
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents'] });
+      setDeleteContentId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+      setDeleteContentId(null);
+    },
+  });
+
   const handleDeleteContent = (contentId: number) => {
-    if (window.confirm("Tem certeza que deseja excluir este conteúdo?")) {
-      console.log("Excluindo conteúdo:", contentId);
-      // Aqui seria feita a chamada para a API para deletar
+    setDeleteContentId(contentId);
+  };
+
+  const confirmDeleteContent = () => {
+    if (deleteContentId) {
+      deleteContentMutation.mutate(deleteContentId);
     }
   };
 
@@ -343,6 +389,17 @@ export default function Conteudos() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de confirmação de exclusão */}
+      <DeleteConfirmDialog
+        open={deleteContentId !== null}
+        onOpenChange={(open) => !open && setDeleteContentId(null)}
+        onConfirm={confirmDeleteContent}
+        isLoading={deleteContentMutation.isPending}
+        title="Confirmar Exclusão"
+        description="Tem certeza que deseja excluir este conteúdo? Esta ação não pode ser desfeita."
+        entityName="conteúdo"
+      />
     </div>
   );
 }

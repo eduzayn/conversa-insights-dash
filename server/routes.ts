@@ -4071,6 +4071,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excluir conteúdo
+  app.delete("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const contentId = parseInt(req.params.id);
+      if (isNaN(contentId)) {
+        return res.status(400).json({ message: "ID do conteúdo inválido" });
+      }
+
+      // Verificar se o conteúdo existe e pertence ao professor
+      const content = await storage.getSubjectContentById(contentId);
+      if (!content) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+
+      if (content.professorId !== req.user.id) {
+        return res.status(403).json({ message: "Você não tem permissão para excluir este conteúdo" });
+      }
+
+      await storage.deleteSubjectContent(contentId);
+      res.json({ message: "Conteúdo excluído com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao excluir conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Avaliações do Professor
   app.get("/api/professor/evaluations", authenticateToken, async (req: any, res) => {
     try {
