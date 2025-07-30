@@ -156,6 +156,14 @@ This is a full-stack web application built with React, Express, and TypeScript t
 - JWT token authentication working correctly across all portals
 - Database migration completed successfully via `npm run db:push`
 - BotConversa integration completely removed from entire codebase
+- **Professor Portal - Complete CRUD Freedom Implemented** (July 30, 2025):
+  * PUT/DELETE routes added for subjects and contents (all professor roles can use)
+  * Professor creation permissions expanded from "coordenador only" to all professor types
+  * deleteSubject method implemented with cascade delete (removes relations, contents, evaluations)
+  * getSubjectContents modified to show ALL contents, not just professor's own creations
+  * getProfessorEvaluations modified to show ALL evaluations, not filtered by creator
+  * Professors now have complete freedom to edit/delete any course, discipline, or content
+  * Full testing completed: PUT/DELETE operations working (status 200/204 confirmed)
 
 ✅ **Portal do Professor - Complete System Review & Data Setup (July 30, 2025)**
 - Comprehensive review of all Portal do Professor pages completed

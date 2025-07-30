@@ -242,6 +242,7 @@ export interface IStorage {
   getAllSubjects(): Promise<Subject[]>;
   createSubject(subject: InsertSubject): Promise<Subject>;
   updateSubject(id: number, subject: Partial<Subject>): Promise<Subject | undefined>;
+  deleteSubject(id: number): Promise<void>;
   assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean): Promise<ProfessorSubject>;
 
   // Portal do Professor - Subject Contents
@@ -1361,6 +1362,28 @@ export class DatabaseStorage implements IStorage {
     return updatedSubject || undefined;
   }
 
+  async deleteSubject(id: number): Promise<void> {
+    // Primeiro, remove os relacionamentos professor-disciplina
+    await db
+      .delete(professorSubjects)
+      .where(eq(professorSubjects.subjectId, id));
+    
+    // Remove os conteúdos da disciplina
+    await db
+      .delete(subjectContents)
+      .where(eq(subjectContents.subjectId, id));
+    
+    // Remove as avaliações da disciplina
+    await db
+      .delete(professorEvaluations)
+      .where(eq(professorEvaluations.subjectId, id));
+    
+    // Por último, remove a disciplina
+    await db
+      .delete(subjects)
+      .where(eq(subjects.id, id));
+  }
+
   async assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean = true): Promise<ProfessorSubject> {
     const [assignment] = await db
       .insert(professorSubjects)
@@ -1376,16 +1399,11 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Subject Contents
   async getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]> {
-    const conditions = [eq(subjectContents.subjectId, subjectId)];
-    
-    if (professorId) {
-      conditions.push(eq(subjectContents.professorId, professorId));
-    }
-
+    // Professores agora podem ver todos os conteúdos da disciplina, não apenas os próprios
     return await db
       .select()
       .from(subjectContents)
-      .where(and(...conditions))
+      .where(eq(subjectContents.subjectId, subjectId))
       .orderBy(asc(subjectContents.ordem));
   }
 
@@ -1418,7 +1436,8 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Evaluations
   async getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]> {
-    const conditions = [eq(professorEvaluations.professorId, professorId)];
+    // Professores agora podem ver todas as avaliações, não apenas as próprias
+    const conditions = [];
     
     if (subjectId) {
       conditions.push(eq(professorEvaluations.subjectId, subjectId));
@@ -1427,7 +1446,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(professorEvaluations)
-      .where(and(...conditions))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(professorEvaluations.createdAt));
   }
 

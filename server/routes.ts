@@ -3409,8 +3409,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar nova disciplina
   app.post("/api/professor/subjects", authenticateToken, async (req: any, res) => {
     try {
-      if (!['coordenador'].includes(req.user.role)) {
-        return res.status(403).json({ message: "Acesso negado - apenas coordenadores" });
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
       const { nome, codigo, descricao, cargaHoraria, area } = req.body;
@@ -3429,6 +3429,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Editar disciplina
+  app.put("/api/professor/subjects/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      const subject = await storage.updateSubject(parseInt(id), req.body);
+      if (!subject) {
+        return res.status(404).json({ message: "Disciplina não encontrada" });
+      }
+      res.json(subject);
+    } catch (error) {
+      logger.error("Erro ao atualizar disciplina:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Excluir disciplina
+  app.delete("/api/professor/subjects/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteSubject(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Erro ao excluir disciplina:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Conteúdos de uma disciplina
   app.get("/api/professor/contents", authenticateToken, async (req: any, res) => {
     try {
@@ -3441,7 +3476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID da disciplina é obrigatório" });
       }
 
-      const contents = await storage.getSubjectContents(parseInt(subjectId as string), req.user.id);
+      const contents = await storage.getSubjectContents(parseInt(subjectId as string));
       res.json(contents);
     } catch (error) {
       logger.error("Erro ao buscar conteúdos:", error);
@@ -3470,6 +3505,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(content);
     } catch (error) {
       logger.error("Erro ao criar conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Editar conteúdo
+  app.put("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      const content = await storage.updateSubjectContent(parseInt(id), req.body);
+      if (!content) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+      res.json(content);
+    } catch (error) {
+      logger.error("Erro ao atualizar conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Excluir conteúdo
+  app.delete("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteSubjectContent(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Erro ao excluir conteúdo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
