@@ -32,7 +32,6 @@ import Register from "./pages/admin/Register";
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
 import MatrizesCurriculares from "./pages/admin/MatrizesCurriculares";
 import StudentLogin from "./pages/portal/StudentLogin";
-import LoginRouter from "./components/LoginRouter";
 import LoginHub from "./pages/LoginHub";
 
 import PortalLayout from "./pages/portal/PortalLayout";
@@ -50,7 +49,6 @@ const App = () => (
           <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginHub />} />
-            <Route path="/login-antigo" element={<LoginRouter />} />
             <Route path="/admin/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/" element={<Index />} />
