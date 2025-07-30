@@ -162,7 +162,7 @@ export default function Disciplinas() {
               Nova Disciplina
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Nova Disciplina</DialogTitle>
               <DialogDescription>
@@ -170,46 +170,50 @@ export default function Disciplinas() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4 py-4">
+            <div className="space-y-5 py-2">
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome da Disciplina</Label>
+                <Label htmlFor="nome" className="text-sm font-medium">Nome da Disciplina</Label>
                 <Input
                   id="nome"
                   placeholder="Ex: Algoritmos e Programação I"
                   value={formData.nome}
                   onChange={(e) => handleInputChange("nome", e.target.value)}
+                  className="h-11"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="codigo">Código</Label>
+                  <Label htmlFor="codigo" className="text-sm font-medium">Código</Label>
                   <Input
                     id="codigo"
                     placeholder="Ex: PROG001"
                     value={formData.codigo}
                     onChange={(e) => handleInputChange("codigo", e.target.value)}
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cargaHoraria">Carga Horária</Label>
+                  <Label htmlFor="cargaHoraria" className="text-sm font-medium">Carga Horária</Label>
                   <Input
                     id="cargaHoraria"
                     type="number"
                     placeholder="Ex: 80"
                     value={formData.cargaHoraria}
                     onChange={(e) => handleInputChange("cargaHoraria", e.target.value)}
+                    className="h-11"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="area">Área de Conhecimento</Label>
+                <Label htmlFor="area" className="text-sm font-medium">Área de Conhecimento</Label>
                 <UniversalSelect
                   value={formData.area}
                   onValueChange={(value) => handleInputChange("area", value)}
                   placeholder="Selecione uma área"
                   selectKey={selectKey}
+                  className="h-11"
                   options={[
                     { value: "ciencias-exatas", label: "Ciências Exatas" },
                     { value: "ciencias-humanas", label: "Ciências Humanas" },
@@ -224,22 +228,31 @@ export default function Disciplinas() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
+                <Label htmlFor="descricao" className="text-sm font-medium">Descrição</Label>
                 <Textarea
                   id="descricao"
                   placeholder="Descreva os objetivos e conteúdos da disciplina..."
                   value={formData.descricao}
                   onChange={(e) => handleInputChange("descricao", e.target.value)}
                   rows={3}
+                  className="resize-none"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsModalOpen(false)}
+                className="order-2 sm:order-1"
+              >
                 Cancelar
               </Button>
-              <Button onClick={handleSubmit} disabled={!formData.nome || !formData.codigo}>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!formData.nome || !formData.codigo}
+                className="order-1 sm:order-2"
+              >
                 Criar Disciplina
               </Button>
             </div>

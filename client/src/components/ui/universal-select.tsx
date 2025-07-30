@@ -150,10 +150,11 @@ export const UniversalSelect = React.memo(({
         onClick={handleToggle}
         disabled={disabled}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+          "flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
           "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-          "disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
-          isOpen && "ring-2 ring-ring ring-offset-2"
+          "disabled:cursor-not-allowed disabled:opacity-50 transition-colors hover:bg-accent/5",
+          isOpen && "ring-2 ring-ring ring-offset-2",
+          className
         )}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
