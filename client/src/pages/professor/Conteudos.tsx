@@ -36,7 +36,23 @@ export default function Conteudos() {
 
   // Query para buscar conteúdos baseado na disciplina selecionada
   const { data: contents = [], isLoading: contentsLoading, error: contentsError } = useQuery<any[]>({
-    queryKey: [`/api/debug/contents?subjectId=${selectedSubject}`],
+    queryKey: ['/api/professor/contents', selectedSubject],
+    queryFn: async () => {
+      if (!selectedSubject || selectedSubject === 'all') return [];
+      
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/professor/contents?subjectId=${selectedSubject}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar conteúdos');
+      }
+      
+      return response.json();
+    },
     enabled: !!selectedSubject && selectedSubject !== 'all',
   });
 
@@ -77,7 +93,7 @@ export default function Conteudos() {
         description: "Conteúdo excluído com sucesso!",
       });
       // Invalidar cache específico usando a mesma chave do query
-      queryClient.invalidateQueries({ queryKey: [`/api/debug/contents?subjectId=${selectedSubject}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents', selectedSubject] });
       setDeleteContentId(null);
     },
     onError: (error: Error) => {
@@ -137,7 +153,7 @@ export default function Conteudos() {
       setEditingContent(null);
       setActiveTab("listar");
       // Invalidar cache específico usando a mesma chave do query
-      queryClient.invalidateQueries({ queryKey: [`/api/debug/contents?subjectId=${selectedSubject}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents', selectedSubject] });
     },
     onError: (error: Error) => {
       toast({
