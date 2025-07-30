@@ -1513,75 +1513,7 @@ export default function Certificacoes() {
         </main>
       </div>
 
-      {/* Sistema robusto de correção - específico para usuário Erick Moreira */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-        <Button
-          onClick={() => {
-            console.log('🔄 [CORREÇÃO-ROBUSTA] Limpeza de emergência acionada - Usuário Erick Moreira');
-            
-            // Limpeza total de cache
-            const essentialKeys = ['auth-token', 'user-session'];
-            const backup: Record<string, string> = {};
-            
-            essentialKeys.forEach(key => {
-              const value = localStorage.getItem(key);
-              if (value) backup[key] = value;
-            });
-            
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            // Remove elementos DOM órfãos
-            document.querySelectorAll('*').forEach(el => {
-              if (el.hasAttribute('data-radix-portal') || 
-                  el.hasAttribute('data-sonner-toaster') ||
-                  el.hasAttribute('data-radix-toast-viewport')) {
-                try { el.remove(); } catch {}
-              }
-            });
-            
-            // Restaura dados essenciais
-            Object.entries(backup).forEach(([key, value]) => {
-              localStorage.setItem(key, value);
-            });
-            
-            console.log('✅ Limpeza de emergência concluída - Recarregando...');
-            setTimeout(() => window.location.reload(), 500);
-          }}
-          variant="outline"
-          size="sm"
-          className="bg-red-50 border-red-400 text-red-700 hover:bg-red-100 shadow-lg font-semibold"
-          title="Correção de emergência para problemas críticos de visualização (Erick Moreira)"
-        >
-          🚨 Correção Total
-        </Button>
-        
-        <Button
-          onClick={() => {
-            console.log('🧹 [LIMPEZA-SUAVE] Limpeza preventiva - Usuário Erick Moreira');
-            
-            // Limpeza apenas de elementos órfãos DOM
-            const orphanedElements = document.querySelectorAll('[data-radix-portal], [data-sonner-toaster], [data-radix-toast-viewport]');
-            orphanedElements.forEach(el => {
-              try { el.remove(); } catch {}
-            });
-            
-            // Limpa apenas caches temporários
-            try {
-              sessionStorage.clear();
-              console.log('✅ Limpeza suave concluída');
-            } catch (error) {
-              console.warn('⚠️ Erro na limpeza suave:', error);
-            }
-          }}
-          variant="outline"
-          size="sm"
-          className="bg-blue-50 border-blue-400 text-blue-700 hover:bg-blue-100 shadow-lg"
-          title="Limpeza suave de cache temporário (Erick Moreira)"
-        >
-          🧹 Limpeza Suave
-        </Button>
-      </div>
+
 
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
