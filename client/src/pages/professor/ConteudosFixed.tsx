@@ -10,8 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload } from "lucide-react";
+import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload, Eye } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function ConteudosFixed() {
   const { toast } = useToast();
@@ -21,6 +22,8 @@ export default function ConteudosFixed() {
   const [editingContent, setEditingContent] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contentToDelete, setContentToDelete] = useState<any>(null);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [contentToPreview, setContentToPreview] = useState<any>(null);
   const [formData, setFormData] = useState({
     titulo: "",
     tipo: "video",
@@ -136,6 +139,11 @@ export default function ConteudosFixed() {
   const handleDeleteContent = (content: any) => {
     setContentToDelete(content);
     setDeleteDialogOpen(true);
+  };
+
+  const handlePreviewContent = (content: any) => {
+    setContentToPreview(content);
+    setPreviewDialogOpen(true);
   };
 
   const confirmDelete = () => {
@@ -331,6 +339,15 @@ export default function ConteudosFixed() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handlePreviewContent(content)}
+                        className="flex-1 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Preview
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleEditContent(content)}
                         className="flex-1"
                       >
@@ -482,6 +499,146 @@ export default function ConteudosFixed() {
         entityName="conteúdo"
         isLoading={deleteContentMutation.isPending}
       />
+
+      {/* Modal de Preview do Conteúdo */}
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              Preview do Conteúdo - Visão do Aluno
+            </DialogTitle>
+            <DialogDescription>
+              Esta é a visualização que os alunos verão ao acessar este conteúdo
+            </DialogDescription>
+          </DialogHeader>
+          
+          {contentToPreview && (
+            <div className="space-y-6">
+              {/* Header do Conteúdo */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                      {contentToPreview.titulo}
+                    </h1>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        {getContentIcon(contentToPreview.tipo)}
+                        <span className="capitalize">{contentToPreview.tipo}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>•</span>
+                        <span>Ordem: {contentToPreview.ordem}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className={getContentTypeColor(contentToPreview.tipo)}>
+                    {contentToPreview.tipo}
+                  </Badge>
+                </div>
+                
+                {contentToPreview.descricao && (
+                  <p className="text-gray-700 leading-relaxed">
+                    {contentToPreview.descricao}
+                  </p>
+                )}
+              </div>
+
+              {/* Conteúdo Embebido */}
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  {getContentIcon(contentToPreview.tipo)}
+                  Conteúdo
+                </h3>
+                
+                {contentToPreview.tipo === 'video' && contentToPreview.url?.includes('youtube') && (
+                  <div className="aspect-video w-full">
+                    <iframe
+                      src={contentToPreview.url.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')}
+                      className="w-full h-full rounded-lg"
+                      frameBorder="0"
+                      allowFullScreen
+                      title={contentToPreview.titulo}
+                    />
+                  </div>
+                )}
+                
+                {contentToPreview.tipo === 'video' && !contentToPreview.url?.includes('youtube') && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Vídeo</p>
+                    <a 
+                      href={contentToPreview.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Abrir vídeo em nova aba
+                    </a>
+                  </div>
+                )}
+                
+                {contentToPreview.tipo === 'ebook' && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <BookOpen className="h-16 w-16 text-blue-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">E-book disponível para download</p>
+                    <a 
+                      href={contentToPreview.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Baixar E-book
+                    </a>
+                  </div>
+                )}
+                
+                {contentToPreview.tipo === 'link' && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <ExternalLink className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Link externo</p>
+                    <a 
+                      href={contentToPreview.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Acessar Link
+                    </a>
+                  </div>
+                )}
+                
+                {contentToPreview.tipo === 'arquivo' && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <FileText className="h-16 w-16 text-purple-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Arquivo para download</p>
+                    <a 
+                      href={contentToPreview.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Baixar Arquivo
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer com informações da disciplina */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  <strong>Disciplina:</strong> {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Disciplina não encontrada'}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
