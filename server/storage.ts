@@ -118,10 +118,8 @@ import {
   type InsertNegociacaoExpirado,
   type Quitacao,
   type InsertQuitacao,
-  enviosUnicv,
   type EnvioUnicv,
   type InsertEnvioUnicv,
-  enviosFamar,
   type EnvioFamar,
   type InsertEnvioFamar
 } from "@shared/schema";
