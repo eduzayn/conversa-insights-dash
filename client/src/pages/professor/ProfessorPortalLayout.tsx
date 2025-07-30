@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route } from "react-router-dom";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
 import ProfessorDashboard from "./ProfessorDashboard";
 import Disciplinas from "./Disciplinas";
-import Conteudos from "./Conteudos";
+
 import Avaliacoes from "./Avaliacoes";
 import Submissoes from "./Submissoes";
 import Relatorios from "./Relatorios";
@@ -54,7 +54,7 @@ export default function ProfessorPortalLayout() {
       <Routes>
         <Route path="dashboard" element={<ProfessorDashboard />} />
         <Route path="disciplinas" element={<Disciplinas />} />
-        <Route path="conteudos" element={<Conteudos />} />
+
         <Route path="avaliacoes" element={<Avaliacoes />} />
         <Route path="submissoes" element={<Submissoes />} />
         <Route path="relatorios" element={<Relatorios />} />
