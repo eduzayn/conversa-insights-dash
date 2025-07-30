@@ -9,8 +9,8 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function ProfessorLogin() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("joao.silva@instituicao.edu.br");
+  const [password, setPassword] = useState("professor123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

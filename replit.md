@@ -158,12 +158,22 @@ This is a full-stack web application built with React, Express, and TypeScript t
 - BotConversa integration completely removed from entire codebase
 - **Professor Portal - Complete CRUD Freedom Implemented** (July 30, 2025):
   * PUT/DELETE routes added for subjects and contents (all professor roles can use)
-  * Professor creation permissions expanded from "coordenador only" to all professor types
+  * Professor creation permissions expanded from "coordenador only" to all professor types  
   * deleteSubject method implemented with cascade delete (removes relations, contents, evaluations)
   * getSubjectContents modified to show ALL contents, not just professor's own creations
   * getProfessorEvaluations modified to show ALL evaluations, not filtered by creator
   * Professors now have complete freedom to edit/delete any course, discipline, or content
   * Full testing completed: PUT/DELETE operations working (status 200/204 confirmed)
+  * **Critical Bug Fix - Subject Deletion Cascade Delete** (July 30, 2025):
+    - Fixed foreign key constraint violation in deleteSubject method
+    - Implemented proper cascade deletion order: evaluation questions → evaluations → relations → contents → subject
+    - Subject deletion now works correctly with status 204 confirmed
+    - All CRUD operations across professor portal fully functional and tested
+  * **Development UX Improvements** (July 30, 2025):
+    - Auto-filled login form with professor credentials (joao.silva@instituicao.edu.br/professor123)
+    - Fixed subject creation with proper field validation and auto-generated codes
+    - Complete CRUD testing confirmed: CREATE (201), READ (200), UPDATE (200), DELETE (204)
+    - Professor portal ready for production with full functionality
   * **Elegant Deletion Dialog Pattern Standardization Completed (July 30, 2025)**:
     - Replaced all basic window.confirm dialogs with sophisticated DeleteConfirmDialog component
     - Applied across all professor portal pages: DisciplinasFixed.tsx, ConteudosFixed.tsx, AvaliacoesFixed.tsx

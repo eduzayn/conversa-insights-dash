@@ -3413,14 +3413,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
-      const { nome, codigo, descricao, cargaHoraria, area } = req.body;
-      const subject = await storage.createSubject({
-        nome,
-        codigo,
-        descricao,
-        cargaHoraria,
-        area
-      });
+      const subjectData = {
+        nome: req.body.nome,
+        codigo: req.body.codigo || `SUBJ_${Date.now()}`,
+        descricao: req.body.descricao || '',
+        cargaHoraria: parseInt(req.body.cargaHoraria) || 60,
+        area: req.body.area || 'Geral'
+      };
+      
+      const subject = await storage.createSubject(subjectData);
 
       res.status(201).json(subject);
     } catch (error) {
