@@ -1166,6 +1166,16 @@ Changelog:
      - Plataforma: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas cores dos dropdowns alteradas sem afetar funcionalidades
    * Status: Sistema visual 100% consistente em toda a aplicação - badges da listagem = bolinhas dos modais
+- Correção Crítica do Sistema de Login do Professor (30 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Professor não conseguia acessar painel após inserir credenciais válidas
+   * ✅ CAUSA IDENTIFICADA: Inconsistência nas chaves do localStorage - login salvava 'auth_token' mas layout buscava 'professor_token'
+   * ✅ SOLUÇÃO APLICADA: Padronizado todas as referências para usar 'auth_token' consistentemente
+   * ✅ ARQUIVOS CORRIGIDOS:
+     - client/src/pages/professor/ProfessorPortalLayout.tsx: corrigido useEffect para buscar 'auth_token' 
+     - client/src/components/professor/ProfessorSidebar.tsx: corrigido logout para remover 'auth_token'
+   * ✅ RESULTADO: Sistema de login funcionando corretamente - redirecionamento automático para painel
+   * ✅ STATUS: Portal do Professor acessível normalmente com credenciais válidas
+   * Status: Sistema de autenticação do Portal do Professor 100% funcional
 ```
 
 ## User Preferences

@@ -68,7 +68,7 @@ export function ProfessorSidebar({ professorData }: ProfessorSidebarProps) {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('professor_token');
+    localStorage.removeItem('auth_token');
     localStorage.removeItem('professor_data');
     navigate('/professor/login');
   };

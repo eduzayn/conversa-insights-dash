@@ -24,7 +24,7 @@ export default function ProfessorPortalLayout() {
 
   useEffect(() => {
     // Verificar se há dados do professor no localStorage
-    const token = localStorage.getItem('professor_token');
+    const token = localStorage.getItem('auth_token');
     const data = localStorage.getItem('professor_data');
     
     if (!token || !data) {
