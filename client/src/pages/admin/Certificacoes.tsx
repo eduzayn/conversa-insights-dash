@@ -1513,22 +1513,73 @@ export default function Certificacoes() {
         </main>
       </div>
 
-      {/* Botão de limpeza manual - específico para problema do Erick */}
-      <div className="fixed bottom-4 right-4 z-50">
+      {/* Sistema robusto de correção - específico para usuário Erick Moreira */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         <Button
           onClick={() => {
-            console.log('[FORCE-REFRESH] Limpeza manual iniciada - Problema específico do usuário Erick Moreira');
-            // Limpa cache e força reload
+            console.log('🔄 [CORREÇÃO-ROBUSTA] Limpeza de emergência acionada - Usuário Erick Moreira');
+            
+            // Limpeza total de cache
+            const essentialKeys = ['auth-token', 'user-session'];
+            const backup: Record<string, string> = {};
+            
+            essentialKeys.forEach(key => {
+              const value = localStorage.getItem(key);
+              if (value) backup[key] = value;
+            });
+            
             localStorage.clear();
             sessionStorage.clear();
-            window.location.reload();
+            
+            // Remove elementos DOM órfãos
+            document.querySelectorAll('*').forEach(el => {
+              if (el.hasAttribute('data-radix-portal') || 
+                  el.hasAttribute('data-sonner-toaster') ||
+                  el.hasAttribute('data-radix-toast-viewport')) {
+                try { el.remove(); } catch {}
+              }
+            });
+            
+            // Restaura dados essenciais
+            Object.entries(backup).forEach(([key, value]) => {
+              localStorage.setItem(key, value);
+            });
+            
+            console.log('✅ Limpeza de emergência concluída - Recarregando...');
+            setTimeout(() => window.location.reload(), 500);
           }}
           variant="outline"
           size="sm"
-          className="bg-white border-red-300 text-red-600 hover:bg-red-50 shadow-lg"
-          title="Limpar cache e recarregar (específico para problemas de visualização)"
+          className="bg-red-50 border-red-400 text-red-700 hover:bg-red-100 shadow-lg font-semibold"
+          title="Correção de emergência para problemas críticos de visualização (Erick Moreira)"
         >
-          🔄 Limpar Cache
+          🚨 Correção Total
+        </Button>
+        
+        <Button
+          onClick={() => {
+            console.log('🧹 [LIMPEZA-SUAVE] Limpeza preventiva - Usuário Erick Moreira');
+            
+            // Limpeza apenas de elementos órfãos DOM
+            const orphanedElements = document.querySelectorAll('[data-radix-portal], [data-sonner-toaster], [data-radix-toast-viewport]');
+            orphanedElements.forEach(el => {
+              try { el.remove(); } catch {}
+            });
+            
+            // Limpa apenas caches temporários
+            try {
+              sessionStorage.clear();
+              console.log('✅ Limpeza suave concluída');
+            } catch (error) {
+              console.warn('⚠️ Erro na limpeza suave:', error);
+            }
+          }}
+          variant="outline"
+          size="sm"
+          className="bg-blue-50 border-blue-400 text-blue-700 hover:bg-blue-100 shadow-lg"
+          title="Limpeza suave de cache temporário (Erick Moreira)"
+        >
+          🧹 Limpeza Suave
         </Button>
       </div>
 
