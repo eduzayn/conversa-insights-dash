@@ -325,6 +325,12 @@ Changelog:
    * Campos de conversas preservados para histórico de dados
    * Interface de atendimentos funcionando com dados reais do banco local
    * Sistema 100% funcional sem integrações externas
+- Dados de acesso Portal do Aluno criados (30 Jul 2025):
+   * 3 alunos de exemplo cadastrados no sistema
+   * João Silva Santos: joao.silva@email.com / CPF: 123.456.789-01
+   * Maria Oliveira Costa: maria.oliveira@email.com / CPF: 987.654.321-00  
+   * Pedro Santos Lima: pedro.santos@email.com / CPF: 111.111.111-11
+   * 3 cursos acadêmicos: Pedagogia, Administração, Pós-Graduação em Educação
 - Correção Bug Filtro de Cursos por Modalidade (9 Jul 2025):
    * RESOLVIDO: Problema de filtro de cursos para modalidades "Segunda licenciatura" e "Formação Pedagógica"
    * Causa identificada: Discrepância entre strings frontend/backend ("Formação pedagógica" vs "Formação Pedagógica")
