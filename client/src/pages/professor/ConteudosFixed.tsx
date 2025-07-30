@@ -205,6 +205,47 @@ export default function ConteudosFixed() {
     }
   };
 
+  // Função para detectar e converter URLs do Google Drive
+  const getGoogleDriveEmbedUrl = (url: string) => {
+    // Padrões de URL do Google Drive
+    const patterns = [
+      /https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9-_]+)/,
+      /https:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9-_]+)/,
+      /https:\/\/docs\.google\.com\/.*\/d\/([a-zA-Z0-9-_]+)/
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        const fileId = match[1];
+        return {
+          embedUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+          directUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+          viewUrl: `https://drive.google.com/file/d/${fileId}/view`,
+          fileId
+        };
+      }
+    }
+    
+    return null;
+  };
+
+  // Função para detectar tipo de arquivo do Google Drive
+  const getGoogleDriveFileType = (url: string) => {
+    if (url.includes('docs.google.com/document')) return 'document';
+    if (url.includes('docs.google.com/spreadsheets')) return 'spreadsheet';
+    if (url.includes('docs.google.com/presentation')) return 'presentation';
+    if (url.includes('docs.google.com/forms')) return 'form';
+    
+    // Para arquivos do Drive, tentamos deduzir pelo contexto
+    const driveInfo = getGoogleDriveEmbedUrl(url);
+    if (driveInfo) {
+      return 'file'; // Arquivo genérico no Drive
+    }
+    
+    return null;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -564,53 +605,258 @@ export default function ConteudosFixed() {
                   </div>
                 )}
                 
-                {contentToPreview.tipo === 'video' && !contentToPreview.url?.includes('youtube') && (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">Vídeo</p>
-                    <a 
-                      href={contentToPreview.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Abrir vídeo em nova aba
-                    </a>
-                  </div>
-                )}
+                {contentToPreview.tipo === 'video' && !contentToPreview.url?.includes('youtube') && (() => {
+                  const driveInfo = getGoogleDriveEmbedUrl(contentToPreview.url);
+                  
+                  // Se for um vídeo do Google Drive, tenta fazer o embed
+                  if (driveInfo) {
+                    return (
+                      <div className="space-y-4">
+                        {/* Título do Vídeo */}
+                        <div className="text-center">
+                          <Video className="h-8 w-8 text-red-600 mx-auto mb-2" />
+                          <h4 className="text-lg font-semibold text-gray-900">Vídeo-aula Interativa</h4>
+                          <p className="text-sm text-gray-600">Visualização direta do Google Drive</p>
+                        </div>
+                        
+                        {/* Iframe do Google Drive */}
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-black">
+                          <iframe
+                            src={driveInfo.embedUrl}
+                            className="w-full h-[400px]"
+                            frameBorder="0"
+                            title={contentToPreview.titulo}
+                            allow="autoplay; fullscreen"
+                          />
+                        </div>
+                        
+                        {/* Botões de ação */}
+                        <div className="flex justify-center gap-3">
+                          <a 
+                            href={driveInfo.viewUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Abrir no Drive
+                          </a>
+                          <a 
+                            href={driveInfo.directUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <Video className="h-4 w-4" />
+                            Baixar Vídeo
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Se não for Google Drive, mostra o layout original
+                  return (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-4">Vídeo</p>
+                      <a 
+                        href={contentToPreview.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Abrir vídeo em nova aba
+                      </a>
+                    </div>
+                  );
+                })()}
                 
-                {contentToPreview.tipo === 'ebook' && (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <BookOpen className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">E-book disponível para download</p>
-                    <a 
-                      href={contentToPreview.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Baixar E-book
-                    </a>
-                  </div>
-                )}
+                {contentToPreview.tipo === 'ebook' && (() => {
+                  const driveInfo = getGoogleDriveEmbedUrl(contentToPreview.url);
+                  const driveFileType = getGoogleDriveFileType(contentToPreview.url);
+                  
+                  // Se for um arquivo do Google Drive, tenta fazer o embed
+                  if (driveInfo) {
+                    return (
+                      <div className="space-y-4">
+                        {/* Título do E-book */}
+                        <div className="text-center">
+                          <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                          <h4 className="text-lg font-semibold text-gray-900">E-book Interativo</h4>
+                          <p className="text-sm text-gray-600">Visualização direta do Google Drive</p>
+                        </div>
+                        
+                        {/* Iframe do Google Drive */}
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                          <iframe
+                            src={driveInfo.embedUrl}
+                            className="w-full h-[600px]"
+                            frameBorder="0"
+                            title={contentToPreview.titulo}
+                            allow="autoplay"
+                          />
+                        </div>
+                        
+                        {/* Botões de ação */}
+                        <div className="flex justify-center gap-3">
+                          <a 
+                            href={driveInfo.viewUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Abrir no Drive
+                          </a>
+                          <a 
+                            href={driveInfo.directUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <BookOpen className="h-4 w-4" />
+                            Baixar E-book
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Se não for Google Drive, mostra o layout original
+                  return (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <BookOpen className="h-16 w-16 text-blue-400 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-4">E-book disponível para download</p>
+                      <a 
+                        href={contentToPreview.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Baixar E-book
+                      </a>
+                    </div>
+                  );
+                })()}
                 
-                {contentToPreview.tipo === 'link' && (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <ExternalLink className="h-16 w-16 text-green-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">Link externo</p>
-                    <a 
-                      href={contentToPreview.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Acessar Link
-                    </a>
-                  </div>
-                )}
+                {contentToPreview.tipo === 'link' && (() => {
+                  const driveInfo = getGoogleDriveEmbedUrl(contentToPreview.url);
+                  const driveFileType = getGoogleDriveFileType(contentToPreview.url);
+                  
+                  // Se for um Google Docs, Sheets, etc.
+                  if (driveFileType && ['document', 'spreadsheet', 'presentation', 'form'].includes(driveFileType)) {
+                    const embedUrl = contentToPreview.url.includes('/edit') 
+                      ? contentToPreview.url.replace('/edit', '/preview')
+                      : contentToPreview.url + (contentToPreview.url.includes('?') ? '&' : '?') + 'embedded=true';
+                    
+                    return (
+                      <div className="space-y-4">
+                        {/* Título do Link */}
+                        <div className="text-center">
+                          <ExternalLink className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            {driveFileType === 'document' && 'Documento Google'}
+                            {driveFileType === 'spreadsheet' && 'Planilha Google'}
+                            {driveFileType === 'presentation' && 'Apresentação Google'}
+                            {driveFileType === 'form' && 'Formulário Google'}
+                          </h4>
+                          <p className="text-sm text-gray-600">Visualização incorporada</p>
+                        </div>
+                        
+                        {/* Iframe do Google Docs/Sheets/etc */}
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                          <iframe
+                            src={embedUrl}
+                            className="w-full h-[600px]"
+                            frameBorder="0"
+                            title={contentToPreview.titulo}
+                            allow="autoplay"
+                          />
+                        </div>
+                        
+                        {/* Botões de ação */}
+                        <div className="flex justify-center gap-3">
+                          <a 
+                            href={contentToPreview.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Abrir no Google
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Se for arquivo do Drive genérico
+                  if (driveInfo) {
+                    return (
+                      <div className="space-y-4">
+                        {/* Título do Link */}
+                        <div className="text-center">
+                          <ExternalLink className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                          <h4 className="text-lg font-semibold text-gray-900">Arquivo do Google Drive</h4>
+                          <p className="text-sm text-gray-600">Visualização incorporada</p>
+                        </div>
+                        
+                        {/* Iframe do Google Drive */}
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                          <iframe
+                            src={driveInfo.embedUrl}
+                            className="w-full h-[600px]"
+                            frameBorder="0"
+                            title={contentToPreview.titulo}
+                            allow="autoplay"
+                          />
+                        </div>
+                        
+                        {/* Botões de ação */}
+                        <div className="flex justify-center gap-3">
+                          <a 
+                            href={driveInfo.viewUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Abrir no Drive
+                          </a>
+                          <a 
+                            href={driveInfo.directUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            <BookOpen className="h-4 w-4" />
+                            Baixar Arquivo
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Se não for Google, mostra o layout original
+                  return (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <ExternalLink className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-4">Link externo</p>
+                      <a 
+                        href={contentToPreview.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Acessar Link
+                      </a>
+                    </div>
+                  );
+                })()}
                 
                 {contentToPreview.tipo === 'arquivo' && (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
