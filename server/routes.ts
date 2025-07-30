@@ -4074,7 +4074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Excluir conteúdo
   app.delete("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
     try {
-      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+      if (!['professor', 'conteudista', 'coordenador', 'admin'].includes(req.user.role)) {
         return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
@@ -4083,13 +4083,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID do conteúdo inválido" });
       }
 
-      // Verificar se o conteúdo existe e pertence ao professor
+      // Verificar se o conteúdo existe
       const content = await storage.getSubjectContentById(contentId);
       if (!content) {
         return res.status(404).json({ message: "Conteúdo não encontrado" });
       }
 
-      if (content.professorId !== req.user.id) {
+      // Administradores podem excluir qualquer conteúdo
+      // Professores só podem excluir seus próprios conteúdos
+      if (req.user.role !== 'admin' && content.professorId !== req.user.id) {
         return res.status(403).json({ message: "Você não tem permissão para excluir este conteúdo" });
       }
 
