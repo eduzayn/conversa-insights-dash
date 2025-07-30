@@ -193,7 +193,7 @@ export default function ContentForm({ subjects, initialData, onSuccess, onCancel
   }, [form]);
 
   const FormContent = () => {
-    console.log('ContentForm subjects:', subjects, 'length:', subjects.length); // Debug
+    // Debug logs removidos após identificação do problema
     
     return (
       <Form {...form}>
