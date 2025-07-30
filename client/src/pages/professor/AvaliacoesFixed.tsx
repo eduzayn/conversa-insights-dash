@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { FileText, Clock, Users, Plus, Settings, BarChart3, Edit, Trash2, CheckCircle } from "lucide-react";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
 export default function AvaliacoesFixed() {
   const { toast } = useToast();
@@ -19,6 +20,8 @@ export default function AvaliacoesFixed() {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [activeTab, setActiveTab] = useState("listar");
   const [editingEvaluation, setEditingEvaluation] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [evaluationToDelete, setEvaluationToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     titulo: "",
     subjectId: "",
@@ -107,9 +110,16 @@ export default function AvaliacoesFixed() {
     setActiveTab("criar");
   };
 
-  const handleDeleteAvaliacao = (avaliacaoId: number) => {
-    if (window.confirm("Tem certeza que deseja excluir esta avaliação?")) {
-      deleteEvaluationMutation.mutate(avaliacaoId);
+  const handleDeleteAvaliacao = (avaliacao: any) => {
+    setEvaluationToDelete(avaliacao);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (evaluationToDelete) {
+      deleteEvaluationMutation.mutate(evaluationToDelete.id);
+      setDeleteDialogOpen(false);
+      setEvaluationToDelete(null);
     }
   };
 
@@ -296,7 +306,7 @@ export default function AvaliacoesFixed() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteAvaliacao(avaliacao.id)}
+                        onClick={() => handleDeleteAvaliacao(avaliacao)}
                         className="hover:bg-red-50 hover:text-red-600"
                         disabled={deleteEvaluationMutation.isPending}
                       >
@@ -475,6 +485,17 @@ export default function AvaliacoesFixed() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Diálogo de confirmação de exclusão */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Confirmar exclusão de avaliação"
+        description={`Tem certeza que deseja excluir a avaliação "${evaluationToDelete?.titulo}"? Todas as questões e submissões relacionadas também serão excluídas permanentemente.`}
+        entityName="avaliação"
+        isLoading={deleteEvaluationMutation.isPending}
+      />
     </div>
   );
 }
