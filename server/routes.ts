@@ -3593,6 +3593,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excluir avaliação
+  app.delete("/api/professor/evaluations/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteProfessorEvaluation(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Erro ao excluir avaliação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Questões de uma avaliação
   app.get("/api/professor/evaluations/:id/questions", authenticateToken, async (req: any, res) => {
     try {

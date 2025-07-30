@@ -260,6 +260,7 @@ export interface IStorage {
   getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]>;
   createProfessorEvaluation(evaluation: InsertProfessorEvaluation): Promise<ProfessorEvaluation>;
   updateProfessorEvaluation(id: number, evaluation: Partial<ProfessorEvaluation>): Promise<ProfessorEvaluation | undefined>;
+  deleteProfessorEvaluation(id: number): Promise<void>;
   
   // Portal do Professor - Evaluation Questions
   getEvaluationQuestions(evaluationId: number): Promise<EvaluationQuestion[]>;
@@ -1468,6 +1469,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(professorEvaluations.id, id))
       .returning();
     return updatedEvaluation || undefined;
+  }
+
+  async deleteProfessorEvaluation(id: number): Promise<void> {
+    // Primeiro, excluir questões relacionadas (cascade delete)
+    await db
+      .delete(evaluationQuestions)
+      .where(eq(evaluationQuestions.evaluationId, id));
+    
+    // Em seguida, excluir a avaliação
+    await db
+      .delete(professorEvaluations)
+      .where(eq(professorEvaluations.id, id));
   }
   
   // Portal do Professor - Evaluation Questions
