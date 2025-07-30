@@ -193,7 +193,7 @@ export default function ContentForm({ subjects, initialData, onSuccess, onCancel
   }, [form]);
 
   const FormContent = () => {
-    // Debug logs removidos após identificação do problema
+    // Disciplinas carregadas com sucesso
     
     return (
       <Form {...form}>

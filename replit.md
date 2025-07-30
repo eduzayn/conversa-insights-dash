@@ -1052,6 +1052,17 @@ Changelog:
    * ✅ Sistema de autenticação JWT funcionando para roles professor/conteudista/coordenador
    * ✅ Redirecionamento automático para /professor/dashboard após login bem-sucedido
    * Status: Portal do Professor 100% funcional - problema de produção resolvido
+- Sistema de Disciplinas Portal do Professor Corrigido (30 Jul 2025):
+   * ✅ PROBLEMA CRÍTICO RESOLVIDO: Carregamento de disciplinas estava falhando por falta de associações
+   * ✅ Causa identificada: Tabela professor_subjects vazia impedindo retorno de disciplinas via JOIN
+   * ✅ Associações criadas: Professor João Silva (ID 21) vinculado às disciplinas existentes
+   * ✅ Disciplinas disponíveis: Algoritmos e Estruturas de Dados I, Banco de Dados, POO
+   * ✅ API /api/professor/subjects funcionando corretamente (status 200)
+   * ✅ React Query configurado com queryFn customizado para autenticação JWT
+   * ✅ ContentForm recebendo disciplinas via props do componente pai
+   * ✅ Dropdown "Disciplina" no formulário de conteúdos totalmente funcional
+   * ✅ Sistema pronto para criação de conteúdos acadêmicos
+   * Status: Portal do Professor com sistema completo de disciplinas funcionando
 - Otimização Layout Portal do Professor (30 Jul 2025):
    * ✅ PROBLEMA RESOLVIDO: Excesso de espaço em branco nas laterais das páginas
    * ✅ Removida limitação max-w-7xl mx-auto do ProfessorLayout.tsx

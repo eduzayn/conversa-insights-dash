@@ -32,8 +32,23 @@ export default function Conteudos() {
   const queryClient = useQueryClient();
 
   // Buscar disciplinas do professor
-  const { data: subjects = [] } = useQuery<Subject[]>({
+  const { data: subjects = [], isLoading: subjectsLoading, error: subjectsError } = useQuery<Subject[]>({
     queryKey: ['professor', 'subjects'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/professor/subjects', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${await response.text()}`);
+      }
+      
+      return await response.json();
+    },
   });
 
   // Buscar conteúdos
