@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +22,25 @@ import {
   BarChart3
 } from "lucide-react";
 
+interface Subject {
+  id: number;
+  nome: string;
+  codigo: string;
+  area: string;
+  cargaHoraria: number;
+  descricao?: string;
+  isActive: boolean;
+  totalAlunos?: number;
+  totalConteudos?: number;
+  totalAvaliacoes?: number;
+  progresso?: number;
+}
+
 export default function Disciplinas() {
   const navigate = useNavigate();
-  const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedDisciplina, setSelectedDisciplina] = useState<Subject | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
@@ -29,6 +48,44 @@ export default function Disciplinas() {
     area: "",
     cargaHoraria: "",
     descricao: ""
+  });
+
+  // Buscar disciplinas do professor
+  const { data: disciplinas = [], isLoading } = useQuery<Subject[]>({
+    queryKey: ["/api/professor/subjects"],
+  });
+
+  // Mutation para criar nova disciplina
+  const createSubjectMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("/api/professor/subjects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Disciplina criada com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/professor/subjects"] });
+      setIsModalOpen(false);
+      setFormData({
+        nome: "",
+        codigo: "",
+        area: "",
+        cargaHoraria: "",
+        descricao: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar disciplina",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -39,57 +96,28 @@ export default function Disciplinas() {
   };
 
   const handleSubmit = () => {
-    // Aqui seria feita a chamada para a API
-    console.log("Nova disciplina:", formData);
-    setIsModalOpen(false);
-    setFormData({
-      nome: "",
-      codigo: "",
-      area: "",
-      cargaHoraria: "",
-      descricao: ""
+    if (!formData.nome || !formData.codigo || !formData.area || !formData.cargaHoraria) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createSubjectMutation.mutate({
+      ...formData,
+      cargaHoraria: parseInt(formData.cargaHoraria)
     });
   };
 
-  // Lista das disciplinas do professor
-  const disciplinas = [
-    {
-      id: 1,
-      nome: "Algoritmos e Programação I",
-      codigo: "PROG001",
-      area: "Ciências Exatas",
-      cargaHoraria: 80,
-      totalAlunos: 45,
-      totalConteudos: 12,
-      totalAvaliacoes: 4,
-      status: "ativa",
-      progresso: 78
-    },
-    {
-      id: 2,
-      nome: "Estruturas de Dados",
-      codigo: "PROG002", 
-      area: "Ciências Exatas",
-      cargaHoraria: 60,
-      totalAlunos: 38,
-      totalConteudos: 8,
-      totalAvaliacoes: 3,
-      status: "ativa",
-      progresso: 65
-    },
-    {
-      id: 3,
-      nome: "Banco de Dados",
-      codigo: "DB001",
-      area: "Ciências Exatas", 
-      cargaHoraria: 100,
-      totalAlunos: 73,
-      totalConteudos: 15,
-      totalAvaliacoes: 5,
-      status: "ativa",
-      progresso: 82
-    }
-  ];
+  // Calcular estatísticas das disciplinas
+  const stats = {
+    totalDisciplinas: disciplinas.length,
+    totalConteudos: disciplinas.reduce((sum: number, d: Subject) => sum + (d.totalConteudos || 0), 0),
+    totalAvaliacoes: disciplinas.reduce((sum: number, d: Subject) => sum + (d.totalAvaliacoes || 0), 0),
+    totalAlunos: disciplinas.reduce((sum: number, d: Subject) => sum + (d.totalAlunos || 0), 0)
+  };
 
   return (
     <div className="space-y-8">
@@ -201,7 +229,7 @@ export default function Disciplinas() {
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{disciplinas.length}</p>
+                <p className="text-2xl font-bold">{stats.totalDisciplinas}</p>
                 <p className="text-sm text-gray-600">Disciplinas Ativas</p>
               </div>
             </div>
@@ -216,7 +244,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {disciplinas.reduce((sum, d) => sum + d.totalAlunos, 0)}
+                  {disciplinas.reduce((sum: number, d: Subject) => sum + (d.totalAlunos || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Total de Alunos</p>
               </div>
@@ -232,7 +260,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {disciplinas.reduce((sum, d) => sum + d.totalConteudos, 0)}
+                  {disciplinas.reduce((sum: number, d: Subject) => sum + (d.totalConteudos || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Conteúdos Criados</p>
               </div>
@@ -248,7 +276,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {disciplinas.reduce((sum, d) => sum + d.totalAvaliacoes, 0)}
+                  {disciplinas.reduce((sum: number, d: Subject) => sum + (d.totalAvaliacoes || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Avaliações Criadas</p>
               </div>
@@ -259,7 +287,16 @@ export default function Disciplinas() {
 
       {/* Disciplinas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {disciplinas.map((disciplina) => (
+        {isLoading ? (
+          <div className="col-span-full flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-2">Carregando disciplinas...</span>
+          </div>
+        ) : disciplinas.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">Nenhuma disciplina encontrada. Crie sua primeira disciplina!</p>
+          </div>
+        ) : disciplinas.map((disciplina: Subject) => (
           <Card 
             key={disciplina.id} 
             className={`cursor-pointer transition-all hover:shadow-lg ${
@@ -275,8 +312,8 @@ export default function Disciplinas() {
                     {disciplina.codigo} • {disciplina.area}
                   </CardDescription>
                 </div>
-                <Badge variant={disciplina.status === 'ativa' ? 'default' : 'secondary'}>
-                  {disciplina.status === 'ativa' ? 'Ativa' : 'Inativa'}
+                <Badge variant={disciplina.isActive ? 'default' : 'secondary'}>
+                  {disciplina.isActive ? 'Ativa' : 'Inativa'}
                 </Badge>
               </div>
             </CardHeader>
@@ -288,15 +325,15 @@ export default function Disciplinas() {
 
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-blue-600">{disciplina.totalAlunos}</p>
+                  <p className="text-2xl font-bold text-blue-600">{disciplina.totalAlunos || 0}</p>
                   <p className="text-xs text-gray-600">Alunos</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-600">{disciplina.totalConteudos}</p>
+                  <p className="text-2xl font-bold text-purple-600">{disciplina.totalConteudos || 0}</p>
                   <p className="text-xs text-gray-600">Conteúdos</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-orange-600">{disciplina.totalAvaliacoes}</p>
+                  <p className="text-2xl font-bold text-orange-600">{disciplina.totalAvaliacoes || 0}</p>
                   <p className="text-xs text-gray-600">Avaliações</p>
                 </div>
               </div>
@@ -304,12 +341,12 @@ export default function Disciplinas() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Progresso médio</span>
-                  <span className="text-sm font-medium">{disciplina.progresso}%</span>
+                  <span className="text-sm font-medium">{disciplina.progresso || 0}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${disciplina.progresso}%` }}
+                    style={{ width: `${disciplina.progresso || 0}%` }}
                   />
                 </div>
               </div>
