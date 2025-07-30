@@ -1352,7 +1352,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSubject(id: number): Promise<void> {
-    // Primeiro, remove os relacionamentos professor-disciplina
+    // Buscar avaliações da disciplina
+    const evaluationIds = await db
+      .select({ id: professorEvaluations.id })
+      .from(professorEvaluations)
+      .where(eq(professorEvaluations.subjectId, id));
+    
+    // Excluir questões uma por uma para garantir que funcione
+    for (const evaluation of evaluationIds) {
+      await db
+        .delete(evaluationQuestions)
+        .where(eq(evaluationQuestions.evaluationId, evaluation.id));
+    }
+    
+    // Agora remover as avaliações da disciplina
+    await db
+      .delete(professorEvaluations)
+      .where(eq(professorEvaluations.subjectId, id));
+    
+    // Remove os relacionamentos professor-disciplina
     await db
       .delete(professorSubjects)
       .where(eq(professorSubjects.subjectId, id));
@@ -1361,11 +1379,6 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(subjectContents)
       .where(eq(subjectContents.subjectId, id));
-    
-    // Remove as avaliações da disciplina
-    await db
-      .delete(professorEvaluations)
-      .where(eq(professorEvaluations.subjectId, id));
     
     // Por último, remove a disciplina
     await db
