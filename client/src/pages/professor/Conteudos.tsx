@@ -217,14 +217,14 @@ export default function Conteudos() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Select
-                  value={selectedSubjectId?.toString() || ""}
-                  onValueChange={(value) => setSelectedSubjectId(value ? parseInt(value) : null)}
+                  value={selectedSubjectId?.toString() || "all"}
+                  onValueChange={(value) => setSelectedSubjectId(value === "all" ? null : parseInt(value))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as disciplinas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as disciplinas</SelectItem>
+                    <SelectItem value="all">Todas as disciplinas</SelectItem>
                     {subjects.map((subject) => (
                       <SelectItem key={subject.id} value={subject.id.toString()}>
                         {subject.nome}
