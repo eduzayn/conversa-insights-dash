@@ -207,14 +207,18 @@ export default function ContentForm({ subjects, initialData, onSuccess, onCancel
                   <FormLabel>Disciplina *</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white border border-input">
                         <SelectValue placeholder="Selecione uma disciplina" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-input shadow-lg">
                       {subjects.length > 0 ? (
                         subjects.map((subject) => (
-                          <SelectItem key={subject.id} value={subject.id.toString()}>
+                          <SelectItem 
+                            key={subject.id} 
+                            value={subject.id.toString()}
+                            className="bg-white hover:bg-gray-100 focus:bg-gray-100"
+                          >
                             {subject.nome}
                           </SelectItem>
                         ))
@@ -238,15 +242,15 @@ export default function ContentForm({ subjects, initialData, onSuccess, onCancel
                   <FormLabel>Tipo de Conteúdo *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white border border-input">
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="video">Vídeo-aula</SelectItem>
-                      <SelectItem value="ebook">E-book</SelectItem>
-                      <SelectItem value="link">Link Útil</SelectItem>
-                      <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectContent className="bg-white border border-input shadow-lg">
+                      <SelectItem value="video" className="bg-white hover:bg-gray-100 focus:bg-gray-100">Vídeo-aula</SelectItem>
+                      <SelectItem value="ebook" className="bg-white hover:bg-gray-100 focus:bg-gray-100">E-book</SelectItem>
+                      <SelectItem value="link" className="bg-white hover:bg-gray-100 focus:bg-gray-100">Link Útil</SelectItem>
+                      <SelectItem value="pdf" className="bg-white hover:bg-gray-100 focus:bg-gray-100">PDF</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
