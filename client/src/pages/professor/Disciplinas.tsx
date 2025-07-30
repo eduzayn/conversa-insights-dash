@@ -259,7 +259,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {disciplinas.reduce((sum, d) => sum + d.totalAlunos, 0)}
+                  {disciplinas.reduce((sum, d) => sum + (d.totalAlunos || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Total de Alunos</p>
               </div>
@@ -275,7 +275,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {disciplinas.reduce((sum, d) => sum + d.totalConteudos, 0)}
+                  {disciplinas.reduce((sum, d) => sum + (d.totalConteudos || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Conteúdos Criados</p>
               </div>
@@ -291,7 +291,7 @@ export default function Disciplinas() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {disciplinas.reduce((sum, d) => sum + d.totalAvaliacoes, 0)}
+                  {disciplinas.reduce((sum, d) => sum + (d.totalAvaliacoes || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Avaliações Criadas</p>
               </div>

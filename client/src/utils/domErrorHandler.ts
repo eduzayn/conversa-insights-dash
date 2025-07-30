@@ -9,8 +9,10 @@ export const setupDOMErrorHandler = () => {
       if (this.contains && this.contains(child)) {
         return originalRemoveChild.call(this, child);
       } else {
-        // Se não é mais filho, retorna o nó sem erro
-        console.warn('Tentativa de remover nó que não é mais filho - ignorando');
+        // Se não é mais filho, retorna o nó sem erro (em produção, suprime o log)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Tentativa de remover nó que não é mais filho - ignorando');
+        }
         return child;
       }
     } catch (error) {

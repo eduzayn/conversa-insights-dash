@@ -28,7 +28,11 @@ if (isProduction) {
     'connected.',
     'server connection lost',
     'Polling for restart',
-    'lock-safari'
+    'lock-safari',
+    'Tentativa de remover nó que não é mais filho',
+    'removeChild',
+    'NotFoundError',
+    'DOM manipulation'
   ];
   
   // Função para verificar se deve filtrar

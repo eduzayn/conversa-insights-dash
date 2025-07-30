@@ -933,6 +933,20 @@ Changelog:
    * ✅ Integração no App.tsx para todas as páginas administrativas
    * ✅ Sistema robusto para resolver problemas específicos de colaboradores em produção
    * Status: Sistema de limpeza de cache profissional implementado, específico para problemas de produção
+- Correção Crítica: Roteamento de Disciplinas e Erros DOM Corrigidos (30 Jul 2025):
+   * ✅ PROBLEMA IDENTIFICADO: ProfessorPortalLayout usava DisciplinasFixed (antigo) em vez de Disciplinas (com melhorias)
+   * ✅ Roteamento corrigido: alterado import e rota para usar componente Disciplinas.tsx atualizado
+   * ✅ Erro NaN corrigido: propriedades totalAlunos, totalConteudos, totalAvaliacoes com fallback (|| 0)
+   * ✅ Sistema de interceptação DOM aprimorado: erros "removeChild" suprimidos em produção
+   * ✅ Filtros de log expandidos: incluem "removeChild", "NotFoundError", "DOM manipulation"
+   * ✅ Página de disciplinas agora exibe corretamente:
+     - Sistema de filtros (busca, área, status)
+     - Paginação com 12 disciplinas por página em grid 4x3
+     - Indicadores de quantidade filtrada vs total
+     - Botão "Limpar Filtros"
+     - Grid responsivo expandido para 4 colunas
+     - Cards de estatísticas funcionais sem erros NaN
+   * Status: Sistema de disciplinas totalmente funcional com todas as melhorias implementadas
 - Correção Crítica: Responsividade de Modais em Zoom 100% (21 Jul 2025):
    * ✅ PROBLEMA RESOLVIDO: Modais só funcionavam em zoom 67%, não no padrão 100%
    * ✅ DialogContent base modificado: max-w-lg → max-w-2xl com overflow-y otimizado
