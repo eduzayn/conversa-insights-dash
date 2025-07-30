@@ -8,11 +8,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Clock, Users, Plus, Settings, BarChart3, Edit, Trash2, CheckCircle } from "lucide-react";
+import { FileText, Clock, Users, Plus, Settings, BarChart3, Edit, Trash2, CheckCircle, Search, Filter, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 export default function Avaliacoes() {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [activeTab, setActiveTab] = useState("listar");
+  
+  // Estados para filtros e paginação
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDisciplina, setSelectedDisciplina] = useState("todas");
+  const [selectedTipo, setSelectedTipo] = useState("todos");
+  const [selectedStatus, setSelectedStatus] = useState("todos");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const handleEditAvaliacao = (avaliacaoId: number) => {
     console.log("Editando avaliação:", avaliacaoId);
@@ -64,8 +72,107 @@ export default function Avaliacoes() {
       status: "rascunho",
       dataInicio: "2025-01-22",
       dataFim: "2025-01-25"
+    },
+    {
+      id: 3,
+      titulo: "Teste Dialog Avaliação",
+      disciplina: "Programação Orientada a Objetos",
+      tipo: "prova",
+      questoes: 8,
+      tentativas: 32,
+      status: "ativa",
+      dataInicio: "2025-01-18",
+      dataFim: "2025-01-23"
+    },
+    {
+      id: 4,
+      titulo: "Avaliação de Algoritmos - Módulo 1",
+      disciplina: "Algoritmos e Estruturas de Dados I",
+      tipo: "tarefa",
+      questoes: 12,
+      tentativas: 15,
+      status: "encerrada",
+      dataInicio: "2025-01-10",
+      dataFim: "2025-01-15"
+    },
+    {
+      id: 5,
+      titulo: "Simulado Final - POO",
+      disciplina: "Programação Orientada a Objetos",
+      tipo: "simulado",
+      questoes: 20,
+      tentativas: 28,
+      status: "ativa",
+      dataInicio: "2025-01-25",
+      dataFim: "2025-01-30"
+    },
+    {
+      id: 6,
+      titulo: "Prova Final - Banco de Dados",
+      disciplina: "Banco de Dados",
+      tipo: "prova",
+      questoes: 18,
+      tentativas: 22,
+      status: "rascunho",
+      dataInicio: "2025-02-01",
+      dataFim: "2025-02-05"
+    },
+    {
+      id: 7,
+      titulo: "Exercícios - Normalização",
+      disciplina: "Banco de Dados",
+      tipo: "tarefa",
+      questoes: 6,
+      tentativas: 35,
+      status: "ativa",
+      dataInicio: "2025-01-20",
+      dataFim: "2025-01-27"
+    },
+    {
+      id: 8,
+      titulo: "Simulado - Herança e Polimorfismo",
+      disciplina: "Programação Orientada a Objetos",
+      tipo: "simulado",
+      questoes: 14,
+      tentativas: 19,
+      status: "encerrada",
+      dataInicio: "2025-01-12",
+      dataFim: "2025-01-17"
     }
   ];
+
+  // Funções de filtro e paginação
+  const resetPage = () => setCurrentPage(1);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedDisciplina("todas");
+    setSelectedTipo("todos");
+    setSelectedStatus("todos");
+    resetPage();
+  };
+
+  const filteredAvaliacoes = avaliacoes.filter((avaliacao) => {
+    const matchesSearch = 
+      avaliacao.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      avaliacao.disciplina.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDisciplina = selectedDisciplina === "todas" || 
+      avaliacao.disciplina === selectedDisciplina;
+    
+    const matchesTipo = selectedTipo === "todos" || 
+      avaliacao.tipo === selectedTipo;
+    
+    const matchesStatus = selectedStatus === "todos" || 
+      avaliacao.status === selectedStatus;
+
+    return matchesSearch && matchesDisciplina && matchesTipo && matchesStatus;
+  });
+
+  const totalPages = Math.ceil(filteredAvaliacoes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAvaliacoes = filteredAvaliacoes.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -106,7 +213,7 @@ export default function Avaliacoes() {
                 <FileText className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-2xl font-bold">{avaliacoes.length}</p>
                 <p className="text-sm text-gray-600">Avaliações Criadas</p>
               </div>
             </div>
@@ -120,7 +227,7 @@ export default function Avaliacoes() {
                 <Clock className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">5</p>
+                <p className="text-2xl font-bold">{avaliacoes.filter(a => a.status === "rascunho").length}</p>
                 <p className="text-sm text-gray-600">Aguardando Correção</p>
               </div>
             </div>
@@ -134,7 +241,7 @@ export default function Avaliacoes() {
                 <Users className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">147</p>
+                <p className="text-2xl font-bold">{avaliacoes.reduce((sum, a) => sum + a.tentativas, 0)}</p>
                 <p className="text-sm text-gray-600">Submissões Totais</p>
               </div>
             </div>
@@ -150,9 +257,132 @@ export default function Avaliacoes() {
         </TabsList>
 
         <TabsContent value="listar" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {avaliacoes.map(avaliacao => (
-              <Card key={avaliacao.id} className="hover:shadow-md transition-shadow">
+          {/* Filtros e Busca */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                {/* Busca */}
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Buscar por título ou disciplina..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      resetPage();
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Filtros */}
+                <div className="flex gap-3 items-center flex-wrap">
+                  <Filter className="h-4 w-4 text-gray-500" />
+                  
+                  {/* Filtro por Disciplina */}
+                  <Select value={selectedDisciplina} onValueChange={(value) => {
+                    setSelectedDisciplina(value);
+                    resetPage();
+                  }}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas as Disciplinas</SelectItem>
+                      <SelectItem value="Algoritmos e Estruturas de Dados I">Algoritmos e Estruturas de Dados I</SelectItem>
+                      <SelectItem value="Programação Orientada a Objetos">Programação Orientada a Objetos</SelectItem>
+                      <SelectItem value="Banco de Dados">Banco de Dados</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Filtro por Tipo */}
+                  <Select value={selectedTipo} onValueChange={(value) => {
+                    setSelectedTipo(value);
+                    resetPage();
+                  }}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os Tipos</SelectItem>
+                      <SelectItem value="prova">Prova</SelectItem>
+                      <SelectItem value="simulado">Simulado</SelectItem>
+                      <SelectItem value="tarefa">Tarefa</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Filtro por Status */}
+                  <Select value={selectedStatus} onValueChange={(value) => {
+                    setSelectedStatus(value);
+                    resetPage();
+                  }}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os Status</SelectItem>
+                      <SelectItem value="ativa">Ativa</SelectItem>
+                      <SelectItem value="rascunho">Rascunho</SelectItem>
+                      <SelectItem value="encerrada">Encerrada</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Botão Limpar Filtros */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearFilters}
+                    className="gap-2"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Limpar Filtros
+                  </Button>
+                </div>
+              </div>
+
+              {/* Indicadores de quantidade */}
+              <div className="mt-4 text-sm text-gray-600">
+                Mostrando <strong>{currentAvaliacoes.length}</strong> de <strong>{filteredAvaliacoes.length}</strong> avaliações
+                {filteredAvaliacoes.length !== avaliacoes.length && (
+                  <span> (filtrado de {avaliacoes.length} total)</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Lista de avaliações ou estado vazio */}
+          {currentAvaliacoes.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="p-4 bg-gray-100 rounded-full">
+                    <FileText className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      {filteredAvaliacoes.length === 0 && avaliacoes.length > 0 
+                        ? "Nenhuma avaliação encontrada" 
+                        : "Nenhuma avaliação cadastrada"}
+                    </h3>
+                    <p className="text-gray-600">
+                      {filteredAvaliacoes.length === 0 && avaliacoes.length > 0
+                        ? "Tente ajustar os filtros para encontrar o que procura."
+                        : "Comece criando sua primeira avaliação ou simulado."}
+                    </p>
+                  </div>
+                  {filteredAvaliacoes.length === 0 && avaliacoes.length > 0 && (
+                    <Button variant="outline" onClick={clearFilters} className="gap-2">
+                      <RotateCcw className="h-4 w-4" />
+                      Limpar Filtros
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {currentAvaliacoes.map(avaliacao => (
+                <Card key={avaliacao.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -220,6 +450,90 @@ export default function Avaliacoes() {
               </Card>
             ))}
           </div>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Página {currentPage} de {totalPages}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="gap-1"
+                    >
+                      <ChevronLeft className="h-3 w-3" />
+                      Anterior
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => 
+                          page === 1 || 
+                          page === totalPages || 
+                          Math.abs(page - currentPage) <= 1
+                        )
+                        .map((page, index, visiblePages) => (
+                          <>
+                            {index > 0 && visiblePages[index - 1] !== page - 1 && (
+                              <span key={`ellipsis-${page}`} className="px-2 text-gray-400">...</span>
+                            )}
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          </>
+                        ))}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="gap-1"
+                    >
+                      Próxima
+                      <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          )}
+        </TabsContent>
+                          </>
+                        ))
+                      }
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="gap-1"
+                    >
+                      Próxima
+                      <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="criar" className="space-y-6">
