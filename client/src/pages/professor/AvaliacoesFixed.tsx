@@ -34,6 +34,20 @@ export default function Avaliacoes() {
   const queryClient = useQueryClient();
   const [selectedAvaliacao, setSelectedAvaliacao] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // Estado para nova avaliação
+  const [novaAvaliacao, setNovaAvaliacao] = useState({
+    titulo: "",
+    descricao: "",
+    disciplina: "",
+    tipo: "avaliacao",
+    duracao: "60",
+    tentativas: "1",
+    dataInicio: "",
+    dataFim: "",
+    instrucoes: ""
+  });
 
   // Estados para filtros e paginação
   const [searchTerm, setSearchTerm] = useState("");
@@ -124,6 +138,75 @@ export default function Avaliacoes() {
     }
   };
 
+  // Mutation para criar nova avaliação
+  const createAvaliacaoMutation = useMutation({
+    mutationFn: async (data: typeof novaAvaliacao) => {
+      const response = await apiRequest('/api/professor/evaluations', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: data.titulo,
+          description: data.descricao,
+          subjectId: parseInt(data.disciplina),
+          type: data.tipo,
+          duration: parseInt(data.duracao),
+          maxAttempts: parseInt(data.tentativas),
+          startDate: data.dataInicio,
+          endDate: data.dataFim,
+          instructions: data.instrucoes,
+          status: 'rascunho'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao criar avaliação');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Avaliação criada com sucesso!",
+        description: "Você pode agora adicionar questões à avaliação.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations'] });
+      setIsCreateModalOpen(false);
+      
+      // Reset form
+      setNovaAvaliacao({
+        titulo: "",
+        descricao: "",
+        disciplina: "",
+        tipo: "avaliacao",
+        duracao: "60",
+        tentativas: "1",
+        dataInicio: "",
+        dataFim: "",
+        instrucoes: ""
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar avaliação",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleCreateAvaliacao = () => {
+    if (!novaAvaliacao.titulo || !novaAvaliacao.disciplina) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha pelo menos o título e selecione uma disciplina.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    createAvaliacaoMutation.mutate(novaAvaliacao);
+  };
+
   if (isLoadingAvaliacoes || isLoadingDisciplinas) {
     return (
       <div className="container mx-auto py-8">
@@ -140,10 +223,180 @@ export default function Avaliacoes() {
           <h1 className="text-3xl font-bold tracking-tight">Avaliações</h1>
           <p className="text-gray-600">Gerencie suas avaliações e simulados</p>
         </div>
-        <Button onClick={() => navigate('/professor/avaliacoes/nova')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Avaliação
-        </Button>
+        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Avaliação
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Nova Avaliação</DialogTitle>
+              <DialogDescription>
+                Crie uma nova avaliação, simulado ou prova para seus alunos
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="titulo" className="text-sm font-medium">
+                    Título da Avaliação *
+                  </Label>
+                  <Input
+                    id="titulo"
+                    placeholder="Ex: Avaliação de Algoritmos - Módulo 1"
+                    value={novaAvaliacao.titulo}
+                    onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, titulo: e.target.value }))}
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="descricao" className="text-sm font-medium">
+                    Descrição
+                  </Label>
+                  <Textarea
+                    id="descricao"
+                    placeholder="Descreva brevemente o conteúdo e objetivos da avaliação..."
+                    value={novaAvaliacao.descricao}
+                    onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, descricao: e.target.value }))}
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="disciplina" className="text-sm font-medium">
+                      Disciplina *
+                    </Label>
+                    <UniversalSelect
+                      value={novaAvaliacao.disciplina}
+                      onValueChange={(value) => setNovaAvaliacao(prev => ({ ...prev, disciplina: value }))}
+                      placeholder="Selecione uma disciplina"
+                      className="h-11"
+                      options={disciplinas.map((disciplina: any) => ({
+                        value: disciplina.id.toString(),
+                        label: disciplina.nome
+                      }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo" className="text-sm font-medium">
+                      Tipo de Avaliação
+                    </Label>
+                    <UniversalSelect
+                      value={novaAvaliacao.tipo}
+                      onValueChange={(value) => setNovaAvaliacao(prev => ({ ...prev, tipo: value }))}
+                      placeholder="Selecione o tipo"
+                      className="h-11"
+                      options={[
+                        { value: "avaliacao", label: "Avaliação" },
+                        { value: "simulado", label: "Simulado" },
+                        { value: "prova", label: "Prova" },
+                        { value: "exercicio", label: "Exercício" }
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="duracao" className="text-sm font-medium">
+                      Duração (min)
+                    </Label>
+                    <Input
+                      id="duracao"
+                      type="number"
+                      placeholder="60"
+                      value={novaAvaliacao.duracao}
+                      onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, duracao: e.target.value }))}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="tentativas" className="text-sm font-medium">
+                      Tentativas
+                    </Label>
+                    <Input
+                      id="tentativas"
+                      type="number"
+                      placeholder="1"
+                      value={novaAvaliacao.tentativas}
+                      onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, tentativas: e.target.value }))}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dataInicio" className="text-sm font-medium">
+                      Data de Início
+                    </Label>
+                    <Input
+                      id="dataInicio"
+                      type="datetime-local"
+                      value={novaAvaliacao.dataInicio}
+                      onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, dataInicio: e.target.value }))}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dataFim" className="text-sm font-medium">
+                      Data de Fim
+                    </Label>
+                    <Input
+                      id="dataFim"
+                      type="datetime-local"
+                      value={novaAvaliacao.dataFim}
+                      onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, dataFim: e.target.value }))}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instrucoes" className="text-sm font-medium">
+                    Instruções para os Alunos
+                  </Label>
+                  <Textarea
+                    id="instrucoes"
+                    placeholder="Digite as instruções que os alunos verão antes de iniciar a avaliação..."
+                    value={novaAvaliacao.instrucoes}
+                    onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, instrucoes: e.target.value }))}
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Botões */}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreateModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCreateAvaliacao}
+                  disabled={!novaAvaliacao.titulo || !novaAvaliacao.disciplina || createAvaliacaoMutation.isPending}
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="h-4 w-4" />
+                  {createAvaliacaoMutation.isPending ? "Criando..." : "Criar Avaliação"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Cards de estatísticas */}
