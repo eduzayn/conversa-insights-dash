@@ -1,17 +1,26 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import type { SubjectContent, Subject, InsertSubjectContent } from "@/types/professor";
+import type { SubjectContent, Subject } from "@/types/professor";
+
+const contentFormSchema = z.object({
+  subjectId: z.number({ required_error: "Disciplina é obrigatória" }),
+  titulo: z.string().min(1, "Título é obrigatório").max(200, "Título muito longo"),
+  tipo: z.enum(["video", "ebook", "link", "pdf"], { required_error: "Tipo é obrigatório" }),
+  conteudo: z.string().url("URL deve ser válida").min(1, "URL é obrigatória"),
+  descricao: z.string().optional(),
+});
+
+type ContentFormData = z.infer<typeof contentFormSchema>;
 
 interface ContentFormProps {
   subjects: Subject[];
@@ -21,21 +30,8 @@ interface ContentFormProps {
   isModal?: boolean;
 }
 
-const contentFormSchema = z.object({
-  subjectId: z.number().min(1, "Selecione uma disciplina"),
-  titulo: z.string().min(1, "Título é obrigatório").max(100, "Título deve ter no máximo 100 caracteres"),
-  tipo: z.enum(["video", "ebook", "link", "pdf"], {
-    required_error: "Selecione um tipo de conteúdo",
-  }),
-  conteudo: z.string().url("URL deve ser válida"),
-  descricao: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
-  ordem: z.number().default(0),
-});
-
-type ContentFormData = z.infer<typeof contentFormSchema>;
-
 export default function ContentForm({ subjects, initialData, onSuccess, onCancel, isModal = false }: ContentFormProps) {
-  const [selectedType, setSelectedType] = useState(initialData?.tipo || "");
+  const [selectedType, setSelectedType] = useState<string>("");
   const queryClient = useQueryClient();
 
   const form = useForm<ContentFormData>({
@@ -46,7 +42,6 @@ export default function ContentForm({ subjects, initialData, onSuccess, onCancel
       tipo: initialData?.tipo || undefined,
       conteudo: initialData?.conteudo || "",
       descricao: initialData?.descricao || "",
-      ordem: initialData?.ordem || 0,
     },
   });
 
@@ -197,132 +192,137 @@ export default function ContentForm({ subjects, initialData, onSuccess, onCancel
     return () => subscription.unsubscribe();
   }, [form]);
 
-  const FormContent = () => (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="subjectId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Disciplina *</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma disciplina" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.id.toString()}>
-                        {subject.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="tipo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Conteúdo *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="video">Vídeo-aula</SelectItem>
-                    <SelectItem value="ebook">E-book</SelectItem>
-                    <SelectItem value="link">Link Útil</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="titulo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título *</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o título do conteúdo" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="conteudo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL/Conteúdo *</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder={getPlaceholderByType(selectedType)}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-              {selectedType && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {getTypeValidationMessage(selectedType)}
-                </p>
+  const FormContent = () => {
+    console.log('ContentForm subjects:', subjects, 'length:', subjects.length); // Debug
+    
+    return (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="subjectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Disciplina *</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma disciplina" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {subjects.length > 0 ? (
+                        subjects.map((subject) => (
+                          <SelectItem key={subject.id} value={subject.id.toString()}>
+                            {subject.nome}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="loading" disabled>
+                          Carregando disciplinas...
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </FormItem>
-          )}
-        />
+            />
 
-        <FormField
-          control={form.control}
-          name="descricao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Descrição opcional do conteúdo"
-                  rows={3}
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="tipo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Conteúdo *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="video">Vídeo-aula</SelectItem>
+                      <SelectItem value="ebook">E-book</SelectItem>
+                      <SelectItem value="link">Link Útil</SelectItem>
+                      <SelectItem value="pdf">PDF</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="flex gap-2 pt-4">
-          <Button
-            type="submit"
-            disabled={createMutation.isPending || updateMutation.isPending}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            {createMutation.isPending || updateMutation.isPending
-              ? initialData ? "Atualizando..." : "Criando..."
-              : initialData ? "Atualizar Conteúdo" : "Criar Conteúdo"
-            }
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
+          <FormField
+            control={form.control}
+            name="titulo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Título *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Digite o título do conteúdo" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="conteudo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>URL/Conteúdo *</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={getPlaceholderByType(selectedType)}
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="descricao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descrição</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Descrição opcional do conteúdo"
+                    rows={3}
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              type="submit"
+              disabled={createMutation.isPending || updateMutation.isPending}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {createMutation.isPending || updateMutation.isPending
+                ? initialData ? "Atualizando..." : "Criando..."
+                : initialData ? "Atualizar Conteúdo" : "Criar Conteúdo"
+              }
+            </Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      </Form>
+    );
+  };
 
   if (isModal && initialData) {
     return (
