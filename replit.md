@@ -142,14 +142,20 @@ This is a full-stack web application built with React, Express, and TypeScript t
 
 ## Recent Changes
 
-✅ **PostgreSQL Database Integration Completed (July 30, 2025)**
+✅ **PostgreSQL Database Integration & Multi-Portal Authentication Completed (July 30, 2025)**
 - Successfully migrated from in-memory storage to PostgreSQL database using Neon
 - Database schema fully deployed with all tables created
 - DatabaseStorage layer implemented and operational
-- Authentication system verified working with database persistence
+- All three portals authentication systems verified working:
+  * Administrative Portal: username/password (admin/password) - ✅ WORKING
+  * Student Portal: email/CPF authentication using academic_students table - ✅ WORKING
+  * Professor Portal: email/password authentication - ✅ WORKING
+- Fixed critical student portal authentication bug (was querying wrong table)
+- Updated professor login credentials and hash verification
 - All API endpoints tested and confirmed functional
-- JWT token authentication working correctly
+- JWT token authentication working correctly across all portals
 - Database migration completed successfully via `npm run db:push`
+- BotConversa integration completely removed from entire codebase
 
 ## Changelog
 

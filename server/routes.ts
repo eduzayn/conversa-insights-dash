@@ -5,9 +5,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { logger } from "./utils/logger";
-import { sql, eq, inArray } from "drizzle-orm";
+import { sql, eq, inArray, and } from "drizzle-orm";
 import { db } from "./db";
-import { users, conversations, attendanceMessages, internalNotes } from "@shared/schema"; 
+import { users, conversations, attendanceMessages, internalNotes, academicStudents } from "@shared/schema"; 
 import { 
   insertUserSchema, 
   insertRegistrationTokenSchema, 
@@ -249,50 +249,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Limpar CPF removendo formatação
       const cleanCpf = cpf.replace(/\D/g, '');
-      console.log("🔍 Tentativa de login:", { email, cpf: cleanCpf });
       
-      // Buscar aluno por e-mail
-      const student = await storage.getUserByEmail(email);
-      console.log("👤 Aluno encontrado:", student ? { id: student.id, name: student.name, role: student.role, isActive: student.isActive, matriculaAtiva: student.matriculaAtiva, cpf: student.cpf } : "não encontrado");
+      // Buscar aluno na tabela academic_students usando consulta direta
+      const [student] = await db.select().from(academicStudents)
+        .where(and(
+          eq(academicStudents.email, email),
+          eq(academicStudents.cpf, cleanCpf)
+        ));
       
-      if (!student || student.role !== 'aluno') {
-        console.log("❌ Falha: aluno não encontrado ou não é aluno");
+      if (!student) {
         return res.status(401).json({ message: "Credenciais inválidas ou aluno não encontrado" });
       }
 
-      // Validar CPF como senha (comparar CPF limpo)
-      const studentCpf = student.cpf?.replace(/\D/g, '') || '';
-      console.log("🔑 Comparação de CPFs:", { enviado: cleanCpf, banco: studentCpf });
-      
-      if (studentCpf !== cleanCpf) {
-        console.log("❌ Falha: CPFs não coincidem");
-        return res.status(401).json({ message: "Credenciais inválidas" });
-      }
-
-      if (!student.isActive || !student.matriculaAtiva) {
-        console.log("❌ Falha: conta inativa ou matrícula inativa");
-        return res.status(401).json({ message: "Matrícula inativa ou conta desativada" });
+      if (student.status !== 'ativo') {
+        return res.status(401).json({ message: "Matrícula inativa" });
       }
 
       const token = jwt.sign(
-        { userId: student.id, email: student.email, role: student.role },
+        { userId: student.id, email: student.email, role: 'aluno' },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
-
-      console.log("✅ Login bem-sucedido para:", student.name);
 
       res.json({
         token,
         student: {
           id: student.id,
-          name: student.name,
+          name: student.nome,
           email: student.email,
           cpf: student.cpf,
           telefone: student.telefone,
-          role: student.role,
-          matriculaAtiva: student.matriculaAtiva,
-          documentacaoStatus: student.documentacaoStatus
+          dataNascimento: student.datanascimento,
+          endereco: student.endereco,
+          role: 'aluno',
+          status: student.status,
+          courseId: student.courseid,
+          dataMatricula: student.datamatricula,
+          notaFinal: student.notafinal
         }
       });
     } catch (error) {
@@ -3313,6 +3306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
       
       const user = await storage.getUserByEmail(email);
+      
       if (!user) {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }

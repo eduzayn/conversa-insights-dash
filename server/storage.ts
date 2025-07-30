@@ -917,6 +917,28 @@ export class DatabaseStorage implements IStorage {
     return updatedActivity || undefined;
   }
 
+  // Academic Students - Portal do Aluno
+  async getAcademicStudentByEmail(email: string): Promise<any | undefined> {
+    const [student] = await db.select().from(academicStudents).where(eq(academicStudents.email, email));
+    return student || undefined;
+  }
+
+  async getAcademicStudentByCpf(cpf: string): Promise<any | undefined> {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    const [student] = await db.select().from(academicStudents).where(eq(academicStudents.cpf, cleanCpf));
+    return student || undefined;
+  }
+
+  async getAcademicStudentByEmailAndCpf(email: string, cpf: string): Promise<any | undefined> {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    const [student] = await db.select().from(academicStudents)
+      .where(and(
+        eq(academicStudents.email, email),
+        eq(academicStudents.cpf, cleanCpf)
+      ));
+    return student || undefined;
+  }
+
   // Certificações
   async getCertifications(filters?: { 
     modalidade?: string; 
