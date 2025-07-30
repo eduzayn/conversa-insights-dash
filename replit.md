@@ -901,6 +901,38 @@ Changelog:
    * ✅ Token JWT gerado com sucesso para usuário role agent
    * ✅ Credenciais funcionais: username "Erick Moreira Pereira" / senha "Zayn@2025"
    * Status: Sistema 100% funcional, usuário pode acessar normalmente
+- Sistema de Limpeza de Cache Aprimorado para Produção (30 Jul 2025):
+   * ✅ Sistema de detecção automática de problemas implementado
+   * ✅ Componente ForceRefreshButton expandido com funcionalidades avançadas:
+     - Detecção automática de problemas em páginas administrativas
+     - Menu avançado com 4 tipos de limpeza: Rápida, Certificações, Completa, Diagnóstico
+     - Auto-expansão do menu quando problemas são detectados
+     - Integração inteligente que só aparece em páginas administrativas
+   * ✅ Utilitário cacheCleanup.ts completamente expandido:
+     - clearReactQueryCache(): Limpa cache do React Query e estado global
+     - clearBrowserCache(): Força limpeza de Service Workers e cache de recursos
+     - clearCertificationsCache(): Limpeza específica para problemas de certificações
+     - detectCertificationProblems(): Detecta modais órfãos, overlays e formulários inconsistentes
+     - performFullSystemDiagnostic(): Análise completa de localStorage, sessionStorage, DOM e memória
+   * ✅ Funcionalidades específicas para certificações:
+     - Remove overlays e portals órfãos de modais de certificação
+     - Invalida queries específicas do React Query (['certificacoes'], ['/api/certifications'])
+     - Reset de formulários em estado problemático
+     - Detecção automática de 4 tipos de problemas: modais órfãos, overlays órfãos, formulários inconsistentes, erros específicos
+   * ✅ Sistema inteligente de detecção:
+     - Verifica localStorage excessivo (>20 itens)
+     - Conta elementos DOM órfãos ([data-radix-portal], [data-sonner-toaster])
+     - Detecta erros de console específicos
+     - Análise específica para páginas de certificações
+   * ✅ Interface aprimorada:
+     - Botão aparece apenas em páginas administrativas
+     - Menu compacto expandido automaticamente quando problemas são detectados
+     - Estatísticas em tempo real (localStorage, DOM órfãos, erros)
+     - Toast notifications informativas para cada ação
+     - Redirecionamento automático após limpeza
+   * ✅ Integração no App.tsx para todas as páginas administrativas
+   * ✅ Sistema robusto para resolver problemas específicos de colaboradores em produção
+   * Status: Sistema de limpeza de cache profissional implementado, específico para problemas de produção
 - Correção Crítica: Responsividade de Modais em Zoom 100% (21 Jul 2025):
    * ✅ PROBLEMA RESOLVIDO: Modais só funcionavam em zoom 67%, não no padrão 100%
    * ✅ DialogContent base modificado: max-w-lg → max-w-2xl com overflow-y otimizado
