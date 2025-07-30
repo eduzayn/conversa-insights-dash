@@ -1,12 +1,12 @@
 import { QueryClient } from '@tanstack/react-query';
 
 // Default fetcher function for React Query
-const defaultQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
-  const url = queryKey[0];
+const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
+  const url = queryKey[0] as string;
   
   // Buscar token de autenticação
   const adminToken = localStorage.getItem('token');
-  const professorToken = localStorage.getItem('professor_token');
+  const professorToken = localStorage.getItem('auth_token'); // Corrigido para auth_token
   const studentToken = localStorage.getItem('student_token');
   
   // Usar o token apropriado baseado na rota
@@ -53,7 +53,7 @@ export { queryClient };
 export const apiRequest = async (url: string, options: RequestInit = {}) => {
   // Buscar diferentes tipos de token dependendo do contexto
   const adminToken = localStorage.getItem('token');
-  const professorToken = localStorage.getItem('professor_token');
+  const professorToken = localStorage.getItem('auth_token'); // Corrigido para auth_token
   const studentToken = localStorage.getItem('student_token');
   
   // Usar o token apropriado baseado na rota

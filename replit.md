@@ -1134,6 +1134,17 @@ Changelog:
    * ✅ TESTES: Componente agora renderiza de forma idêntica em Chrome, Firefox, Safari e Edge
    * ✅ IMPLEMENTAÇÃO: select.tsx otimizado + CSS layer components no index.css
    * Status: Campo Select com compatibilidade 100% entre navegadores garantida
+- Correção Crítica: Autenticação JWT Portal do Professor (30 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: Erro 403 "Token inválido" no endpoint /api/professor/subjects
+   * ✅ CAUSA IDENTIFICADA: Inconsistência entre nomes de tokens (professor_token vs auth_token)
+   * ✅ CORREÇÃO CIRÚRGICA APLICADA:
+     - ProfessorLogin.tsx: alterado localStorage.setItem('professor_token') → localStorage.setItem('auth_token')
+     - queryClient.ts: alterado localStorage.getItem('professor_token') → localStorage.getItem('auth_token')
+     - Conteudos.tsx: removidos fetchers customizados, usando defaultQueryFn do React Query
+   * ✅ TIPOS TYPESCRIPT CORRIGIDOS: QueryKey readonly unknown[] para compatibilidade
+   * ✅ MELHORIA DE CÓDIGO: aproveitamento máximo do sistema de autenticação existente
+   * ✅ FUNCIONALIDADE RESTAURADA: Portal do Professor acessa disciplinas e conteúdos sem erro 403
+   * Status: Sistema de autenticação JWT funcionando corretamente para todos os roles
 - Otimização Layout Certificações - Remoção Campo Irrelevante (28 Jul 2025):
    * ✅ CAMPO "FORMATO DE ENTREGA" REMOVIDO: Campo não relevante para processo de certificação eliminado da listagem
    * ✅ ESPAÇO OTIMIZADO: Layout mais limpo com foco nas informações essenciais do processo

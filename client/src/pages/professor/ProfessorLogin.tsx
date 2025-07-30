@@ -29,7 +29,7 @@ export default function ProfessorLogin() {
       });
       
       // Salvar dados do professor no localStorage
-      localStorage.setItem('professor_token', data.token);
+      localStorage.setItem('auth_token', data.token);
       localStorage.setItem('professor_data', JSON.stringify(data.professor));
       
       // Redirecionar para o dashboard do professor

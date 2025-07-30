@@ -30,44 +30,18 @@ export default function Conteudos() {
   const queryClient = useQueryClient();
 
   // Query para buscar disciplinas do professor
-  const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
+  const { data: subjects = [], isLoading: subjectsLoading } = useQuery<any[]>({
     queryKey: ['/api/professor/subjects'],
-    queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/professor/subjects', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao buscar disciplinas');
-      }
-      
-      return response.json();
-    },
   });
 
   // Query para buscar conteúdos baseado na disciplina selecionada
-  const { data: contents = [], isLoading: contentsLoading } = useQuery({
+  const { data: contents = [], isLoading: contentsLoading } = useQuery<any[]>({
     queryKey: ['/api/professor/contents', selectedSubject],
     queryFn: async () => {
       if (!selectedSubject || selectedSubject === 'all') {
         return [];
       }
-      
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/professor/contents?subjectId=${selectedSubject}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao buscar conteúdos');
-      }
-      
-      return response.json();
+      return await (await fetch(`/api/professor/contents?subjectId=${selectedSubject}`)).json();
     },
     enabled: !!selectedSubject && selectedSubject !== 'all',
   });
