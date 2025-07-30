@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   BookOpen, 
   Users, 
@@ -21,6 +24,8 @@ import {
 
 export default function Disciplinas() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedDisciplina, setSelectedDisciplina] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,6 +36,38 @@ export default function Disciplinas() {
     descricao: ""
   });
 
+  // Buscar disciplinas da API
+  const { data: disciplinas = [], isLoading } = useQuery({
+    queryKey: ['/api/professor/subjects'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/professor/subjects');
+      return response as any[];
+    }
+  });
+
+  // Mutation para criar nova disciplina
+  const createSubjectMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/professor/subjects', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          cargaHoraria: parseInt(data.cargaHoraria)
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/subjects'] });
+      setIsModalOpen(false);
+      resetForm();
+      toast({ title: 'Sucesso', description: 'Disciplina criada com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro', description: 'Erro ao criar disciplina', variant: 'destructive' });
+    }
+  });
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -38,10 +75,7 @@ export default function Disciplinas() {
     }));
   };
 
-  const handleSubmit = () => {
-    // Aqui seria feita a chamada para a API
-    console.log("Nova disciplina:", formData);
-    setIsModalOpen(false);
+  const resetForm = () => {
     setFormData({
       nome: "",
       codigo: "",
@@ -51,45 +85,17 @@ export default function Disciplinas() {
     });
   };
 
-  // Lista das disciplinas do professor
-  const disciplinas = [
-    {
-      id: 1,
-      nome: "Algoritmos e Programação I",
-      codigo: "PROG001",
-      area: "Ciências Exatas",
-      cargaHoraria: 80,
-      totalAlunos: 45,
-      totalConteudos: 12,
-      totalAvaliacoes: 4,
-      status: "ativa",
-      progresso: 78
-    },
-    {
-      id: 2,
-      nome: "Estruturas de Dados",
-      codigo: "PROG002", 
-      area: "Ciências Exatas",
-      cargaHoraria: 60,
-      totalAlunos: 38,
-      totalConteudos: 8,
-      totalAvaliacoes: 3,
-      status: "ativa",
-      progresso: 65
-    },
-    {
-      id: 3,
-      nome: "Banco de Dados",
-      codigo: "DB001",
-      area: "Ciências Exatas", 
-      cargaHoraria: 100,
-      totalAlunos: 73,
-      totalConteudos: 15,
-      totalAvaliacoes: 5,
-      status: "ativa",
-      progresso: 82
-    }
-  ];
+  const handleSubmit = () => {
+    createSubjectMutation.mutate(formData);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

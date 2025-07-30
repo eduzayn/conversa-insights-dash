@@ -1312,24 +1312,11 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Subjects
   async getProfessorSubjects(professorId: number): Promise<Subject[]> {
+    // Professores agora podem ver todas as disciplinas ativas, não apenas as associadas a eles
     return await db
-      .select({
-        id: subjects.id,
-        nome: subjects.nome,
-        codigo: subjects.codigo,
-        descricao: subjects.descricao,
-        cargaHoraria: subjects.cargaHoraria,
-        area: subjects.area,
-        isActive: subjects.isActive,
-        createdAt: subjects.createdAt,
-        updatedAt: subjects.updatedAt,
-      })
+      .select()
       .from(subjects)
-      .innerJoin(professorSubjects, eq(subjects.id, professorSubjects.subjectId))
-      .where(and(
-        eq(professorSubjects.professorId, professorId),
-        eq(subjects.isActive, true)
-      ))
+      .where(eq(subjects.isActive, true))
       .orderBy(asc(subjects.nome));
   }
 
@@ -1346,6 +1333,7 @@ export class DatabaseStorage implements IStorage {
       .insert(subjects)
       .values({
         ...subject,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1412,6 +1400,8 @@ export class DatabaseStorage implements IStorage {
       .insert(subjectContents)
       .values({
         ...content,
+        isActive: true,
+        visualizacoes: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1455,6 +1445,7 @@ export class DatabaseStorage implements IStorage {
       .insert(professorEvaluations)
       .values({
         ...evaluation,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
