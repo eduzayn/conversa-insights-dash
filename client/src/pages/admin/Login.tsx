@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +31,12 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const { user, login, register } = useAuth();
+  const navigate = useNavigate();
 
-  if (user) {
-    return <Navigate to="/admin" replace />;
-  }
+  // Removido o redirect automático - sempre mostrar a tela de login
+  // if (user) {
+  //   return <Navigate to="/admin" replace />;
+  // }
 
   // Funções auxiliares para multi-company access
   const handleCompanyToggle = (companyId: 'COMERCIAL' | 'SUPORTE', checked: boolean) => {
@@ -70,6 +72,8 @@ const Login = () => {
     try {
       await login(username, password);
       toast.success("Login realizado com sucesso!");
+      // Redirecionar para o dashboard administrativo após login bem-sucedido
+      navigate("/admin");
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login. Verifique suas credenciais.");
     } finally {
