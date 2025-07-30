@@ -1110,6 +1110,17 @@ Changelog:
    * ✅ PLATAFORMA: Pendente (amarelo), Aprovada (verde)
    * ✅ IMPLEMENTAÇÃO CIRÚRGICA: Apenas badges específicos atualizados preservando funcionalidade existente
    * Status: Sistema visual 100% consistente entre modais e listagem de certificações
+- Portal do Professor - Sistema de Exclusão Elegante e Integração de Disciplinas (30 Jul 2025):
+   * ✅ DIALOG DE EXCLUSÃO ELEGANTE: Substituído window.confirm() por DeleteConfirmDialog padronizado
+   * ✅ API COMPLETA: Endpoint DELETE /api/professor/contents/:id implementado no backend
+   * ✅ VALIDAÇÃO DE PERMISSÕES: Verificação de propriedade do conteúdo antes da exclusão
+   * ✅ FUNÇÃO getSubjectContentById: Adicionada ao storage.ts e interface IStorage
+   * ✅ INTEGRAÇÃO REAL DE DISCIPLINAS: Select conectado à API /api/professor/subjects
+   * ✅ CRIAÇÃO DE CONTEÚDOS: Formulário funcional com validação e feedback de sucesso/erro
+   * ✅ QUERIES OTIMIZADAS: Busca disciplinas do professor e conteúdos por disciplina selecionada
+   * ✅ SISTEMA COMPLETO: Listagem, criação, edição e exclusão de conteúdos totalmente funcionais
+   * ✅ INVALIDAÇÃO DE CACHE: React Query atualiza automaticamente a interface após operações
+   * Status: Portal do Professor com sistema de conteúdos 100% integrado e funcional
 - Otimização Layout Certificações - Remoção Campo Irrelevante (28 Jul 2025):
    * ✅ CAMPO "FORMATO DE ENTREGA" REMOVIDO: Campo não relevante para processo de certificação eliminado da listagem
    * ✅ ESPAÇO OTIMIZADO: Layout mais limpo com foco nas informações essenciais do processo

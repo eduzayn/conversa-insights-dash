@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/FileUpload";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { FileText, Video, BookOpen, Plus, ExternalLink, Edit, Trash2, Upload } from "lucide-react";
 
 export default function Conteudos() {
@@ -18,11 +18,70 @@ export default function Conteudos() {
   const [activeTab, setActiveTab] = useState("listar");
   const [editingContent, setEditingContent] = useState<any>(null);
   const [deleteContentId, setDeleteContentId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    subjectId: "",
+    titulo: "",
+    tipo: "",
+    conteudo: "",
+    descricao: "",
+    ordem: 1
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Query para buscar disciplinas do professor
+  const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
+    queryKey: ['/api/professor/subjects'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/professor/subjects', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar disciplinas');
+      }
+      
+      return response.json();
+    },
+  });
+
+  // Query para buscar conteúdos baseado na disciplina selecionada
+  const { data: contents = [], isLoading: contentsLoading } = useQuery({
+    queryKey: ['/api/professor/contents', selectedSubject],
+    queryFn: async () => {
+      if (!selectedSubject || selectedSubject === 'all') {
+        return [];
+      }
+      
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/professor/contents?subjectId=${selectedSubject}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar conteúdos');
+      }
+      
+      return response.json();
+    },
+    enabled: !!selectedSubject && selectedSubject !== 'all',
+  });
+
   const handleEditContent = (content: any) => {
     setEditingContent(content);
+    setFormData({
+      subjectId: content.subjectId?.toString() || "",
+      titulo: content.titulo || "",
+      tipo: content.tipo || "",
+      conteudo: content.conteudo || "",
+      descricao: content.descricao || "",
+      ordem: content.ordem || 1
+    });
     setActiveTab("adicionar");
   };
 
@@ -73,78 +132,152 @@ export default function Conteudos() {
     }
   };
 
-  // Dados mock das disciplinas do professor
-  const subjects = [
-    { id: 1, nome: "Algoritmos e Estruturas de Dados I", codigo: "AED001" },
-    { id: 2, nome: "Programação Orientada a Objetos", codigo: "POO001" },
-    { id: 3, nome: "Banco de Dados", codigo: "BD001" }
-  ];
+  // Mutation para criar conteúdo
+  const createContentMutation = useMutation({
+    mutationFn: async (contentData: any) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/professor/contents', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contentData),
+      });
 
-  // Dados mock dos conteúdos
-  const contents = [
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao criar conteúdo');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Conteúdo criado com sucesso!",
+      });
+      // Limpar formulário
+      setFormData({
+        subjectId: "",
+        titulo: "",
+        tipo: "",
+        conteudo: "",
+        descricao: "",
+        ordem: 1
+      });
+      setEditingContent(null);
+      setActiveTab("listar");
+      // Invalidar cache para atualizar a listagem
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/contents'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateContent = () => {
+    if (!formData.subjectId || !formData.titulo || !formData.tipo || !formData.conteudo) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createContentMutation.mutate({
+      subjectId: parseInt(formData.subjectId),
+      titulo: formData.titulo,
+      tipo: formData.tipo,
+      conteudo: formData.conteudo,
+      descricao: formData.descricao,
+      ordem: formData.ordem
+    });
+  };
+
+  // Dados mock para os conteúdos caso não haja filtro ativo
+  const mockContents = [
     {
       id: 1,
       titulo: "Introdução aos Algoritmos",
       tipo: "video",
       url: "https://youtube.com/watch?v=abc123",
-      descricao: "Conceitos básicos de algoritmos e complexidade",
+      descricao: "Conceitos básicos de algoritmos e estruturas de dados",
       ordem: 1,
       subjectId: 1
     },
     {
       id: 2,
-      titulo: "Apostila de Estruturas de Dados",
+      titulo: "Apostila de POO",
       tipo: "ebook",
       url: "https://drive.google.com/file/d/xyz789",
-      descricao: "Material complementar sobre listas, pilhas e filas",
+      descricao: "Material completo sobre Programação Orientada a Objetos",
       ordem: 2,
-      subjectId: 1
+      subjectId: 2
     },
     {
       id: 3,
-      titulo: "Exercícios de POO",
+      titulo: "Documentação MySQL",
       tipo: "link",
-      url: "https://example.com/exercicios",
-      descricao: "Lista de exercícios práticos",
+      url: "https://dev.mysql.com/doc/",
+      descricao: "Documentação oficial do MySQL",
       ordem: 1,
-      subjectId: 2
+      subjectId: 3
     }
   ];
 
-  const filteredContents = selectedSubject && selectedSubject !== "all"
-    ? contents.filter(content => content.subjectId === parseInt(selectedSubject))
-    : contents;
+  const filteredContents = selectedSubject && selectedSubject !== 'all' ? contents : mockContents;
 
   const getContentIcon = (tipo: string) => {
     switch (tipo) {
-      case "video": return <Video className="h-4 w-4" />;
-      case "ebook": return <BookOpen className="h-4 w-4" />;
-      default: return <ExternalLink className="h-4 w-4" />;
+      case 'video':
+        return <Video className="h-5 w-5 text-red-600" />;
+      case 'ebook':
+        return <BookOpen className="h-5 w-5 text-blue-600" />;
+      case 'link':
+        return <ExternalLink className="h-5 w-5 text-green-600" />;
+      default:
+        return <FileText className="h-5 w-5 text-gray-600" />;
     }
   };
 
   const getContentBadge = (tipo: string) => {
-    const variants = {
-      video: "bg-red-100 text-red-800",
-      ebook: "bg-blue-100 text-blue-800",
-      link: "bg-green-100 text-green-800"
-    };
-    return variants[tipo as keyof typeof variants] || "bg-gray-100 text-gray-800";
+    switch (tipo) {
+      case 'video':
+        return "bg-red-100 text-red-800 hover:bg-red-100";
+      case 'ebook':
+        return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+      case 'link':
+        return "bg-green-100 text-green-800 hover:bg-green-100";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+    }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-start">
+    <div className="container mx-auto p-6 space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Aulas e Conteúdos</h1>
-          <p className="text-gray-600 mt-2">Adição e gerenciamento de vídeo-aulas, e-books e links úteis</p>
+          <h1 className="text-3xl font-bold">Aulas e Conteúdos</h1>
+          <p className="text-muted-foreground">
+            Adição e gerenciamento de vídeo-aulas, e-books e links úteis
+          </p>
         </div>
-        <Button className="gap-2" onClick={() => setActiveTab("adicionar")}>
-          <Plus className="h-4 w-4" />
+        <Button 
+          onClick={() => setActiveTab("adicionar")}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Plus className="h-4 w-4 mr-2" />
           Adicionar Conteúdo
         </Button>
       </div>
 
+      {/* Cards de estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
@@ -218,11 +351,11 @@ export default function Conteudos() {
             <CardContent>
               <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger className="w-full md:w-[300px]">
-                  <SelectValue placeholder="Todas as disciplinas" />
+                  <SelectValue placeholder={subjectsLoading ? "Carregando..." : "Todas as disciplinas"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as disciplinas</SelectItem>
-                  {subjects.map(subject => (
+                  {subjects.map((subject: any) => (
                     <SelectItem key={subject.id} value={subject.id.toString()}>
                       {subject.codigo} - {subject.nome}
                     </SelectItem>
@@ -233,7 +366,7 @@ export default function Conteudos() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredContents.map(content => (
+            {filteredContents.map((content: any) => (
               <Card key={content.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -251,7 +384,7 @@ export default function Conteudos() {
                   
                   <div className="flex items-center gap-2 text-sm text-blue-600">
                     <ExternalLink className="h-3 w-3" />
-                    <span className="truncate">{content.url}</span>
+                    <span className="truncate">{content.url || content.conteudo}</span>
                   </div>
 
                   <div className="flex items-center justify-between pt-2">
@@ -299,12 +432,16 @@ export default function Conteudos() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="disciplina">Disciplina</Label>
-                  <Select defaultValue={editingContent?.subjectId?.toString()}>
+                  <Select 
+                    value={formData.subjectId} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, subjectId: value }))}
+                    disabled={subjectsLoading}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma disciplina" />
+                      <SelectValue placeholder={subjectsLoading ? "Carregando..." : "Selecione uma disciplina"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {subjects.map(subject => (
+                      {subjects.map((subject: any) => (
                         <SelectItem key={subject.id} value={subject.id.toString()}>
                           {subject.codigo} - {subject.nome}
                         </SelectItem>
@@ -315,7 +452,10 @@ export default function Conteudos() {
 
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo de Conteúdo</Label>
-                  <Select defaultValue={editingContent?.tipo}>
+                  <Select 
+                    value={formData.tipo} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
@@ -333,7 +473,8 @@ export default function Conteudos() {
                 <Input 
                   id="titulo" 
                   placeholder="Ex: Introdução aos Algoritmos"
-                  defaultValue={editingContent?.titulo || ""}
+                  value={formData.titulo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
                 />
               </div>
 
@@ -342,7 +483,8 @@ export default function Conteudos() {
                 <Input 
                   id="url" 
                   placeholder="Ex: https://youtube.com/watch?v=... ou https://drive.google.com/..." 
-                  defaultValue={editingContent?.url || ""}
+                  value={formData.conteudo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, conteudo: e.target.value }))}
                 />
               </div>
 
@@ -352,7 +494,8 @@ export default function Conteudos() {
                   id="descricao" 
                   placeholder="Descreva o conteúdo e sua importância para a disciplina"
                   rows={3}
-                  defaultValue={editingContent?.descricao || ""}
+                  value={formData.descricao}
+                  onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
                 />
               </div>
 
@@ -364,22 +507,31 @@ export default function Conteudos() {
                     type="number" 
                     placeholder="1" 
                     min="1"
-                    defaultValue={editingContent?.ordem || ""}
+                    value={formData.ordem}
+                    onChange={(e) => setFormData(prev => ({ ...prev, ordem: parseInt(e.target.value) || 1 }))}
                   />
                 </div>
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button onClick={() => {
-                  console.log(editingContent ? "Salvando alterações..." : "Adicionando novo conteúdo...");
-                  setEditingContent(null);
-                  setActiveTab("listar");
-                }}>
+                <Button 
+                  onClick={handleCreateContent}
+                  disabled={createContentMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   <Plus className="h-4 w-4 mr-2" />
-                  {editingContent ? 'Salvar Alterações' : 'Adicionar Conteúdo'}
+                  {createContentMutation.isPending ? 'Criando...' : (editingContent ? 'Salvar Alterações' : 'Adicionar Conteúdo')}
                 </Button>
                 <Button variant="outline" onClick={() => {
                   setEditingContent(null);
+                  setFormData({
+                    subjectId: "",
+                    titulo: "",
+                    tipo: "",
+                    conteudo: "",
+                    descricao: "",
+                    ordem: 1
+                  });
                   setActiveTab("listar");
                 }}>
                   Cancelar
