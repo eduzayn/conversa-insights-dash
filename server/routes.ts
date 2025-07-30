@@ -4000,8 +4000,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar nova disciplina
   app.post("/api/professor/subjects", authenticateToken, async (req: any, res) => {
     try {
-      if (!['coordenador'].includes(req.user.role)) {
-        return res.status(403).json({ message: "Acesso negado - apenas coordenadores" });
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
       const { nome, codigo, descricao, cargaHoraria, area } = req.body;
@@ -4011,6 +4011,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         descricao,
         cargaHoraria,
         area
+      });
+
+      // Associar disciplina ao professor que a criou
+      await storage.createProfessorSubject({
+        professorId: req.user.id,
+        subjectId: subject.id
       });
 
       res.status(201).json(subject);
