@@ -33,17 +33,10 @@ export default function StudentLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: StudentLoginForm) => {
-      const response = await apiRequest('/api/auth/student-login', {
+      return await apiRequest('/api/auth/student-login', {
         method: 'POST',
         body: JSON.stringify(data)
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro no login');
-      }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       // Salvar token no localStorage

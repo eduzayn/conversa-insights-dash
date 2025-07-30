@@ -1,8 +1,8 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryKey } from '@tanstack/react-query';
 
 // Default fetcher function for React Query
-const defaultQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
-  const url = queryKey[0];
+const defaultQueryFn = async ({ queryKey }: { queryKey: QueryKey }) => {
+  const url = Array.isArray(queryKey) ? queryKey[0] as string : queryKey as string;
   
   // Buscar token de autenticação
   const adminToken = localStorage.getItem('token');
