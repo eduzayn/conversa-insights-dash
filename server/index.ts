@@ -52,12 +52,34 @@ app.use((req, res, next) => {
     process.exit(1);
   }
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Middleware de tratamento de erros robusto
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const message = err.message || "Erro interno do servidor";
+    
+    // Log detalhado do erro
+    console.error(`[ERROR] ${req.method} ${req.path} - Status: ${status}`, {
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
 
-    res.status(status).json({ message });
-    throw err;
+    // Resposta padronizada
+    res.status(status).json({ 
+      message,
+      code: err.code || 'INTERNAL_ERROR',
+      timestamp: new Date().toISOString(),
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
+  });
+
+  // Middleware para rotas não encontradas
+  app.use('*', (req: Request, res: Response) => {
+    res.status(404).json({
+      message: `Rota não encontrada: ${req.method} ${req.originalUrl}`,
+      code: 'ROUTE_NOT_FOUND',
+      timestamp: new Date().toISOString()
+    });
   });
 
   // importantly only setup vite in development and after

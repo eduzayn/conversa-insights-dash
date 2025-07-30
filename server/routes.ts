@@ -36,6 +36,21 @@ import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
 import { PDFService } from './pdfService';
 
+// Importar middlewares robustos
+import { 
+  authenticateToken, 
+  optionalAuth, 
+  generateToken,
+  type AuthenticatedRequest 
+} from "./middleware/auth";
+import { 
+  globalErrorHandler, 
+  notFoundHandler, 
+  asyncHandler, 
+  validateRequest, 
+  rateLimiter, 
+  healthCheck 
+} from "./middleware/errorHandler";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
@@ -47,32 +62,6 @@ const asaasService = new UnifiedAsaasService({
 
 // Configuração do serviço PDF
 const pdfService = new PDFService(storage);
-
-// Middleware para validar JWT
-export const authenticateToken = async (req: any, res: any, next: any) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Token de acesso requerido' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const user = await storage.getUser(decoded.userId);
-    if (!user) {
-      return res.status(401).json({ message: 'Usuário não encontrado' });
-    }
-    if (!user.isActive) {
-      return res.status(401).json({ message: 'Conta desativada' });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    logger.error('Erro na validação do token', error);
-    return res.status(403).json({ message: 'Token inválido' });
-  }
-};
 
 // Schema para login
 const loginSchema = z.object({
@@ -104,10 +93,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Autenticação e Usuários
+  // ===== MIDDLEWARES GLOBAIS =====
   
-  // Login
-  app.post("/api/auth/login", async (req, res) => {
+  // Rate limiting para todas as rotas
+  app.use('/api', rateLimiter(150, 15 * 60 * 1000)); // 150 reqs por 15min por IP
+  
+  // Health check endpoint (não autenticado)
+  app.get('/api/health', healthCheck);
+  
+  // ===== AUTENTICAÇÃO E USUÁRIOS =====
+  
+  // Login robusto com múltiplas validações
+  app.post("/api/auth/login", asyncHandler(async (req: AuthenticatedRequest, res) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
       
@@ -150,27 +147,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       logger.error("Erro no login:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
-  });
+  }));
+
+  // Endpoint para renovar token JWT
+  app.post("/api/auth/refresh", asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ 
+        message: 'Token de acesso requerido',
+        code: 'NO_TOKEN',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    try {
+      // Verificar se o token é válido (mesmo que próximo do vencimento)
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const user = await storage.getUser(decoded.userId);
+      
+      if (!user || !user.isActive) {
+        return res.status(401).json({ 
+          message: 'Usuário inválido ou inativo',
+          code: 'INVALID_USER',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Gerar novo token com tempo estendido
+      const newToken = generateToken(user.id);
+      
+      logger.info(`[REFRESH] Token renovado com sucesso - User: ${user.username} (${user.id})`);
+      
+      res.json({
+        token: newToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          companyAccount: user.companyAccount,
+          department: user.department
+        },
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error: any) {
+      logger.error(`[REFRESH] Erro ao renovar token:`, error);
+      return res.status(401).json({ 
+        message: 'Token inválido para renovação',
+        code: 'REFRESH_FAILED',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }));
 
   // Validar token e retornar dados do usuário
-  app.get("/api/auth/me", authenticateToken, async (req: any, res) => {
-    try {
-      res.json({
-        user: {
-          id: req.user.id,
-          username: req.user.username,
-          email: req.user.email,
-          name: req.user.name,
-          role: req.user.role,
-          companyAccount: req.user.companyAccount,
-          department: req.user.department
-        }
-      });
-    } catch (error) {
-      logger.error("Erro ao validar token:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+  app.get("/api/auth/me", authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res) => {
+    res.json({
+      user: {
+        id: req.user.id,
+        username: req.user.username,
+        email: req.user.email,
+        name: req.user.name,
+        role: req.user.role,
+        companyAccount: req.user.companyAccount,
+        department: req.user.department
+      },
+      timestamp: new Date().toISOString()
+    });
+  }));
 
   // Registro
   app.post("/api/auth/register", async (req, res) => {
@@ -5386,6 +5434,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "pong", server: "running" });
   });
 
+  // ===== MIDDLEWARES FINAIS =====
+  
+  // Middleware de tratamento de erros (deve ser o último)
+  app.use(globalErrorHandler);
+  
+  // Middleware para rotas não encontradas
+  app.use(notFoundHandler);
+  
+  logger.info('[SYSTEM] Sistema inicializado com middleware de segurança e tratamento de erros robustos');
+  
   return httpServer; // return the HTTP server instance
 }
 
