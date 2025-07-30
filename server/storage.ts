@@ -241,6 +241,7 @@ export interface IStorage {
   createSubject(subject: InsertSubject): Promise<Subject>;
   updateSubject(id: number, subject: Partial<Subject>): Promise<Subject | undefined>;
   assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean): Promise<ProfessorSubject>;
+  createProfessorSubject(data: InsertProfessorSubject): Promise<ProfessorSubject>;
 
   // Portal do Professor - Subject Contents
   getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]>;
@@ -1317,10 +1318,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSubject(subject: InsertSubject): Promise<Subject> {
+    // Gerar código único se não fornecido
+    let codigo = subject.codigo;
+    if (!codigo) {
+      // Gerar código baseado no timestamp para garantir unicidade
+      codigo = `DISC${Date.now().toString().slice(-8)}`;
+    }
+    
     const [newSubject] = await db
       .insert(subjects)
       .values({
         ...subject,
+        codigo,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1344,6 +1353,17 @@ export class DatabaseStorage implements IStorage {
         professorId,
         subjectId,
         canEdit,
+        assignedAt: new Date(),
+      })
+      .returning();
+    return assignment;
+  }
+
+  async createProfessorSubject(data: InsertProfessorSubject): Promise<ProfessorSubject> {
+    const [assignment] = await db
+      .insert(professorSubjects)
+      .values({
+        ...data,
         assignedAt: new Date(),
       })
       .returning();
