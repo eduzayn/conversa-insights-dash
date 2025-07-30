@@ -54,7 +54,7 @@ const App = () => (
             <Route path="/login-antigo" element={<LoginRouter />} />
             <Route path="/admin/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<LoginHub />} />
             <Route path="/admin" element={<Index />} />
             <Route path="/atendimentos" element={<Atendimentos />} />
             <Route path="/atendimento-aluno" element={<AtendimentoAluno />} />

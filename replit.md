@@ -1035,6 +1035,13 @@ Changelog:
    * ✅ Implementação sem duplicação de código: reaproveitado componente StatusBadge existente
    * ✅ Layout responsivo mantido com breakpoints md:grid-cols-7
    * Status: Campo "Status da Proposta" totalmente integrado na listagem de expirados
+- Correção Roteamento Produção - Hub Central de Login (30 Jul 2025):
+   * ✅ PROBLEMA RESOLVIDO: URL raiz em produção estava indo direto para login administrativo
+   * ✅ Rota "/" alterada de <Index /> para <LoginHub /> no App.tsx
+   * ✅ URL de produção agora mostra os 3 portais de acesso conforme projetado
+   * ✅ Usuários podem escolher entre Portal Administrativo, Portal do Aluno ou Portal do Professor
+   * ✅ Melhoria de UX: acesso direto aos diferentes perfis de usuário
+   * Status: Sistema de roteamento corrigido para produção, hub central funcionando
 - Expansão de Assuntos no Modal de Atendimentos (28 Jul 2025):
    * ✅ Novos assuntos adicionados ao dropdown de "Assunto" no modal de editar atendimento
    * ✅ Assuntos implementados: "Correção TCC", "Correção Práticas", "Correção Estágio", "Correção Atividades Música", "Análises"
