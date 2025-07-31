@@ -3581,15 +3581,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
+      // Mapear campos do frontend (inglês) para backend (português)
       const evaluationData = {
-        ...req.body,
-        professorId: req.user.id
+        professorId: req.user.id,
+        subjectId: req.body.subjectId,
+        titulo: req.body.title,
+        tipo: req.body.type,
+        descricao: req.body.description,
+        tempoLimite: req.body.duration,
+        tentativasPermitidas: req.body.maxAttempts,
+        dataAbertura: req.body.startDate ? new Date(req.body.startDate) : null,
+        dataFechamento: req.body.endDate ? new Date(req.body.endDate) : null,
       };
 
       const evaluation = await storage.createProfessorEvaluation(evaluationData);
       res.status(201).json(evaluation);
     } catch (error) {
       logger.error("Erro ao criar avaliação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Editar avaliação
+  app.put("/api/professor/evaluations/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      
+      // Mapear campos do frontend (inglês) para backend (português)
+      const evaluationData = {
+        subjectId: req.body.subjectId,
+        titulo: req.body.title,
+        tipo: req.body.type,
+        descricao: req.body.description,
+        tempoLimite: req.body.duration,
+        tentativasPermitidas: req.body.maxAttempts,
+        dataAbertura: req.body.startDate ? new Date(req.body.startDate) : null,
+        dataFechamento: req.body.endDate ? new Date(req.body.endDate) : null,
+      };
+
+      const evaluation = await storage.updateProfessorEvaluation(parseInt(id), evaluationData);
+      
+      if (!evaluation) {
+        return res.status(404).json({ message: "Avaliação não encontrada" });
+      }
+      
+      res.status(200).json(evaluation);
+    } catch (error) {
+      logger.error("Erro ao editar avaliação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
