@@ -5070,21 +5070,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Endpoint para servir arquivos do conteúdo SCORM extraído
-  app.get("/api/scorm/content/:driveFileId/*", (req, res) => {
+  app.get("/api/scorm/content/:driveFileId/*", async (req, res) => {
     try {
       const { driveFileId } = req.params;
       const filePath = req.params[0] || '';
       
+      console.log(`🔍 SCORM: Solicitação para ${driveFileId}/${filePath}`);
+      
+      // Se o conteúdo não existe, tentar extrair primeiro
+      if (!scormService.contentExists(driveFileId)) {
+        console.log('⚠️ Conteúdo não encontrado, extraindo...');
+        const driveUrl = `https://drive.google.com/file/d/${driveFileId}/view`;
+        await scormService.extractScormFromDriveUrl(driveUrl);
+      }
+      
       const contentPath = scormService.getContentPath(driveFileId, filePath);
+      console.log(`📂 Caminho resolvido: ${contentPath}`);
       
       if (!fs.existsSync(contentPath)) {
-        return res.status(404).json({ error: 'Arquivo não encontrado' });
+        console.error(`❌ Arquivo não encontrado: ${contentPath}`);
+        
+        // Listar conteúdo do diretório para debug
+        const baseDir = path.join(process.cwd(), 'temp', 'scorm', driveFileId);
+        if (fs.existsSync(baseDir)) {
+          console.log('📁 Conteúdo do diretório:', fs.readdirSync(baseDir));
+        }
+        
+        return res.status(404).json({ error: 'Arquivo não encontrado', path: contentPath });
       }
 
       // Servir arquivo com tipo MIME apropriado
       const ext = path.extname(contentPath).toLowerCase();
       const mimeTypes: Record<string, string> = {
-        '.html': 'text/html',
+        '.html': 'text/html; charset=utf-8',
         '.css': 'text/css',
         '.js': 'application/javascript',
         '.json': 'application/json',
@@ -5100,9 +5118,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mimeType = mimeTypes[ext] || 'application/octet-stream';
       res.setHeader('Content-Type', mimeType);
       
+      console.log(`✅ Servindo arquivo: ${contentPath} (${mimeType})`);
       res.sendFile(path.resolve(contentPath));
     } catch (error) {
-      console.error('Erro ao servir arquivo SCORM:', error);
+      console.error('❌ Erro ao servir arquivo SCORM:', error);
       res.status(500).json({ 
         error: 'Erro ao carregar arquivo',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
