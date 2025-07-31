@@ -46,7 +46,7 @@ export default function Avaliacoes() {
   const [novaQuestao, setNovaQuestao] = useState({
     enunciado: "",
     tipo: "multipla_escolha",
-    alternativas: ["", "", "", ""],
+    alternativas: ["", "", "", "", ""],
     gabarito: "",
     explicacao: "",
     peso: "1",
@@ -348,7 +348,7 @@ export default function Avaliacoes() {
       setNovaQuestao({
         enunciado: "",
         tipo: "multipla_escolha",
-        alternativas: ["", "", "", ""],
+        alternativas: ["", "", "", "", ""],
         gabarito: "",
         explicacao: "",
         peso: "1",
@@ -1163,7 +1163,7 @@ export default function Avaliacoes() {
                             setNovaQuestao({
                               enunciado: questao.enunciado,
                               tipo: questao.tipo,
-                              alternativas: questao.alternativas || ["", "", "", ""],
+                              alternativas: questao.alternativas || ["", "", "", "", ""],
                               gabarito: questao.gabarito?.toString() || "",
                               explicacao: questao.explicacao || "",
                               peso: questao.peso?.toString() || "1",
@@ -1281,7 +1281,15 @@ export default function Avaliacoes() {
               <select 
                 className="w-full border rounded-lg px-3 py-2"
                 value={novaQuestao.tipo}
-                onChange={(e) => setNovaQuestao(prev => ({ ...prev, tipo: e.target.value }))}
+                onChange={(e) => {
+                  const novoTipo = e.target.value;
+                  setNovaQuestao(prev => ({ 
+                    ...prev, 
+                    tipo: novoTipo,
+                    alternativas: novoTipo === "multipla_escolha" ? ["", "", "", "", ""] : [],
+                    gabarito: ""
+                  }));
+                }}
               >
                 <option value="multipla_escolha">Múltipla Escolha</option>
                 <option value="dissertativa">Dissertativa</option>
