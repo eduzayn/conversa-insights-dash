@@ -37,6 +37,8 @@ export default function Avaliacoes() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingAvaliacao, setEditingAvaliacao] = useState<any>(null);
+  const [isQuestoesModalOpen, setIsQuestoesModalOpen] = useState(false);
+  const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState<any>(null);
   
   // Estado para nova avaliação
   const [novaAvaliacao, setNovaAvaliacao] = useState({
@@ -288,6 +290,11 @@ export default function Avaliacoes() {
     }
 
     editAvaliacaoMutation.mutate(avaliacaoEditando);
+  };
+
+  const handleAddQuestoes = (avaliacao: any) => {
+    setAvaliacaoSelecionada(avaliacao);
+    setIsQuestoesModalOpen(true);
   };
 
   if (isLoadingAvaliacoes || isLoadingDisciplinas) {
@@ -847,11 +854,19 @@ export default function Avaliacoes() {
 
                   <Separator />
 
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="flex-1"
+                      onClick={() => handleAddQuestoes(avaliacao)}
+                      className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Questões
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
                       onClick={() => handleEditAvaliacao(avaliacao)}
                     >
                       <Edit className="h-3 w-3 mr-1" />
@@ -860,7 +875,6 @@ export default function Avaliacoes() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="flex-1"
                       onClick={() => handleViewResults(avaliacao.id)}
                     >
                       <BarChart3 className="h-3 w-3 mr-1" />
@@ -942,6 +956,84 @@ export default function Avaliacoes() {
           </CardContent>
         </Card>
       )}
+
+      {/* Modal de Questões */}
+      <Dialog open={isQuestoesModalOpen} onOpenChange={setIsQuestoesModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Questões</DialogTitle>
+            <DialogDescription>
+              {avaliacaoSelecionada?.titulo} - Adicione e gerencie as questões desta avaliação
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Header com informações da avaliação */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-900">{avaliacaoSelecionada?.titulo}</h3>
+              <p className="text-sm text-blue-700">
+                Disciplina: {getDisciplinaNome(avaliacaoSelecionada?.subjectId)} • 
+                Tipo: {avaliacaoSelecionada?.tipo} • 
+                Questões atuais: {avaliacaoSelecionada?.totalQuestoes || 0}
+              </p>
+            </div>
+
+            {/* Botão para adicionar nova questão */}
+            <div className="flex justify-between items-center">
+              <h4 className="text-lg font-semibold">Banco de Questões</h4>
+              <Button 
+                className="gap-2 bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  toast({
+                    title: "Funcionalidade em desenvolvimento",
+                    description: "O sistema de criação de questões será implementado em breve.",
+                  });
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Nova Questão
+              </Button>
+            </div>
+
+            {/* Lista de questões (placeholder por enquanto) */}
+            <div className="border rounded-lg p-6 text-center text-gray-500">
+              <FileText className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <h4 className="font-medium mb-2">Nenhuma questão cadastrada</h4>
+              <p className="text-sm">
+                Comece adicionando a primeira questão para esta avaliação
+              </p>
+            </div>
+
+            {/* Footer com estatísticas */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">0</div>
+                  <div className="text-sm text-gray-600">Questões</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <div className="text-sm text-gray-600">Múltipla Escolha</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-orange-600">0</div>
+                  <div className="text-sm text-gray-600">Dissertativas</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Botões do modal */}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsQuestoesModalOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
