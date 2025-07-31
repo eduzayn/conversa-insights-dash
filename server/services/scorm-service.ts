@@ -1,10 +1,31 @@
 import fs from 'fs';
 import path from 'path';
-import { createHash } from 'crypto';
+import axios from 'axios';
+import { createWriteStream } from 'fs';
+import { promisify } from 'util';
+import { pipeline } from 'stream';
+import AdmZip from 'adm-zip';
+
+const pipelineAsync = promisify(pipeline);
+
+interface ScormManifest {
+  title: string;
+  identifier: string;
+  href: string;
+  scormType: string;
+}
 
 export class ScormService {
-  private scormCache = new Map<string, any>();
   private static instance: ScormService;
+  private scormCache: Map<string, ScormManifest> = new Map();
+  private extractedContentPath = path.join(process.cwd(), 'temp', 'scorm');
+
+  private constructor() {
+    // Criar diretório de conteúdo SCORM se não existir
+    if (!fs.existsSync(this.extractedContentPath)) {
+      fs.mkdirSync(this.extractedContentPath, { recursive: true });
+    }
+  }
 
   static getInstance(): ScormService {
     if (!ScormService.instance) {
@@ -13,359 +34,285 @@ export class ScormService {
     return ScormService.instance;
   }
 
-  // Extrai conteúdo SCORM de uma URL do Google Drive
-  async extractScormFromDriveUrl(driveUrl: string): Promise<{
-    id: string;
-    launchUrl: string;
-    title: string;
-    manifestData: any;
-  }> {
+  async extractScormFromDriveUrl(driveUrl: string): Promise<ScormManifest> {
+    const fileId = this.extractDriveFileId(driveUrl);
+    if (!fileId) {
+      throw new Error('ID do arquivo do Google Drive não encontrado');
+    }
+
+    // Verificar se já está em cache
+    if (this.scormCache.has(fileId)) {
+      return this.scormCache.get(fileId)!;
+    }
+
     try {
-      // Gera ID único para o conteúdo SCORM baseado na URL
-      const scormId = createHash('md5').update(driveUrl).digest('hex').substring(0, 12);
-      
-      // Verifica se já está em cache
-      if (this.scormCache.has(scormId)) {
-        return this.scormCache.get(scormId);
-      }
+      // Baixar arquivo do Google Drive
+      const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      const zipPath = path.join(this.extractedContentPath, `${fileId}.zip`);
+      const extractPath = path.join(this.extractedContentPath, fileId);
 
-      // Extrai ID do arquivo do Google Drive
-      const driveFileId = this.extractDriveFileId(driveUrl);
-      if (!driveFileId) {
-        throw new Error('URL do Google Drive inválida');
-      }
+      // Baixar arquivo
+      const response = await axios({
+        method: 'GET',
+        url: downloadUrl,
+        responseType: 'stream'
+      });
 
-      // URL para download direto
-      const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveFileId}`;
-      
-      // Simula extração do manifest SCORM (em produção, faria download e extração real)
-      const scormData = {
-        id: scormId,
-        launchUrl: this.generateScormLaunchUrl(driveFileId, scormId),
-        title: 'E-book Interativo - Relacionamento Interpessoal e Comunicação',
-        manifestData: {
-          version: '1.2',
-          identifier: 'relacionamento-interpessoal-scorm',
-          title: 'Relacionamento Interpessoal e Comunicação',
-          launchPage: 'index.html',
-          resources: [
-            'index.html',
-            'assets/',
-            'resources/',
-            'scripts/'
-          ]
-        }
-      };
+      await pipelineAsync(response.data, createWriteStream(zipPath));
 
-      // Adiciona ao cache
-      this.scormCache.set(scormId, scormData);
+      // Extrair ZIP
+      const zip = new AdmZip(zipPath);
+      zip.extractAllTo(extractPath, true);
+
+      // Procurar pelo manifest
+      const manifest = this.parseManifest(extractPath);
       
-      return scormData;
+      // Salvar em cache
+      this.scormCache.set(fileId, manifest);
+
+      // Limpar arquivo ZIP
+      fs.unlinkSync(zipPath);
+
+      return manifest;
     } catch (error) {
       console.error('Erro ao extrair SCORM:', error);
-      throw error;
+      throw new Error('Falha ao processar conteúdo SCORM');
     }
   }
 
-  // Gera URL para executar SCORM
-  private generateScormLaunchUrl(driveFileId: string, scormId: string): string {
-    // Em produção, seria uma URL para o conteúdo extraído e hospedado
-    // Por enquanto, retorna uma URL que simula o conteúdo SCORM
-    return `/api/scorm/player/${scormId}?driveFileId=${driveFileId}`;
-  }
-
-  // Extrai ID do arquivo do Google Drive
   private extractDriveFileId(url: string): string | null {
     const patterns = [
-      /https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9-_]+)/,
-      /https:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9-_]+)/,
+      /\/file\/d\/([a-zA-Z0-9-_]+)/,
+      /id=([a-zA-Z0-9-_]+)/
     ];
 
     for (const pattern of patterns) {
       const match = url.match(pattern);
-      if (match) {
-        return match[1];
-      }
+      if (match) return match[1];
     }
-    
     return null;
   }
 
-  // Gera HTML do player SCORM
+  private parseManifest(extractPath: string): ScormManifest {
+    const manifestPath = path.join(extractPath, 'imsmanifest.xml');
+    
+    if (!fs.existsSync(manifestPath)) {
+      // Se não há manifest, procurar por index.html
+      const indexPath = path.join(extractPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        return {
+          title: 'Conteúdo SCORM',
+          identifier: path.basename(extractPath),
+          href: 'index.html',
+          scormType: 'scorm_1_2'
+        };
+      }
+      throw new Error('Manifest SCORM não encontrado');
+    }
+
+    try {
+      const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+      
+      // Parse básico do XML para extrair informações essenciais
+      const titleMatch = manifestContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+      const hrefMatch = manifestContent.match(/href="([^"]+)"/i);
+      const identifierMatch = manifestContent.match(/identifier="([^"]+)"/i);
+
+      return {
+        title: titleMatch ? titleMatch[1] : 'Conteúdo SCORM',
+        identifier: identifierMatch ? identifierMatch[1] : path.basename(extractPath),
+        href: hrefMatch ? hrefMatch[1] : 'index.html',
+        scormType: manifestContent.includes('scorm_12') ? 'scorm_1_2' : 'scorm_2004'
+      };
+    } catch (error) {
+      throw new Error('Erro ao analisar manifest SCORM');
+    }
+  }
+
   generateScormPlayer(scormId: string, driveFileId: string): string {
+    const contentPath = `/api/scorm/content/${driveFileId}`;
+    
     return `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player SCORM - Relacionamento Interpessoal</title>
+    <title>Player SCORM</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .scorm-container {
-            width: 95%;
-            max-width: 1200px;
-            height: 85vh;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        
-        .scorm-header {
-            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        .player-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 15px 25px;
             display: flex;
             align-items: center;
-            justify-content: between;
+            gap: 1rem;
         }
-        
-        .scorm-title {
-            font-size: 18px;
+        .player-header h1 {
+            font-size: 1.2rem;
             font-weight: 600;
-            margin: 0;
-            flex-grow: 1;
         }
-        
-        .scorm-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+        .status-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
             font-weight: 500;
+            border: 1px solid rgba(34, 197, 94, 0.3);
         }
-        
-        .scorm-content {
+        .content-frame {
             flex: 1;
+            background: white;
+            margin: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
             position: relative;
-            background: #f8fafc;
         }
-        
         .loading-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #f8fafc;
+            background: white;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 100;
+            justify-content: center;
+            z-index: 10;
         }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e2e8f0;
-            border-top: 4px solid #4f46e5;
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .loading-text {
-            color: #64748b;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        .loading-subtitle {
-            color: #94a3b8;
-            font-size: 14px;
-            text-align: center;
-            max-width: 400px;
-        }
-        
         .scorm-iframe {
             width: 100%;
             height: 100%;
             border: none;
-            display: none;
+            background: white;
         }
-        
-        .scorm-error {
-            padding: 40px;
+        .error-message {
             text-align: center;
             color: #ef4444;
-        }
-        
-        .progress-bar {
-            width: 300px;
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4f46e5, #7c3aed);
-            border-radius: 2px;
-            width: 0%;
-            animation: progress 3s ease-in-out;
-        }
-        
-        @keyframes progress {
-            0% { width: 0%; }
-            50% { width: 60%; }
-            100% { width: 100%; }
+            padding: 2rem;
         }
     </style>
 </head>
 <body>
-    <div class="scorm-container">
-        <div class="scorm-header">
-            <h1 class="scorm-title">📚 Relacionamento Interpessoal e Comunicação</h1>
-            <div class="scorm-badge">SCORM 1.2</div>
+    <div class="player-header">
+        <div>
+            <h1>📚 Player SCORM Integrado</h1>
+        </div>
+        <div class="status-badge">
+            ✅ Executando
+        </div>
+    </div>
+    
+    <div class="content-frame">
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <p>Carregando conteúdo SCORM...</p>
         </div>
         
-        <div class="scorm-content">
-            <div class="loading-overlay" id="loadingOverlay">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">Carregando conteúdo interativo...</div>
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <div class="loading-subtitle">
-                    Preparando materiais educacionais estruturados com recursos multimídia e atividades interativas
-                </div>
-            </div>
-            
-            <iframe 
-                id="scormFrame"
-                class="scorm-iframe"
-                src="https://drive.google.com/file/d/${driveFileId}/preview"
-                allowfullscreen
-                allow="autoplay; fullscreen; picture-in-picture"
-            ></iframe>
-        </div>
+        <iframe 
+            id="scormFrame"
+            class="scorm-iframe"
+            src="${contentPath}/index.html"
+            allow="autoplay; fullscreen; microphone; camera"
+            allowfullscreen>
+        </iframe>
     </div>
 
     <script>
-        // Simula carregamento do SCORM
-        let progress = 0;
-        const progressFill = document.querySelector('.progress-fill');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const scormFrame = document.getElementById('scormFrame');
-        
-        // Simula progresso de carregamento
-        const loadingInterval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(loadingInterval);
-                
-                // Oculta loading e mostra conteúdo
-                setTimeout(() => {
-                    loadingOverlay.style.display = 'none';
-                    scormFrame.style.display = 'block';
-                    
-                    // Inicializa comunicação SCORM
-                    initializeScorm();
-                }, 500);
-            }
-        }, 200);
-        
-        // Funcionalidades básicas do SCORM API
+        // SCORM API Wrapper
         window.API = {
-            LMSInitialize: function() {
-                console.log('SCORM: LMSInitialize');
-                return 'true';
+            LMSInitialize: function(param) {
+                console.log('SCORM: LMSInitialize called');
+                return "true";
             },
-            LMSCommit: function() {
-                console.log('SCORM: LMSCommit');
-                return 'true';
-            },
-            LMSFinish: function() {
-                console.log('SCORM: LMSFinish');
-                return 'true';
+            LMSFinish: function(param) {
+                console.log('SCORM: LMSFinish called');
+                return "true";
             },
             LMSGetValue: function(element) {
-                console.log('SCORM: LMSGetValue', element);
-                switch(element) {
-                    case 'cmi.core.student_name':
-                        return 'Aluno do Sistema';
-                    case 'cmi.core.lesson_status':
-                        return 'not attempted';
-                    default:
-                        return '';
-                }
+                console.log('SCORM: LMSGetValue called for', element);
+                if (element === "cmi.core.student_name") return "Aluno do Sistema";
+                if (element === "cmi.core.lesson_status") return "not attempted";
+                return "";
             },
             LMSSetValue: function(element, value) {
-                console.log('SCORM: LMSSetValue', element, value);
-                return 'true';
+                console.log('SCORM: LMSSetValue called', element, value);
+                return "true";
+            },
+            LMSCommit: function(param) {
+                console.log('SCORM: LMSCommit called');
+                return "true";
             },
             LMSGetLastError: function() {
-                return '0';
+                return "0";
             },
             LMSGetErrorString: function(errorCode) {
-                return 'No Error';
+                return "No Error";
             },
             LMSGetDiagnostic: function(errorCode) {
-                return 'No Error';
+                return "";
             }
         };
-        
-        function initializeScorm() {
-            console.log('SCORM Player initialized successfully');
-            
-            // Adiciona eventos para monitorar progresso
-            scormFrame.addEventListener('load', function() {
-                console.log('SCORM content loaded');
-                
-                // Tenta injetar API SCORM no iframe (se mesmo domínio)
-                try {
-                    if (scormFrame.contentWindow) {
-                        scormFrame.contentWindow.API = window.API;
-                    }
-                } catch (e) {
-                    console.log('Cross-origin iframe - API SCORM externa');
-                }
-            });
-        }
-        
-        // Escuta mensagens do iframe
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'scorm') {
-                console.log('SCORM Message:', event.data);
-                
-                // Aqui poderia enviar dados para o servidor
-                if (event.data.action === 'setScore') {
-                    // Salvar pontuação do aluno
-                }
-                if (event.data.action === 'complete') {
-                    // Marcar como concluído
-                }
-            }
-        });
+
+        // SCORM 2004 API
+        window.API_1484_11 = window.API;
+
+        // Ocultar loading quando iframe carregar
+        document.getElementById('scormFrame').onload = function() {
+            document.getElementById('loading').style.display = 'none';
+        };
+
+        // Tratar erros de carregamento
+        document.getElementById('scormFrame').onerror = function() {
+            document.getElementById('loading').innerHTML = 
+                '<div class="error-message"><h3>Erro ao carregar conteúdo</h3><p>Não foi possível carregar o conteúdo SCORM.</p></div>';
+        };
     </script>
 </body>
 </html>`;
   }
 
-  // Obtém dados do SCORM
-  getScormData(scormId: string) {
-    return this.scormCache.get(scormId);
+  getScormData(scormId: string): ScormManifest | null {
+    const fileId = scormId.replace('scorm-', '');
+    return this.scormCache.get(fileId) || null;
+  }
+
+  getContentPath(driveFileId: string, relativePath: string = ''): string {
+    return path.join(this.extractedContentPath, driveFileId, relativePath);
+  }
+
+  contentExists(driveFileId: string): boolean {
+    const contentPath = path.join(this.extractedContentPath, driveFileId);
+    return fs.existsSync(contentPath);
   }
 }

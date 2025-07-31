@@ -36,6 +36,8 @@ import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
 import { PDFService } from './pdfService';
 import { ScormService } from './services/scorm-service';
+import fs from 'fs';
+import path from 'path';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -5007,6 +5009,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ping", (req, res) => {
     res.json({ message: "pong", server: "running" });
+  });
+
+  // ===== ROTAS SCORM =====
+  const scormService = ScormService.getInstance();
+
+  // Endpoint para processar e extrair conteúdo SCORM do Google Drive
+  app.post("/api/scorm/process", authenticateToken, async (req: any, res) => {
+    try {
+      const { driveUrl } = req.body;
+      
+      if (!driveUrl) {
+        return res.status(400).json({ error: 'URL do Google Drive é obrigatória' });
+      }
+
+      const manifest = await scormService.extractScormFromDriveUrl(driveUrl);
+      
+      res.json({
+        success: true,
+        manifest,
+        message: 'Conteúdo SCORM processado com sucesso'
+      });
+    } catch (error) {
+      console.error('Erro ao processar SCORM:', error);
+      res.status(500).json({ 
+        error: 'Erro ao processar conteúdo SCORM',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
+  // Endpoint para servir o player SCORM
+  app.get("/api/scorm/player/:scormId", async (req, res) => {
+    try {
+      const { scormId } = req.params;
+      const { driveFileId } = req.query;
+      
+      if (!driveFileId) {
+        return res.status(400).json({ error: 'driveFileId é obrigatório' });
+      }
+
+      // Verificar se o conteúdo já foi extraído
+      if (!scormService.contentExists(driveFileId as string)) {
+        // Extrair automaticamente
+        const driveUrl = `https://drive.google.com/file/d/${driveFileId}/view`;
+        await scormService.extractScormFromDriveUrl(driveUrl);
+      }
+
+      const playerHtml = scormService.generateScormPlayer(scormId, driveFileId as string);
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.send(playerHtml);
+    } catch (error) {
+      console.error('Erro ao servir player SCORM:', error);
+      res.status(500).json({ 
+        error: 'Erro ao carregar player SCORM',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
+  // Endpoint para servir arquivos do conteúdo SCORM extraído
+  app.get("/api/scorm/content/:driveFileId/*", (req, res) => {
+    try {
+      const { driveFileId } = req.params;
+      const filePath = req.params[0] || '';
+      
+      const contentPath = scormService.getContentPath(driveFileId, filePath);
+      
+      if (!fs.existsSync(contentPath)) {
+        return res.status(404).json({ error: 'Arquivo não encontrado' });
+      }
+
+      // Servir arquivo com tipo MIME apropriado
+      const ext = path.extname(contentPath).toLowerCase();
+      const mimeTypes: Record<string, string> = {
+        '.html': 'text/html',
+        '.css': 'text/css',
+        '.js': 'application/javascript',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.xml': 'application/xml',
+        '.pdf': 'application/pdf'
+      };
+
+      const mimeType = mimeTypes[ext] || 'application/octet-stream';
+      res.setHeader('Content-Type', mimeType);
+      
+      res.sendFile(path.resolve(contentPath));
+    } catch (error) {
+      console.error('Erro ao servir arquivo SCORM:', error);
+      res.status(500).json({ 
+        error: 'Erro ao carregar arquivo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
+  // Endpoint para obter dados do SCORM
+  app.get("/api/scorm/:scormId/data", authenticateToken, async (req: any, res) => {
+    try {
+      const { scormId } = req.params;
+      
+      const scormData = scormService.getScormData(scormId);
+      
+      if (!scormData) {
+        return res.status(404).json({ error: 'Dados SCORM não encontrados' });
+      }
+
+      res.json(scormData);
+    } catch (error) {
+      console.error('Erro ao obter dados SCORM:', error);
+      res.status(500).json({ 
+        error: 'Erro ao obter dados SCORM',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   });
 
   return httpServer; // return the HTTP server instance
