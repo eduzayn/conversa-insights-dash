@@ -252,6 +252,43 @@ export default function ConteudosFixed() {
     return null;
   };
 
+  // Função para detectar conteúdo SCORM
+  const isScormContent = (url: string, titulo: string) => {
+    const lowerUrl = url.toLowerCase();
+    const lowerTitulo = titulo.toLowerCase();
+    
+    // Indicadores principais de SCORM
+    const scormIndicators = [
+      'scorm',
+      'interativo',
+      'e-book interativo',
+      '.zip',
+      'relacionamento-interpessoal-e-comunicacao', // padrão visto na imagem
+      'scorm12'
+    ];
+    
+    return scormIndicators.some(indicator => 
+      lowerUrl.includes(indicator) || lowerTitulo.includes(indicator)
+    );
+  };
+
+  // Função para criar URL de visualização SCORM mais robusta
+  const getScormViewerUrl = (driveInfo: any) => {
+    if (!driveInfo || !driveInfo.fileId) return null;
+    
+    // Tenta diferentes estratégias para visualizar SCORM
+    return {
+      // URL para visualizar a estrutura do arquivo
+      structureUrl: `https://drive.google.com/file/d/${driveInfo.fileId}/view`,
+      // URL para download direto
+      downloadUrl: `https://drive.google.com/uc?export=download&id=${driveInfo.fileId}`,
+      // URL para tentar preview (limitado para SCORM)
+      previewUrl: `https://drive.google.com/file/d/${driveInfo.fileId}/preview`,
+      // Sugestão de player SCORM online
+      onlinePlayer: `https://scorm.com/scorm-solved/scorm-cloud-features/scorm-player/`,
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -681,10 +718,116 @@ export default function ConteudosFixed() {
                 
                 {contentToPreview.tipo === 'ebook' && (() => {
                   const driveInfo = getGoogleDriveEmbedUrl(contentToPreview.url);
+                  const isScorm = isScormContent(contentToPreview.url, contentToPreview.titulo);
                   
-                  // Se for um arquivo do Google Drive
+                  // Se for conteúdo SCORM
+                  if (isScorm && driveInfo) {
+                    const scormUrls = getScormViewerUrl(driveInfo);
+                    
+                    return (
+                      <div className="space-y-4">
+                        {/* Título do SCORM */}
+                        <div className="text-center">
+                          <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                          <h4 className="text-lg font-semibold text-gray-900">E-book Interativo SCORM</h4>
+                          <p className="text-sm text-gray-600">Conteúdo educacional interativo</p>
+                        </div>
+                        
+                        {/* Aviso sobre SCORM com melhor explicação */}
+                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="bg-amber-100 rounded-full p-2 flex-shrink-0">
+                              <BookOpen className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-semibold text-amber-900 mb-1">Pacote SCORM Detectado</h5>
+                              <p className="text-sm text-amber-800 mb-3">
+                                Este conteúdo é um pacote SCORM (Sharable Content Object Reference Model) que contém 
+                                materiais educacionais interativos estruturados. O SCORM não pode ser visualizado diretamente 
+                                no navegador - necessita de um player SCORM ou sistema LMS para funcionar corretamente.
+                              </p>
+                              <div className="bg-amber-100 p-3 rounded-lg border border-amber-300">
+                                <p className="text-xs text-amber-800 font-medium mb-2">Arquivos SCORM encontrados:</p>
+                                <div className="grid grid-cols-2 gap-2 text-xs text-amber-700">
+                                  <div>• imsmanifest.xml</div>
+                                  <div>• index.html</div>
+                                  <div>• Pasta assets/</div>
+                                  <div>• Pasta resources/</div>
+                                  <div>• Pasta scripts/</div>
+                                  <div>• Arquivos de conteúdo</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Visualização da estrutura do arquivo */}
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                          <div className="bg-gradient-to-r from-gray-100 to-gray-200 p-3 border-b">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-gray-700">
+                                📁 Estrutura do Pacote SCORM
+                              </p>
+                              <Badge className="bg-amber-100 text-amber-800 text-xs">ZIP Archive</Badge>
+                            </div>
+                          </div>
+                          <iframe
+                            src={scormUrls?.structureUrl || driveInfo.viewUrl}
+                            className="w-full h-[400px]"
+                            frameBorder="0"
+                            title={contentToPreview.titulo}
+                            allow="fullscreen"
+                          />
+                        </div>
+                        
+                        {/* Informações da disciplina */}
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="font-semibold text-blue-900">
+                                Disciplina: {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'}
+                              </h5>
+                              <p className="text-sm text-blue-700 mt-1">Conteúdo SCORM - Requer player específico para execução</p>
+                            </div>
+                            <div className="text-right">
+                              <Badge className="bg-blue-100 text-blue-800">SCORM 1.2</Badge>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Opções de ação para SCORM */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h6 className="font-semibold text-gray-900 mb-3 text-center">Opções para Executar o Conteúdo</h6>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <a 
+                              href={scormUrls?.downloadUrl || driveInfo.directUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                              <BookOpen className="h-4 w-4" />
+                              Baixar SCORM (.zip)
+                            </a>
+                            <a 
+                              href="https://cloud.scorm.com/sc/guest/SignUpForm"
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-md hover:bg-green-700 transition-colors"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Player SCORM Online
+                            </a>
+                          </div>
+                          <p className="text-xs text-gray-600 text-center mt-2">
+                            Baixe o arquivo e faça upload em um player SCORM para melhor experiência
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Se for um arquivo do Google Drive normal (não SCORM)
                   if (driveInfo) {
-                    // URLs alternativas para tentar renderizar o PDF corretamente
                     const pdfViewerUrl = `https://docs.google.com/gview?embedded=true&url=https://drive.google.com/uc?export=download&id=${driveInfo.fileId}`;
                     const pdfPreviewUrl = `https://drive.google.com/file/d/${driveInfo.fileId}/preview`;
                     
@@ -693,11 +836,11 @@ export default function ConteudosFixed() {
                         {/* Título do E-book */}
                         <div className="text-center">
                           <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <h4 className="text-lg font-semibold text-gray-900">E-book Interativo</h4>
+                          <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
                           <p className="text-sm text-gray-600">Visualização integrada no sistema</p>
                         </div>
                         
-                        {/* Visualização integrada do PDF - Primeira tentativa com Google Viewer */}
+                        {/* Visualização integrada do PDF */}
                         <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
                           <iframe
                             src={pdfViewerUrl}
@@ -706,7 +849,6 @@ export default function ConteudosFixed() {
                             title={contentToPreview.titulo}
                             allow="fullscreen"
                             onError={(e) => {
-                              // Se falhar, tenta a segunda opção
                               console.log('Tentando URL alternativa para o PDF...');
                               (e.target as HTMLIFrameElement).src = pdfPreviewUrl;
                             }}
@@ -726,7 +868,7 @@ export default function ConteudosFixed() {
                           </div>
                         </div>
                         
-                        {/* Botões de ação para caso de problema */}
+                        {/* Botões de ação */}
                         <div className="flex justify-center gap-3">
                           <a 
                             href={driveInfo.viewUrl} 
