@@ -207,14 +207,19 @@ export default function ConteudosFixed() {
 
   // Função para detectar e converter URLs do Google Drive
   const getGoogleDriveEmbedUrl = (url: string) => {
-    // Padrões de URL do Google Drive
-    const patterns = [
+    // Padrões de URL do Google Drive para arquivos específicos
+    const filePatterns = [
       /https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9-_]+)/,
       /https:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9-_]+)/,
       /https:\/\/docs\.google\.com\/.*\/d\/([a-zA-Z0-9-_]+)/
     ];
 
-    for (const pattern of patterns) {
+    // Verifica se é uma pasta (não queremos mostrar pastas)
+    if (url.includes('/folders/') || url.includes('folder') || url.includes('drive.google.com/drive/')) {
+      return null; // Retorna null para pastas
+    }
+
+    for (const pattern of filePatterns) {
       const match = url.match(pattern);
       if (match) {
         const fileId = match[1];
@@ -222,6 +227,7 @@ export default function ConteudosFixed() {
           embedUrl: `https://drive.google.com/file/d/${fileId}/preview`,
           directUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
           viewUrl: `https://drive.google.com/file/d/${fileId}/view`,
+          pdfViewerUrl: `https://docs.google.com/gview?embedded=true&url=https://drive.google.com/uc?export=download&id=${fileId}`,
           fileId
         };
       }
@@ -676,15 +682,11 @@ export default function ConteudosFixed() {
                 {contentToPreview.tipo === 'ebook' && (() => {
                   const driveInfo = getGoogleDriveEmbedUrl(contentToPreview.url);
                   
-                  // Se for um arquivo do Google Drive, detecta se é PDF
+                  // Se for um arquivo do Google Drive
                   if (driveInfo) {
-                    // Para e-books, usamos uma URL específica para PDFs que evita mostrar pastas
-                    const isPdfUrl = contentToPreview.url.toLowerCase().includes('.pdf') || 
-                                     contentToPreview.titulo.toLowerCase().includes('pdf') ||
-                                     contentToPreview.titulo.toLowerCase().includes('e-book');
-                    
-                    // URL específica para visualização de PDF sem mostrar estrutura de pastas
-                    const pdfEmbedUrl = `https://drive.google.com/file/d/${driveInfo.fileId}/preview`;
+                    // URLs alternativas para tentar renderizar o PDF corretamente
+                    const pdfViewerUrl = `https://docs.google.com/gview?embedded=true&url=https://drive.google.com/uc?export=download&id=${driveInfo.fileId}`;
+                    const pdfPreviewUrl = `https://drive.google.com/file/d/${driveInfo.fileId}/preview`;
                     
                     return (
                       <div className="space-y-4">
@@ -695,14 +697,19 @@ export default function ConteudosFixed() {
                           <p className="text-sm text-gray-600">Visualização integrada no sistema</p>
                         </div>
                         
-                        {/* Visualização integrada do PDF */}
+                        {/* Visualização integrada do PDF - Primeira tentativa com Google Viewer */}
                         <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
                           <iframe
-                            src={pdfEmbedUrl}
+                            src={pdfViewerUrl}
                             className="w-full h-[700px]"
                             frameBorder="0"
                             title={contentToPreview.titulo}
                             allow="fullscreen"
+                            onError={(e) => {
+                              // Se falhar, tenta a segunda opção
+                              console.log('Tentando URL alternativa para o PDF...');
+                              (e.target as HTMLIFrameElement).src = pdfPreviewUrl;
+                            }}
                           />
                         </div>
                         
@@ -717,6 +724,28 @@ export default function ConteudosFixed() {
                               <Badge className="bg-blue-100 text-blue-800">E-book</Badge>
                             </div>
                           </div>
+                        </div>
+                        
+                        {/* Botões de ação para caso de problema */}
+                        <div className="flex justify-center gap-3">
+                          <a 
+                            href={driveInfo.viewUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Abrir no Drive
+                          </a>
+                          <a 
+                            href={driveInfo.directUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <BookOpen className="h-4 w-4" />
+                            Baixar PDF
+                          </a>
                         </div>
                       </div>
                     );
