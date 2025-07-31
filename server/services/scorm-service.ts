@@ -203,9 +203,16 @@ export class ScormService {
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
+            height: auto;
             display: flex;
             flex-direction: column;
+        }
+        
+        /* Quando está dentro de um modal */
+        body.modal-context {
+            height: 700px;
+            min-height: 700px;
         }
         .player-header {
             background: rgba(255, 255, 255, 0.1);
@@ -238,6 +245,8 @@ export class ScormService {
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             position: relative;
+            min-height: 600px;
+            height: calc(100vh - 120px);
         }
         .loading-overlay {
             position: absolute;
@@ -268,8 +277,10 @@ export class ScormService {
         .scorm-iframe {
             width: 100%;
             height: 100%;
+            min-height: 600px;
             border: none;
             background: white;
+            display: block;
         }
         .error-message {
             text-align: center;
@@ -304,6 +315,27 @@ export class ScormService {
     </div>
 
     <script>
+        // Detectar se está dentro de um modal e ajustar layout
+        function detectModalContext() {
+            try {
+                // Verificar se o parent window tem um modal aberto
+                if (window.parent !== window) {
+                    const parentDoc = window.parent.document;
+                    const isInModal = parentDoc.querySelector('[role="dialog"]') !== null ||
+                                     parentDoc.querySelector('.modal') !== null ||
+                                     parentDoc.querySelector('[data-radix-dialog-content]') !== null;
+                    
+                    if (isInModal) {
+                        document.body.classList.add('modal-context');
+                        console.log('🎭 Contexto de modal detectado - ajustando layout');
+                    }
+                }
+            } catch (e) {
+                // Cross-origin error é esperado, continua normalmente
+                console.log('🔒 Cross-origin detectado - usando layout padrão');
+            }
+        }
+        
         // SCORM API Wrapper
         window.API = {
             LMSInitialize: function(param) {
@@ -342,16 +374,26 @@ export class ScormService {
         // SCORM 2004 API
         window.API_1484_11 = window.API;
 
+        // Inicializar player
+        document.addEventListener('DOMContentLoaded', function() {
+            detectModalContext();
+        });
+
         // Ocultar loading quando iframe carregar
         document.getElementById('scormFrame').onload = function() {
             document.getElementById('loading').style.display = 'none';
+            console.log('✅ Conteúdo SCORM carregado com sucesso!');
         };
 
         // Tratar erros de carregamento
         document.getElementById('scormFrame').onerror = function() {
+            console.error('❌ Erro ao carregar conteúdo SCORM');
             document.getElementById('loading').innerHTML = 
                 '<div class="error-message"><h3>Erro ao carregar conteúdo</h3><p>Não foi possível carregar o conteúdo SCORM.</p></div>';
         };
+
+        // Executar detecção após load da página
+        window.addEventListener('load', detectModalContext);
     </script>
 </body>
 </html>`;
