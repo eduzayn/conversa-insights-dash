@@ -675,50 +675,48 @@ export default function ConteudosFixed() {
                 
                 {contentToPreview.tipo === 'ebook' && (() => {
                   const driveInfo = getGoogleDriveEmbedUrl(contentToPreview.url);
-                  const driveFileType = getGoogleDriveFileType(contentToPreview.url);
                   
-                  // Se for um arquivo do Google Drive, tenta fazer o embed
+                  // Se for um arquivo do Google Drive, detecta se é PDF
                   if (driveInfo) {
+                    // Para e-books, usamos uma URL específica para PDFs que evita mostrar pastas
+                    const isPdfUrl = contentToPreview.url.toLowerCase().includes('.pdf') || 
+                                     contentToPreview.titulo.toLowerCase().includes('pdf') ||
+                                     contentToPreview.titulo.toLowerCase().includes('e-book');
+                    
+                    // URL específica para visualização de PDF sem mostrar estrutura de pastas
+                    const pdfEmbedUrl = `https://drive.google.com/file/d/${driveInfo.fileId}/preview`;
+                    
                     return (
                       <div className="space-y-4">
                         {/* Título do E-book */}
                         <div className="text-center">
                           <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                           <h4 className="text-lg font-semibold text-gray-900">E-book Interativo</h4>
-                          <p className="text-sm text-gray-600">Visualização direta do Google Drive</p>
+                          <p className="text-sm text-gray-600">Visualização integrada no sistema</p>
                         </div>
                         
-                        {/* Iframe do Google Drive */}
+                        {/* Visualização integrada do PDF */}
                         <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
                           <iframe
-                            src={driveInfo.embedUrl}
-                            className="w-full h-[600px]"
+                            src={pdfEmbedUrl}
+                            className="w-full h-[700px]"
                             frameBorder="0"
                             title={contentToPreview.titulo}
-                            allow="autoplay"
+                            allow="fullscreen"
                           />
                         </div>
                         
-                        {/* Botões de ação */}
-                        <div className="flex justify-center gap-3">
-                          <a 
-                            href={driveInfo.viewUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Abrir no Drive
-                          </a>
-                          <a 
-                            href={driveInfo.directUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            <BookOpen className="h-4 w-4" />
-                            Baixar E-book
-                          </a>
+                        {/* Informações do E-book */}
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="font-semibold text-blue-900">Disciplina: {contentToPreview.subjectName || 'Relacionamento Interpessoal e Comunicação'}</h5>
+                              <p className="text-sm text-blue-700 mt-1">Conteúdo integrado - visualize sem sair do sistema</p>
+                            </div>
+                            <div className="text-right">
+                              <Badge className="bg-blue-100 text-blue-800">E-book</Badge>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
