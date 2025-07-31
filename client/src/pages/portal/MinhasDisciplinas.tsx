@@ -23,6 +23,30 @@ import {
   Bell
 } from "lucide-react";
 
+// Função para identificar se um conteúdo é SCORM
+const isScormContent = (url: string, title: string): boolean => {
+  const scormIndicators = [
+    'scorm', 'SCORM', 'ebook', 'e-book', 'interativo', 
+    'modulo', 'módulo', 'treinamento', 'curso'
+  ];
+  const urlLower = url.toLowerCase();
+  const titleLower = title.toLowerCase();
+  
+  // Verifica se é um arquivo do Google Drive que pode ser SCORM
+  const isDriveFile = urlLower.includes('drive.google.com') && urlLower.includes('/file/d/');
+  
+  return isDriveFile && scormIndicators.some(indicator => 
+    titleLower.includes(indicator) || urlLower.includes(indicator)
+  );
+};
+
+// Função para extrair ID do arquivo do Google Drive
+const getGoogleDriveFileId = (url: string): string | null => {
+  const drivePattern = /\/file\/d\/([a-zA-Z0-9-_]+)/;
+  const match = url.match(drivePattern);
+  return match ? match[1] : null;
+};
+
 interface SubjectContent {
   id: number;
   titulo: string;
@@ -65,6 +89,7 @@ interface StudentSubject {
 export default function MinhasDisciplinas() {
   const [selectedSubject, setSelectedSubject] = useState<StudentSubject | null>(null);
   const [showQRCode, setShowQRCode] = useState<StudentSubject | null>(null);
+  const [selectedContent, setSelectedContent] = useState<SubjectContent | null>(null);
 
   const { data: subjects, isLoading } = useQuery({
     queryKey: ["/api/portal/aluno/disciplinas"],
@@ -102,6 +127,17 @@ export default function MinhasDisciplinas() {
           ordem: 2,
           professorNome: "Prof. João Silva",
           createdAt: "2025-01-20",
+          visualizado: false
+        },
+        {
+          id: 3,
+          titulo: "E-book Interativo SCORM - Algoritmos",
+          tipo: "ebook",
+          conteudo: "https://drive.google.com/file/d/1m4kcI_SJio_PjoDGaI44RjTHB31c1ems/view",
+          descricao: "Conteúdo interativo SCORM sobre algoritmos e estruturas de dados",
+          ordem: 3,
+          professorNome: "Prof. João Silva",
+          createdAt: "2025-01-25",
           visualizado: false
         }
       ],
@@ -315,10 +351,123 @@ export default function MinhasDisciplinas() {
                                     <ExternalLink className="h-3 w-3" />
                                     <span className="truncate max-w-64">{content.conteudo}</span>
                                   </div>
-                                  <Button size="sm" variant="outline">
-                                    <Play className="h-3 w-3 mr-1" />
-                                    Acessar
-                                  </Button>
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={() => setSelectedContent(content)}
+                                      >
+                                        <Play className="h-3 w-3 mr-1" />
+                                        {isScormContent(content.conteudo, content.titulo) ? 'Estudar' : 'Acessar'}
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
+                                      {selectedContent && (
+                                        <>
+                                          <DialogHeader>
+                                            <DialogTitle className="flex items-center gap-2">
+                                              {isScormContent(selectedContent.conteudo, selectedContent.titulo) ? (
+                                                <BookOpen className="h-5 w-5 text-blue-600" />
+                                              ) : (
+                                                getContentIcon(selectedContent.tipo)
+                                              )}
+                                              {selectedContent.titulo}
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                              {selectedContent.descricao}
+                                            </DialogDescription>
+                                          </DialogHeader>
+                                          
+                                          {/* Conteúdo SCORM */}
+                                          {isScormContent(selectedContent.conteudo, selectedContent.titulo) && (() => {
+                                            const driveFileId = getGoogleDriveFileId(selectedContent.conteudo);
+                                            
+                                            if (!driveFileId) {
+                                              return (
+                                                <div className="p-8 text-center">
+                                                  <p className="text-red-600">Erro ao carregar conteúdo SCORM</p>
+                                                </div>
+                                              );
+                                            }
+                                            
+                                            const scormPlayerUrl = `/api/scorm/player/scorm-${driveFileId}?driveFileId=${driveFileId}`;
+                                            
+                                            return (
+                                              <div className="space-y-4">
+                                                {/* Badge SCORM */}
+                                                <div className="flex items-center justify-center gap-2 p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                                                  <BookOpen className="h-4 w-4 text-blue-600" />
+                                                  <span className="text-sm font-medium text-blue-800">Conteúdo Interativo SCORM</span>
+                                                  <Badge className="bg-blue-100 text-blue-800 text-xs">Em execução</Badge>
+                                                </div>
+                                                
+                                                {/* Player SCORM */}
+                                                <div className="border-2 border-blue-200 rounded-lg overflow-hidden bg-white shadow-lg">
+                                                  <iframe
+                                                    src={scormPlayerUrl}
+                                                    className="w-full h-[600px]"
+                                                    frameBorder="0"
+                                                    title={selectedContent.titulo}
+                                                    allow="autoplay; fullscreen; microphone; camera"
+                                                    allowFullScreen
+                                                  />
+                                                </div>
+                                                
+                                                {/* Instruções para o aluno */}
+                                                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                                  <div className="flex items-start gap-2">
+                                                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                                                    <div className="text-sm text-green-800">
+                                                      <p className="font-medium mb-1">✅ Conteúdo carregado com sucesso!</p>
+                                                      <p>Interaja diretamente com o material educacional. Seu progresso será acompanhado automaticamente.</p>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+                                          
+                                          {/* Conteúdo tradicional (não SCORM) */}
+                                          {!isScormContent(selectedContent.conteudo, selectedContent.titulo) && (
+                                            <div className="space-y-4">
+                                              {selectedContent.tipo === 'video' && (
+                                                <div className="aspect-video">
+                                                  <iframe
+                                                    src={selectedContent.conteudo.replace('watch?v=', 'embed/')}
+                                                    className="w-full h-full rounded-lg"
+                                                    frameBorder="0"
+                                                    allowFullScreen
+                                                  />
+                                                </div>
+                                              )}
+                                              
+                                              {selectedContent.tipo === 'link' && (
+                                                <div className="text-center p-8">
+                                                  <ExternalLink className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+                                                  <Button asChild>
+                                                    <a href={selectedContent.conteudo} target="_blank" rel="noopener noreferrer">
+                                                      Abrir Link Externo
+                                                    </a>
+                                                  </Button>
+                                                </div>
+                                              )}
+                                              
+                                              {(selectedContent.tipo === 'ebook' || selectedContent.tipo === 'pdf') && (
+                                                <div className="h-[600px]">
+                                                  <iframe
+                                                    src={selectedContent.conteudo}
+                                                    className="w-full h-full rounded-lg"
+                                                    frameBorder="0"
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
+                                    </DialogContent>
+                                  </Dialog>
                                 </div>
                               </CardContent>
                             </Card>

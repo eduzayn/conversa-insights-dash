@@ -722,7 +722,7 @@ export default function ConteudosFixed() {
                   
                   // Se for conteúdo SCORM
                   if (isScorm && driveInfo) {
-                    const scormUrls = getScormViewerUrl(driveInfo);
+                    const scormPlayerUrl = `/api/scorm/player/scorm-${driveInfo.fileId}?driveFileId=${driveInfo.fileId}`;
                     
                     return (
                       <div className="space-y-4">
@@ -730,96 +730,75 @@ export default function ConteudosFixed() {
                         <div className="text-center">
                           <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                           <h4 className="text-lg font-semibold text-gray-900">E-book Interativo SCORM</h4>
-                          <p className="text-sm text-gray-600">Conteúdo educacional interativo</p>
+                          <p className="text-sm text-gray-600">Conteúdo educacional sendo executado diretamente no sistema</p>
                         </div>
                         
-                        {/* Aviso sobre SCORM com melhor explicação */}
-                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="bg-amber-100 rounded-full p-2 flex-shrink-0">
-                              <BookOpen className="h-5 w-5 text-amber-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h5 className="font-semibold text-amber-900 mb-1">Pacote SCORM Detectado</h5>
-                              <p className="text-sm text-amber-800 mb-3">
-                                Este conteúdo é um pacote SCORM (Sharable Content Object Reference Model) que contém 
-                                materiais educacionais interativos estruturados. O SCORM não pode ser visualizado diretamente 
-                                no navegador - necessita de um player SCORM ou sistema LMS para funcionar corretamente.
-                              </p>
-                              <div className="bg-amber-100 p-3 rounded-lg border border-amber-300">
-                                <p className="text-xs text-amber-800 font-medium mb-2">Arquivos SCORM encontrados:</p>
-                                <div className="grid grid-cols-2 gap-2 text-xs text-amber-700">
-                                  <div>• imsmanifest.xml</div>
-                                  <div>• index.html</div>
-                                  <div>• Pasta assets/</div>
-                                  <div>• Pasta resources/</div>
-                                  <div>• Pasta scripts/</div>
-                                  <div>• Arquivos de conteúdo</div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Visualização da estrutura do arquivo */}
-                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
-                          <div className="bg-gradient-to-r from-gray-100 to-gray-200 p-3 border-b">
+                        {/* Player SCORM Integrado */}
+                        <div className="border-2 border-blue-200 rounded-lg overflow-hidden bg-white shadow-lg">
+                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3">
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-gray-700">
-                                📁 Estrutura do Pacote SCORM
-                              </p>
-                              <Badge className="bg-amber-100 text-amber-800 text-xs">ZIP Archive</Badge>
+                              <div className="flex items-center gap-2">
+                                <BookOpen className="h-5 w-5" />
+                                <p className="font-medium">Player SCORM Integrado</p>
+                              </div>
+                              <Badge className="bg-white/20 text-white border-white/30">SCORM 1.2</Badge>
                             </div>
                           </div>
+                          
+                          {/* Iframe do Player SCORM */}
                           <iframe
-                            src={scormUrls?.structureUrl || driveInfo.viewUrl}
-                            className="w-full h-[400px]"
+                            src={scormPlayerUrl}
+                            className="w-full h-[600px]"
                             frameBorder="0"
                             title={contentToPreview.titulo}
-                            allow="fullscreen"
+                            allow="autoplay; fullscreen; microphone; camera"
+                            allowFullScreen
                           />
                         </div>
                         
                         {/* Informações da disciplina */}
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
                           <div className="flex items-center justify-between">
                             <div>
                               <h5 className="font-semibold text-blue-900">
                                 Disciplina: {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'}
                               </h5>
-                              <p className="text-sm text-blue-700 mt-1">Conteúdo SCORM - Requer player específico para execução</p>
+                              <p className="text-sm text-blue-700 mt-1">
+                                ✅ Conteúdo SCORM executando diretamente no navegador - Experiência completa do aluno
+                              </p>
                             </div>
                             <div className="text-right">
-                              <Badge className="bg-blue-100 text-blue-800">SCORM 1.2</Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge className="bg-green-100 text-green-800">Executando</Badge>
+                                <Badge className="bg-blue-100 text-blue-800 text-xs">Player Integrado</Badge>
+                              </div>
                             </div>
                           </div>
                         </div>
                         
-                        {/* Opções de ação para SCORM */}
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <h6 className="font-semibold text-gray-900 mb-3 text-center">Opções para Executar o Conteúdo</h6>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <a 
-                              href={scormUrls?.downloadUrl || driveInfo.directUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                              <BookOpen className="h-4 w-4" />
-                              Baixar SCORM (.zip)
-                            </a>
-                            <a 
-                              href="https://cloud.scorm.com/sc/guest/SignUpForm"
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-md hover:bg-green-700 transition-colors"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Player SCORM Online
-                            </a>
+                        {/* Recursos do Player */}
+                        <div className="bg-gray-50 p-4 rounded-lg border">
+                          <h6 className="font-semibold text-gray-900 mb-3">Recursos Disponíveis</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div className="flex items-center gap-2 text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              Player Integrado
+                            </div>
+                            <div className="flex items-center gap-2 text-blue-700">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              Rastreamento SCORM
+                            </div>
+                            <div className="flex items-center gap-2 text-purple-700">
+                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                              Progresso Automático
+                            </div>
+                            <div className="flex items-center gap-2 text-orange-700">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                              Modo Fullscreen
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-600 text-center mt-2">
-                            Baixe o arquivo e faça upload em um player SCORM para melhor experiência
+                          <p className="text-xs text-gray-600 mt-3">
+                            O aluno pode interagir com todo o conteúdo diretamente no sistema, sem necessidade de downloads ou ferramentas externas.
                           </p>
                         </div>
                       </div>

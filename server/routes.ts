@@ -35,6 +35,7 @@ import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
 import { PDFService } from './pdfService';
+import { ScormService } from './services/scorm-service';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -47,6 +48,9 @@ const asaasService = new UnifiedAsaasService({
 
 // Configuração do serviço PDF
 const pdfService = new PDFService(storage);
+
+// Configuração do serviço SCORM
+const scormService = ScormService.getInstance();
 
 // Middleware para validar JWT
 export const authenticateToken = async (req: any, res: any, next: any) => {
@@ -4939,6 +4943,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Integração com Asaas
   app.use("/api/asaas", asaasRoutes);
+
+  // ======= ROTAS SCORM =======
+  
+  // Extrair e preparar conteúdo SCORM
+  app.post("/api/scorm/extract", authenticateToken, async (req: any, res) => {
+    try {
+      const { driveUrl } = req.body;
+      
+      if (!driveUrl) {
+        return res.status(400).json({ message: "URL do Google Drive é obrigatória" });
+      }
+      
+      const scormData = await scormService.extractScormFromDriveUrl(driveUrl);
+      res.json(scormData);
+    } catch (error) {
+      logger.error("Erro ao extrair SCORM:", error);
+      res.status(500).json({ message: "Erro ao processar conteúdo SCORM" });
+    }
+  });
+
+  // Player SCORM integrado
+  app.get("/api/scorm/player/:scormId", async (req: any, res) => {
+    try {
+      const { scormId } = req.params;
+      const { driveFileId } = req.query;
+      
+      if (!driveFileId) {
+        return res.status(400).json({ message: "ID do arquivo do Drive é obrigatório" });
+      }
+      
+      const playerHtml = scormService.generateScormPlayer(scormId, driveFileId as string);
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(playerHtml);
+    } catch (error) {
+      logger.error("Erro ao gerar player SCORM:", error);
+      res.status(500).json({ message: "Erro ao carregar player SCORM" });
+    }
+  });
+
+  // Obter dados do SCORM
+  app.get("/api/scorm/:scormId/data", authenticateToken, async (req: any, res) => {
+    try {
+      const { scormId } = req.params;
+      const scormData = scormService.getScormData(scormId);
+      
+      if (!scormData) {
+        return res.status(404).json({ message: "Conteúdo SCORM não encontrado" });
+      }
+      
+      res.json(scormData);
+    } catch (error) {
+      logger.error("Erro ao buscar dados SCORM:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
 
   // Rotas de debug/teste
   app.get("/api/health", (req, res) => {
