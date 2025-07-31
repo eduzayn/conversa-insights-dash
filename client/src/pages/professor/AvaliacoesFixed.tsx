@@ -39,6 +39,19 @@ export default function Avaliacoes() {
   const [editingAvaliacao, setEditingAvaliacao] = useState<any>(null);
   const [isQuestoesModalOpen, setIsQuestoesModalOpen] = useState(false);
   const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState<any>(null);
+  const [isCreateQuestionModalOpen, setIsCreateQuestionModalOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  
+  // Estado para nova questão
+  const [novaQuestao, setNovaQuestao] = useState({
+    enunciado: "",
+    tipo: "multipla_escolha",
+    alternativas: ["", "", "", ""],
+    gabarito: "",
+    explicacao: "",
+    peso: "1",
+    imagemUrl: ""
+  });
   
   // Estado para nova avaliação
   const [novaAvaliacao, setNovaAvaliacao] = useState({
@@ -82,6 +95,12 @@ export default function Avaliacoes() {
   // Buscar disciplinas para filtros
   const { data: disciplinas = [], isLoading: isLoadingDisciplinas } = useQuery({
     queryKey: ['/api/professor/subjects'],
+  });
+
+  // Query para buscar questões da avaliação selecionada
+  const { data: questoes = [], isLoading: isLoadingQuestoes, refetch: refetchQuestoes } = useQuery({
+    queryKey: ['/api/professor/evaluations', avaliacaoSelecionada?.id, 'questions'],
+    enabled: !!avaliacaoSelecionada?.id
   });
 
   // Filtros e paginação
@@ -292,9 +311,128 @@ export default function Avaliacoes() {
     editAvaliacaoMutation.mutate(avaliacaoEditando);
   };
 
+  // Mutations para questões
+  const createQuestionMutation = useMutation({
+    mutationFn: async (data: typeof novaQuestao) => {
+      const response = await apiRequest(`/api/professor/evaluations/${avaliacaoSelecionada.id}/questions`, {
+        method: 'POST',
+        body: JSON.stringify({
+          enunciado: data.enunciado,
+          tipo: data.tipo,
+          alternativas: data.alternativas.filter(alt => alt.trim() !== ''),
+          gabarito: data.gabarito,
+          explicacao: data.explicacao,
+          peso: parseInt(data.peso) || 1,
+          imagemUrl: data.imagemUrl || null,
+          ordem: (questoes.length + 1)
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao criar questão');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Questão criada com sucesso!",
+        description: "A questão foi adicionada à avaliação.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations', avaliacaoSelecionada.id, 'questions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations'] });
+      setIsCreateQuestionModalOpen(false);
+      
+      // Reset form
+      setNovaQuestao({
+        enunciado: "",
+        tipo: "multipla_escolha",
+        alternativas: ["", "", "", ""],
+        gabarito: "",
+        explicacao: "",
+        peso: "1",
+        imagemUrl: ""
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar questão",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: number) => {
+      const response = await apiRequest(`/api/professor/questions/${questionId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao excluir questão');
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Questão excluída com sucesso!",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations', avaliacaoSelecionada.id, 'questions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao excluir questão",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddQuestoes = (avaliacao: any) => {
     setAvaliacaoSelecionada(avaliacao);
     setIsQuestoesModalOpen(true);
+  };
+
+  const handleCreateQuestion = () => {
+    if (!novaQuestao.enunciado.trim()) {
+      toast({
+        title: "Enunciado obrigatório",
+        description: "Preencha o enunciado da questão.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (novaQuestao.tipo === "multipla_escolha") {
+      const alternativasValidas = novaQuestao.alternativas.filter(alt => alt.trim() !== '');
+      if (alternativasValidas.length < 2) {
+        toast({
+          title: "Alternativas insuficientes",
+          description: "Adicione pelo menos 2 alternativas.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (!novaQuestao.gabarito) {
+        toast({
+          title: "Gabarito obrigatório",
+          description: "Selecione a alternativa correta.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    createQuestionMutation.mutate(novaQuestao);
+  };
+
+  const handleDeleteQuestion = (questionId: number) => {
+    if (confirm("Tem certeza que deseja excluir esta questão?")) {
+      deleteQuestionMutation.mutate(questionId);
+    }
   };
 
   if (isLoadingAvaliacoes || isLoadingDisciplinas) {
@@ -983,40 +1121,129 @@ export default function Avaliacoes() {
               <h4 className="text-lg font-semibold">Banco de Questões</h4>
               <Button 
                 className="gap-2 bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  toast({
-                    title: "Funcionalidade em desenvolvimento",
-                    description: "O sistema de criação de questões será implementado em breve.",
-                  });
-                }}
+                onClick={() => setIsCreateQuestionModalOpen(true)}
               >
                 <Plus className="h-4 w-4" />
                 Nova Questão
               </Button>
             </div>
 
-            {/* Lista de questões (placeholder por enquanto) */}
-            <div className="border rounded-lg p-6 text-center text-gray-500">
-              <FileText className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-              <h4 className="font-medium mb-2">Nenhuma questão cadastrada</h4>
-              <p className="text-sm">
-                Comece adicionando a primeira questão para esta avaliação
-              </p>
-            </div>
+            {/* Lista de questões */}
+            {isLoadingQuestoes ? (
+              <div className="border rounded-lg p-6 text-center text-gray-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                <p>Carregando questões...</p>
+              </div>
+            ) : questoes && questoes.length > 0 ? (
+              <div className="space-y-4">
+                {questoes.map((questao: any, index: number) => (
+                  <div key={questao.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Questão {index + 1}</Badge>
+                        <Badge className={
+                          questao.tipo === "multipla_escolha" ? "bg-blue-100 text-blue-800" :
+                          questao.tipo === "dissertativa" ? "bg-green-100 text-green-800" :
+                          "bg-purple-100 text-purple-800"
+                        }>
+                          {questao.tipo === "multipla_escolha" ? "Múltipla Escolha" :
+                           questao.tipo === "dissertativa" ? "Dissertativa" :
+                           "Verdadeiro/Falso"}
+                        </Badge>
+                        {questao.peso && questao.peso > 1 && (
+                          <Badge variant="secondary">Peso {questao.peso}</Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingQuestion(questao);
+                            setNovaQuestao({
+                              enunciado: questao.enunciado,
+                              tipo: questao.tipo,
+                              alternativas: questao.alternativas || ["", "", "", ""],
+                              gabarito: questao.gabarito?.toString() || "",
+                              explicacao: questao.explicacao || "",
+                              peso: questao.peso?.toString() || "1",
+                              imagemUrl: questao.imagemUrl || ""
+                            });
+                            setIsCreateQuestionModalOpen(true);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteQuestion(questao.id)}
+                          disabled={deleteQuestionMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm mb-3 text-gray-700">{questao.enunciado}</p>
+                    
+                    {questao.tipo === "multipla_escolha" && questao.alternativas && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                        {questao.alternativas.map((alternativa: string, idx: number) => (
+                          <div 
+                            key={idx} 
+                            className={`p-2 rounded border text-xs ${
+                              questao.gabarito === idx.toString() ? 
+                                'bg-green-50 border-green-200 text-green-800' : 
+                                'bg-gray-50 border-gray-200'
+                            }`}
+                          >
+                            <span className="font-medium">{String.fromCharCode(65 + idx)}) </span>
+                            {alternativa}
+                            {questao.gabarito === idx.toString() && 
+                              <span className="ml-2 text-green-600">✓ Correta</span>
+                            }
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {questao.explicacao && (
+                      <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                        <span className="font-medium text-blue-800">Explicação: </span>
+                        <span className="text-blue-700">{questao.explicacao}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="border rounded-lg p-6 text-center text-gray-500">
+                <FileText className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <h4 className="font-medium mb-2">Nenhuma questão cadastrada</h4>
+                <p className="text-sm">
+                  Comece adicionando a primeira questão para esta avaliação
+                </p>
+              </div>
+            )}
 
             {/* Footer com estatísticas */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">0</div>
+                  <div className="text-2xl font-bold text-blue-600">{questoes?.length || 0}</div>
                   <div className="text-sm text-gray-600">Questões</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {questoes?.filter((q: any) => q.tipo === "multipla_escolha")?.length || 0}
+                  </div>
                   <div className="text-sm text-gray-600">Múltipla Escolha</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-orange-600">0</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {questoes?.filter((q: any) => q.tipo === "dissertativa")?.length || 0}
+                  </div>
                   <div className="text-sm text-gray-600">Dissertativas</div>
                 </div>
               </div>
@@ -1030,6 +1257,181 @@ export default function Avaliacoes() {
               onClick={() => setIsQuestoesModalOpen(false)}
             >
               Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Criar/Editar Questão */}
+      <Dialog open={isCreateQuestionModalOpen} onOpenChange={setIsCreateQuestionModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingQuestion ? "Editar Questão" : "Nova Questão"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingQuestion ? "Edite os dados da questão" : "Adicione uma nova questão à avaliação"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Tipo da questão */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo da Questão *</label>
+              <select 
+                className="w-full border rounded-lg px-3 py-2"
+                value={novaQuestao.tipo}
+                onChange={(e) => setNovaQuestao(prev => ({ ...prev, tipo: e.target.value }))}
+              >
+                <option value="multipla_escolha">Múltipla Escolha</option>
+                <option value="dissertativa">Dissertativa</option>
+                <option value="verdadeiro_falso">Verdadeiro/Falso</option>
+              </select>
+            </div>
+
+            {/* Enunciado */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Enunciado *</label>
+              <textarea 
+                className="w-full border rounded-lg px-3 py-2 min-h-[100px]"
+                placeholder="Digite o enunciado da questão..."
+                value={novaQuestao.enunciado}
+                onChange={(e) => setNovaQuestao(prev => ({ ...prev, enunciado: e.target.value }))}
+              />
+            </div>
+
+            {/* Alternativas (apenas para múltipla escolha) */}
+            {novaQuestao.tipo === "multipla_escolha" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Alternativas *</label>
+                {novaQuestao.alternativas.map((alternativa, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <span className="text-sm font-medium w-8">{String.fromCharCode(65 + index)})</span>
+                    <input 
+                      type="text"
+                      className="flex-1 border rounded-lg px-3 py-2"
+                      placeholder={`Alternativa ${String.fromCharCode(65 + index)}`}
+                      value={alternativa}
+                      onChange={(e) => {
+                        const newAlternativas = [...novaQuestao.alternativas];
+                        newAlternativas[index] = e.target.value;
+                        setNovaQuestao(prev => ({ ...prev, alternativas: newAlternativas }));
+                      }}
+                    />
+                    <input 
+                      type="radio"
+                      name="gabarito"
+                      value={index.toString()}
+                      checked={novaQuestao.gabarito === index.toString()}
+                      onChange={(e) => setNovaQuestao(prev => ({ ...prev, gabarito: e.target.value }))}
+                      className="w-4 h-4"
+                      title="Marcar como resposta correta"
+                    />
+                  </div>
+                ))}
+                <p className="text-xs text-gray-500">Marque o botão de rádio na alternativa correta</p>
+              </div>
+            )}
+
+            {/* Gabarito para Verdadeiro/Falso */}
+            {novaQuestao.tipo === "verdadeiro_falso" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Resposta Correta *</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio"
+                      name="gabarito_vf"
+                      value="true"
+                      checked={novaQuestao.gabarito === "true"}
+                      onChange={(e) => setNovaQuestao(prev => ({ ...prev, gabarito: e.target.value }))}
+                    />
+                    Verdadeiro
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio"
+                      name="gabarito_vf"
+                      value="false"
+                      checked={novaQuestao.gabarito === "false"}
+                      onChange={(e) => setNovaQuestao(prev => ({ ...prev, gabarito: e.target.value }))}
+                    />
+                    Falso
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Explicação */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Explicação (opcional)</label>
+              <textarea 
+                className="w-full border rounded-lg px-3 py-2"
+                placeholder="Explicação da resposta correta..."
+                value={novaQuestao.explicacao}
+                onChange={(e) => setNovaQuestao(prev => ({ ...prev, explicacao: e.target.value }))}
+              />
+            </div>
+
+            {/* Peso e URL da Imagem */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Peso</label>
+                <input 
+                  type="number"
+                  min="1"
+                  max="10"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={novaQuestao.peso}
+                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, peso: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">URL da Imagem (opcional)</label>
+                <input 
+                  type="url"
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="https://..."
+                  value={novaQuestao.imagemUrl}
+                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, imagemUrl: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Botões */}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateQuestionModalOpen(false);
+                setEditingQuestion(null);
+                setNovaQuestao({
+                  enunciado: "",
+                  tipo: "multipla_escolha",
+                  alternativas: ["", "", "", ""],
+                  gabarito: "",
+                  explicacao: "",
+                  peso: "1",
+                  imagemUrl: ""
+                });
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleCreateQuestion}
+              disabled={createQuestionMutation.isPending}
+            >
+              {createQuestionMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Salvando...
+                </div>
+              ) : (
+                editingQuestion ? "Salvar Alterações" : "Criar Questão"
+              )}
             </Button>
           </div>
         </DialogContent>
