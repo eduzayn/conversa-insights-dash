@@ -840,6 +840,17 @@ Changelog:
    * ✅ Sistema simplificado: redundância de 98% eliminada, conflitos de dados resolvidos
    * ✅ Performance otimizada: queries mais simples, sem joins desnecessários
    * Status: Campo subcategoria completamente eliminado, sistema unificado e funcionando
+- Limpeza Completa de Arquivos Obsoletos - Sistema de Avaliações (31 Jul 2025):
+   * ✅ ARQUIVO OBSOLETO REMOVIDO: client/src/pages/professor/Avaliacoes.tsx (versão original com dados mockados)
+   * ✅ ARQUIVO BACKUP REMOVIDO: server/storage_backup.ts (backup de funcionalidades já migradas)
+   * ✅ Sistema unificado: apenas AvaliacoesFixed.tsx em uso com funcionalidades completas
+   * ✅ Duplicação de código eliminada: zero conflitos entre versões antiga/nova
+   * ✅ Roteamento confirmado: ProfessorPortalLayout usa AvaliacoesFixed exclusivamente
+   * ✅ LSP diagnostics limpo: zero erros após remoção dos arquivos obsoletos
+   * ✅ Funcionalidades preservadas: CRUD completo de avaliações e questões operacional
+   * ✅ Sistema de questões 100% funcional: criar, editar, excluir questões funcionando
+   * ✅ Queries React Query otimizadas: cache invalidation e atualizações em tempo real
+   * Status: Limpeza completa realizada, sistema estável sem código duplicado ou obsoleto
 - Padronização Completa "Segunda Licenciatura" (21 Jul 2025):
    * ✅ TODAS as referências "segunda_graduacao" atualizadas para "segunda_licenciatura"
    * ✅ Modal Nova Certificação: dropdown corrigido de "Segunda Graduação" → "Segunda Licenciatura"
