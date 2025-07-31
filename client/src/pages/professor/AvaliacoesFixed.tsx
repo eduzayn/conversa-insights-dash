@@ -35,9 +35,24 @@ export default function Avaliacoes() {
   const [selectedAvaliacao, setSelectedAvaliacao] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingAvaliacao, setEditingAvaliacao] = useState<any>(null);
   
   // Estado para nova avaliação
   const [novaAvaliacao, setNovaAvaliacao] = useState({
+    titulo: "",
+    descricao: "",
+    disciplina: "",
+    tipo: "avaliacao",
+    duracao: "60",
+    tentativas: "1",
+    dataInicio: "",
+    dataFim: "",
+    instrucoes: ""
+  });
+
+  // Estado para editar avaliação
+  const [avaliacaoEditando, setAvaliacaoEditando] = useState({
     titulo: "",
     descricao: "",
     disciplina: "",
@@ -109,8 +124,20 @@ export default function Avaliacoes() {
   };
 
   // Funções de ação
-  const handleEditAvaliacao = (id: number) => {
-    navigate(`/professor/avaliacoes/${id}/editar`);
+  const handleEditAvaliacao = (avaliacao: any) => {
+    setEditingAvaliacao(avaliacao);
+    setAvaliacaoEditando({
+      titulo: avaliacao.titulo || "",
+      descricao: avaliacao.descricao || "",
+      disciplina: avaliacao.subjectId?.toString() || "",
+      tipo: avaliacao.tipo || "avaliacao",
+      duracao: avaliacao.duracao?.toString() || "60",
+      tentativas: avaliacao.maxAttempts?.toString() || "1",
+      dataInicio: avaliacao.startDate || "",
+      dataFim: avaliacao.endDate || "",
+      instrucoes: avaliacao.instrucoes || ""
+    });
+    setIsEditModalOpen(true);
   };
 
   const handleViewResults = (id: number) => {
@@ -194,6 +221,49 @@ export default function Avaliacoes() {
     }
   });
 
+  // Mutation para editar avaliação
+  const editAvaliacaoMutation = useMutation({
+    mutationFn: async (data: typeof avaliacaoEditando) => {
+      const response = await apiRequest(`/api/professor/evaluations/${editingAvaliacao.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          title: data.titulo,
+          description: data.descricao,
+          subjectId: parseInt(data.disciplina),
+          type: data.tipo,
+          duration: parseInt(data.duracao),
+          maxAttempts: parseInt(data.tentativas),
+          startDate: data.dataInicio,
+          endDate: data.dataFim,
+          instructions: data.instrucoes
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao editar avaliação');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Avaliação atualizada com sucesso!",
+        description: "As alterações foram salvas.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/professor/evaluations'] });
+      setIsEditModalOpen(false);
+      setEditingAvaliacao(null);
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao editar avaliação",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCreateAvaliacao = () => {
     if (!novaAvaliacao.titulo || !novaAvaliacao.disciplina) {
       toast({
@@ -205,6 +275,19 @@ export default function Avaliacoes() {
     }
 
     createAvaliacaoMutation.mutate(novaAvaliacao);
+  };
+
+  const handleEditAvaliacaoSubmit = () => {
+    if (!avaliacaoEditando.titulo || !avaliacaoEditando.disciplina) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha pelo menos o título e selecione uma disciplina.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    editAvaliacaoMutation.mutate(avaliacaoEditando);
   };
 
   if (isLoadingAvaliacoes || isLoadingDisciplinas) {
@@ -392,6 +475,152 @@ export default function Avaliacoes() {
                 >
                   <Plus className="h-4 w-4" />
                   {createAvaliacaoMutation.isPending ? "Criando..." : "Criar Avaliação"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Edição de Avaliação */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Avaliação</DialogTitle>
+              <DialogDescription>
+                Modifique os dados da avaliação conforme necessário.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Primeira linha - Título e Disciplina */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-titulo">Título da Avaliação *</Label>
+                  <Input
+                    id="edit-titulo"
+                    placeholder="Ex: Avaliação Final - Algoritmos"
+                    value={avaliacaoEditando.titulo}
+                    onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, titulo: e.target.value }))}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-disciplina">Disciplina *</Label>
+                  <UniversalSelect
+                    value={avaliacaoEditando.disciplina}
+                    onValueChange={(value: string) => setAvaliacaoEditando(prev => ({ ...prev, disciplina: value }))}
+                    placeholder="Selecione uma disciplina"
+                    options={(disciplinas as any[]).map((disciplina: any) => ({
+                      value: disciplina.id.toString(),
+                      label: disciplina.nome
+                    }))}
+                  />
+                </div>
+              </div>
+
+              {/* Segunda linha - Tipo e Duração */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="edit-tipo">Tipo de Avaliação</Label>
+                  <UniversalSelect
+                    value={avaliacaoEditando.tipo}
+                    onValueChange={(value: string) => setAvaliacaoEditando(prev => ({ ...prev, tipo: value }))}
+                    placeholder="Selecione o tipo"
+                    options={[
+                      { value: "avaliacao", label: "Avaliação" },
+                      { value: "simulado", label: "Simulado" },
+                      { value: "prova", label: "Prova" }
+                    ]}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-duracao">Duração (minutos)</Label>
+                  <Input
+                    id="edit-duracao"
+                    type="number"
+                    placeholder="60"
+                    value={avaliacaoEditando.duracao}
+                    onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, duracao: e.target.value }))}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-tentativas">Tentativas Permitidas</Label>
+                  <Input
+                    id="edit-tentativas"
+                    type="number"
+                    placeholder="1"
+                    value={avaliacaoEditando.tentativas}
+                    onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, tentativas: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Terceira linha - Datas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-dataInicio">Data de Início</Label>
+                  <Input
+                    id="edit-dataInicio"
+                    type="datetime-local"
+                    value={avaliacaoEditando.dataInicio}
+                    onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, dataInicio: e.target.value }))}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-dataFim">Data de Fim</Label>
+                  <Input
+                    id="edit-dataFim"
+                    type="datetime-local"
+                    value={avaliacaoEditando.dataFim}
+                    onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, dataFim: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Descrição */}
+              <div>
+                <Label htmlFor="edit-descricao">Descrição</Label>
+                <Textarea
+                  id="edit-descricao"
+                  placeholder="Descreva brevemente o conteúdo e objetivos da avaliação..."
+                  value={avaliacaoEditando.descricao}
+                  onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, descricao: e.target.value }))}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+
+              {/* Instruções */}
+              <div>
+                <Label htmlFor="edit-instrucoes">Instruções para os Alunos</Label>
+                <Textarea
+                  id="edit-instrucoes"
+                  placeholder="Instruções detalhadas sobre como realizar a avaliação..."
+                  value={avaliacaoEditando.instrucoes}
+                  onChange={(e) => setAvaliacaoEditando(prev => ({ ...prev, instrucoes: e.target.value }))}
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
+
+              {/* Botões */}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleEditAvaliacaoSubmit}
+                  disabled={!avaliacaoEditando.titulo || !avaliacaoEditando.disciplina || editAvaliacaoMutation.isPending}
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Edit className="h-4 w-4" />
+                  {editAvaliacaoMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </div>
             </div>
@@ -623,7 +852,7 @@ export default function Avaliacoes() {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => handleEditAvaliacao(avaliacao.id)}
+                      onClick={() => handleEditAvaliacao(avaliacao)}
                     >
                       <Edit className="h-3 w-3 mr-1" />
                       Editar
