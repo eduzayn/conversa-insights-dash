@@ -145,7 +145,7 @@ This is a full-stack web application built with React, Express, and TypeScript t
 ✅ **Sistema SCORM Integrado Completamente Implementado (July 31, 2025)**
 - Player SCORM nativo implementado no servidor usando ScormService
 - Extração automática de pacotes SCORM do Google Drive
-- API endpoints criados: /api/scorm/extract, /api/scorm/player/:scormId, /api/scorm/:scormId/data
+- API endpoints criados: /api/scorm/process, /api/scorm/player/:scormId, /api/scorm/content/:driveFileId/*
 - Player integrado no Portal do Professor com preview completo
 - Player integrado no Portal do Aluno com experiência de estudante otimizada
 - Detecção automática de conteúdo SCORM baseada em URL e título
@@ -153,6 +153,12 @@ This is a full-stack web application built with React, Express, and TypeScript t
 - Funcionalidade completa: conteúdo SCORM executa sem sair da plataforma
 - Design responsivo e profissional com badges e indicadores visuais
 - Sistema de rastreamento SCORM preparado para acompanhamento de progresso
+- **Melhorias no Sistema de Arquivos SCORM (July 31, 2025)**:
+  - Busca recursiva por arquivos HTML em pacotes SCORM extraídos
+  - Sistema de logs detalhado para debug de problemas de extração
+  - Fallback inteligente: usa qualquer arquivo HTML se index.html não for encontrado
+  - Correção de serving de arquivos com tipos MIME apropriados
+  - Normalização de caminhos para compatibilidade web (separadores /)
 
 ✅ **PostgreSQL Database Integration & Multi-Portal Authentication Completed (July 30, 2025)**
 - Successfully migrated from in-memory storage to PostgreSQL database using Neon

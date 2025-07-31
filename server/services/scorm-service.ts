@@ -94,39 +94,94 @@ export class ScormService {
   }
 
   private parseManifest(extractPath: string): ScormManifest {
+    console.log('🔍 Analisando diretório extraído:', extractPath);
+    
+    // Listar todos os arquivos para debug
+    const allFiles = this.listFilesRecursively(extractPath);
+    console.log('📁 Arquivos encontrados:', allFiles.map(f => path.relative(extractPath, f)));
+    
     const manifestPath = path.join(extractPath, 'imsmanifest.xml');
     
     if (!fs.existsSync(manifestPath)) {
-      // Se não há manifest, procurar por index.html
-      const indexPath = path.join(extractPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
+      console.log('❌ Manifest não encontrado, procurando index.html...');
+      
+      // Procurar index.html em qualquer lugar
+      const indexFile = allFiles.find(file => path.basename(file).toLowerCase() === 'index.html');
+      
+      if (indexFile) {
+        const relativePath = path.relative(extractPath, indexFile);
+        console.log('✅ Index.html encontrado em:', relativePath);
+        
         return {
           title: 'Conteúdo SCORM',
           identifier: path.basename(extractPath),
-          href: 'index.html',
+          href: relativePath.replace(/\\/g, '/'), // Normalizar separadores para web
           scormType: 'scorm_1_2'
         };
       }
-      throw new Error('Manifest SCORM não encontrado');
+      
+      // Se não encontrou index.html, usar o primeiro arquivo HTML
+      const htmlFile = allFiles.find(file => file.toLowerCase().endsWith('.html'));
+      if (htmlFile) {
+        const relativePath = path.relative(extractPath, htmlFile);
+        console.log('📄 Arquivo HTML encontrado:', relativePath);
+        
+        return {
+          title: 'Conteúdo SCORM',
+          identifier: path.basename(extractPath),
+          href: relativePath.replace(/\\/g, '/'),
+          scormType: 'scorm_1_2'
+        };
+      }
+      
+      throw new Error('Nenhum arquivo HTML encontrado no pacote SCORM');
     }
 
     try {
       const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+      console.log('✅ Manifest lido com sucesso');
       
       // Parse básico do XML para extrair informações essenciais
       const titleMatch = manifestContent.match(/<title[^>]*>([^<]+)<\/title>/i);
       const hrefMatch = manifestContent.match(/href="([^"]+)"/i);
       const identifierMatch = manifestContent.match(/identifier="([^"]+)"/i);
 
+      const href = hrefMatch ? hrefMatch[1] : 'index.html';
+      console.log('🎯 HREF do manifest:', href);
+
       return {
         title: titleMatch ? titleMatch[1] : 'Conteúdo SCORM',
         identifier: identifierMatch ? identifierMatch[1] : path.basename(extractPath),
-        href: hrefMatch ? hrefMatch[1] : 'index.html',
+        href: href,
         scormType: manifestContent.includes('scorm_12') ? 'scorm_1_2' : 'scorm_2004'
       };
     } catch (error) {
+      console.error('❌ Erro ao analisar manifest:', error);
       throw new Error('Erro ao analisar manifest SCORM');
     }
+  }
+
+  private listFilesRecursively(dir: string): string[] {
+    const files: string[] = [];
+    
+    try {
+      const items = fs.readdirSync(dir);
+      
+      for (const item of items) {
+        const fullPath = path.join(dir, item);
+        const stat = fs.statSync(fullPath);
+        
+        if (stat.isDirectory()) {
+          files.push(...this.listFilesRecursively(fullPath));
+        } else {
+          files.push(fullPath);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao listar arquivos em:', dir, error);
+    }
+    
+    return files;
   }
 
   generateScormPlayer(scormId: string, driveFileId: string): string {
@@ -308,11 +363,51 @@ export class ScormService {
   }
 
   getContentPath(driveFileId: string, relativePath: string = ''): string {
-    return path.join(this.extractedContentPath, driveFileId, relativePath);
+    const fullPath = path.join(this.extractedContentPath, driveFileId, relativePath);
+    console.log('🔍 Buscando arquivo:', {
+      driveFileId,
+      relativePath,
+      fullPath,
+      exists: fs.existsSync(fullPath)
+    });
+    
+    // Se o arquivo não existe, listar o que existe no diretório
+    if (!fs.existsSync(fullPath)) {
+      const baseDir = path.join(this.extractedContentPath, driveFileId);
+      if (fs.existsSync(baseDir)) {
+        console.log('📁 Arquivos disponíveis no diretório base:', fs.readdirSync(baseDir));
+        
+        // Se está procurando index.html, procurar recursivamente
+        if (relativePath === 'index.html' || relativePath === '') {
+          const allFiles = this.listFilesRecursively(baseDir);
+          const indexFile = allFiles.find(file => path.basename(file).toLowerCase() === 'index.html');
+          
+          if (indexFile) {
+            console.log('✅ Index.html encontrado em:', indexFile);
+            return indexFile;
+          }
+          
+          // Se não encontrou index.html, usar primeiro HTML
+          const htmlFile = allFiles.find(file => file.toLowerCase().endsWith('.html'));
+          if (htmlFile) {
+            console.log('📄 Usando arquivo HTML:', htmlFile);
+            return htmlFile;
+          }
+        }
+      }
+    }
+    
+    return fullPath;
   }
 
   contentExists(driveFileId: string): boolean {
     const contentPath = path.join(this.extractedContentPath, driveFileId);
-    return fs.existsSync(contentPath);
+    const exists = fs.existsSync(contentPath);
+    console.log('🔍 Verificando existência do conteúdo:', {
+      driveFileId,
+      contentPath,
+      exists
+    });
+    return exists;
   }
 }
