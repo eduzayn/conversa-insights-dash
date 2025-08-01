@@ -97,6 +97,13 @@ const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 export const rateLimiter = (maxRequests: number = 100, windowMs: number = 15 * 60 * 1000) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    // Verificar se usuário está autenticado - aplicar limite mais flexível
+    const authHeader = req.headers.authorization;
+    const isAuthenticated = authHeader && authHeader.startsWith('Bearer ');
+    
+    // Aplicar limites diferentes para usuários autenticados vs não autenticados
+    const effectiveLimit = isAuthenticated ? maxRequests * 10 : maxRequests; // 10x mais permissivo para autenticados
+    
     const clientId = req.ip || 'unknown';
     const now = Date.now();
     
@@ -108,8 +115,12 @@ export const rateLimiter = (maxRequests: number = 100, windowMs: number = 15 * 6
       return next();
     }
     
-    if (clientData.count >= maxRequests) {
-      logger.warn(`[RATE_LIMIT] Cliente ${clientId} excedeu limite de ${maxRequests} requisições`);
+    if (clientData.count >= effectiveLimit) {
+      const logMessage = isAuthenticated 
+        ? `[RATE_LIMIT] Usuário autenticado ${clientId} excedeu limite de ${effectiveLimit} requisições`
+        : `[RATE_LIMIT] Cliente não autenticado ${clientId} excedeu limite de ${effectiveLimit} requisições`;
+      
+      logger.warn(logMessage);
       return res.status(429).json({
         success: false,
         message: 'Muitas requisições. Tente novamente mais tarde.',

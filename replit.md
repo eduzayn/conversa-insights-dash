@@ -59,3 +59,10 @@ Preferred communication style: Simple, everyday language.
   * Modificado em FINANCIAL_STATUS_LABELS (linha 88) 
   * Atualizado nos selects de criação (linha 959) e edição (linha 1768)
   * Colaboradores não confundirão mais financeiro quitado com financeiro pendente
+
+- August 1, 2025. CORREÇÃO DE RATE LIMITING E AUTENTICAÇÃO
+  * Corrigido erro 429 (Too Many Requests) causado por rate limiting muito restritivo
+  * Aumentado limite de 150 para 1000 requisições por 15 minutos para IPs gerais
+  * Implementado limite 10x mais permissivo (10.000 req/15min) para usuários autenticados
+  * Corrigido erro TypeScript no useQuery removendo onError deprecated
+  * Sistema de sessão persistente mantido e funcionando corretamente

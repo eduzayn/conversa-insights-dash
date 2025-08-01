@@ -96,8 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== MIDDLEWARES GLOBAIS =====
   
-  // Rate limiting para todas as rotas
-  app.use('/api', rateLimiter(150, 15 * 60 * 1000)); // 150 reqs por 15min por IP
+  // Rate limiting flexível - mais permissivo para usuários autenticados
+  app.use('/api', rateLimiter(1000, 15 * 60 * 1000)); // 1000 reqs por 15min por IP
   
   // Health check endpoint (não autenticado)
   app.get('/api/health', healthCheck);

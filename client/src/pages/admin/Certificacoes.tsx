@@ -366,29 +366,9 @@ export default function Certificacoes() {
     staleTime: 5000, // Cache reduzido para 5 segundos
     refetchOnWindowFocus: true, // Recarregar ao focar na janela
     retry: (failureCount, error: any) => {
-      // Log específico para debugging do problema do Erick Moreira
-      console.warn(`[CERTIFICAÇÕES] Tentativa ${failureCount + 1} - Erro:`, {
-        error: error?.message || error,
-        url: window.location.href,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent.substring(0, 100) // Primeiros 100 chars do user agent
-      });
-      
       return failureCount < 3; // Tentar até 3 vezes
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
-    onError: (error: any) => {
-      // Log detalhado para identificar problemas específicos
-      console.error('[CERTIFICAÇÕES] Erro crítico ao carregar:', {
-        error: error?.message || error,
-        stack: error?.stack,
-        timestamp: new Date().toISOString(),
-        activeTab,
-        filters: { filterStatus, filterModalidade, filterPeriodo, searchTerm }
-      });
-      
-      toast.error('Problema ao carregar certificações. Clique em "Recarregar" ou reabra a página.');
-    }
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000)
   });
 
   // Resetar página quando filtros mudarem
