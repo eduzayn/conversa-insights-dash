@@ -51,3 +51,11 @@ Preferred communication style: Simple, everyday language.
 - **UI Components**: Radix UI, Tailwind CSS.
 - **Data Visualization**: Recharts.
 - **Date Handling**: date-fns.
+
+## Recent Changes
+
+- August 1, 2025. CORREÇÃO DE TERMINOLOGIA FINANCEIRA
+  * Alterado "Em dia" para "PENDENTE" na página de análises de certificações
+  * Modificado em FINANCIAL_STATUS_LABELS (linha 88) 
+  * Atualizado nos selects de criação (linha 959) e edição (linha 1768)
+  * Colaboradores não confundirão mais financeiro quitado com financeiro pendente

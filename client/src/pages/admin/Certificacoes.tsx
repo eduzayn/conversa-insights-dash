@@ -82,7 +82,7 @@ const DOCUMENTATION_STATUS_LABELS = {
 };
 
 const FINANCIAL_STATUS_LABELS = {
-  'em_dia': 'Em dia',
+  'em_dia': 'PENDENTE',
   'quitado': 'Quitado',
   'inadimplente': 'Inadimplente',
   'expirado': 'Expirado'
@@ -953,7 +953,7 @@ export default function Certificacoes() {
                           <SelectItem value="em_dia">
                             <div className="flex items-center">
                               <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                              Em dia
+                              PENDENTE
                             </div>
                           </SelectItem>
                           <SelectItem value="quitado">
@@ -1762,7 +1762,7 @@ export default function Certificacoes() {
                     <SelectItem value="em_dia">
                       <div className="flex items-center">
                         <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                        Em dia
+                        PENDENTE
                       </div>
                     </SelectItem>
                     <SelectItem value="quitado">
