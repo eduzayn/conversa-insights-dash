@@ -82,7 +82,7 @@ const DOCUMENTATION_STATUS_LABELS = {
 };
 
 const FINANCIAL_STATUS_LABELS = {
-  'em_dia': 'PENDENTE',
+  'em_dia': 'Pendente',
   'quitado': 'Quitado',
   'inadimplente': 'Inadimplente',
   'expirado': 'Expirado'
@@ -221,7 +221,7 @@ export default function Certificacoes() {
     modalidade: 'EAD', // Padrão: EAD
     curso: '',
     cargaHoraria: '',
-    financeiro: 'PENDENTE', // Alinhado com nova terminologia
+    financeiro: 'em_dia', // Padrão: em_dia = Pendente
     documentacao: 'pendente',
     plataforma: 'pendente',
     tutoria: '',
@@ -569,7 +569,7 @@ export default function Certificacoes() {
       modalidade: certification.modalidade || 'EAD',
       curso: '', // Limpar curso para permitir seleção de novo
       cargaHoraria: '', // Limpar carga horária para permitir nova seleção
-      financeiro: 'PENDENTE', // Resetar status financeiro para novo alinhamento terminológico
+      financeiro: 'em_dia', // Resetar status financeiro (em_dia = Pendente)
       documentacao: 'pendente', // Resetar documentação
       plataforma: 'pendente', // Resetar plataforma
       tutoria: certification.tutoria || '',

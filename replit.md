@@ -55,10 +55,11 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 - August 1, 2025. CORREÇÃO DE TERMINOLOGIA FINANCEIRA
-  * Alterado "Em dia" para "PENDENTE" na página de análises de certificações
-  * Modificado em FINANCIAL_STATUS_LABELS (linha 88) 
-  * Atualizado nos selects de criação (linha 959) e edição (linha 1768)
+  * Alterado "Em dia" para "Pendente" na página de análises de certificações
+  * Modificado em FINANCIAL_STATUS_LABELS para padronizar capitalização
+  * Atualizado nos selects de criação e edição
   * Colaboradores não confundirão mais financeiro quitado com financeiro pendente
+  * Padronização visual: "Pendente" (não "PENDENTE") igual aos outros status
 
 - August 1, 2025. CORREÇÃO DE RATE LIMITING E AUTENTICAÇÃO
   * Corrigido erro 429 (Too Many Requests) causado por rate limiting muito restritivo
