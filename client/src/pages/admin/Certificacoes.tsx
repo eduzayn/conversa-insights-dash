@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft, Check, ChevronsUpDown, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, Calendar, ArrowLeft, Check, ChevronsUpDown, AlertTriangle, Copy } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -221,7 +221,7 @@ export default function Certificacoes() {
     modalidade: 'EAD', // Padrão: EAD
     curso: '',
     cargaHoraria: '',
-    financeiro: 'em_dia',
+    financeiro: 'PENDENTE', // Alinhado com nova terminologia
     documentacao: 'pendente',
     plataforma: 'pendente',
     tutoria: '',
@@ -558,6 +558,40 @@ export default function Certificacoes() {
       deleteMutation.mutate(deleteId);
       setDeleteId(null);
     }
+  };
+
+  // Função para duplicar certificação
+  const handleDuplicateCertification = (certification: Certification) => {
+    // Copiar todos os dados exceto ID e algumas informações específicas
+    const duplicatedData = {
+      aluno: certification.aluno,
+      cpf: certification.cpf,
+      modalidade: certification.modalidade || 'EAD',
+      curso: '', // Limpar curso para permitir seleção de novo
+      cargaHoraria: '', // Limpar carga horária para permitir nova seleção
+      financeiro: 'PENDENTE', // Resetar status financeiro para novo alinhamento terminológico
+      documentacao: 'pendente', // Resetar documentação
+      plataforma: 'pendente', // Resetar plataforma
+      tutoria: certification.tutoria || '',
+      observacao: `Certificação duplicada de: ${certification.curso || 'Curso não especificado'}`,
+      inicioCertificacao: certification.inicioCertificacao || '',
+      dataPrevista: '',
+      dataEntrega: '',
+      diploma: certification.diploma || '',
+      status: 'pendente', // Novo status
+      categoria: getCategoriaFromTab(activeTab), // Usar categoria da aba atual
+      tcc: certification.tcc || 'nao_possui',
+      praticasPedagogicas: certification.praticasPedagogicas || 'nao_possui',
+      estagio: certification.estagio || 'nao_possui'
+    };
+
+    // Preencher o form de nova certificação com os dados duplicados
+    setNewCertification(duplicatedData);
+    
+    // Abrir modal de criação
+    setIsCreateDialogOpen(true);
+    
+    toast.success(`Certificação de ${certification.aluno} duplicada! Agora selecione o novo curso e categoria.`);
   };
 
   const handleCreateNewCourse = () => {
@@ -1399,6 +1433,15 @@ export default function Certificacoes() {
                               </div>
                             </div>
                             <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDuplicateCertification(certification)}
+                                className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                                title="Duplicar certificação"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"

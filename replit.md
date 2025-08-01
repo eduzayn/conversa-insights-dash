@@ -66,3 +66,12 @@ Preferred communication style: Simple, everyday language.
   * Implementado limite 10x mais permissivo (10.000 req/15min) para usuários autenticados
   * Corrigido erro TypeScript no useQuery removendo onError deprecated
   * Sistema de sessão persistente mantido e funcionando corretamente
+
+- August 1, 2025. FUNCIONALIDADE DE DUPLICAR CERTIFICAÇÃO IMPLEMENTADA
+  * Adicionado botão "Duplicar" (ícone Copy) na tabela de certificações
+  * Função handleDuplicateCertification copia dados do aluno (nome, CPF, tutoria, etc.)
+  * Limpa curso e carga horária para permitir nova seleção
+  * Reseta status para pendente e usa categoria da aba atual
+  * Adiciona observação indicando origem da duplicação
+  * Abre modal de criação pré-preenchido para edição rápida
+  * Otimiza workflow para alunos com múltiplas categorias de cursos
