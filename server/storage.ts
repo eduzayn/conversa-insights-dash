@@ -1291,24 +1291,11 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Subjects
   async getProfessorSubjects(professorId: number): Promise<Subject[]> {
+    // Professores agora podem ver todas as disciplinas ativas, não apenas as associadas a eles
     return await db
-      .select({
-        id: subjects.id,
-        nome: subjects.nome,
-        codigo: subjects.codigo,
-        descricao: subjects.descricao,
-        cargaHoraria: subjects.cargaHoraria,
-        area: subjects.area,
-        isActive: subjects.isActive,
-        createdAt: subjects.createdAt,
-        updatedAt: subjects.updatedAt,
-      })
+      .select()
       .from(subjects)
-      .innerJoin(professorSubjects, eq(subjects.id, professorSubjects.subjectId))
-      .where(and(
-        eq(professorSubjects.professorId, professorId),
-        eq(subjects.isActive, true)
-      ))
+      .where(eq(subjects.isActive, true))
       .orderBy(asc(subjects.nome));
   }
 
@@ -1341,6 +1328,41 @@ export class DatabaseStorage implements IStorage {
     return updatedSubject || undefined;
   }
 
+  async deleteSubject(id: number): Promise<void> {
+    // Buscar avaliações da disciplina
+    const evaluationIds = await db
+      .select({ id: professorEvaluations.id })
+      .from(professorEvaluations)
+      .where(eq(professorEvaluations.subjectId, id));
+    
+    // Excluir questões uma por uma para garantir que funcione
+    for (const evaluation of evaluationIds) {
+      await db
+        .delete(evaluationQuestions)
+        .where(eq(evaluationQuestions.evaluationId, evaluation.id));
+    }
+    
+    // Agora remover as avaliações da disciplina
+    await db
+      .delete(professorEvaluations)
+      .where(eq(professorEvaluations.subjectId, id));
+    
+    // Remove os relacionamentos professor-disciplina
+    await db
+      .delete(professorSubjects)
+      .where(eq(professorSubjects.subjectId, id));
+    
+    // Remove os conteúdos da disciplina
+    await db
+      .delete(subjectContents)
+      .where(eq(subjectContents.subjectId, id));
+    
+    // Por último, remove a disciplina
+    await db
+      .delete(subjects)
+      .where(eq(subjects.id, id));
+  }
+
   async assignProfessorToSubject(professorId: number, subjectId: number, canEdit: boolean = true): Promise<ProfessorSubject> {
     const [assignment] = await db
       .insert(professorSubjects)
@@ -1356,17 +1378,20 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Subject Contents
   async getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]> {
-    const conditions = [eq(subjectContents.subjectId, subjectId)];
-    
-    if (professorId) {
-      conditions.push(eq(subjectContents.professorId, professorId));
-    }
-
+    // Professores agora podem ver todos os conteúdos da disciplina, não apenas os próprios
     return await db
       .select()
       .from(subjectContents)
-      .where(and(...conditions))
+      .where(eq(subjectContents.subjectId, subjectId))
       .orderBy(asc(subjectContents.ordem));
+  }
+
+  async getAllSubjectContents(): Promise<SubjectContent[]> {
+    // Buscar todos os conteúdos para o professor
+    return await db
+      .select()
+      .from(subjectContents)
+      .orderBy(asc(subjectContents.subjectId), asc(subjectContents.ordem));
   }
 
   async createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent> {
@@ -1374,6 +1399,8 @@ export class DatabaseStorage implements IStorage {
       .insert(subjectContents)
       .values({
         ...content,
+        isActive: true,
+        visualizacoes: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -1398,7 +1425,8 @@ export class DatabaseStorage implements IStorage {
 
   // Portal do Professor - Evaluations
   async getProfessorEvaluations(professorId: number, subjectId?: number): Promise<ProfessorEvaluation[]> {
-    const conditions = [eq(professorEvaluations.professorId, professorId)];
+    // Professores agora podem ver todas as avaliações, não apenas as próprias
+    const conditions = [];
     
     if (subjectId) {
       conditions.push(eq(professorEvaluations.subjectId, subjectId));
@@ -1407,7 +1435,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(professorEvaluations)
-      .where(and(...conditions))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(professorEvaluations.createdAt));
   }
 
@@ -1430,6 +1458,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(professorEvaluations.id, id))
       .returning();
     return updatedEvaluation || undefined;
+  }
+
+  async deleteProfessorEvaluation(id: number): Promise<void> {
+    // Primeiro remove as questões da avaliação
+    await db
+      .delete(evaluationQuestions)
+      .where(eq(evaluationQuestions.evaluationId, id));
+    
+    // Depois remove a avaliação
+    await db
+      .delete(professorEvaluations)
+      .where(eq(professorEvaluations.id, id));
   }
   
   // Portal do Professor - Evaluation Questions
@@ -1456,6 +1496,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(evaluationQuestions.id, id))
       .returning();
     return updatedQuestion || undefined;
+  }
+
+  async deleteEvaluationQuestion(id: number): Promise<void> {
+    await db
+      .delete(evaluationQuestions)
+      .where(eq(evaluationQuestions.id, id));
   }
 
   // Portal do Professor - Evaluation Submissions

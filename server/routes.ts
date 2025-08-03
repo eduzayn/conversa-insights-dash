@@ -4049,8 +4049,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar nova disciplina
   app.post("/api/professor/subjects", authenticateToken, async (req: any, res) => {
     try {
-      if (!['coordenador'].includes(req.user.role)) {
-        return res.status(403).json({ message: "Acesso negado - apenas coordenadores" });
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
       const { nome, codigo, descricao, cargaHoraria, area } = req.body;
@@ -4069,6 +4069,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Atualizar disciplina
+  app.put("/api/professor/subjects/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      const { nome, codigo, descricao, cargaHoraria, area } = req.body;
+      
+      const subject = await storage.updateSubject(id, {
+        nome,
+        codigo,
+        descricao,
+        cargaHoraria,
+        area
+      });
+
+      if (!subject) {
+        return res.status(404).json({ message: "Disciplina não encontrada" });
+      }
+
+      res.json(subject);
+    } catch (error) {
+      logger.error("Erro ao atualizar disciplina:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar disciplina
+  app.delete("/api/professor/subjects/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas coordenadores" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteSubject(id);
+
+      res.json({ message: "Disciplina excluída com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar disciplina:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Conteúdos de uma disciplina
   app.get("/api/professor/contents", authenticateToken, async (req: any, res) => {
     try {
@@ -4077,12 +4123,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { subjectId } = req.query;
-      if (!subjectId) {
-        return res.status(400).json({ message: "ID da disciplina é obrigatório" });
+      
+      if (subjectId) {
+        const contents = await storage.getSubjectContents(parseInt(subjectId as string), req.user.id);
+        res.json(contents);
+      } else {
+        // Se não especificou disciplina, buscar todos os conteúdos
+        const contents = await storage.getAllSubjectContents();
+        res.json(contents);
       }
-
-      const contents = await storage.getSubjectContents(parseInt(subjectId as string), req.user.id);
-      res.json(contents);
     } catch (error) {
       logger.error("Erro ao buscar conteúdos:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
@@ -4096,13 +4145,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas professores" });
       }
 
-      const { subjectId, titulo, tipo, conteudo, descricao, ordem } = req.body;
+      const { subjectId, titulo, tipo, url, descricao, ordem } = req.body;
       const content = await storage.createSubjectContent({
         subjectId,
         professorId: req.user.id,
         titulo,
         tipo,
-        conteudo,
+        conteudo: url, // Backend usa 'conteudo', frontend usa 'url'
         descricao,
         ordem
       });
@@ -4110,6 +4159,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(content);
     } catch (error) {
       logger.error("Erro ao criar conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar conteúdo
+  app.put("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      const { subjectId, titulo, tipo, url, descricao, ordem } = req.body;
+      
+      const content = await storage.updateSubjectContent(id, {
+        subjectId,
+        titulo,
+        tipo,
+        conteudo: url, // Backend usa 'conteudo', frontend usa 'url'
+        descricao,
+        ordem
+      });
+
+      if (!content) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+
+      res.json(content);
+    } catch (error) {
+      logger.error("Erro ao atualizar conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar conteúdo
+  app.delete("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteSubjectContent(id);
+
+      res.json({ message: "Conteúdo excluído com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar conteúdo:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -4154,6 +4250,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Atualizar avaliação
+  app.put("/api/professor/evaluations/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      const evaluation = await storage.updateProfessorEvaluation(id, req.body);
+
+      if (!evaluation) {
+        return res.status(404).json({ message: "Avaliação não encontrada" });
+      }
+
+      res.json(evaluation);
+    } catch (error) {
+      logger.error("Erro ao atualizar avaliação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar avaliação
+  app.delete("/api/professor/evaluations/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteProfessorEvaluation(id);
+
+      res.json({ message: "Avaliação excluída com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar avaliação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Questões de uma avaliação
   app.get("/api/professor/evaluations/:id/questions", authenticateToken, async (req: any, res) => {
     try {
@@ -4187,6 +4321,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(question);
     } catch (error) {
       logger.error("Erro ao criar questão:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar questão
+  app.put("/api/professor/questions/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      const question = await storage.updateEvaluationQuestion(id, req.body);
+
+      if (!question) {
+        return res.status(404).json({ message: "Questão não encontrada" });
+      }
+
+      res.json(question);
+    } catch (error) {
+      logger.error("Erro ao atualizar questão:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar questão
+  app.delete("/api/professor/questions/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteEvaluationQuestion(id);
+
+      res.json({ message: "Questão excluída com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar questão:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
