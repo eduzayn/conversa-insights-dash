@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy, CheckCircle2, BarChart3, TrendingUp, Users, DollarSign, Calendar, Target } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy, CheckCircle2, BarChart3, TrendingUp, Users, DollarSign, Calendar, Target, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/Sidebar";
@@ -103,6 +103,7 @@ const Negociacoes: React.FC = () => {
   // Estados para dashboard
   const [dashboardDateStart, setDashboardDateStart] = useState('');
   const [dashboardDateEnd, setDashboardDateEnd] = useState('');
+  const [dashboardStatusFilter, setDashboardStatusFilter] = useState('all');
 
   const navigate = useNavigate();
 
@@ -191,8 +192,12 @@ const Negociacoes: React.FC = () => {
   const dashboardData = useMemo(() => {
     if (!negociacoes || !expirados || !quitacoes) return null;
 
-    // Aplicar filtros de data
+    // Aplicar filtros de data e status
     const filteredNegociacoes = negociacoes.filter(n => {
+      // Filtro por status
+      if (dashboardStatusFilter && dashboardStatusFilter !== 'all' && n.status !== dashboardStatusFilter) return false;
+      
+      // Filtro por data
       if (!dashboardDateStart && !dashboardDateEnd) return true;
       const dataItem = n.dataNegociacao;
       if (!dataItem) return true;
@@ -304,7 +309,7 @@ const Negociacoes: React.FC = () => {
         monthlyChart: monthlyData
       }
     };
-  }, [negociacoes, expirados, quitacoes, dashboardDateStart, dashboardDateEnd]);
+  }, [negociacoes, expirados, quitacoes, dashboardDateStart, dashboardDateEnd, dashboardStatusFilter]);
 
   // Validação usando hook consolidado
   const validateExpirado = (data: Expirado): boolean => {
@@ -658,45 +663,94 @@ const Negociacoes: React.FC = () => {
             <TabsContent value="dashboard" className="space-y-6">
               {/* Filtros do Dashboard */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm font-medium text-gray-600">
-                        Filtro por Período:
-                        {(dashboardDateStart || dashboardDateEnd) && (
-                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                            Ativo
-                          </span>
-                        )}
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Filtros por Status */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 mb-3 block">
+                        Filtrar por Status:
                       </Label>
+                      <div className="flex flex-wrap gap-3">
+                        <Button
+                          variant={dashboardStatusFilter === 'all' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('all')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                          Todos
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'aguardando_pagamento' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('aguardando_pagamento')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          Aguardando Pagamento
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'recebido' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('recebido')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Recebido
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'acordo_quebrado' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('acordo_quebrado')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Acordo Quebrado
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="date"
-                        placeholder="Data início"
-                        value={dashboardDateStart}
-                        onChange={(e) => setDashboardDateStart(e.target.value)}
-                        className="w-40"
-                      />
-                      <span className="text-gray-400">até</span>
-                      <Input
-                        type="date"
-                        placeholder="Data fim"
-                        value={dashboardDateEnd}
-                        onChange={(e) => setDashboardDateEnd(e.target.value)}
-                        className="w-40"
-                      />
+
+                    {/* Filtros de Data */}
+                    <div className="flex flex-wrap items-center gap-4 pt-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm font-medium text-gray-600">
+                          Filtro por Período:
+                          {(dashboardDateStart || dashboardDateEnd) && (
+                            <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              Ativo
+                            </span>
+                          )}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="date"
+                          placeholder="Data início"
+                          value={dashboardDateStart}
+                          onChange={(e) => setDashboardDateStart(e.target.value)}
+                          className="w-40"
+                        />
+                        <span className="text-gray-400">até</span>
+                        <Input
+                          type="date"
+                          placeholder="Data fim"
+                          value={dashboardDateEnd}
+                          onChange={(e) => setDashboardDateEnd(e.target.value)}
+                          className="w-40"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setDashboardDateStart('');
+                          setDashboardDateEnd('');
+                          setDashboardStatusFilter('all');
+                        }}
+                        className="text-sm"
+                      >
+                        Limpar Todos os Filtros
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setDashboardDateStart('');
-                        setDashboardDateEnd('');
-                      }}
-                      className="text-sm"
-                    >
-                      Limpar Filtros
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -705,56 +759,84 @@ const Negociacoes: React.FC = () => {
                 <div className="space-y-6">
                   {/* Cards de Métricas */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('all')}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-600">Total Negociações</p>
                             <p className="text-2xl font-bold text-blue-600">{dashboardData.totals.negociacoes}</p>
+                            {dashboardStatusFilter === 'all' && (
+                              <p className="text-xs text-blue-500 mt-1">Filtro ativo</p>
+                            )}
                           </div>
                           <FileText className="h-8 w-8 text-blue-600" />
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('aguardando_pagamento')}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-600">Total Expirados</p>
-                            <p className="text-2xl font-bold text-red-600">{dashboardData.totals.expirados}</p>
+                            <p className="text-sm font-medium text-gray-600">Aguardando Pagamento</p>
+                            <p className="text-2xl font-bold text-yellow-600">{dashboardData.statusData.negociacoes.aguardando_pagamento || 0}</p>
+                            {dashboardStatusFilter === 'aguardando_pagamento' && (
+                              <p className="text-xs text-yellow-500 mt-1">Filtro ativo</p>
+                            )}
                           </div>
-                          <AlertTriangle className="h-8 w-8 text-red-600" />
+                          <Clock className="h-8 w-8 text-yellow-600" />
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('recebido')}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-600">Total Quitações</p>
-                            <p className="text-2xl font-bold text-green-600">{dashboardData.totals.quitacoes}</p>
+                            <p className="text-sm font-medium text-gray-600">Recebidos</p>
+                            <p className="text-2xl font-bold text-green-600">{dashboardData.statusData.negociacoes.recebido || 0}</p>
+                            {dashboardStatusFilter === 'recebido' && (
+                              <p className="text-xs text-green-500 mt-1">Filtro ativo</p>
+                            )}
                           </div>
                           <CheckCircle2 className="h-8 w-8 text-green-600" />
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('acordo_quebrado')}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                            <p className="text-2xl font-bold text-purple-600">
-                              R$ {(dashboardData.values.negociacoes + dashboardData.values.expirados + dashboardData.values.quitacoes).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </p>
+                            <p className="text-sm font-medium text-gray-600">Acordo Quebrado</p>
+                            <p className="text-2xl font-bold text-red-600">{dashboardData.statusData.negociacoes.acordo_quebrado || 0}</p>
+                            {dashboardStatusFilter === 'acordo_quebrado' && (
+                              <p className="text-xs text-red-500 mt-1">Filtro ativo</p>
+                            )}
                           </div>
-                          <DollarSign className="h-8 w-8 text-purple-600" />
+                          <AlertTriangle className="h-8 w-8 text-red-600" />
                         </div>
                       </CardContent>
                     </Card>
                   </div>
+
+                  {/* Card de Valor Total */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Valor Total {dashboardStatusFilter !== 'all' && `(${dashboardStatusFilter.replace('_', ' ')})`}</p>
+                          <p className="text-3xl font-bold text-purple-600">
+                            R$ {(dashboardData.values.negociacoes + dashboardData.values.expirados + dashboardData.values.quitacoes).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Período: {dashboardDateStart || 'Início'} até {dashboardDateEnd || 'Hoje'}
+                          </p>
+                        </div>
+                        <DollarSign className="h-12 w-12 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
 
                   {/* Gráficos */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
