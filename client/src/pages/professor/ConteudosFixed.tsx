@@ -1078,6 +1078,50 @@ export default function ConteudosFixed() {
                     </a>
                   </div>
                 )}
+
+                {/* Fallback para conteúdo HTML bruto (iframe como texto) */}
+                {(() => {
+                  // Verifica se o conteúdo contém HTML iframe que não foi processado pelas condições acima
+                  const hasUnprocessedIframe = contentToPreview.conteudo && 
+                    contentToPreview.conteudo.includes('<!doctype html>') &&
+                    contentToPreview.conteudo.includes('<iframe');
+                  
+                  if (hasUnprocessedIframe) {
+                    return (
+                      <div className="space-y-4">
+                        {/* Título do E-book */}
+                        <div className="text-center">
+                          <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                          <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
+                          <p className="text-sm text-gray-600">Visualização integrada - navegue com scroll vertical</p>
+                        </div>
+                        
+                        {/* Renderização do HTML iframe usando dangerouslySetInnerHTML */}
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                          <div 
+                            className="w-full h-[600px]"
+                            dangerouslySetInnerHTML={{ __html: contentToPreview.conteudo }}
+                          />
+                        </div>
+                        
+                        {/* Informações do E-book */}
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="font-semibold text-blue-900">E-book Processado</h5>
+                              <p className="text-sm text-blue-700 mt-1">Conteúdo HTML renderizado corretamente</p>
+                            </div>
+                            <div className="text-right">
+                              <Badge className="bg-blue-100 text-blue-800">HTML</Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return null;
+                })()}
               </div>
 
               {/* Footer com informações da disciplina */}
