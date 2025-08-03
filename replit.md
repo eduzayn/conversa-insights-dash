@@ -88,3 +88,13 @@ Preferred communication style: Simple, everyday language.
   * Indicadores visuais mostrando filtros ativos
   * Sistema unificado de "Limpar Todos os Filtros"
   * Dashboard agora filtra dados de todas as categorias simultaneamente
+
+- August 3, 2025. FUNCIONALIDADE DE DUPLICAR ATENDIMENTOS IMPLEMENTADA
+  * Adicionado botão "Duplicar" (ícone Copy) na tabela de atendimentos
+  * Função handleDuplicateAtendimento copia dados do atendimento original
+  * Duplicata criada com data e hora atuais automaticamente
+  * Status resetado para "Em andamento" para nova classificação
+  * Resultado CRM limpo para permitir nova avaliação
+  * Observações identificam origem da duplicação
+  * Preserva atendimento original sem alterações
+  * Otimiza workflow para casos de retorno de alunos com assunto diferente

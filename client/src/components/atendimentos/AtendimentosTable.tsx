@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Copy } from "lucide-react";
 import { Atendimento } from "@/types/atendimento";
 import { useEffect, useRef } from "react";
 
@@ -27,6 +27,7 @@ interface AtendimentosTableProps {
   onResultadoChange: (id: string, newResultado: string) => void;
   onEditAtendimento?: (atendimento: Atendimento) => void;
   onDeleteAtendimento?: (id: string) => void;
+  onDuplicateAtendimento?: (atendimento: Atendimento) => void;
   filters: any;
   // Scroll infinito
   fetchNextPage?: () => void;
@@ -42,6 +43,7 @@ export const AtendimentosTable = ({
   onResultadoChange,
   onEditAtendimento,
   onDeleteAtendimento,
+  onDuplicateAtendimento,
   filters,
   // Scroll infinito
   fetchNextPage,
@@ -194,8 +196,20 @@ export const AtendimentosTable = ({
                             variant="outline"
                             onClick={() => onEditAtendimento(item)}
                             className="h-8 w-8 p-0"
+                            title="Editar atendimento"
                           >
                             <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {onDuplicateAtendimento && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onDuplicateAtendimento(item)}
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="Duplicar atendimento com data atual"
+                          >
+                            <Copy className="h-4 w-4" />
                           </Button>
                         )}
                         {onDeleteAtendimento && (
@@ -204,6 +218,7 @@ export const AtendimentosTable = ({
                             variant="outline"
                             onClick={() => onDeleteAtendimento(String(item.id))}
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Excluir atendimento"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

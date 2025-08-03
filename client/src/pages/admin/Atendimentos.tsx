@@ -73,6 +73,36 @@ const Atendimentos = () => {
     setDeleteConfirm({ isOpen: true, id });
   };
 
+  const handleDuplicateAtendimento = async (atendimento: any) => {
+    try {
+      // Criar uma cópia do atendimento com data atual
+      const currentDate = new Date();
+      const currentDateString = currentDate.toLocaleDateString('pt-BR');
+      const currentTimeString = currentDate.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+      const duplicatedAtendimento = {
+        ...atendimento,
+        id: undefined, // Remove o ID para criar um novo registro
+        data: currentDateString,
+        hora: currentTimeString,
+        createdAt: undefined,
+        updatedAt: undefined,
+        status: 'Em andamento', // Novo atendimento sempre inicia em andamento
+        resultado: null, // Limpa o resultado CRM para nova classificação
+        observacoes: atendimento.observacoes ? 
+          `[DUPLICADO] ${atendimento.observacoes}` : 
+          `[DUPLICADO] Atendimento duplicado do registro original em ${atendimento.data || 'data não informada'}`
+      };
+
+      await createAtendimento(duplicatedAtendimento);
+    } catch (error) {
+      console.error('Erro ao duplicar atendimento:', error);
+    }
+  };
+
   const confirmDelete = () => {
     if (deleteConfirm.id) {
       deleteAtendimento(deleteConfirm.id);
@@ -118,6 +148,7 @@ const Atendimentos = () => {
               onResultadoChange={handleResultadoChange}
               onEditAtendimento={handleEditAtendimento}
               onDeleteAtendimento={handleDeleteAtendimento}
+              onDuplicateAtendimento={handleDuplicateAtendimento}
               filters={filters}
               // Scroll infinito
               fetchNextPage={fetchNextPage}
