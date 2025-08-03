@@ -73,34 +73,31 @@ const Atendimentos = () => {
     setDeleteConfirm({ isOpen: true, id });
   };
 
-  const handleDuplicateAtendimento = async (atendimento: any) => {
-    try {
-      // Criar uma cópia do atendimento com data atual
-      const currentDate = new Date();
-      const currentDateString = currentDate.toLocaleDateString('pt-BR');
-      const currentTimeString = currentDate.toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
+  const handleDuplicateAtendimento = (atendimento: any) => {
+    // Preparar dados para duplicação com data/hora atual
+    const currentDate = new Date();
+    const currentDateString = currentDate.toLocaleDateString('pt-BR');
+    const currentTimeString = currentDate.toLocaleTimeString('pt-BR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
 
-      const duplicatedAtendimento = {
-        ...atendimento,
-        id: undefined, // Remove o ID para criar um novo registro
-        data: currentDateString,
-        hora: currentTimeString,
-        createdAt: undefined,
-        updatedAt: undefined,
-        status: 'Em andamento', // Novo atendimento sempre inicia em andamento
-        resultado: null, // Limpa o resultado CRM para nova classificação
-        observacoes: atendimento.observacoes ? 
-          `[DUPLICADO] ${atendimento.observacoes}` : 
-          `[DUPLICADO] Atendimento duplicado do registro original em ${atendimento.data || 'data não informada'}`
-      };
+    const duplicatedAtendimento = {
+      ...atendimento,
+      id: undefined, // Remove o ID para criar um novo registro
+      data: currentDateString,
+      hora: currentTimeString,
+      createdAt: undefined,
+      updatedAt: undefined,
+      status: 'Em andamento', // Novo atendimento sempre inicia em andamento
+      resultado: null, // Limpa o resultado CRM para nova classificação
+      observacoes: atendimento.observacoes ? 
+        `[DUPLICADO] ${atendimento.observacoes}` : 
+        `[DUPLICADO] Atendimento duplicado do registro original em ${atendimento.data || 'data não informada'}`
+    };
 
-      await createAtendimento(duplicatedAtendimento);
-    } catch (error) {
-      console.error('Erro ao duplicar atendimento:', error);
-    }
+    // Abrir modal de edição com dados pré-preenchidos
+    setEditingAtendimento(duplicatedAtendimento);
   };
 
   const confirmDelete = () => {
@@ -164,8 +161,9 @@ const Atendimentos = () => {
         isOpen={isCreateModalOpen || !!editingAtendimento}
         onClose={handleCloseModal}
         atendimento={editingAtendimento}
-        onSubmit={editingAtendimento ? updateAtendimento : createAtendimento}
-        title={editingAtendimento ? 'Editar Atendimento' : 'Novo Atendimento'}
+        onSubmit={editingAtendimento && editingAtendimento.id ? updateAtendimento : createAtendimento}
+        title={editingAtendimento && !editingAtendimento.id ? 'Duplicar Atendimento' : 
+               editingAtendimento ? 'Editar Atendimento' : 'Novo Atendimento'}
       />
 
       {/* Diálogo de Confirmação de Exclusão */}

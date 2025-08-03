@@ -97,4 +97,6 @@ Preferred communication style: Simple, everyday language.
   * Resultado CRM limpo para permitir nova avaliação
   * Observações identificam origem da duplicação
   * Preserva atendimento original sem alterações
+  * Abre modal pré-preenchido para edição imediata dos dados
+  * Título do modal adaptado para "Duplicar Atendimento"
   * Otimiza workflow para casos de retorno de alunos com assunto diferente
