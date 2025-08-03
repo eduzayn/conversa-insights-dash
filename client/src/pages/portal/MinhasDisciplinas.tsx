@@ -453,15 +453,58 @@ export default function MinhasDisciplinas() {
                                                 </div>
                                               )}
                                               
-                                              {(selectedContent.tipo === 'ebook' || selectedContent.tipo === 'pdf') && (
-                                                <div className="h-[600px]">
-                                                  <iframe
-                                                    src={selectedContent.conteudo}
-                                                    className="w-full h-full rounded-lg"
-                                                    frameBorder="0"
-                                                  />
-                                                </div>
-                                              )}
+                                              {(selectedContent.tipo === 'ebook' || selectedContent.tipo === 'pdf') && (() => {
+                                                // Verifica se o conteúdo já é um iframe HTML completo
+                                                const isHtmlIframe = selectedContent.conteudo && selectedContent.conteudo.trim().startsWith('<iframe');
+                                                
+                                                if (isHtmlIframe) {
+                                                  // Se for HTML, renderiza usando dangerouslySetInnerHTML
+                                                  return (
+                                                    <div 
+                                                      className="h-[600px]"
+                                                      dangerouslySetInnerHTML={{ __html: selectedContent.conteudo }}
+                                                    />
+                                                  );
+                                                } else {
+                                                  // Se for apenas URL, cria o iframe dinamicamente
+                                                  const getEmbedUrl = (url: string) => {
+                                                    // Se for Google Drive, converte para URL de preview
+                                                    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9-_]+)/);
+                                                    if (driveMatch) {
+                                                      const fileId = driveMatch[1];
+                                                      return `https://drive.google.com/file/d/${fileId}/preview`;
+                                                    }
+                                                    
+                                                    // Se for um PDF direto, usa a URL diretamente
+                                                    if (url.toLowerCase().includes('.pdf')) {
+                                                      return url;
+                                                    }
+                                                    
+                                                    // Para outros casos, usa o Google Docs viewer
+                                                    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
+                                                  };
+
+                                                  const embedUrl = getEmbedUrl(selectedContent.conteudo);
+                                                  
+                                                  return (
+                                                    <div className="h-[600px] border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                                      <iframe
+                                                        src={embedUrl}
+                                                        className="w-full h-full"
+                                                        frameBorder="0"
+                                                        title={selectedContent.titulo}
+                                                        allow="autoplay"
+                                                        onError={(e) => {
+                                                          console.log('Erro no carregamento do PDF, tentando fallback...');
+                                                          // Fallback para visualizador do Google
+                                                          const fallbackUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(selectedContent.conteudo)}`;
+                                                          (e.target as HTMLIFrameElement).src = fallbackUrl;
+                                                        }}
+                                                      />
+                                                    </div>
+                                                  );
+                                                }
+                                              })()}
                                             </div>
                                           )}
                                         </>
