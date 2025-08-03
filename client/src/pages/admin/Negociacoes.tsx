@@ -679,157 +679,146 @@ const Negociacoes: React.FC = () => {
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    {/* Filtros por Status */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600 mb-3 block">
-                        Filtrar por Status:
-                      </Label>
-                      <div className="flex flex-wrap gap-3">
-                        <Button
-                          variant={dashboardStatusFilter === 'all' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('all')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                          Todos os Status
-                        </Button>
-                        
-                        {/* Filtros para Negociações */}
-                        <div className="h-6 border-l border-gray-300 mx-2"></div>
-                        <span className="text-xs text-gray-500 font-medium">Negociações:</span>
-                        <Button
-                          variant={dashboardStatusFilter === 'aguardando_pagamento' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('aguardando_pagamento')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                          Aguardando Pagamento
-                        </Button>
-                        <Button
-                          variant={dashboardStatusFilter === 'recebido' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('recebido')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          Recebido
-                        </Button>
-                        <Button
-                          variant={dashboardStatusFilter === 'acordo_quebrado' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('acordo_quebrado')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                          Acordo Quebrado
-                        </Button>
-
-                        {/* Filtros para Expirados */}
-                        <div className="h-6 border-l border-gray-300 mx-2"></div>
-                        <span className="text-xs text-gray-500 font-medium">Expirados:</span>
-                        <Button
-                          variant={dashboardStatusFilter === 'pendente' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('pendente')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                          Pendente
-                        </Button>
-                        <Button
-                          variant={dashboardStatusFilter === 'enviada' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('enviada')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          Enviada
-                        </Button>
-                        <Button
-                          variant={dashboardStatusFilter === 'aceita' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('aceita')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          Aceita
-                        </Button>
-                        <Button
-                          variant={dashboardStatusFilter === 'rejeitada' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('rejeitada')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                          Rejeitada
-                        </Button>
-
-                        {/* Filtros para Quitações */}
-                        <div className="h-6 border-l border-gray-300 mx-2"></div>
-                        <span className="text-xs text-gray-500 font-medium">Quitações:</span>
-                        <Button
-                          variant={dashboardStatusFilter === 'quitado' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('quitado')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-green-600"></div>
-                          Quitado
-                        </Button>
-                        <Button
-                          variant={dashboardStatusFilter === 'aguardando_pagamento_quit' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setDashboardStatusFilter('aguardando_pagamento_quit')}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-yellow-600"></div>
-                          Aguardando
-                        </Button>
+                    {/* Filtros por Status e Período em uma linha */}
+                    <div className="flex flex-wrap items-center gap-4">
+                      {/* Status Negociações */}
+                      <div>
+                        <Label className="text-xs text-gray-500 mb-1 block">Negociações</Label>
+                        <Select value={dashboardStatusFilter.includes('aguardando_pagamento') || dashboardStatusFilter.includes('recebido') || dashboardStatusFilter.includes('acordo_quebrado') ? dashboardStatusFilter : 'all'} onValueChange={setDashboardStatusFilter}>
+                          <SelectTrigger className="w-44 h-8">
+                            <SelectValue placeholder="Status negociações" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            <SelectItem value="aguardando_pagamento">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                Aguardando Pagamento
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="recebido">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                Recebido
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="acordo_quebrado">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                Acordo Quebrado
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </div>
 
-                    {/* Filtros de Data */}
-                    <div className="flex flex-wrap items-center gap-4 pt-4 border-t">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-sm font-medium text-gray-600">
-                          Filtro por Período:
+                      {/* Status Expirados */}
+                      <div>
+                        <Label className="text-xs text-gray-500 mb-1 block">Expirados</Label>
+                        <Select value={['pendente', 'enviada', 'aceita', 'rejeitada'].includes(dashboardStatusFilter) ? dashboardStatusFilter : 'all'} onValueChange={setDashboardStatusFilter}>
+                          <SelectTrigger className="w-32 h-8">
+                            <SelectValue placeholder="Status expirados" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            <SelectItem value="pendente">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                                Pendente
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="enviada">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                Enviada
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="aceita">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                Aceita
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="rejeitada">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                Rejeitada
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Status Quitações */}
+                      <div>
+                        <Label className="text-xs text-gray-500 mb-1 block">Quitações</Label>
+                        <Select value={dashboardStatusFilter === 'quitado' || dashboardStatusFilter === 'aguardando_pagamento_quit' ? dashboardStatusFilter : 'all'} onValueChange={setDashboardStatusFilter}>
+                          <SelectTrigger className="w-32 h-8">
+                            <SelectValue placeholder="Status quitações" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            <SelectItem value="quitado">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                                Quitado
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="aguardando_pagamento_quit">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-yellow-600"></div>
+                                Aguardando
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Separador */}
+                      <div className="h-8 border-l border-gray-300"></div>
+
+                      {/* Filtros de Data */}
+                      <div>
+                        <Label className="text-xs text-gray-500 mb-1 block">
+                          Período
                           {(dashboardDateStart || dashboardDateEnd) && (
-                            <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                              Ativo
-                            </span>
+                            <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">Ativo</span>
                           )}
                         </Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="date"
+                            placeholder="Data início"
+                            value={dashboardDateStart}
+                            onChange={(e) => setDashboardDateStart(e.target.value)}
+                            className="w-32 h-8 text-xs"
+                          />
+                          <span className="text-gray-400 text-xs">até</span>
+                          <Input
+                            type="date"
+                            placeholder="Data fim"
+                            value={dashboardDateEnd}
+                            onChange={(e) => setDashboardDateEnd(e.target.value)}
+                            className="w-32 h-8 text-xs"
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="date"
-                          placeholder="Data início"
-                          value={dashboardDateStart}
-                          onChange={(e) => setDashboardDateStart(e.target.value)}
-                          className="w-40"
-                        />
-                        <span className="text-gray-400">até</span>
-                        <Input
-                          type="date"
-                          placeholder="Data fim"
-                          value={dashboardDateEnd}
-                          onChange={(e) => setDashboardDateEnd(e.target.value)}
-                          className="w-40"
-                        />
+
+                      {/* Botão Limpar */}
+                      <div className="self-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setDashboardDateStart('');
+                            setDashboardDateEnd('');
+                            setDashboardStatusFilter('all');
+                          }}
+                          className="h-8 text-xs"
+                        >
+                          Limpar Filtros
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setDashboardDateStart('');
-                          setDashboardDateEnd('');
-                          setDashboardStatusFilter('all');
-                        }}
-                        className="text-sm"
-                      >
-                        Limpar Todos os Filtros
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
