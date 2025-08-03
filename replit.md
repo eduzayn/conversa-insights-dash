@@ -76,3 +76,15 @@ Preferred communication style: Simple, everyday language.
   * Adiciona observação indicando origem da duplicação
   * Abre modal de criação pré-preenchido para edição rápida
   * Otimiza workflow para alunos com múltiplas categorias de cursos
+
+- August 3, 2025. SISTEMA COMPLETO DE FILTROS POR STATUS NO DASHBOARD DE NEGOCIAÇÕES
+  * Implementado filtro visual e funcional por status para todas as categorias
+  * Filtros específicos para Negociações (aguardando pagamento, recebido, acordo quebrado)
+  * Filtros específicos para Expirados (pendente, enviada, aceita, rejeitada)
+  * Filtros específicos para Quitações (quitado, aguardando pagamento)
+  * Cards de métricas interativos funcionam como filtros clicáveis
+  * Integração completa entre filtros de status e período de data
+  * Interface reorganizada com status específicos por categoria
+  * Indicadores visuais mostrando filtros ativos
+  * Sistema unificado de "Limpar Todos os Filtros"
+  * Dashboard agora filtra dados de todas as categorias simultaneamente

@@ -208,6 +208,13 @@ const Negociacoes: React.FC = () => {
     });
 
     const filteredExpirados = expirados.filter(e => {
+      // Filtro por status para expirados
+      if (dashboardStatusFilter && dashboardStatusFilter !== 'all') {
+        const statusExpirados = ['pendente', 'enviada', 'aceita', 'rejeitada'];
+        if (statusExpirados.includes(dashboardStatusFilter) && e.statusProposta !== dashboardStatusFilter) return false;
+      }
+      
+      // Filtro por data
       if (!dashboardDateStart && !dashboardDateEnd) return true;
       const dataItem = e.dataExpiracao;
       if (!dataItem) return true;
@@ -218,6 +225,13 @@ const Negociacoes: React.FC = () => {
     });
 
     const filteredQuitacoes = quitacoes.filter(q => {
+      // Filtro por status para quitações
+      if (dashboardStatusFilter && dashboardStatusFilter !== 'all') {
+        if (dashboardStatusFilter === 'quitado' && q.status !== 'quitado') return false;
+        if (dashboardStatusFilter === 'aguardando_pagamento_quit' && q.status !== 'aguardando_pagamento') return false;
+      }
+      
+      // Filtro por data
       if (!dashboardDateStart && !dashboardDateEnd) return true;
       const dataItem = q.dataQuitacao;
       if (!dataItem) return true;
@@ -678,8 +692,12 @@ const Negociacoes: React.FC = () => {
                           className="flex items-center gap-2"
                         >
                           <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                          Todos
+                          Todos os Status
                         </Button>
+                        
+                        {/* Filtros para Negociações */}
+                        <div className="h-6 border-l border-gray-300 mx-2"></div>
+                        <span className="text-xs text-gray-500 font-medium">Negociações:</span>
                         <Button
                           variant={dashboardStatusFilter === 'aguardando_pagamento' ? 'default' : 'outline'}
                           size="sm"
@@ -706,6 +724,68 @@ const Negociacoes: React.FC = () => {
                         >
                           <div className="w-2 h-2 rounded-full bg-red-500"></div>
                           Acordo Quebrado
+                        </Button>
+
+                        {/* Filtros para Expirados */}
+                        <div className="h-6 border-l border-gray-300 mx-2"></div>
+                        <span className="text-xs text-gray-500 font-medium">Expirados:</span>
+                        <Button
+                          variant={dashboardStatusFilter === 'pendente' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('pendente')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                          Pendente
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'enviada' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('enviada')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          Enviada
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'aceita' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('aceita')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          Aceita
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'rejeitada' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('rejeitada')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          Rejeitada
+                        </Button>
+
+                        {/* Filtros para Quitações */}
+                        <div className="h-6 border-l border-gray-300 mx-2"></div>
+                        <span className="text-xs text-gray-500 font-medium">Quitações:</span>
+                        <Button
+                          variant={dashboardStatusFilter === 'quitado' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('quitado')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                          Quitado
+                        </Button>
+                        <Button
+                          variant={dashboardStatusFilter === 'aguardando_pagamento_quit' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDashboardStatusFilter('aguardando_pagamento_quit')}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-yellow-600"></div>
+                          Aguardando
                         </Button>
                       </div>
                     </div>
@@ -757,8 +837,8 @@ const Negociacoes: React.FC = () => {
 
               {dashboardData ? (
                 <div className="space-y-6">
-                  {/* Cards de Métricas */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Cards de Métricas Gerais */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('all')}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -766,7 +846,7 @@ const Negociacoes: React.FC = () => {
                             <p className="text-sm font-medium text-gray-600">Total Negociações</p>
                             <p className="text-2xl font-bold text-blue-600">{dashboardData.totals.negociacoes}</p>
                             {dashboardStatusFilter === 'all' && (
-                              <p className="text-xs text-blue-500 mt-1">Filtro ativo</p>
+                              <p className="text-xs text-blue-500 mt-1">Todos os dados</p>
                             )}
                           </div>
                           <FileText className="h-8 w-8 text-blue-600" />
@@ -774,50 +854,135 @@ const Negociacoes: React.FC = () => {
                       </CardContent>
                     </Card>
                     
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('aguardando_pagamento')}>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('all')}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-600">Aguardando Pagamento</p>
-                            <p className="text-2xl font-bold text-yellow-600">{dashboardData.statusData.negociacoes.aguardando_pagamento || 0}</p>
-                            {dashboardStatusFilter === 'aguardando_pagamento' && (
-                              <p className="text-xs text-yellow-500 mt-1">Filtro ativo</p>
-                            )}
-                          </div>
-                          <Clock className="h-8 w-8 text-yellow-600" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('recebido')}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-600">Recebidos</p>
-                            <p className="text-2xl font-bold text-green-600">{dashboardData.statusData.negociacoes.recebido || 0}</p>
-                            {dashboardStatusFilter === 'recebido' && (
-                              <p className="text-xs text-green-500 mt-1">Filtro ativo</p>
-                            )}
-                          </div>
-                          <CheckCircle2 className="h-8 w-8 text-green-600" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('acordo_quebrado')}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-600">Acordo Quebrado</p>
-                            <p className="text-2xl font-bold text-red-600">{dashboardData.statusData.negociacoes.acordo_quebrado || 0}</p>
-                            {dashboardStatusFilter === 'acordo_quebrado' && (
-                              <p className="text-xs text-red-500 mt-1">Filtro ativo</p>
-                            )}
+                            <p className="text-sm font-medium text-gray-600">Total Expirados</p>
+                            <p className="text-2xl font-bold text-red-600">{dashboardData.totals.expirados}</p>
+                            <p className="text-xs text-gray-500 mt-1">Propostas expiradas</p>
                           </div>
                           <AlertTriangle className="h-8 w-8 text-red-600" />
                         </div>
                       </CardContent>
                     </Card>
+                    
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setDashboardStatusFilter('all')}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Total Quitações</p>
+                            <p className="text-2xl font-bold text-green-600">{dashboardData.totals.quitacoes}</p>
+                            <p className="text-xs text-gray-500 mt-1">Pagamentos finalizados</p>
+                          </div>
+                          <CheckCircle2 className="h-8 w-8 text-green-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Cards de Status Específicos - Filtráveis */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Status Específicos {dashboardStatusFilter !== 'all' && `- Filtro: ${dashboardStatusFilter.replace('_', ' ')}`}</h3>
+                    
+                    {/* Status de Negociações */}
+                    <div>
+                      <h4 className="text-md font-medium text-blue-700 mb-3">Negociações por Status</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card 
+                          className={`hover:shadow-lg transition-shadow cursor-pointer ${dashboardStatusFilter === 'aguardando_pagamento' ? 'ring-2 ring-yellow-500' : ''}`} 
+                          onClick={() => setDashboardStatusFilter('aguardando_pagamento')}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-gray-600">Aguardando Pagamento</p>
+                                <p className="text-xl font-bold text-yellow-600">{dashboardData.statusData.negociacoes.aguardando_pagamento || 0}</p>
+                              </div>
+                              <Clock className="h-6 w-6 text-yellow-600" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card 
+                          className={`hover:shadow-lg transition-shadow cursor-pointer ${dashboardStatusFilter === 'recebido' ? 'ring-2 ring-green-500' : ''}`} 
+                          onClick={() => setDashboardStatusFilter('recebido')}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-gray-600">Recebidos</p>
+                                <p className="text-xl font-bold text-green-600">{dashboardData.statusData.negociacoes.recebido || 0}</p>
+                              </div>
+                              <CheckCircle2 className="h-6 w-6 text-green-600" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card 
+                          className={`hover:shadow-lg transition-shadow cursor-pointer ${dashboardStatusFilter === 'acordo_quebrado' ? 'ring-2 ring-red-500' : ''}`} 
+                          onClick={() => setDashboardStatusFilter('acordo_quebrado')}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-gray-600">Acordo Quebrado</p>
+                                <p className="text-xl font-bold text-red-600">{dashboardData.statusData.negociacoes.acordo_quebrado || 0}</p>
+                              </div>
+                              <AlertTriangle className="h-6 w-6 text-red-600" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+
+                    {/* Status de Expirados */}
+                    <div>
+                      <h4 className="text-md font-medium text-red-700 mb-3">Expirados por Status</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {Object.entries(dashboardData.statusData.expirados).map(([status, count]) => (
+                          <Card 
+                            key={status}
+                            className={`hover:shadow-lg transition-shadow cursor-pointer ${dashboardStatusFilter === status ? 'ring-2 ring-orange-500' : ''}`} 
+                            onClick={() => setDashboardStatusFilter(status)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 capitalize">{status}</p>
+                                  <p className="text-xl font-bold text-orange-600">{count}</p>
+                                </div>
+                                <div className={`w-3 h-3 rounded-full ${status === 'pendente' ? 'bg-orange-500' : status === 'enviada' ? 'bg-blue-500' : status === 'aceita' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Status de Quitações */}
+                    <div>
+                      <h4 className="text-md font-medium text-green-700 mb-3">Quitações por Status</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(dashboardData.statusData.quitacoes).map(([status, count]) => (
+                          <Card 
+                            key={status}
+                            className={`hover:shadow-lg transition-shadow cursor-pointer ${(dashboardStatusFilter === 'quitado' && status === 'quitado') || (dashboardStatusFilter === 'aguardando_pagamento_quit' && status === 'aguardando_pagamento') ? 'ring-2 ring-green-500' : ''}`} 
+                            onClick={() => setDashboardStatusFilter(status === 'aguardando_pagamento' ? 'aguardando_pagamento_quit' : status)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 capitalize">{status.replace('_', ' ')}</p>
+                                  <p className="text-xl font-bold text-green-600">{count}</p>
+                                </div>
+                                <div className={`w-3 h-3 rounded-full ${status === 'quitado' ? 'bg-green-600' : 'bg-yellow-600'}`}></div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Card de Valor Total */}
