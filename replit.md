@@ -100,3 +100,9 @@ Preferred communication style: Simple, everyday language.
   * Abre modal pré-preenchido para edição imediata dos dados
   * Título do modal adaptado para "Duplicar Atendimento"
   * Otimiza workflow para casos de retorno de alunos com assunto diferente
+
+- August 3, 2025. CORREÇÕES DE SISTEMA
+  * Corrigido sistema de logout com redirecionamento automático para login
+  * Corrigido erro "response.json is not a function" no login do professor
+  * Resolvido problema de dupla chamada response.json() que causava falha na autenticação
+  * Sistema de logout agora limpa sessão completamente e redireciona corretamente

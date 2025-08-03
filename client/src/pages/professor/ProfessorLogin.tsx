@@ -28,12 +28,11 @@ export default function ProfessorLogin() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao fazer login");
-      }
-
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Erro ao fazer login");
+      }
       
       // Salvar dados do professor no localStorage
       localStorage.setItem('professor_token', data.token);
