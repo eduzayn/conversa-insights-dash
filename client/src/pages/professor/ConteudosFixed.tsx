@@ -807,8 +807,9 @@ export default function ConteudosFixed() {
                   
                   // Se for um arquivo do Google Drive normal (não SCORM)
                   if (driveInfo) {
-                    const pdfViewerUrl = `https://docs.google.com/gview?embedded=true&url=https://drive.google.com/uc?export=download&id=${driveInfo.fileId}`;
+                    // URLs otimizadas para preview inline
                     const pdfPreviewUrl = `https://drive.google.com/file/d/${driveInfo.fileId}/preview`;
+                    const pdfViewerUrl = `https://docs.google.com/gview?embedded=true&url=https://drive.google.com/uc?export=download&id=${driveInfo.fileId}`;
                     
                     return (
                       <div className="space-y-4">
@@ -816,20 +817,21 @@ export default function ConteudosFixed() {
                         <div className="text-center">
                           <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                           <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
-                          <p className="text-sm text-gray-600">Visualização integrada no sistema</p>
+                          <p className="text-sm text-gray-600">Visualização integrada - navegue com scroll vertical</p>
                         </div>
                         
                         {/* Visualização integrada do PDF */}
-                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                           <iframe
-                            src={pdfViewerUrl}
-                            className="w-full h-[700px]"
+                            src={pdfPreviewUrl}
+                            className="w-full h-[600px]"
                             frameBorder="0"
                             title={contentToPreview.titulo}
-                            allow="fullscreen"
+                            allow="autoplay"
                             onError={(e) => {
                               console.log('Tentando URL alternativa para o PDF...');
-                              (e.target as HTMLIFrameElement).src = pdfPreviewUrl;
+                              // Fallback para o Google Docs viewer
+                              (e.target as HTMLIFrameElement).src = pdfViewerUrl;
                             }}
                           />
                         </div>
@@ -838,8 +840,8 @@ export default function ConteudosFixed() {
                         <div className="bg-blue-50 p-4 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h5 className="font-semibold text-blue-900">Disciplina: {contentToPreview.subjectName || 'Relacionamento Interpessoal e Comunicação'}</h5>
-                              <p className="text-sm text-blue-700 mt-1">Conteúdo integrado - visualize sem sair do sistema</p>
+                              <h5 className="font-semibold text-blue-900">Disciplina: {contentToPreview.subjectName || 'Não especificada'}</h5>
+                              <p className="text-sm text-blue-700 mt-1">Navegue com scroll dentro do visualizador acima</p>
                             </div>
                             <div className="text-right">
                               <Badge className="bg-blue-100 text-blue-800">E-book</Badge>
@@ -847,45 +849,100 @@ export default function ConteudosFixed() {
                           </div>
                         </div>
                         
-                        {/* Botões de ação */}
+                        {/* Botões de ação secundários */}
                         <div className="flex justify-center gap-3">
-                          <a 
-                            href={driveInfo.viewUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Abrir no Drive
-                          </a>
                           <a 
                             href={driveInfo.directUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                            className="inline-flex items-center gap-2 bg-gray-600 text-white px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-sm"
                           >
                             <BookOpen className="h-4 w-4" />
-                            Baixar PDF
+                            Baixar E-book
+                          </a>
+                          <a 
+                            href={driveInfo.viewUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Abrir no Drive
                           </a>
                         </div>
                       </div>
                     );
                   }
                   
-                  // Se não for Google Drive, mostra o layout original
+                  // Se não for Google Drive, tentamos mostrar o PDF inline mesmo assim
+                  const getEmbedUrl = (url: string) => {
+                    // Se for um link direto de PDF
+                    if (url.toLowerCase().includes('.pdf')) {
+                      return url;
+                    }
+                    
+                    // Se for Supabase ou similar, tenta usar o link direto
+                    if (url.includes('supabase') || url.includes('storage')) {
+                      return url;
+                    }
+                    
+                    // Para outros casos, usa o Google Docs viewer como fallback
+                    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
+                  };
+
+                  const embedUrl = getEmbedUrl(contentToPreview.url);
+                  
                   return (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <BookOpen className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">E-book disponível para download</p>
-                      <a 
-                        href={contentToPreview.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Baixar E-book
-                      </a>
+                    <div className="space-y-4">
+                      {/* Título do E-book */}
+                      <div className="text-center">
+                        <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                        <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
+                        <p className="text-sm text-gray-600">Visualização integrada - navegue com scroll vertical</p>
+                      </div>
+                      
+                      {/* Visualização integrada do PDF */}
+                      <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <iframe
+                          src={embedUrl}
+                          className="w-full h-[600px]"
+                          frameBorder="0"
+                          title={contentToPreview.titulo}
+                          allow="autoplay"
+                          onError={(e) => {
+                            console.log('Erro no carregamento do PDF, tentando fallback...');
+                            // Fallback para o visualizador do Google se der erro
+                            const fallbackUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(contentToPreview.url)}`;
+                            (e.target as HTMLIFrameElement).src = fallbackUrl;
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Informações do E-book */}
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h5 className="font-semibold text-blue-900">Disciplina: {contentToPreview.subjectName || 'Não especificada'}</h5>
+                            <p className="text-sm text-blue-700 mt-1">Navegue com scroll dentro do visualizador acima</p>
+                          </div>
+                          <div className="text-right">
+                            <Badge className="bg-blue-100 text-blue-800">E-book</Badge>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Botão de download como secundário */}
+                      <div className="flex justify-center">
+                        <a 
+                          href={contentToPreview.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors text-sm"
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          Baixar E-book
+                        </a>
+                      </div>
                     </div>
                   );
                 })()}
