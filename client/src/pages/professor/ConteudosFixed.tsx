@@ -630,11 +630,7 @@ export default function ConteudosFixed() {
               </div>
 
               {/* Conteúdo Embebido */}
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  {getContentIcon(contentToPreview.tipo)}
-                  Conteúdo
-                </h3>
+              <div className="bg-white border rounded-lg p-4">
                 
                 {contentToPreview.tipo === 'video' && contentToPreview.url?.includes('youtube') && (
                   <div className="aspect-video w-full">
@@ -804,13 +800,6 @@ export default function ConteudosFixed() {
                     
                     return (
                       <div className="space-y-4">
-                        {/* Título do E-book */}
-                        <div className="text-center">
-                          <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
-                          <p className="text-sm text-gray-600">Visualização integrada - navegue com scroll vertical</p>
-                        </div>
-                        
                         {/* Visualização integrada do PDF */}
                         <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                           <iframe
@@ -876,13 +865,6 @@ export default function ConteudosFixed() {
                   
                   return (
                     <div className="space-y-4">
-                      {/* Título do E-book */}
-                      <div className="text-center">
-                        <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                        <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
-                        <p className="text-sm text-gray-600">Visualização integrada - navegue com scroll vertical</p>
-                      </div>
-                      
                       {/* Visualização integrada do PDF */}
                       <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                         <iframe
@@ -1062,13 +1044,6 @@ export default function ConteudosFixed() {
                   if (hasUnprocessedIframe) {
                     return (
                       <div className="space-y-4">
-                        {/* Título do E-book */}
-                        <div className="text-center">
-                          <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <h4 className="text-lg font-semibold text-gray-900">E-book Digital</h4>
-                          <p className="text-sm text-gray-600">Visualização integrada - navegue com scroll vertical</p>
-                        </div>
-                        
                         {/* Renderização do HTML iframe usando dangerouslySetInnerHTML */}
                         <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                           <div 
