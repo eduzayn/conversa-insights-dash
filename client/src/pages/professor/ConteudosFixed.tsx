@@ -704,15 +704,8 @@ export default function ConteudosFixed() {
                     const scormPlayerUrl = `/api/scorm/player/scorm-${driveInfo.fileId}?driveFileId=${driveInfo.fileId}`;
                     
                     return (
-                      <div className="space-y-4">
-                        {/* Título do SCORM */}
-                        <div className="text-center">
-                          <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <h4 className="text-lg font-semibold text-gray-900">E-book Interativo SCORM</h4>
-                          <p className="text-sm text-gray-600">Conteúdo educacional sendo executado diretamente no sistema</p>
-                        </div>
-                        
-                        {/* Player SCORM Integrado - Container Responsivo */}
+                      <div className="space-y-3">
+                        {/* Player SCORM Responsivo - Container Principal */}
                         <div 
                           style={{ 
                             width: "100%", 
@@ -725,16 +718,16 @@ export default function ConteudosFixed() {
                           }}
                           className="bg-white"
                         >
-                          {/* Header compacto do SCORM */}
+                          {/* Header compacto */}
                           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <BookOpen className="h-4 w-4" />
-                              <span className="text-sm font-medium">Player SCORM</span>
+                              <span className="text-sm font-medium">E-book Interativo SCORM</span>
                             </div>
                             <Badge className="bg-white/20 text-white border-white/30 text-xs">SCORM 1.2</Badge>
                           </div>
                           
-                          {/* Iframe do Player SCORM - 100% Responsivo */}
+                          {/* Iframe SCORM - 100% Responsivo */}
                           <iframe
                             src={scormPlayerUrl}
                             width="100%"
@@ -750,19 +743,11 @@ export default function ConteudosFixed() {
                           />
                         </div>
                         
-                        {/* Informações compactas da disciplina */}
-                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-200">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">
-                                Disciplina: {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'}
-                              </p>
-                              <p className="text-xs text-blue-700 mt-1">
-                                ✅ Conteúdo SCORM executando com rastreamento completo
-                              </p>
-                            </div>
-                            <Badge className="bg-green-100 text-green-800 text-xs">Executando</Badge>
-                          </div>
+                        {/* Info compacta */}
+                        <div className="bg-blue-50 p-2 rounded border">
+                          <p className="text-xs text-blue-800">
+                            ✅ Disciplina: {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'} | Rastreamento SCORM ativo
+                          </p>
                         </div>
                       </div>
                     );
