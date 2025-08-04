@@ -586,7 +586,7 @@ export default function ConteudosFixed() {
 
       {/* Modal de Preview do Conteúdo */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl w-full max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5 text-blue-600" />
@@ -598,7 +598,7 @@ export default function ConteudosFixed() {
           </DialogHeader>
           
           {contentToPreview && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Header do Conteúdo */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border">
                 <div className="flex items-center justify-between">
@@ -622,7 +622,7 @@ export default function ConteudosFixed() {
               </div>
 
               {/* Conteúdo Embebido */}
-              <div className="bg-white border rounded-lg p-4">
+              <div className="bg-white border rounded-lg p-2">
                 
                 {contentToPreview.tipo === 'video' && contentToPreview.url?.includes('youtube') && (
                   <div className="aspect-video w-full">
@@ -705,41 +705,28 @@ export default function ConteudosFixed() {
                     
                     return (
                       <div className="space-y-3">
-                        {/* Player SCORM Responsivo - Container Principal */}
-                        <div 
-                          style={{ 
-                            width: "100%", 
-                            height: "80vh", 
-                            minHeight: "600px",
-                            overflow: "hidden", 
-                            border: "1px solid #ccc", 
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
-                          }}
-                          className="bg-white"
-                        >
-                          {/* Header compacto */}
-                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <BookOpen className="h-4 w-4" />
-                              <span className="text-sm font-medium">E-book Interativo SCORM</span>
-                            </div>
+                        {/* Player SCORM - Container Completo */}
+                        <div className="w-full border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+                          {/* Header minimalista */}
+                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 flex items-center justify-between text-xs">
+                            <span className="font-medium">E-book Interativo SCORM</span>
                             <Badge className="bg-white/20 text-white border-white/30 text-xs">SCORM 1.2</Badge>
                           </div>
                           
-                          {/* Iframe SCORM - 100% Responsivo */}
+                          {/* Iframe SCORM - Altura Dinâmica */}
                           <iframe
                             src={scormPlayerUrl}
-                            width="100%"
-                            height="calc(100% - 48px)"
+                            className="w-full"
                             style={{ 
+                              height: "70vh",
+                              minHeight: "500px",
                               border: "none",
                               display: "block"
                             }}
-                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
                             allowFullScreen
                             title={`Conteúdo SCORM - ${contentToPreview.titulo}`}
-                            allow="autoplay; fullscreen; microphone; camera; clipboard-read; clipboard-write"
+                            allow="autoplay; fullscreen; microphone; camera; clipboard-read; clipboard-write; geolocation"
                           />
                         </div>
                         
