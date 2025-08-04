@@ -712,73 +712,57 @@ export default function ConteudosFixed() {
                           <p className="text-sm text-gray-600">Conteúdo educacional sendo executado diretamente no sistema</p>
                         </div>
                         
-                        {/* Player SCORM Integrado */}
-                        <div className="border-2 border-blue-200 rounded-lg overflow-hidden bg-white shadow-lg">
-                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <BookOpen className="h-5 w-5" />
-                                <p className="font-medium">Player SCORM Integrado</p>
-                              </div>
-                              <Badge className="bg-white/20 text-white border-white/30">SCORM 1.2</Badge>
+                        {/* Player SCORM Integrado - Container Responsivo */}
+                        <div 
+                          style={{ 
+                            width: "100%", 
+                            height: "80vh", 
+                            minHeight: "600px",
+                            overflow: "hidden", 
+                            border: "1px solid #ccc", 
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                          }}
+                          className="bg-white"
+                        >
+                          {/* Header compacto do SCORM */}
+                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-4 w-4" />
+                              <span className="text-sm font-medium">Player SCORM</span>
                             </div>
+                            <Badge className="bg-white/20 text-white border-white/30 text-xs">SCORM 1.2</Badge>
                           </div>
                           
-                          {/* Iframe do Player SCORM */}
+                          {/* Iframe do Player SCORM - 100% Responsivo */}
                           <iframe
                             src={scormPlayerUrl}
-                            className="w-full h-[600px]"
-                            frameBorder="0"
-                            title={contentToPreview.titulo}
-                            allow="autoplay; fullscreen; microphone; camera"
+                            width="100%"
+                            height="calc(100% - 48px)"
+                            style={{ 
+                              border: "none",
+                              display: "block"
+                            }}
+                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
                             allowFullScreen
+                            title={`Conteúdo SCORM - ${contentToPreview.titulo}`}
+                            allow="autoplay; fullscreen; microphone; camera; clipboard-read; clipboard-write"
                           />
                         </div>
                         
-                        {/* Informações da disciplina */}
-                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+                        {/* Informações compactas da disciplina */}
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-200">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h5 className="font-semibold text-blue-900">
+                              <p className="text-sm font-medium text-blue-900">
                                 Disciplina: {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'}
-                              </h5>
-                              <p className="text-sm text-blue-700 mt-1">
-                                ✅ Conteúdo SCORM executando diretamente no navegador - Experiência completa do aluno
+                              </p>
+                              <p className="text-xs text-blue-700 mt-1">
+                                ✅ Conteúdo SCORM executando com rastreamento completo
                               </p>
                             </div>
-                            <div className="text-right">
-                              <div className="flex flex-col gap-1">
-                                <Badge className="bg-green-100 text-green-800">Executando</Badge>
-                                <Badge className="bg-blue-100 text-blue-800 text-xs">Player Integrado</Badge>
-                              </div>
-                            </div>
+                            <Badge className="bg-green-100 text-green-800 text-xs">Executando</Badge>
                           </div>
-                        </div>
-                        
-                        {/* Recursos do Player */}
-                        <div className="bg-gray-50 p-4 rounded-lg border">
-                          <h6 className="font-semibold text-gray-900 mb-3">Recursos Disponíveis</h6>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                            <div className="flex items-center gap-2 text-green-700">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              Player Integrado
-                            </div>
-                            <div className="flex items-center gap-2 text-blue-700">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              Rastreamento SCORM
-                            </div>
-                            <div className="flex items-center gap-2 text-purple-700">
-                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              Progresso Automático
-                            </div>
-                            <div className="flex items-center gap-2 text-orange-700">
-                              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                              Modo Fullscreen
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-600 mt-3">
-                            O aluno pode interagir com todo o conteúdo diretamente no sistema, sem necessidade de downloads ou ferramentas externas.
-                          </p>
                         </div>
                       </div>
                     );
