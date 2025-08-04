@@ -5200,6 +5200,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para forçar extração de conteúdo SCORM específico
+  app.post("/api/scorm/force-extract", authenticateToken, async (req: any, res) => {
+    try {
+      const { driveFileId } = req.body;
+      
+      if (!driveFileId) {
+        return res.status(400).json({ error: 'driveFileId é obrigatório' });
+      }
+
+      console.log('🔄 Forçando extração do SCORM:', driveFileId);
+      
+      const driveUrl = `https://drive.google.com/file/d/${driveFileId}/view`;
+      const manifest = await scormService.extractScormFromDriveUrl(driveUrl);
+      
+      res.json({
+        success: true,
+        message: 'Conteúdo SCORM extraído com sucesso',
+        manifest,
+        contentPath: `/api/scorm/content/${driveFileId}/index.html`
+      });
+    } catch (error) {
+      console.error('❌ Erro ao forçar extração SCORM:', error);
+      res.status(500).json({ 
+        error: 'Erro ao extrair conteúdo SCORM',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
   return httpServer; // return the HTTP server instance
 }
 
