@@ -3520,6 +3520,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota pública para SCORM viewer (sem autenticação)
+  app.get("/api/public/contents/:id", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const content = await storage.getSubjectContentById(parseInt(id));
+      
+      if (!content) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+      
+      // Mapear conteudo para url para compatibilidade
+      const mappedContent = {
+        ...content,
+        url: content.conteudo || content.url
+      };
+      
+      res.json(mappedContent);
+    } catch (error) {
+      logger.error("Erro ao buscar conteúdo público:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Buscar conteúdo específico por ID
   app.get("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
     try {

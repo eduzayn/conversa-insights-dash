@@ -9,12 +9,17 @@ export default function SCORMViewer() {
   const { contentId } = useParams();
   const navigate = useNavigate();
 
-  // Buscar dados do conteúdo
+  // Buscar dados do conteúdo usando rota pública
   const { data: content, isLoading } = useQuery({
-    queryKey: ['/api/professor/content', contentId],
+    queryKey: ['/api/public/content', contentId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/professor/contents/${contentId}`);
-      return response;
+      const response = await fetch(`/api/public/contents/${contentId}`);
+      
+      if (!response.ok) {
+        throw new Error('Falha ao carregar conteúdo');
+      }
+      
+      return response.json();
     },
     enabled: !!contentId
   });
