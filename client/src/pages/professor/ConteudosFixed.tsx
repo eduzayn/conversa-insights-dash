@@ -146,17 +146,8 @@ export default function ConteudosFixed() {
     const isScorm = isScormContent(content.url || content.conteudo, content.titulo);
     
     if (isScorm) {
-      // Garantir que o token seja acessível na nova aba
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        window.open(`/scorm-viewer/${content.id}`, '_blank');
-      } else {
-        toast({
-          title: "Erro de autenticação",
-          description: "Faça login novamente para acessar o conteúdo SCORM",
-          variant: "destructive"
-        });
-      }
+      // Abrir SCORM em nova aba usando rota pública
+      window.open(`/scorm-viewer/${content.id}`, '_blank');
     } else {
       setContentToPreview(content);
       setPreviewDialogOpen(true);
