@@ -704,37 +704,29 @@ export default function ConteudosFixed() {
                     const scormPlayerUrl = `/api/scorm/player/scorm-${driveInfo.fileId}?driveFileId=${driveInfo.fileId}`;
                     
                     return (
-                      <div className="space-y-3">
-                        {/* Player SCORM - Container Completo */}
-                        <div className="w-full border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
-                          {/* Header minimalista */}
-                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 flex items-center justify-between text-xs">
-                            <span className="font-medium">E-book Interativo SCORM</span>
-                            <Badge className="bg-white/20 text-white border-white/30 text-xs">SCORM 1.2</Badge>
-                          </div>
-                          
-                          {/* Iframe SCORM - Altura Dinâmica */}
-                          <iframe
-                            src={scormPlayerUrl}
-                            className="w-full"
-                            style={{ 
-                              height: "70vh",
-                              minHeight: "500px",
-                              border: "none",
-                              display: "block"
-                            }}
-                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
-                            allowFullScreen
-                            title={`Conteúdo SCORM - ${contentToPreview.titulo}`}
-                            allow="autoplay; fullscreen; microphone; camera; clipboard-read; clipboard-write; geolocation"
-                          />
-                        </div>
+                      <div className="w-full">
+                        {/* Iframe SCORM - Container Único */}
+                        <iframe
+                          src={scormPlayerUrl}
+                          className="w-full border border-gray-300 rounded-lg"
+                          style={{ 
+                            height: "75vh",
+                            minHeight: "600px",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            display: "block"
+                          }}
+                          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
+                          allowFullScreen
+                          title={`Conteúdo SCORM - ${contentToPreview.titulo}`}
+                          allow="autoplay; fullscreen; microphone; camera; clipboard-read; clipboard-write; geolocation"
+                        />
                         
-                        {/* Info compacta */}
-                        <div className="bg-blue-50 p-2 rounded border">
-                          <p className="text-xs text-blue-800">
-                            ✅ Disciplina: {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'} | Rastreamento SCORM ativo
-                          </p>
+                        {/* Status mínimo */}
+                        <div className="mt-2 text-center">
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                            ✅ SCORM ativo | {subjects.find(s => s.id === contentToPreview.subjectId)?.nome || 'Relacionamento Interpessoal e Comunicação'}
+                          </span>
                         </div>
                       </div>
                     );
