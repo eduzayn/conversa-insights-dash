@@ -38,6 +38,7 @@ import LoginHub from "./pages/LoginHub";
 import PortalLayout from "./pages/portal/PortalLayout";
 import ProfessorLogin from "./pages/professor/ProfessorLogin";
 import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
+import SCORMViewer from "./pages/scorm/SCORMViewer";
 import NotFound from "./pages/admin/NotFound";
 
 const App = () => (
@@ -82,6 +83,10 @@ const App = () => (
             <Route path="/professor-login" element={<ProfessorLogin />} />
             <Route path="/professor/login" element={<ProfessorLogin />} />
             <Route path="/professor/*" element={<ProfessorPortalLayout />} />
+            
+            {/* SCORM Viewer - Rota dedicada */}
+            <Route path="/scorm-viewer/:contentId" element={<SCORMViewer />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatButton />

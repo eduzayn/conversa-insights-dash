@@ -3520,6 +3520,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar conteúdo específico por ID
+  app.get("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
+    try {
+      if (!['professor', 'conteudista', 'coordenador'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Acesso negado - apenas professores" });
+      }
+
+      const { id } = req.params;
+      const content = await storage.getSubjectContentById(parseInt(id));
+      
+      if (!content) {
+        return res.status(404).json({ message: "Conteúdo não encontrado" });
+      }
+      
+      // Mapear conteudo para url para compatibilidade
+      const mappedContent = {
+        ...content,
+        url: content.conteudo || content.url
+      };
+      
+      res.json(mappedContent);
+    } catch (error) {
+      logger.error("Erro ao buscar conteúdo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Editar conteúdo
   app.put("/api/professor/contents/:id", authenticateToken, async (req: any, res) => {
     try {

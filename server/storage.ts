@@ -247,6 +247,7 @@ export interface IStorage {
 
   // Portal do Professor - Subject Contents
   getSubjectContents(subjectId: number, professorId?: number): Promise<SubjectContent[]>;
+  getSubjectContentById(id: number): Promise<SubjectContent | null>;
   createSubjectContent(content: InsertSubjectContent): Promise<SubjectContent>;
   updateSubjectContent(id: number, content: Partial<SubjectContent>): Promise<SubjectContent | undefined>;
   deleteSubjectContent(id: number): Promise<void>;
@@ -1408,6 +1409,11 @@ export class DatabaseStorage implements IStorage {
       .from(subjectContents)
       .where(eq(subjectContents.subjectId, subjectId))
       .orderBy(asc(subjectContents.ordem));
+  }
+
+  async getSubjectContentById(id: number): Promise<SubjectContent | null> {
+    const result = await db.select().from(subjectContents).where(eq(subjectContents.id, id));
+    return result[0] || null;
   }
 
   async getAllSubjectContents(): Promise<SubjectContent[]> {

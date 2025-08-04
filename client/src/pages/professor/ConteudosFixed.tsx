@@ -142,8 +142,15 @@ export default function ConteudosFixed() {
   };
 
   const handlePreviewContent = (content: any) => {
-    setContentToPreview(content);
-    setPreviewDialogOpen(true);
+    // Para conteúdo SCORM, abrir em nova aba
+    const isScorm = isScormContent(content.url || content.conteudo, content.titulo);
+    
+    if (isScorm) {
+      window.open(`/scorm-viewer/${content.id}`, '_blank');
+    } else {
+      setContentToPreview(content);
+      setPreviewDialogOpen(true);
+    }
   };
 
   const confirmDelete = () => {

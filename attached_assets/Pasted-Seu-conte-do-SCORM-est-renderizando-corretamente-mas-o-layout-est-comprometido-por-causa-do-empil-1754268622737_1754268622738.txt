@@ -1,0 +1,99 @@
+Seu conteúdo SCORM está renderizando corretamente, mas o layout está comprometido por causa do empilhamento de modais aninhados. Isso pode ser por causa de:
+
+Um modal principal (do sistema) sendo usado para visualização;
+
+O próprio player SCORM inserido em outro iframe/modal;
+
+Estilização com overflow, height: 100% ou position: fixed/absolute aplicada em ambos os níveis.
+
+✅ Soluções recomendadas
+1. Renderize o conteúdo SCORM em uma rota dedicada (fora do modal)
+Abra o conteúdo SCORM em uma nova aba/rota como:
+
+bash
+Copiar
+Editar
+/scorm-viewer/:conteudoId
+Exemplo:
+
+tsx
+Copiar
+Editar
+window.open(`/scorm-viewer/${conteudoId}`, '_blank');
+Vantagens:
+
+Evita o empilhamento de modais.
+
+Permite fullscreen.
+
+SCORM tem mais controle de layout.
+
+2. Garanta que o player SCORM não esteja em um iframe interno
+Verifique se você não está incluindo o conteúdo em um iframe que já está dentro de outro modal:
+
+tsx
+Copiar
+Editar
+<Modal>
+  <iframe src="/scorm/player/..." />
+</Modal>
+Se sim, refatore para que o conteúdo do SCORM seja carregado diretamente na rota, sem iframe aninhado.
+
+3. Remova bordas e paddings fixos do SCORM player
+Certifique-se de que os estilos do player SCORM usam width: 100%, height: 100% e box-sizing: border-box corretamente. Caso contrário, ele pode estar sendo redimensionado de forma inadequada dentro do modal.
+
+💾 Integração com Banco de Dados (Neon)
+Caso ainda não tenha sido feito, aqui está um esboço de como salvar o progresso SCORM no banco Neon:
+
+📘 Estrutura da Tabela:
+sql
+Copiar
+Editar
+CREATE TABLE scorm_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  course_id UUID NOT NULL,
+  scorm_data JSONB NOT NULL,
+  score FLOAT,
+  progress FLOAT,
+  completed BOOLEAN DEFAULT FALSE,
+  updated_at TIMESTAMP DEFAULT now()
+);
+🚀 API para salvar progresso:
+ts
+Copiar
+Editar
+// POST /api/scorm-progress
+{
+  user_id: "uuid-do-usuario",
+  course_id: "uuid-do-curso",
+  scorm_data: {
+    "cmi.core.lesson_status": "incomplete",
+    "cmi.core.score.raw": 75,
+    ...
+  },
+  score: 75,
+  progress: 0.66,
+  completed: false
+}
+🧠 No JavaScript do player:
+js
+Copiar
+Editar
+function saveSCORMProgress(data) {
+  fetch('/api/scorm-progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+Você pode chamar essa função dentro do LMSCommit() do SCORM:
+
+js
+Copiar
+Editar
+LMSCommit = function() {
+  // salvar no banco
+  saveSCORMProgress(cmiData);
+  return "true";
+};
