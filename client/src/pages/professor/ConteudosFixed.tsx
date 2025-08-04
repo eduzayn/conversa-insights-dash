@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 export default function ConteudosFixed() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedSubject, setSelectedSubject] = useState("");
   const [activeTab, setActiveTab] = useState("listar");
   const [editingContent, setEditingContent] = useState<any>(null);
@@ -142,12 +144,12 @@ export default function ConteudosFixed() {
   };
 
   const handlePreviewContent = (content: any) => {
-    // Para conteúdo SCORM, abrir em nova aba
+    // Para conteúdo SCORM, navegar para a página de visualização SCORM
     const isScorm = isScormContent(content.url || content.conteudo, content.titulo);
     
     if (isScorm) {
-      // Abrir SCORM em nova aba usando rota pública
-      window.open(`/scorm-viewer/${content.id}`, '_blank');
+      // Navegar para a página do SCORM viewer no mesmo ambiente
+      navigate(`/scorm-viewer/${content.id}`);
     } else {
       setContentToPreview(content);
       setPreviewDialogOpen(true);
