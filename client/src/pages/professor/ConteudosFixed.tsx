@@ -600,33 +600,25 @@ export default function ConteudosFixed() {
           {contentToPreview && (
             <div className="space-y-6">
               {/* Header do Conteúdo */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
-                <div className="flex items-start justify-between mb-4">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-lg font-semibold text-gray-900">
                       {contentToPreview.titulo}
                     </h1>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-3 text-xs text-gray-600">
                       <div className="flex items-center gap-1">
                         {getContentIcon(contentToPreview.tipo)}
                         <span className="capitalize">{contentToPreview.tipo}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span>•</span>
-                        <span>Ordem: {contentToPreview.ordem}</span>
-                      </div>
+                      <span>•</span>
+                      <span>Ordem: {contentToPreview.ordem}</span>
                     </div>
                   </div>
                   <Badge className={getContentTypeColor(contentToPreview.tipo)}>
                     {contentToPreview.tipo}
                   </Badge>
                 </div>
-                
-                {contentToPreview.descricao && (
-                  <p className="text-gray-700 leading-relaxed">
-                    {contentToPreview.descricao}
-                  </p>
-                )}
               </div>
 
               {/* Conteúdo Embebido */}
