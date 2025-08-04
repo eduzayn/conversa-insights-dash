@@ -673,22 +673,13 @@ export default function ConteudosFixed() {
                           />
                         </div>
                         
-                        {/* Botões de ação */}
-                        <div className="flex justify-center gap-3">
-                          <a 
-                            href={driveInfo.viewUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Abrir no Drive
-                          </a>
+                        {/* Botão de download */}
+                        <div className="flex justify-center">
                           <a 
                             href={driveInfo.directUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                           >
                             <Video className="h-4 w-4" />
                             Baixar Vídeo
@@ -849,8 +840,8 @@ export default function ConteudosFixed() {
                           </div>
                         </div>
                         
-                        {/* Botões de ação secundários */}
-                        <div className="flex justify-center gap-3">
+                        {/* Botão de download como secundário */}
+                        <div className="flex justify-center">
                           <a 
                             href={driveInfo.directUrl} 
                             target="_blank" 
@@ -859,15 +850,6 @@ export default function ConteudosFixed() {
                           >
                             <BookOpen className="h-4 w-4" />
                             Baixar E-book
-                          </a>
-                          <a 
-                            href={driveInfo.viewUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Abrir no Drive
                           </a>
                         </div>
                       </div>
@@ -1020,17 +1002,8 @@ export default function ConteudosFixed() {
                           />
                         </div>
                         
-                        {/* Botões de ação */}
-                        <div className="flex justify-center gap-3">
-                          <a 
-                            href={driveInfo.viewUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Abrir no Drive
-                          </a>
+                        {/* Botão de download */}
+                        <div className="flex justify-center">
                           <a 
                             href={driveInfo.directUrl} 
                             target="_blank" 
