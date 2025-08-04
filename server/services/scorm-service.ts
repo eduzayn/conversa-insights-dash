@@ -46,32 +46,90 @@ export class ScormService {
     }
 
     try {
-      // Baixar arquivo do Google Drive
-      const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      const zipPath = path.join(this.extractedContentPath, `${fileId}.zip`);
-      const extractPath = path.join(this.extractedContentPath, fileId);
+      // Tentar diferentes URLs de download do Google Drive
+      const downloadUrls = [
+        `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`,
+        `https://drive.google.com/file/d/${fileId}/edit?usp=sharing&export=download`,
+        `https://drive.google.com/uc?id=${fileId}&export=download`
+      ];
 
-      // Baixar arquivo
-      const response = await axios({
-        method: 'GET',
-        url: downloadUrl,
-        responseType: 'stream'
-      });
+      let success = false;
+      let extractPath = path.join(this.extractedContentPath, fileId);
 
-      await pipelineAsync(response.data, createWriteStream(zipPath));
+      for (const downloadUrl of downloadUrls) {
+        try {
+          console.log(`🔄 Tentando baixar de: ${downloadUrl}`);
+          const zipPath = path.join(this.extractedContentPath, `${fileId}.zip`);
+          
+          // Baixar arquivo
+          const response = await axios({
+            method: 'GET',
+            url: downloadUrl,
+            responseType: 'stream',
+            timeout: 30000,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+          });
 
-      // Extrair ZIP
-      const zip = new AdmZip(zipPath);
-      zip.extractAllTo(extractPath, true);
+          await pipelineAsync(response.data, createWriteStream(zipPath));
+          
+          // Verificar se é um arquivo ZIP válido
+          const stats = fs.statSync(zipPath);
+          console.log(`📁 Arquivo baixado: ${stats.size} bytes`);
+          
+          if (stats.size < 1000) {
+            console.log('⚠️ Arquivo muito pequeno, provavelmente não é um ZIP válido');
+            fs.unlinkSync(zipPath);
+            continue;
+          }
+
+          try {
+            // Tentar extrair ZIP
+            const zip = new AdmZip(zipPath);
+            const entries = zip.getEntries();
+            
+            console.log(`📦 Encontradas ${entries.length} entradas no ZIP`);
+            entries.forEach(entry => {
+              console.log(`  - ${entry.entryName} (${entry.header.size} bytes)`);
+            });
+            
+            // Verificar se tem conteúdo SCORM válido
+            const hasManifest = entries.some(entry => entry.entryName.toLowerCase().includes('imsmanifest.xml'));
+            const hasIndex = entries.some(entry => entry.entryName.toLowerCase().includes('index.html'));
+            
+            if (!hasManifest && !hasIndex) {
+              console.log('⚠️ Arquivo ZIP não contém estrutura SCORM válida');
+              fs.unlinkSync(zipPath);
+              continue;
+            }
+
+            zip.extractAllTo(extractPath, true);
+            success = true;
+            fs.unlinkSync(zipPath);
+            break;
+            
+          } catch (zipError) {
+            console.log('❌ Erro ao extrair ZIP:', zipError);
+            if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+            continue;
+          }
+          
+        } catch (downloadError) {
+          console.log(`❌ Erro no download da URL: ${downloadError}`);
+          continue;
+        }
+      }
+
+      if (!success) {
+        throw new Error('Não foi possível baixar e extrair o conteúdo SCORM de nenhuma URL');
+      }
 
       // Procurar pelo manifest
       const manifest = this.parseManifest(extractPath);
       
       // Salvar em cache
       this.scormCache.set(fileId, manifest);
-
-      // Limpar arquivo ZIP
-      fs.unlinkSync(zipPath);
 
       return manifest;
     } catch (error) {
