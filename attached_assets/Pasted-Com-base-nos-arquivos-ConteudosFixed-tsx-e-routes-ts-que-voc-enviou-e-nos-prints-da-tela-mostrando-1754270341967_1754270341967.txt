@@ -1,0 +1,73 @@
+Com base nos arquivos ConteudosFixed.tsx e routes.ts que você enviou, e nos prints da tela mostrando que:
+
+O modal agora abre corretamente.
+
+O conteúdo SCORM aparece de forma simples/distorcida.
+
+O erro anterior “Conteúdo não encontrado” sumiu.
+
+O problema agora está no modo como o conteúdo SCORM está sendo renderizado no modal scorm-viewer.
+
+🎯 O problema mais provável
+Seu sistema está abrindo o SCORM dentro de um iframe simples, mas o SCORM precisa ser interpretado por um player que suporte a API SCORM 1.2 ou SCORM 2004. Quando o iframe apenas renderiza o index.html de forma direta, ele ignora a comunicação SCORM, que exige JavaScript especializado e persistência (como localStorage ou banco).
+
+✅ Como resolver isso corretamente
+🧩 1. Use um player SCORM robusto
+Você precisa garantir que o SCORM está sendo carregado por um player compatível, como:
+
+SCORM Cloud
+
+Rustici SCORM Player
+
+Adapt Learning
+
+Ou o xAPI Wrapper se for usar xAPI (TinCan)
+
+⚠️ Alternativamente, você pode usar um player open source como pipwerks SCORM wrapper, mas ele precisa ser adicionado corretamente à sua aplicação.
+
+🧠 2. Estrutura ideal no backend
+Você precisa:
+
+Fazer upload e descompactar o pacote SCORM (.zip) em uma pasta acessível (/public/scorm/{id}/index.html).
+
+Salvar o caminho do index.html no banco (ou montar dinamicamente).
+
+Renderizar um iframe assim:
+
+tsx
+Copiar
+Editar
+<iframe
+  src={`/scorm/${conteudoId}/index.html`}
+  width="100%"
+  height="600px"
+  allowFullScreen
+/>
+✅ Dica prática com seu arquivo routes.ts
+Você já tem uma rota /scorm-viewer/:id, mas ela está só chamando um modal e redirecionando para uma URL estática. Você precisa garantir que essa URL esteja correta, por exemplo:
+
+ts
+Copiar
+Editar
+router.get("/scorm-viewer/:id", async (req, res) => {
+  const conteudo = await db.conteudos.findUnique({
+    where: { id: parseInt(req.params.id) },
+  });
+
+  if (!conteudo) {
+    return res.status(404).send("Conteúdo não encontrado");
+  }
+
+  const scormPath = `/scorm/${conteudo.slugOuNomePasta}/index.html`;
+
+  res.redirect(scormPath); // Ou renderize diretamente em um iframe
+});
+🧪 Diagnóstico do seu caso
+Com base nos seus prints:
+
+O botão de preview está tentando abrir diretamente o scorm-viewer/:id
+
+A rota já foi corrigida e não dá erro 404
+
+Mas o SCORM continua sem interatividade — o que indica que o iframe está apontando para uma URL errada ou incompleta, ou o SCORM não foi extraído corretamente
+
