@@ -97,7 +97,6 @@ export default function Certificacoes() {
   const [activeTab, setActiveTab] = useState('pos');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterModalidade, setFilterModalidade] = useState('');
 
   const [filterPeriodo, setFilterPeriodo] = useState('');
   const [dataInicio, setDataInicio] = useState('');
@@ -240,7 +239,7 @@ export default function Certificacoes() {
   // Limpar filtros quando a aba muda
   useEffect(() => {
     setFilterStatus('');
-    setFilterModalidade('');
+
     setFilterPeriodo('');
     setDataInicio('');
     setDataFim('');
@@ -322,7 +321,7 @@ export default function Certificacoes() {
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
       status: filterStatus,
-      modalidade: filterModalidade,
+
       periodo: filterPeriodo,
       dataInicio,
       dataFim,
@@ -341,10 +340,7 @@ export default function Certificacoes() {
       // A modalidade agora representa formato (EAD/Presencial/Híbrido), não tipo acadêmico
       
       if (filterStatus && filterStatus !== 'todos') params.append('status', filterStatus);
-      // Se há filtro manual de modalidade, ele sobrescreve o filtro da aba
-      if (filterModalidade && filterModalidade !== 'todas') {
-        params.set('modalidade', filterModalidade);
-      }
+
 
       if (searchTerm && searchTerm.trim()) params.append('search', searchTerm.trim());
       
@@ -374,7 +370,7 @@ export default function Certificacoes() {
   // Resetar página quando filtros mudarem
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, filterStatus, filterModalidade, filterPeriodo, searchTerm]);
+  }, [activeTab, filterStatus, filterPeriodo, searchTerm]);
 
   const certifications = certificationsData?.data || [];
   const totalCertifications = parseInt(certificationsData?.total) || 0;
@@ -1210,7 +1206,7 @@ export default function Certificacoes() {
                     <CardTitle>Filtros</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <div>
                         <Label htmlFor="search">Buscar</Label>
                         <div className="relative">
@@ -1240,20 +1236,7 @@ export default function Certificacoes() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
-                        <Label htmlFor="filter-modalidade">Formato de Entrega</Label>
-                        <Select value={filterModalidade} onValueChange={setFilterModalidade}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Todos os formatos" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="todas">Todos</SelectItem>
-                            <SelectItem value="Presencial">Presencial</SelectItem>
-                            <SelectItem value="EAD">EAD (Ensino a Distância)</SelectItem>
-                            <SelectItem value="Híbrido">Híbrido</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+
                       <div>
                         <Label htmlFor="filter-periodo">Período</Label>
                         <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
@@ -1306,7 +1289,7 @@ export default function Certificacoes() {
                         Exibindo <strong>{(currentPage - 1) * pageSize + 1}</strong> a <strong>{Math.min(currentPage * pageSize, totalCertifications)}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
                         {searchTerm && ` para "${searchTerm}"`}
                         {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
-                        {filterModalidade && filterModalidade !== 'todas' && ` no formato "${filterModalidade}"`}
+
                       </>
                     )}
                   </div>
