@@ -1067,35 +1067,10 @@ export const insertUserActivitySchema = createInsertSchema(userActivity).pick({
   date: true,
 });
 
-export const insertCertificationSchema = createInsertSchema(certifications).pick({
-  inicio: true,
-  aluno: true,
-  cpf: true,
-  modalidade: true,
-  curso: true,
-  financeiro: true,
-  documentacao: true,
-  plataforma: true,
-  tutoria: true,
-  observacao: true,
-  inicioCertificacao: true,
-  dataPrevista: true,
-  dataEntrega: true,
-  diploma: true,
-  status: true,
-  categoria: true,
-  prioridade: true,
-  situacaoAnalise: true,
-  dataInicio: true,
-  dataExpiracao: true,
-  extensaoContratada: true,
-  extensaoData: true,
-  disciplinasRestantes: true,
-  telefone: true,
-  cargaHoraria: true,
-  tcc: true,
-  praticasPedagogicas: true,
-  estagio: true,
+export const insertCertificationSchema = createInsertSchema(certifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertCertificationHistorySchema = createInsertSchema(certificationHistory).pick({

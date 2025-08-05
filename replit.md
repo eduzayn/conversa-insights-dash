@@ -106,3 +106,10 @@ Preferred communication style: Simple, everyday language.
   * Corrigido erro "response.json is not a function" no login do professor
   * Resolvido problema de dupla chamada response.json() que causava falha na autenticação
   * Sistema de logout agora limpa sessão completamente e redireciona corretamente
+
+- August 5, 2025. CORREÇÃO CRÍTICA: BUG DE PERSISTÊNCIA DE DADOS NO MÓDULO DE CERTIFICAÇÕES
+  * Corrigido bug onde campos TCC, Estágio e Práticas Pedagógicas não persistiam após salvar
+  * Problema identificado no insertCertificationSchema que excluía campos importantes da validação
+  * Schema alterado de .pick() para .omit() incluindo TODOS os campos da tabela
+  * Outros campos como financeiro e documentação também foram corrigidos automaticamente
+  * Sistema agora persiste corretamente todos os dados de certificação durante edição
