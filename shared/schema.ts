@@ -1093,6 +1093,9 @@ export const insertCertificationSchema = createInsertSchema(certifications).pick
   disciplinasRestantes: true,
   telefone: true,
   cargaHoraria: true,
+  tcc: true,
+  praticasPedagogicas: true,
+  estagio: true,
 });
 
 export const insertCertificationHistorySchema = createInsertSchema(certificationHistory).pick({
