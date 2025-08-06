@@ -475,13 +475,13 @@ export default function Certificacoes() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value={activeTab} className="space-y-4 relative">
+              <TabsContent value={activeTab} className="space-y-4 relative min-h-[800px]">
                 {/* Overlay de loading durante transições entre abas */}
                 {isFetching && !isInitialLoading && (
-                  <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-center justify-center">
-                    <div className="flex items-center gap-2 bg-white rounded-lg shadow-md px-4 py-2">
+                  <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-10 flex items-center justify-center transition-opacity duration-200">
+                    <div className="flex items-center gap-2 bg-white rounded-lg shadow-lg border px-4 py-3">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <span className="text-sm text-gray-600">Carregando dados...</span>
+                      <span className="text-sm text-gray-700 font-medium">Carregando dados...</span>
                     </div>
                   </div>
                 )}
@@ -535,49 +535,51 @@ export default function Certificacoes() {
                   </div>
                 </div>
 
-                {/* Lista de certificações */}
-                {isInitialLoading ? (
-                  <div className="flex justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {certifications.map((certification: Certification) => {
-                      // Verificar se esta certificação está em algum grupo de duplicatas
-                      const isDuplicate = Object.values(duplicates).some(group => 
-                        group.some(cert => cert.id === certification.id)
-                      );
+                {/* Lista de certificações com altura mínima fixa para evitar layout shift */}
+                <div className="min-h-[600px]">
+                  {isInitialLoading ? (
+                    <div className="flex justify-center p-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {certifications.map((certification: Certification) => {
+                        // Verificar se esta certificação está em algum grupo de duplicatas
+                        const isDuplicate = Object.values(duplicates).some(group => 
+                          group.some(cert => cert.id === certification.id)
+                        );
+                        
+                        return (
+                          <CertificationCard
+                            key={certification.id}
+                            certification={certification}
+                            isDuplicate={isDuplicate}
+                            onEdit={setSelectedCertification}
+                            onDelete={handleDeleteCertification}
+                            onDuplicate={handleDuplicateCertification}
+                          />
+                        );
+                      })}
                       
-                      return (
-                        <CertificationCard
-                          key={certification.id}
-                          certification={certification}
-                          isDuplicate={isDuplicate}
-                          onEdit={setSelectedCertification}
-                          onDelete={handleDeleteCertification}
-                          onDuplicate={handleDuplicateCertification}
-                        />
-                      );
-                    })}
-                    
-                    {certifications.length === 0 && (
-                      <Card>
-                        <CardContent className="p-8 text-center">
-                          <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                          <div className="text-lg font-medium text-gray-900">
-                            {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
-                          </div>
-                          <div className="text-gray-600">
-                            {activeTab === 'eja' 
-                              ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
-                              : 'Crie uma nova certificação para começar'
-                            }
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                )}
+                      {certifications.length === 0 && (
+                        <Card>
+                          <CardContent className="p-8 text-center">
+                            <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            <div className="text-lg font-medium text-gray-900">
+                              {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
+                            </div>
+                            <div className="text-gray-600">
+                              {activeTab === 'eja' 
+                                ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
+                                : 'Crie uma nova certificação para começar'
+                              }
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Paginação inferior */}
                 <CertificationPagination
