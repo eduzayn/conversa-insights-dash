@@ -475,7 +475,7 @@ export default function Certificacoes() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value={activeTab} className="space-y-4 relative min-h-[800px]">
+              <TabsContent value={activeTab} className="space-y-4 relative">
                 {/* Overlay de loading durante transições entre abas */}
                 {isFetching && !isInitialLoading && (
                   <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-10 flex items-center justify-center transition-opacity duration-200">
@@ -535,8 +535,8 @@ export default function Certificacoes() {
                   </div>
                 </div>
 
-                {/* Lista de certificações com altura mínima fixa para evitar layout shift */}
-                <div className="min-h-[600px]">
+                {/* Lista de certificações */}
+                <div className={certifications.length > 0 ? "min-h-[500px]" : "min-h-[300px]"}>
                   {isInitialLoading ? (
                     <div className="flex justify-center p-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -562,20 +562,22 @@ export default function Certificacoes() {
                       })}
                       
                       {certifications.length === 0 && (
-                        <Card>
-                          <CardContent className="p-8 text-center">
-                            <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            <div className="text-lg font-medium text-gray-900">
-                              {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
-                            </div>
-                            <div className="text-gray-600">
-                              {activeTab === 'eja' 
-                                ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
-                                : 'Crie uma nova certificação para começar'
-                              }
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <div className="flex justify-center items-center min-h-[250px]">
+                          <Card className="w-full max-w-md">
+                            <CardContent className="p-8 text-center">
+                              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                              <div className="text-lg font-medium text-gray-900 mb-2">
+                                {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
+                              </div>
+                              <div className="text-gray-600 text-sm">
+                                {activeTab === 'eja' 
+                                  ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
+                                  : 'Crie uma nova certificação para começar'
+                                }
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
                       )}
                     </div>
                   )}
