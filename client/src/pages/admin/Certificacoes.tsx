@@ -407,7 +407,10 @@ export default function Certificacoes() {
                       onCourseSearchOpenChange={setCourseSearchOpen}
                       onSubmit={handleCreateCertification}
                       onCancel={() => setIsCreateDialogOpen(false)}
-                      onFormChange={setNewCertification}
+                      onFormChange={(data) => setNewCertification({
+                        ...data,
+                        cargaHoraria: typeof data.cargaHoraria === 'number' ? data.cargaHoraria.toString() : data.cargaHoraria
+                      })}
                       onNewCourseClick={() => setIsNewCourseDialogOpen(true)}
                       isSubmitting={createMutation.isPending}
                     />
@@ -621,7 +624,7 @@ export default function Certificacoes() {
                 cpf: selectedCertification.cpf || '',
                 modalidade: selectedCertification.modalidade || '',
                 curso: selectedCertification.curso || '',
-                cargaHoraria: selectedCertification.cargaHoraria || '',
+                cargaHoraria: selectedCertification.cargaHoraria?.toString() || '',
                 financeiro: selectedCertification.financeiro || 'em_dia',
                 documentacao: selectedCertification.documentacao || 'pendente',
                 plataforma: selectedCertification.plataforma || 'pendente',
@@ -646,7 +649,8 @@ export default function Certificacoes() {
                 if (selectedCertification) {
                   setSelectedCertification({
                     ...selectedCertification,
-                    ...data
+                    ...data,
+                    cargaHoraria: typeof data.cargaHoraria === 'string' ? parseInt(data.cargaHoraria) || 0 : data.cargaHoraria
                   });
                 }
               }}

@@ -137,3 +137,14 @@ Preferred communication style: Simple, everyday language.
   * Mantida exatamente a mesma funcionalidade e aparência visual
   * Arquivo principal reduzido para 500+ linhas com melhor organização e manutenibilidade
   * Removida paginação duplicada, mantendo apenas na parte inferior conforme solicitado
+
+- August 6, 2025. CORREÇÃO CRÍTICA DE UX/UI: ELIMINAÇÃO DE PISCADAS BRANCAS E LAYOUT SHIFTS
+  * Sistema de cache otimizado do React Query (30s stale time, 5min garbage collection)
+  * Placeholder data implementado para manter dados anteriores durante carregamento
+  * Overlay de loading removido para evitar embaçamento da tela
+  * Indicador de loading discreto no canto superior direito durante transições
+  * Altura mínima dinâmica implementada (500px com dados, 300px sem dados)
+  * Paginação condicional que só aparece quando há dados para mostrar
+  * Layout shift corrigido com containers de altura consistente
+  * Erro TypeScript de compatibilidade de tipos cargaHoraria resolvido
+  * Sistema agora mantém UX fluida sem interrupções visuais durante navegação entre abas
