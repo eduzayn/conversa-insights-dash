@@ -107,21 +107,41 @@ export default function Certificacoes() {
   // Estado para novo curso
   const [newCourseData, setNewCourseData] = useState({ nome: '', cargaHoraria: '' });
 
-  // Algoritmo de detecção de duplicatas (mantido igual ao original)
+  // Algoritmo de detecção de duplicatas aprimorado
   const duplicates = useMemo(() => {
     const duplicateMap: { [key: string]: Certification[] } = {};
     
     certifications.forEach((cert: Certification) => {
-      const normalizedName = cert.aluno.toLowerCase().trim();
-      const courseWords = cert.curso?.toLowerCase().split(' ').filter(word => word.length > 3) || [];
+      if (!cert.curso || !cert.aluno) return;
       
       certifications.forEach((otherCert: Certification) => {
+        if (!otherCert.curso || !otherCert.aluno) return;
         if (cert.id !== otherCert.id && cert.aluno === otherCert.aluno) {
-          const otherCourseWords = otherCert.curso?.toLowerCase().split(' ').filter(word => word.length > 3) || [];
-          const commonWords = courseWords.filter(word => otherCourseWords.includes(word));
           
-          if (commonWords.length >= 2) {
-            const key = `${normalizedName}-${commonWords.sort().join('-')}`;
+          // Normalizar nomes dos cursos para comparação
+          const course1 = cert.curso.toLowerCase()
+            .replace(/[^\w\s]/g, '') // Remove pontuação
+            .replace(/\s+/g, ' ')    // Normaliza espaços
+            .trim();
+          
+          const course2 = otherCert.curso.toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          // Considera duplicata apenas se:
+          // 1. Os cursos são exatamente iguais após normalização OU
+          // 2. Um curso contém completamente o outro (não só palavras soltas)
+          const isExactMatch = course1 === course2;
+          const isContained = course1.includes(course2) || course2.includes(course1);
+          
+          // Verifica se têm pelo menos 80% de similaridade no nome
+          const similarity = calculateSimilarity(course1, course2);
+          const isHighSimilarity = similarity >= 0.8;
+          
+          if (isExactMatch || (isContained && course1.length > 10 && course2.length > 10) || isHighSimilarity) {
+            const key = `${cert.aluno.toLowerCase()}-${Math.min(cert.id, otherCert.id)}-${Math.max(cert.id, otherCert.id)}`;
+            
             if (!duplicateMap[key]) {
               duplicateMap[key] = [];
             }
@@ -136,6 +156,7 @@ export default function Certificacoes() {
       });
     });
     
+    // Remove grupos com menos de 2 certificações
     Object.keys(duplicateMap).forEach(key => {
       if (duplicateMap[key].length < 2) {
         delete duplicateMap[key];
@@ -144,6 +165,46 @@ export default function Certificacoes() {
     
     return duplicateMap;
   }, [certifications]);
+  
+  // Função para calcular similaridade entre duas strings
+  const calculateSimilarity = (str1: string, str2: string): number => {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    const editDistance = levenshteinDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length;
+  };
+  
+  // Função para calcular distância de Levenshtein
+  const levenshteinDistance = (str1: string, str2: string): number => {
+    const matrix = [];
+    
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substituição
+            matrix[i][j - 1] + 1,     // inserção
+            matrix[i - 1][j] + 1      // remoção
+          );
+        }
+      }
+    }
+    
+    return matrix[str2.length][str1.length];
+  };
 
   // Atualizar categoria quando muda a aba
   useEffect(() => {
