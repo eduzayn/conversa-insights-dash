@@ -113,11 +113,11 @@ export default function Certificacoes() {
     
     certifications.forEach((cert: Certification) => {
       const normalizedName = cert.aluno.toLowerCase().trim();
-      const courseWords = cert.curso.toLowerCase().split(' ').filter(word => word.length > 3);
+      const courseWords = cert.curso?.toLowerCase().split(' ').filter(word => word.length > 3) || [];
       
       certifications.forEach((otherCert: Certification) => {
         if (cert.id !== otherCert.id && cert.aluno === otherCert.aluno) {
-          const otherCourseWords = otherCert.curso.toLowerCase().split(' ').filter(word => word.length > 3);
+          const otherCourseWords = otherCert.curso?.toLowerCase().split(' ').filter(word => word.length > 3) || [];
           const commonWords = courseWords.filter(word => otherCourseWords.includes(word));
           
           if (commonWords.length >= 2) {
@@ -216,15 +216,15 @@ export default function Certificacoes() {
   const handleDuplicateCertification = (certification: Certification) => {
     const duplicatedData = {
       aluno: certification.aluno,
-      cpf: certification.cpf,
+      cpf: certification.cpf || '',
       modalidade: certification.modalidade || '',
       curso: '',
       cargaHoraria: '',
-      financeiro: certification.financeiro,
-      documentacao: certification.documentacao,
-      plataforma: certification.plataforma,
+      financeiro: certification.financeiro || 'em_dia',
+      documentacao: certification.documentacao || 'pendente',
+      plataforma: certification.plataforma || 'pendente',
       tutoria: certification.tutoria || '',
-      observacao: `Duplicado de: ${certification.curso}`,
+      observacao: `Duplicado de: ${certification.curso || 'Curso não informado'}`,
       inicioCertificacao: '',
       dataPrevista: '',
       dataEntrega: '',
@@ -424,18 +424,34 @@ export default function Certificacoes() {
                   onDataFimChange={setDataFim}
                 />
 
-                {/* Paginação e controles */}
-                <CertificationPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalCertifications={totalCertifications}
-                  pageSize={pageSize}
-                  searchTerm={searchTerm}
-                  filterStatus={filterStatus}
-                  isLoading={isLoading}
-                  onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
-                />
+                {/* Contador de Resultados e Controles de Tamanho de Página */}
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    {isLoading ? (
+                      "Carregando..."
+                    ) : (
+                      <>
+                        Exibindo <strong>{(currentPage - 1) * pageSize + 1}</strong> a <strong>{Math.min(currentPage * pageSize, totalCertifications)}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
+                        {searchTerm && ` para "${searchTerm}"`}
+                        {filterStatus && filterStatus !== 'todos' && ` com status "${filterStatus}"`}
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="page-size" className="text-sm">Mostrar:</label>
+                    <select 
+                      id="page-size"
+                      value={pageSize.toString()} 
+                      onChange={(e) => handlePageSizeChange(e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                    >
+                      <option value="20">20</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                  </div>
+                </div>
 
                 {/* Lista de certificações */}
                 {isLoading ? (

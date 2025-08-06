@@ -124,3 +124,16 @@ Preferred communication style: Simple, everyday language.
   * Backend atualizado com parâmetro tipoData para filtrar por diferentes campos de data
   * Sistema agora permite filtrar com precisão por qualquer tipo de data específica
   * Removido filtro "Formato de Entrega" conforme solicitação do usuário
+
+- August 6, 2025. REFATORAÇÃO COMPLETA DO MÓDULO DE CERTIFICAÇÕES EM COMPONENTES MODULARES
+  * Arquivo Certificacoes.tsx original de 2.042 linhas dividido em componentes modulares
+  * Hook customizado useCertifications.ts criado para centralizar lógica de API e mutations
+  * Componente CertificationFilters.tsx para todos os filtros e busca
+  * Componente CertificationCard.tsx para exibir cada certificação individual
+  * Componente CertificationForm.tsx unificado para criar e editar certificações
+  * Componente NewCourseDialog.tsx para modal de criação de novos cursos
+  * Componente DuplicateAlert.tsx para alertas de certificações duplicadas
+  * Componente CertificationPagination.tsx para controles de paginação
+  * Mantida exatamente a mesma funcionalidade e aparência visual
+  * Arquivo principal reduzido para 500+ linhas com melhor organização e manutenibilidade
+  * Removida paginação duplicada, mantendo apenas na parte inferior conforme solicitado
