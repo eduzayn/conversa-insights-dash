@@ -962,27 +962,33 @@ export class DatabaseStorage implements IStorage {
 
       // Filtros de data - agora com suporte a diferentes tipos de data
       if (filters.dataInicio || filters.dataFim) {
-        const tipoData = filters.tipoData || 'data_prevista';
-        let campoData;
+        const tipoData = filters.tipoData || 'dataPrevista';
         
-        switch(tipoData) {
-          case 'inicio_certificacao':
-            campoData = certifications.inicioCertificacao;
-            break;
-          case 'data_entrega':
-            campoData = certifications.dataEntrega;
-            break;
-          case 'data_prevista':
-          default:
-            campoData = certifications.dataPrevista;
-            break;
-        }
+        // Mapear nomes do frontend para os campos do banco
+        const camposValidos = ['dataPrevista', 'inicioCertificacao', 'dataEntrega'];
         
-        if (filters.dataInicio) {
-          conditions.push(gte(campoData, filters.dataInicio));
-        }
-        if (filters.dataFim) {
-          conditions.push(lte(campoData, filters.dataFim));
+        if (camposValidos.includes(tipoData)) {
+          let campoData;
+          
+          switch(tipoData) {
+            case 'inicioCertificacao':
+              campoData = certifications.inicioCertificacao;
+              break;
+            case 'dataEntrega':
+              campoData = certifications.dataEntrega;
+              break;
+            case 'dataPrevista':
+            default:
+              campoData = certifications.dataPrevista;
+              break;
+          }
+          
+          if (filters.dataInicio) {
+            conditions.push(gte(campoData, filters.dataInicio));
+          }
+          if (filters.dataFim) {
+            conditions.push(lte(campoData, filters.dataFim));
+          }
         }
       }
     }
