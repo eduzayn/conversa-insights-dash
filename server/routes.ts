@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ===== AUTENTICAÇÃO E USUÁRIOS =====
   
   // Login robusto com múltiplas validações
-  app.post("/api/auth/login", asyncHandler(async (req: AuthenticatedRequest, res) => {
+  app.post("/api/auth/login", asyncHandler(async (req: AuthenticatedRequest, res: any) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
       
@@ -151,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Endpoint para renovar token JWT
-  app.post("/api/auth/refresh", asyncHandler(async (req: AuthenticatedRequest, res) => {
+  app.post("/api/auth/refresh", asyncHandler(async (req: AuthenticatedRequest, res: any) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -960,7 +960,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         enrollment: enrollment,
         courseInfo: {
           nome: course.nome,
-          preco: course.preco,
           modalidade: course.modalidade
         }
       });
@@ -1042,7 +1041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })),
             avaliacoes: avaliacoes.map(avaliacao => ({
               ...avaliacao,
-              status: avaliacao.dataFechamento > new Date().toISOString() ? "disponivel" : "expirada",
+              status: avaliacao.dataFechamento && new Date(avaliacao.dataFechamento) > new Date() ? "disponivel" : "expirada",
               nota: Math.random() > 0.5 ? Math.floor(Math.random() * 10) + 1 : undefined,
               professorNome: "Prof. João Silva"
             }))
@@ -1491,7 +1490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'wendellacarioca@gmail.com': 'Documentação'
             };
             
-            equipe = emailToTeam[conv.botconversaManagerEmail] || 'Comercial';
+            equipe = emailToTeam[conv.botconversaManagerEmail as keyof typeof emailToTeam] || 'Comercial';
           }
         } else {
           // Fallback para atendente do sistema local
@@ -1499,7 +1498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           attendantName = attendant ? attendant.name || attendant.username : 'Não atribuído';
           
           if (attendant) {
-            const attendantTeam = teams.find(t => t.id === attendant.teamId);
+            const attendantTeam = teams.find(t => t.id === (attendant as any).teamId);
             equipe = attendantTeam ? attendantTeam.name : 'Atendimento';
           }
         }

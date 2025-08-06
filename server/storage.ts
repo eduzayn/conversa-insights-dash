@@ -118,11 +118,10 @@ import {
   type InsertNegociacaoExpirado,
   type Quitacao,
   type InsertQuitacao,
-  enviosUnicv,
   type EnvioUnicv,
   type InsertEnvioUnicv,
-  enviosFamar,
   type EnvioFamar,
+
   type InsertEnvioFamar
 } from "@shared/schema";
 import { db } from "./db";
@@ -1770,7 +1769,7 @@ export class DatabaseStorage implements IStorage {
       .insert(academicDisciplines)
       .values({
         ...discipline,
-        isActive: discipline.isActive ?? true,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -2069,7 +2068,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         status: 'emitido',
         emitidoPor,
-        dataEmissao: new Date(),
+        dataEmissao: new Date().toISOString().split('T')[0],
         registroId: `REG-${Date.now()}`,
         pdfUrl: `https://certificados.edu.br/${id}/${randomUUID()}.pdf`,
         updatedAt: new Date()
@@ -2501,7 +2500,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEnvioUnicv(id: number): Promise<boolean> {
     const result = await db.delete(enviosUnicv).where(eq(enviosUnicv.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getEnvioUnicvById(id: number): Promise<EnvioUnicv | undefined> {
@@ -2580,7 +2579,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEnvioFamar(id: number): Promise<boolean> {
     const result = await db.delete(enviosFamar).where(eq(enviosFamar.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getEnvioFamarById(id: number): Promise<EnvioFamar | undefined> {
@@ -2684,9 +2683,7 @@ export class DatabaseStorage implements IStorage {
     const [newQuitacao] = await db
       .insert(quitacoes)
       .values({
-        ...quitacao,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        ...quitacao
       })
       .returning();
     return newQuitacao;
@@ -2739,7 +2736,7 @@ export class DatabaseStorage implements IStorage {
       .delete(quitacoes)
       .where(eq(quitacoes.id, id));
     
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getQuitacaoById(id: number): Promise<Quitacao | undefined> {

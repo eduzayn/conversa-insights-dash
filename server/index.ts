@@ -51,27 +51,24 @@ async function startServer() {
     
     const port = process.env.PORT || 5000;
     server.listen(port, () => {
-      logger.production(`Server running on port ${port}`, { 
-        environment: process.env.NODE_ENV,
-        timestamp: new Date().toISOString()
-      });
+      logger.production();
       console.log(`Environment: ${process.env.NODE_ENV}`);
       log(`serving on port ${port}`);
     });
     
     // Tratamento de sinais para shutdown graceful
     process.on('SIGTERM', () => {
-      logger.production('SIGTERM recebido, encerrando servidor graciosamente...');
+      logger.production();
       server.close(() => {
-        logger.production('Servidor encerrado com sucesso');
+        logger.production();
         process.exit(0);
       });
     });
     
     process.on('SIGINT', () => {
-      logger.production('SIGINT recebido, encerrando servidor graciosamente...');
+      logger.production();
       server.close(() => {
-        logger.production('Servidor encerrado com sucesso');
+        logger.production();
         process.exit(0);
       });
     });
