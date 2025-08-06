@@ -889,7 +889,16 @@ export default function Certificacoes() {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="dataPrevista">Data Inicio Certificação</Label>
+                      <Label htmlFor="inicioCertificacao">Data Início Certificação</Label>
+                      <Input
+                        id="inicioCertificacao"
+                        type="date"
+                        value={newCertification.inicioCertificacao}
+                        onChange={(e) => setNewCertification({ ...newCertification, inicioCertificacao: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dataPrevista">Data Prevista de Entrega</Label>
                       <Input
                         id="dataPrevista"
                         type="date"
@@ -1708,7 +1717,16 @@ export default function Certificacoes() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="edit-dataPrevista">Data Inicio Certificação</Label>
+                <Label htmlFor="edit-inicioCertificacao">Data Início Certificação</Label>
+                <Input
+                  id="edit-inicioCertificacao"
+                  type="date"
+                  value={selectedCertification.inicioCertificacao || ''}
+                  onChange={(e) => setSelectedCertification({ ...selectedCertification, inicioCertificacao: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-dataPrevista">Data Prevista de Entrega</Label>
                 <Input
                   id="edit-dataPrevista"
                   type="date"
