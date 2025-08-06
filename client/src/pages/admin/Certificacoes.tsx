@@ -250,10 +250,16 @@ export default function Certificacoes() {
     });
   };
 
-  const handleUpdateCertification = () => {
+  const handleUpdateCertification = (data: any) => {
     if (!selectedCertification) return;
     
-    updateMutation.mutate(selectedCertification, {
+    // Garantir que o ID está presente no objeto
+    const updateData = {
+      ...data,
+      id: selectedCertification.id
+    };
+    
+    updateMutation.mutate(updateData, {
       onSuccess: () => {
         setSelectedCertification(null);
       }
@@ -589,6 +595,7 @@ export default function Certificacoes() {
             <CertificationForm
               mode="edit"
               defaultValues={{
+                id: selectedCertification.id,
                 aluno: selectedCertification.aluno || '',
                 cpf: selectedCertification.cpf || '',
                 modalidade: selectedCertification.modalidade || '',
@@ -614,7 +621,14 @@ export default function Certificacoes() {
               onCourseSearchOpenChange={setEditCourseSearchOpen}
               onSubmit={handleUpdateCertification}
               onCancel={() => setSelectedCertification(null)}
-              onFormChange={setSelectedCertification}
+              onFormChange={(data) => {
+                if (selectedCertification) {
+                  setSelectedCertification({
+                    ...selectedCertification,
+                    ...data
+                  });
+                }
+              }}
               onNewCourseClick={() => setIsNewCourseDialogOpen(true)}
               isSubmitting={updateMutation.isPending}
             />

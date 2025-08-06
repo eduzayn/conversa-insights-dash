@@ -19,6 +19,7 @@ import { VoiceTranscription } from '@/components/common/VoiceTranscription';
 import type { Certification } from '@shared/schema';
 
 interface CertificationFormData {
+  id?: number;
   aluno: string;
   cpf: string;
   modalidade: string;
