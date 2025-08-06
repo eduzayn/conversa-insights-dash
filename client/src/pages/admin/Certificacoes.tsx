@@ -55,6 +55,8 @@ export default function Certificacoes() {
     totalCertifications,
     totalPages,
     isLoading,
+    isInitialLoading,
+    isFetching,
     certificationsError,
     refetch,
     getCategoriaFromTab,
@@ -107,45 +109,47 @@ export default function Certificacoes() {
   // Estado para novo curso
   const [newCourseData, setNewCourseData] = useState({ nome: '', cargaHoraria: '' });
 
-  // Função para calcular distância de Levenshtein
-  const levenshteinDistance = (str1: string, str2: string): number => {
-    const matrix = [];
-    
-    for (let i = 0; i <= str2.length; i++) {
-      matrix[i] = [i];
-    }
-    
-    for (let j = 0; j <= str1.length; j++) {
-      matrix[0][j] = j;
-    }
-    
-    for (let i = 1; i <= str2.length; i++) {
-      for (let j = 1; j <= str1.length; j++) {
-        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substituição
-            matrix[i][j - 1] + 1,     // inserção
-            matrix[i - 1][j] + 1      // remoção
-          );
+  // Função para calcular similaridade entre duas strings
+  const calculateSimilarity = useMemo(() => {
+    // Função para calcular distância de Levenshtein
+    const levenshteinDistance = (str1: string, str2: string): number => {
+      const matrix = [];
+      
+      for (let i = 0; i <= str2.length; i++) {
+        matrix[i] = [i];
+      }
+      
+      for (let j = 0; j <= str1.length; j++) {
+        matrix[0][j] = j;
+      }
+      
+      for (let i = 1; i <= str2.length; i++) {
+        for (let j = 1; j <= str1.length; j++) {
+          if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1, // substituição
+              matrix[i][j - 1] + 1,     // inserção
+              matrix[i - 1][j] + 1      // remoção
+            );
+          }
         }
       }
-    }
-    
-    return matrix[str2.length][str1.length];
-  };
+      
+      return matrix[str2.length][str1.length];
+    };
 
-  // Função para calcular similaridade entre duas strings
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const longer = str1.length > str2.length ? str1 : str2;
-    const shorter = str1.length > str2.length ? str2 : str1;
-    
-    if (longer.length === 0) return 1.0;
-    
-    const editDistance = levenshteinDistance(longer, shorter);
-    return (longer.length - editDistance) / longer.length;
-  };
+    return (str1: string, str2: string): number => {
+      const longer = str1.length > str2.length ? str1 : str2;
+      const shorter = str1.length > str2.length ? str2 : str1;
+      
+      if (longer.length === 0) return 1.0;
+      
+      const editDistance = levenshteinDistance(longer, shorter);
+      return (longer.length - editDistance) / longer.length;
+    };
+  }, []);
 
   // Algoritmo de detecção de duplicatas aprimorado
   const duplicates = useMemo(() => {
@@ -471,7 +475,17 @@ export default function Certificacoes() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value={activeTab} className="space-y-4">
+              <TabsContent value={activeTab} className="space-y-4 relative">
+                {/* Overlay de loading durante transições entre abas */}
+                {isFetching && !isInitialLoading && (
+                  <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-center justify-center">
+                    <div className="flex items-center gap-2 bg-white rounded-lg shadow-md px-4 py-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-sm text-gray-600">Carregando dados...</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Alerta de Duplicatas */}
                 <DuplicateAlert duplicates={duplicates} />
 
@@ -494,13 +508,14 @@ export default function Certificacoes() {
                 {/* Contador de Resultados e Controles de Tamanho de Página */}
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-600">
-                    {isLoading ? (
+                    {isInitialLoading ? (
                       "Carregando..."
                     ) : (
                       <>
                         Exibindo <strong>{(currentPage - 1) * pageSize + 1}</strong> a <strong>{Math.min(currentPage * pageSize, totalCertifications)}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
                         {searchTerm && ` para "${searchTerm}"`}
                         {filterStatus && filterStatus !== 'todos' && ` com status "${filterStatus}"`}
+                        {isFetching && <span className="text-blue-600 ml-2">(atualizando...)</span>}
                       </>
                     )}
                   </div>
@@ -521,7 +536,7 @@ export default function Certificacoes() {
                 </div>
 
                 {/* Lista de certificações */}
-                {isLoading ? (
+                {isInitialLoading ? (
                   <div className="flex justify-center p-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>

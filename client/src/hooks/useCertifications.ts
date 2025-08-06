@@ -83,7 +83,7 @@ export const useCertifications = (
   };
 
   // Query para buscar certificações
-  const { data: certificationsData, isLoading, error: certificationsError, refetch } = useQuery({
+  const { data: certificationsData, isLoading, isFetching, error: certificationsError, refetch } = useQuery({
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
       status: filterStatus,
@@ -119,14 +119,13 @@ export const useCertifications = (
         params.append('tipoData', filterTipoData);
       }
       
-      // Adicionar timestamp para forçar cache refresh
-      params.append('_t', Date.now().toString());
-      
       const response = await apiRequest(`/api/certificacoes?${params}`);
       return response;
     },
-    staleTime: 5000,
-    refetchOnWindowFocus: true,
+    staleTime: 30000, // Cache válido por 30 segundos
+    gcTime: 300000, // Mantem no cache por 5 minutos
+    refetchOnWindowFocus: false, // Evita refetch desnecessário
+    placeholderData: (previousData) => previousData, // Mantém dados anteriores durante carregamento
     retry: (failureCount, error: any) => {
       return failureCount < 3;
     },
@@ -213,7 +212,9 @@ export const useCertifications = (
     totalPages: certificationsData?.totalPages || 1,
     
     // Loading states
-    isLoading,
+    isLoading: isLoading || isFetching, // Inclui estado de fetching
+    isInitialLoading: isLoading, // Apenas loading inicial
+    isFetching, // Estado de busca em andamento
     certificationsError,
     
     // Functions
