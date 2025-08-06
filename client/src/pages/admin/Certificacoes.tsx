@@ -476,12 +476,12 @@ export default function Certificacoes() {
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4 relative">
-                {/* Overlay de loading durante transições entre abas */}
+                {/* Indicador de loading no canto superior direito */}
                 {isFetching && !isInitialLoading && (
-                  <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-10 flex items-center justify-center transition-opacity duration-200">
-                    <div className="flex items-center gap-2 bg-white rounded-lg shadow-lg border px-4 py-3">
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="flex items-center gap-2 bg-white rounded-lg shadow-md border px-3 py-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <span className="text-sm text-gray-700 font-medium">Carregando dados...</span>
+                      <span className="text-xs text-gray-600">Atualizando...</span>
                     </div>
                   </div>
                 )}
