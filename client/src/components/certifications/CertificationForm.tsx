@@ -75,7 +75,14 @@ export const CertificationForm = ({
   };
 
   const handleSubmit = () => {
-    onSubmit(formData);
+    // Converter cargaHoraria para número antes de enviar
+    const dataToSubmit = {
+      ...formData,
+      cargaHoraria: typeof formData.cargaHoraria === 'string' && formData.cargaHoraria.trim() !== '' 
+        ? parseInt(formData.cargaHoraria) || 0 
+        : formData.cargaHoraria
+    };
+    onSubmit(dataToSubmit);
   };
 
   return (
