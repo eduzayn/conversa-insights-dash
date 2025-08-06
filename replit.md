@@ -113,3 +113,14 @@ Preferred communication style: Simple, everyday language.
   * Schema alterado de .pick() para .omit() incluindo TODOS os campos da tabela
   * Outros campos como financeiro e documentação também foram corrigidos automaticamente
   * Sistema agora persiste corretamente todos os dados de certificação durante edição
+
+- August 6, 2025. SISTEMA DE FILTROS APRIMORADO E CORREÇÃO DE BUG DE EXIBIÇÃO
+  * Implementado sistema de filtros flexível com três tipos de data:
+    - Data Prevista de Entrega (padrão)
+    - Data Início Certificação  
+    - Data de Entrega
+  * Corrigido bug crítico na interface onde label "Data Início Certificação" mostrava valor de data_prevista
+  * Interface reorganizada com 4 colunas de filtros para melhor usabilidade
+  * Backend atualizado com parâmetro tipoData para filtrar por diferentes campos de data
+  * Sistema agora permite filtrar com precisão por qualquer tipo de data específica
+  * Removido filtro "Formato de Entrega" conforme solicitação do usuário
