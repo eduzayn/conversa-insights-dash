@@ -201,8 +201,8 @@ export const CertificationCard = ({
             <div>
               <div className="text-sm font-medium text-gray-700">Data Inicio Certificação</div>
               <div className="text-sm">{formatDate(certification.inicioCertificacao)}</div>
-              <div className="text-sm font-medium text-gray-700 mt-2">Data Entrega Certificação</div>
-              <div className="text-sm">{formatDate(certification.dataEntrega)}</div>
+              <div className="text-sm font-medium text-gray-700 mt-2">Data Prevista de Entrega</div>
+              <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
             </div>
           </div>
           
