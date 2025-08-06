@@ -984,10 +984,20 @@ export class DatabaseStorage implements IStorage {
           }
           
           if (filters.dataInicio) {
-            conditions.push(gte(campoData, filters.dataInicio));
+            conditions.push(
+              and(
+                isNotNull(campoData),
+                gte(campoData, filters.dataInicio)
+              )
+            );
           }
           if (filters.dataFim) {
-            conditions.push(lte(campoData, filters.dataFim));
+            conditions.push(
+              and(
+                isNotNull(campoData),
+                lte(campoData, filters.dataFim)
+              )
+            );
           }
         }
       }
