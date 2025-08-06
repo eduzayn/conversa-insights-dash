@@ -583,18 +583,20 @@ export default function Certificacoes() {
                   )}
                 </div>
 
-                {/* Paginação inferior */}
-                <CertificationPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalCertifications={totalCertifications}
-                  pageSize={pageSize}
-                  searchTerm={searchTerm}
-                  filterStatus={filterStatus}
-                  isLoading={isLoading}
-                  onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
-                />
+                {/* Paginação inferior - só aparece quando há dados */}
+                {!isInitialLoading && totalCertifications > 0 && (
+                  <CertificationPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCertifications={totalCertifications}
+                    pageSize={pageSize}
+                    searchTerm={searchTerm}
+                    filterStatus={filterStatus}
+                    isLoading={isLoading}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                  />
+                )}
               </TabsContent>
             </Tabs>
           </div>
