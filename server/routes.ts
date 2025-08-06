@@ -3586,6 +3586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search, 
         dataInicio,
         dataFim,
+        tipoData,
         page = 1, 
         limit = 50 
       } = req.query;
@@ -3607,6 +3608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             search,
             dataInicio,
             dataFim,
+            tipoData,
             page: parseInt(page as string),
             limit: parseInt(limit as string)
           });
@@ -3638,6 +3640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search,
         dataInicio,
         dataFim,
+        tipoData,
         page: parseInt(page as string),
         limit: parseInt(limit as string)
       });

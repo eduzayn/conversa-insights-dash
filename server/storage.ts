@@ -194,7 +194,7 @@ export interface IStorage {
   updateUserActivity(id: number, activity: Partial<UserActivity>): Promise<UserActivity | undefined>;
   
   // Certifications
-  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; search?: string; page?: number; limit?: number; dataInicio?: string; dataFim?: string }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }>;
+  getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; search?: string; page?: number; limit?: number; dataInicio?: string; dataFim?: string; tipoData?: string }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }>;
   createCertification(certification: InsertCertification): Promise<Certification>;
   updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
   deleteCertification(id: number): Promise<void>;
@@ -930,6 +930,7 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     dataInicio?: string;
     dataFim?: string;
+    tipoData?: string;
   }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }> {
     let conditions = [];
     
@@ -959,12 +960,30 @@ export class DatabaseStorage implements IStorage {
         );
       }
 
-      // Filtros de data
-      if (filters.dataInicio) {
-        conditions.push(gte(certifications.dataPrevista, filters.dataInicio));
-      }
-      if (filters.dataFim) {
-        conditions.push(lte(certifications.dataPrevista, filters.dataFim));
+      // Filtros de data - agora com suporte a diferentes tipos de data
+      if (filters.dataInicio || filters.dataFim) {
+        const tipoData = filters.tipoData || 'data_prevista';
+        let campoData;
+        
+        switch(tipoData) {
+          case 'inicio_certificacao':
+            campoData = certifications.inicioCertificacao;
+            break;
+          case 'data_entrega':
+            campoData = certifications.dataEntrega;
+            break;
+          case 'data_prevista':
+          default:
+            campoData = certifications.dataPrevista;
+            break;
+        }
+        
+        if (filters.dataInicio) {
+          conditions.push(gte(campoData, filters.dataInicio));
+        }
+        if (filters.dataFim) {
+          conditions.push(lte(campoData, filters.dataFim));
+        }
       }
     }
     

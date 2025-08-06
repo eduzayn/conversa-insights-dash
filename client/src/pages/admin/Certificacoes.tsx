@@ -98,6 +98,8 @@ export default function Certificacoes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
+  // Filtros separados para cada tipo de data
+  const [filterTipoData, setFilterTipoData] = useState('data_prevista'); // data_prevista, inicio_certificacao, data_entrega
   const [filterPeriodo, setFilterPeriodo] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
@@ -239,7 +241,7 @@ export default function Certificacoes() {
   // Limpar filtros quando a aba muda
   useEffect(() => {
     setFilterStatus('');
-
+    setFilterTipoData('data_prevista');
     setFilterPeriodo('');
     setDataInicio('');
     setDataFim('');
@@ -321,7 +323,7 @@ export default function Certificacoes() {
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
       status: filterStatus,
-
+      tipoData: filterTipoData,
       periodo: filterPeriodo,
       dataInicio,
       dataFim,
@@ -353,6 +355,11 @@ export default function Certificacoes() {
         }
       }
       
+      // Adicionar tipo de data para filtrar
+      if (filterTipoData) {
+        params.append('tipoData', filterTipoData);
+      }
+      
       // Adicionar timestamp para forçar cache refresh (resolve problemas de cache específicos)
       params.append('_t', Date.now().toString());
       
@@ -370,7 +377,7 @@ export default function Certificacoes() {
   // Resetar página quando filtros mudarem
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, filterStatus, filterPeriodo, searchTerm]);
+  }, [activeTab, filterStatus, filterTipoData, filterPeriodo, searchTerm]);
 
   const certifications = certificationsData?.data || [];
   const totalCertifications = parseInt(certificationsData?.total) || 0;
@@ -561,7 +568,7 @@ export default function Certificacoes() {
     // Copiar todos os dados exceto ID e algumas informações específicas
     const duplicatedData = {
       aluno: certification.aluno,
-      cpf: certification.cpf,
+      cpf: certification.cpf || '',
       modalidade: certification.modalidade || 'EAD',
       curso: '', // Limpar curso para permitir seleção de novo
       cargaHoraria: '', // Limpar carga horária para permitir nova seleção
@@ -1206,7 +1213,7 @@ export default function Certificacoes() {
                     <CardTitle>Filtros</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                       <div>
                         <Label htmlFor="search">Buscar</Label>
                         <div className="relative">
@@ -1233,6 +1240,20 @@ export default function Certificacoes() {
                             <SelectItem value="concluido">Concluído</SelectItem>
                             <SelectItem value="cancelado">Cancelado</SelectItem>
                             <SelectItem value="em_atraso">Em Atraso</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="filter-tipo-data">Filtrar por Data</Label>
+                        <Select value={filterTipoData} onValueChange={setFilterTipoData}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Tipo de data" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="data_prevista">Data Prevista de Entrega</SelectItem>
+                            <SelectItem value="inicio_certificacao">Data Início Certificação</SelectItem>
+                            <SelectItem value="data_entrega">Data de Entrega</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
