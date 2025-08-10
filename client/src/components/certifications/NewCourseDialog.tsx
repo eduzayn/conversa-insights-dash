@@ -39,7 +39,17 @@ export const NewCourseDialog = ({
     if (!courseData.nome || !courseData.cargaHoraria) {
       return;
     }
-    onSubmit(courseData);
+    
+    // Validar se carga horária é um número válido
+    const cargaHorariaNum = parseInt(courseData.cargaHoraria);
+    if (isNaN(cargaHorariaNum) || cargaHorariaNum <= 0) {
+      return;
+    }
+    
+    onSubmit({
+      nome: courseData.nome.trim(),
+      cargaHoraria: courseData.cargaHoraria
+    });
   };
 
   const handleClose = () => {

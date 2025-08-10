@@ -3722,6 +3722,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/cursos-pre-cadastrados', authenticateToken, async (req: any, res) => {
     try {
       const courseData = req.body;
+      
+      // Validar e converter cargaHoraria para número
+      if (courseData.cargaHoraria) {
+        const cargaHorariaNum = parseInt(courseData.cargaHoraria);
+        if (isNaN(cargaHorariaNum)) {
+          return res.status(400).json({ message: 'Carga horária deve ser um número válido' });
+        }
+        courseData.cargaHoraria = cargaHorariaNum;
+      } else {
+        return res.status(400).json({ message: 'Carga horária é obrigatória' });
+      }
+      
       const course = await storage.createPreRegisteredCourse(courseData);
       res.json(course);
     } catch (error) {
