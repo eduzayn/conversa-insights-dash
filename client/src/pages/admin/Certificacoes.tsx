@@ -311,15 +311,15 @@ export default function Certificacoes() {
     setIsCreateDialogOpen(true);
   };
 
-  const handleCreateNewCourse = () => {
-    const courseData = {
-      ...newCourseData,
+  const handleCreateNewCourse = (courseData: { nome: string; cargaHoraria: string }) => {
+    const dataToSend = {
+      ...courseData,
       categoria: getCategoriaFromTab(activeTab),
       area: 'Geral',
       modalidade: newCertification.modalidade || 'EAD'
     };
     
-    createCourseMutation.mutate(courseData, {
+    createCourseMutation.mutate(dataToSend, {
       onSuccess: (newCourse) => {
         setNewCertification({
           ...newCertification,
