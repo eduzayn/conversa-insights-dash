@@ -47,7 +47,7 @@ const menuSections = [
     icon: GraduationCap,
     iconColor: 'text-purple-600',
     items: [
-      { label: 'Análise Certificação', path: '/certificacoes' },
+      { label: 'Análise Certificação', path: '/admin/certificacoes' },
       { label: 'Certificados Acadêmicos', path: '/certificados-pos' },
       { label: 'Gestão de Cursos', path: '/matrizes-curriculares' },
       { label: 'Envios UNICV', path: '/envios-unicv' },
