@@ -33,7 +33,7 @@ const Login = () => {
   const { user, login, register } = useAuth();
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/admin" replace />;
   }
 
   // Funções auxiliares para multi-company access

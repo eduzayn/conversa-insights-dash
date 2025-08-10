@@ -172,8 +172,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Limpar todos os dados de sessão
     localStorage.removeItem("student_token");
     localStorage.removeItem("professor_token");
-    // Redirecionar para a página de login
-    window.location.href = "/login";
+    // Redirecionar para o hub de login
+    window.location.href = "/";
   };
 
   return (
