@@ -3653,7 +3653,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/certificacoes", authenticateToken, async (req: any, res) => {
     try {
-      const validatedData = insertCertificationSchema.parse(req.body);
+      const data = req.body;
+      logger.debug('Dados recebidos para certificação:', JSON.stringify(data, null, 2));
+      
+      // Converter cargaHoraria de string para number se necessário
+      if (data.cargaHoraria && typeof data.cargaHoraria === 'string') {
+        const cargaHorariaNum = parseInt(data.cargaHoraria);
+        if (!isNaN(cargaHorariaNum)) {
+          data.cargaHoraria = cargaHorariaNum;
+        }
+      }
+      
+      const validatedData = insertCertificationSchema.parse(data);
       
       const certification = await storage.createCertification(validatedData);
       
@@ -3667,7 +3678,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const validatedData = insertCertificationSchema.partial().parse(req.body);
+      const data = req.body;
+      
+      // Converter cargaHoraria de string para number se necessário
+      if (data.cargaHoraria && typeof data.cargaHoraria === 'string') {
+        const cargaHorariaNum = parseInt(data.cargaHoraria);
+        if (!isNaN(cargaHorariaNum)) {
+          data.cargaHoraria = cargaHorariaNum;
+        }
+      }
+      
+      const validatedData = insertCertificationSchema.partial().parse(data);
       
       const certification = await storage.updateCertification(id, validatedData);
       
