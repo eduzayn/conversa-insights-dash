@@ -478,7 +478,7 @@ export default function Certificacoes() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value={activeTab} className="space-y-4 relative">
+              <TabsContent value={activeTab} className="space-y-4 relative w-full">
                 {/* Indicador de loading no canto superior direito */}
                 {isFetching && !isInitialLoading && (
                   <div className="absolute top-4 right-4 z-10">
@@ -539,7 +539,7 @@ export default function Certificacoes() {
                 </div>
 
                 {/* Lista de certificações */}
-                <div className={certifications.length > 0 ? "min-h-[500px]" : "min-h-[300px]"}>
+                <div className={certifications.length > 0 ? "min-h-[500px] w-full" : "min-h-[400px] w-full"}>
                   {isInitialLoading ? (
                     <div className="flex justify-center p-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -565,8 +565,8 @@ export default function Certificacoes() {
                       })}
                       
                       {certifications.length === 0 && (
-                        <div className="flex justify-center items-center min-h-[250px]">
-                          <Card className="w-full max-w-md">
+                        <div className="w-full flex justify-center items-center min-h-[250px] px-4">
+                          <Card className="w-full max-w-2xl mx-auto">
                             <CardContent className="p-8 text-center">
                               <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                               <div className="text-lg font-medium text-gray-900 mb-2">
