@@ -32,12 +32,12 @@ const cleanupDOM = () => {
 // Sistema de proteção DOM sem logs
 const setupDOMProtection = () => {
   const originalRemoveChild = Node.prototype.removeChild;
-  Node.prototype.removeChild = function(child: Node): Node {
+  Node.prototype.removeChild = function<T extends Node>(child: T): T {
     try {
       if (this.contains && !this.contains(child)) {
         return child;
       }
-      return originalRemoveChild.call(this, child);
+      return originalRemoveChild.call(this, child) as T;
     } catch (error) {
       return child;
     }
