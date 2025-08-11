@@ -192,8 +192,13 @@ const Negociacoes: React.FC = () => {
   const dashboardData = useMemo(() => {
     if (!negociacoes || !expirados || !quitacoes) return null;
 
+    // Garantir que os dados sejam arrays
+    const negociacoesArray = Array.isArray(negociacoes) ? negociacoes : [];
+    const expiradosArray = Array.isArray(expirados) ? expirados : [];
+    const quitacoesArray = Array.isArray(quitacoes) ? quitacoes : [];
+
     // Aplicar filtros de data e status
-    const filteredNegociacoes = negociacoes.filter(n => {
+    const filteredNegociacoes = negociacoesArray.filter(n => {
       // Filtro por status
       if (dashboardStatusFilter && dashboardStatusFilter !== 'all' && n.status !== dashboardStatusFilter) return false;
       
@@ -207,7 +212,7 @@ const Negociacoes: React.FC = () => {
       return true;
     });
 
-    const filteredExpirados = expirados.filter(e => {
+    const filteredExpirados = expiradosArray.filter(e => {
       // Filtro por status para expirados
       if (dashboardStatusFilter && dashboardStatusFilter !== 'all') {
         const statusExpirados = ['pendente', 'enviada', 'aceita', 'rejeitada'];
@@ -224,7 +229,7 @@ const Negociacoes: React.FC = () => {
       return true;
     });
 
-    const filteredQuitacoes = quitacoes.filter(q => {
+    const filteredQuitacoes = quitacoesArray.filter(q => {
       // Filtro por status para quitações
       if (dashboardStatusFilter && dashboardStatusFilter !== 'all') {
         if (dashboardStatusFilter === 'quitado' && q.status !== 'quitado') return false;
