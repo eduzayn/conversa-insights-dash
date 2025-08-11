@@ -490,21 +490,21 @@ const ChargesPage: React.FC = () => {
             Testando conexão com Asaas...
           </AlertDescription>
         </Alert>
-      ) : connectionTest?.success ? (
+      ) : connectionTest?.success === true ? (
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            Conectado com sucesso ao Asaas
+            Conectado com sucesso ao Asaas {connectionTest.message && `- ${connectionTest.message}`}
           </AlertDescription>
         </Alert>
-      ) : (
+      ) : connectionError || connectionTest?.success === false ? (
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
           <AlertDescription>
-            Erro de conexão com Asaas. Verifique suas credenciais.
+            {connectionTest?.message || connectionError?.message || "Erro de conexão com Asaas. Verifique suas credenciais."}
           </AlertDescription>
         </Alert>
-      )}
+      ) : null}
 
       {/* Cards de estatísticas dinâmicas */}
       {stats && (

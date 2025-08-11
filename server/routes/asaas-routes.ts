@@ -122,8 +122,8 @@ const handleAsaasError = (error: any, res: any) => {
   });
 };
 
-// Rota para testar conexão
-router.get('/test-connection', authenticateToken, async (req, res) => {
+// Rota para testar conexão (sem autenticação para facilitar teste de conectividade)
+router.get('/test-connection', async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     const result = await asaas.testConnection();

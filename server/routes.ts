@@ -98,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/health', healthCheck);
 
   // Aplicar rotas Asaas
-  app.use('/api', asaasRoutes);
+  app.use('/api/asaas', asaasRoutes);
 
 
 
