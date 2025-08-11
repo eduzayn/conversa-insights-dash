@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatArea } from "@/components/chat/ChatArea";
 import { ChatProvider } from "@/contexts/ChatContext";

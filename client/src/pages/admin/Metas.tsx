@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
-import { ConfigurarMetasModal } from "@/components/ConfigurarMetasModal";
-import { RecompensasModal } from "@/components/RecompensasModal";
-import { MetaConquistada } from "@/components/MetaConquistada";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
+import { ConfigurarMetasModal } from "@/components/modals/ConfigurarMetasModal";
+import { RecompensasModal } from "@/components/modals/RecompensasModal";
+import { MetaConquistada } from "@/components/modals/MetaConquistada";
 import { useMetaNotificacoes } from "@/hooks/useMetaNotificacoes";
 import { MetasHeader } from "@/components/metas/MetasHeader";
 import { MetasSummaryCards } from "@/components/metas/MetasSummaryCards";

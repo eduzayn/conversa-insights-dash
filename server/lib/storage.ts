@@ -124,7 +124,7 @@ import {
 
   type InsertEnvioFamar
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "../config/db";
 import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql, gte, lte, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 

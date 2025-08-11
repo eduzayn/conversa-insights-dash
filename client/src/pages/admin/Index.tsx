@@ -1,9 +1,9 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Dashboard } from "@/components/Dashboard";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { Dashboard } from "@/components/dashboard/Dashboard";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
 
 const Index = () => {
   const { user, loading } = useAuth();

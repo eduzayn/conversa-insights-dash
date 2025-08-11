@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { VoiceTranscription } from "@/components/common/VoiceTranscription";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

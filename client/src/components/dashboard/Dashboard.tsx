@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MetricCard } from "@/components/MetricCard";
+import { MetricCard } from "@/components/dashboard/MetricCard";
 import { AttendanceChart } from "@/components/charts/AttendanceChart";
 import { ProductivityChart } from "@/components/charts/ProductivityChart";
 import { TeamChart } from "@/components/charts/TeamChart";

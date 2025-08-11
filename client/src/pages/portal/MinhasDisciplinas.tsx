@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { NotificationSystem } from "@/components/NotificationSystem";
+import { QRCodeGenerator } from "@/components/utils/QRCodeGenerator";
+import { NotificationSystem } from "@/components/utils/NotificationSystem";
 import { 
   BookOpen, 
   Video, 

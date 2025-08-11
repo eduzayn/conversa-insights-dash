@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import ErrorBoundary from "@/components/utils/ErrorBoundary";
 
 import Index from "./pages/admin/Index";
 import Login from "./pages/admin/Login";
@@ -33,7 +33,7 @@ import Register from "./pages/admin/Register";
 import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
 import MatrizesCurriculares from "./pages/admin/MatrizesCurriculares";
 import StudentLogin from "./pages/portal/StudentLogin";
-import LoginRouter from "./components/LoginRouter";
+import LoginRouter from "./components/auth/LoginRouter";
 import LoginHub from "./pages/LoginHub";
 
 import PortalLayout from "./pages/portal/PortalLayout";

@@ -1,13 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
-import { setupVite, serveStatic } from "./vite";
+import { setupVite, serveStatic } from "./config/vite";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { storage } from "./storage";
+import { storage } from "./lib/storage";
 import { logger } from "./utils/logger";
 import { sql, eq, inArray } from "drizzle-orm";
-import { db } from "./db";
+import { db } from "./config/db";
 import { users, conversations, attendanceMessages, internalNotes } from "@shared/schema"; 
 import { 
   insertUserSchema, 
@@ -34,7 +34,7 @@ import { z } from "zod";
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
-import { PDFService } from './pdfService';
+import { PDFService } from './services/pdfService';
 
 // Importar middlewares robustos
 import { 

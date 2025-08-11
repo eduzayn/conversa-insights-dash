@@ -1,8 +1,8 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

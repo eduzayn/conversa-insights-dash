@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
 import { ConversationList } from "@/components/atendimento-aluno/ConversationList";
 import { ChatArea } from "@/components/atendimento-aluno/ChatArea";
 import { AtendimentoFilters } from "@/components/atendimento-aluno/AtendimentoFilters";

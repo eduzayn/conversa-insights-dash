@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { DatabaseStorage } from './storage';
+import { DatabaseStorage } from '../lib/storage';
 
 export interface CertificateData {
   nomeAluno: string;

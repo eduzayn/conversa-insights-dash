@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { createAsaasService } from '../services/unified-asaas-service';
-import { storage } from '../storage';
+import { storage } from '../lib/storage';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
 

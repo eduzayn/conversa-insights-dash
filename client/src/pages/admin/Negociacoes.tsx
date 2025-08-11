@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Copy, CheckCircle2, BarChart3, TrendingUp, Users, DollarSign, Calendar, Target, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { apiRequest } from "@/lib/queryClient";
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
