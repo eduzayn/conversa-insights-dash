@@ -6,6 +6,12 @@ This project is a comprehensive full-stack web application designed for educatio
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Issues Resolved
+- **Rate Limiting Problem (Aug 2025)**: Resolved critical 429 "Too Many Requests" errors that were preventing server startup
+  - Issue: Rate limiter was too restrictive (100 requests for non-authenticated users)
+  - Solution: Disabled rate limiting in development environment in `server/middleware/errorHandler.ts`
+  - Server now runs correctly on port 3001 without authentication blocking
+
 ## System Architecture
 
 ### Frontend

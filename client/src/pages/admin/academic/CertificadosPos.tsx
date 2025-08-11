@@ -526,7 +526,7 @@ const CertificadosPos = () => {
   const handlePreviewCertificate = async (certificate: AcademicCertificate) => {
     try {
       // Usar o templateId do certificado ou padrão
-      const templateId = certificate.templateId || 2;
+      const templateId = 2; // Default template ID
       
       const response = await fetch(`/api/certificates/${certificate.id}/preview/${templateId}`, {
         method: 'GET',

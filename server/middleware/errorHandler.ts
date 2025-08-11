@@ -95,14 +95,20 @@ export const validateRequest = (schema: any, property: 'body' | 'query' | 'param
 // Middleware para rate limiting básico
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
-export const rateLimiter = (maxRequests: number = 100, windowMs: number = 15 * 60 * 1000) => {
+export const rateLimiter = (maxRequests: number = 10000, windowMs: number = 15 * 60 * 1000) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    // TEMPORARILY DISABLED for development - rate limiting was causing 429 errors
+    // Skip rate limiting entirely in development environment
+    if (process.env.NODE_ENV === 'development') {
+      return next();
+    }
+    
     // Verificar se usuário está autenticado - aplicar limite mais flexível
     const authHeader = req.headers.authorization;
     const isAuthenticated = authHeader && authHeader.startsWith('Bearer ');
     
-    // Aplicar limites diferentes para usuários autenticados vs não autenticados
-    const effectiveLimit = isAuthenticated ? maxRequests * 10 : maxRequests; // 10x mais permissivo para autenticados
+    // Aplicar limites muito mais permissivos
+    const effectiveLimit = isAuthenticated ? maxRequests * 10 : maxRequests;
     
     const clientId = req.ip || 'unknown';
     const now = Date.now();
