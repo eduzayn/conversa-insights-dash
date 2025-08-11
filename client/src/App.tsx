@@ -66,7 +66,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LoginHub />} />
             <Route path="/login" element={<LoginHub />} />
-            <Route path="/login-antigo" element={<LoginRouter />} />
+            <Route path="/login-router" element={<LoginRouter />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={<Dashboard />} />
