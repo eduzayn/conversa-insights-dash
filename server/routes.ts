@@ -438,6 +438,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== CERTIFICAÇÕES =====
+  
+  // Endpoint para buscar certificações
+  app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {
+    try {
+      const { 
+        categoria, 
+        status, 
+        search, 
+        page = 1, 
+        limit = 50,
+        dataInicio,
+        dataFim,
+        tipoData
+      } = req.query;
+      
+      const filters = {
+        categoria: categoria !== 'todos' ? categoria : undefined,
+        status: status !== 'todos' ? status : undefined, 
+        search: search || undefined,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        dataInicio,
+        dataFim,
+        tipoData
+      };
+      
+      const result = await storage.getCertifications(filters);
+      res.json(result);
+    } catch (error) {
+      logger.error("Erro ao buscar certificações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // ===== ATENDIMENTOS =====
   
   // Endpoint para buscar dados de filtros de atendimento
