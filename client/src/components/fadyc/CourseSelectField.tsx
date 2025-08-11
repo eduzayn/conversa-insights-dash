@@ -42,8 +42,8 @@ export const CourseSelectField = ({
     createCurso({
       nome: courseData.nome,
       categoria,
-      cargaHoraria: parseInt(courseData.cargaHoraria) || undefined,
-      area: undefined,
+      cargaHoraria: parseInt(courseData.cargaHoraria) || 0,
+      area: categoria === 'pos_graduacao' ? 'Educação' : 'Música',
     });
     setNewCourseDialogOpen(false);
     onChange(courseData.nome);

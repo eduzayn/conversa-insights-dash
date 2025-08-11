@@ -12,24 +12,24 @@ import type { CursoFadyc, InsertCursoFadyc } from '@shared/schema';
 export const useCursosFadyc = (categoria?: string) => {
   const queryClient = useQueryClient();
 
-  // Query para buscar cursos por categoria
+  // Query para buscar cursos por categoria usando os cursos já cadastrados
   const { data: cursos = [], isLoading, error } = useQuery({
-    queryKey: ['cursos-fadyc', categoria],
-    queryFn: async (): Promise<CursoFadyc[]> => {
+    queryKey: ['pre-registered-courses', categoria],
+    queryFn: async (): Promise<any[]> => {
       const params = categoria ? `?categoria=${categoria}` : '';
-      const response = await fetch(`/api/cursos-fadyc${params}`);
+      const response = await fetch(`/api/pre-registered-courses${params}`);
       if (!response.ok) {
-        throw new Error('Erro ao buscar cursos FADYC');
+        throw new Error('Erro ao buscar cursos');
       }
       return response.json();
     },
     enabled: !!categoria,
   });
 
-  // Mutation para criar novo curso
+  // Mutation para criar novo curso usando a tabela pre_registered_courses
   const createMutation = useMutation({
-    mutationFn: async (curso: InsertCursoFadyc) => {
-      const response = await fetch('/api/cursos-fadyc', {
+    mutationFn: async (curso: any) => {
+      const response = await fetch('/api/pre-registered-courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(curso),
@@ -39,7 +39,7 @@ export const useCursosFadyc = (categoria?: string) => {
     },
     onSuccess: () => {
       toast.success('Curso criado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['cursos-fadyc'] });
+      queryClient.invalidateQueries({ queryKey: ['pre-registered-courses'] });
     },
     onError: () => {
       toast.error('Erro ao criar curso');
