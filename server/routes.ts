@@ -220,6 +220,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar cursos FADYC por categoria
+  app.get("/api/cursos-fadyc", async (req, res) => {
+    try {
+      const { categoria } = req.query;
+      const cursos = await storage.getCursosFadyc(categoria as string);
+      res.json(cursos);
+    } catch (error) {
+      logger.error("Erro ao buscar cursos FADYC:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar novo curso FADYC
+  app.post("/api/cursos-fadyc", async (req, res) => {
+    try {
+      const curso = await storage.createCursoFadyc(req.body);
+      res.status(201).json(curso);
+    } catch (error) {
+      logger.error("Erro ao criar curso FADYC:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Aplicar rotas Asaas
   app.use('/api/asaas', asaasRoutes);
 

@@ -35,6 +35,7 @@ import {
   enviosUnicv,
   enviosFamar,
   certificacoesFadyc,
+  cursosFadyc,
   simplifiedEnrollments,
   type User, 
   type InsertUser,
@@ -124,7 +125,9 @@ import {
   type EnvioFamar,
   type InsertEnvioFamar,
   type CertificacaoFadyc,
-  type InsertCertificacaoFadyc
+  type InsertCertificacaoFadyc,
+  type CursoFadyc,
+  type InsertCursoFadyc
 } from "@shared/schema";
 import { db } from "../config/db";
 import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql, gte, lte, isNull } from "drizzle-orm";
@@ -2839,6 +2842,33 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Erro ao buscar certificação FADYC por ID:', error);
       return undefined;
+    }
+  }
+
+  // Métodos para cursos FADYC
+  async getCursosFadyc(categoria?: string): Promise<CursoFadyc[]> {
+    try {
+      let query = db.select().from(cursosFadyc).where(eq(cursosFadyc.isActive, true));
+      
+      if (categoria) {
+        query = query.where(and(eq(cursosFadyc.isActive, true), eq(cursosFadyc.categoria, categoria)));
+      }
+      
+      const result = await query.orderBy(cursosFadyc.nome);
+      return result || [];
+    } catch (error) {
+      console.error('Erro ao buscar cursos FADYC:', error);
+      return [];
+    }
+  }
+
+  async createCursoFadyc(curso: InsertCursoFadyc): Promise<CursoFadyc> {
+    try {
+      const [result] = await db.insert(cursosFadyc).values(curso).returning();
+      return result;
+    } catch (error) {
+      console.error('Erro ao criar curso FADYC:', error);
+      throw error;
     }
   }
 }

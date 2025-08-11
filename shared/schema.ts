@@ -435,6 +435,31 @@ export const insertCertificacaoFadycSchema = createInsertSchema(certificacoesFad
 export type InsertCertificacaoFadyc = z.infer<typeof insertCertificacaoFadycSchema>;
 export type CertificacaoFadyc = typeof certificacoesFadyc.$inferSelect;
 
+// Tabela para cursos FADYC
+export const cursosFadyc = pgTable("cursos_fadyc", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  categoria: text("categoria").notNull(), // 'pos_graduacao' ou 'musica'
+  cargaHoraria: integer("carga_horaria"),
+  area: text("area"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCursoFadycSchema = createInsertSchema(cursosFadyc)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    categoria: z.enum(['pos_graduacao', 'musica']),
+  });
+
+export type InsertCursoFadyc = z.infer<typeof insertCursoFadycSchema>;
+export type CursoFadyc = typeof cursosFadyc.$inferSelect;
+
 // Tabela para matrículas dos alunos
 export const studentEnrollments = pgTable("student_enrollments", {
   id: serial("id").primaryKey(),

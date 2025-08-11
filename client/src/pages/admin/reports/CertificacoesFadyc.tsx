@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCertificacaoFadycSchema } from "@shared/schema";
 import { toast } from "sonner";
+import { CourseSelectField } from "@/components/fadyc/CourseSelectField";
 // Função para formatar CPF
 const formatCPF = (cpf: string) => {
   if (!cpf) return '';
@@ -445,9 +446,12 @@ export default function CertificacoesFadyc() {
                 name="curso"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Curso</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome do curso" {...field} />
+                      <CourseSelectField
+                        value={field.value}
+                        onChange={field.onChange}
+                        categoria={activeTab as 'pos_graduacao' | 'musica'}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -607,9 +611,12 @@ export default function CertificacoesFadyc() {
                 name="curso"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Curso</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome do curso" {...field} />
+                      <CourseSelectField
+                        value={field.value}
+                        onChange={field.onChange}
+                        categoria={selectedCertificacao?.categoria as 'pos_graduacao' | 'musica' || 'pos_graduacao'}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
