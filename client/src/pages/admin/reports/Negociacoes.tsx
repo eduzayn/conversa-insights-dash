@@ -197,6 +197,8 @@ const Negociacoes: React.FC = () => {
     const expiradosArray = Array.isArray(expirados) ? expirados : [];
     const quitacoesArray = Array.isArray(quitacoes) ? quitacoes : [];
 
+
+
     // Aplicar filtros de data e status
     const filteredNegociacoes = negociacoesArray.filter(n => {
       // Filtro por status

@@ -97,6 +97,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/health', healthCheck);
   app.get('/api/health', healthCheck);
 
+  // ===== ENDPOINTS DE NEGOCIAÇÕES =====
+  
+  // Buscar negociações
+  app.get("/api/negociacoes", async (req, res) => {
+    try {
+      const { search, status, dataInicio, dataFim } = req.query;
+      const filters = {
+        search: search as string,
+        status: status as string,
+        dataInicio: dataInicio as string,
+        dataFim: dataFim as string
+      };
+      
+      const negociacoes = await storage.getNegociacoes(filters);
+      res.json(negociacoes);
+    } catch (error) {
+      logger.error("Erro ao buscar negociações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar negociações expiradas
+  app.get("/api/negociacoes-expirados", async (req, res) => {
+    try {
+      const { search, status, dataInicio, dataFim } = req.query;
+      const filters = {
+        search: search as string,
+        status: status as string,
+        dataInicio: dataInicio as string,
+        dataFim: dataFim as string
+      };
+      
+      const expirados = await storage.getNegociacoesExpirados(filters);
+      res.json(expirados);
+    } catch (error) {
+      logger.error("Erro ao buscar negociações expiradas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar quitações
+  app.get("/api/quitacoes", async (req, res) => {
+    try {
+      const { search, status, dataInicio, dataFim } = req.query;
+      const filters = {
+        search: search as string,
+        status: status as string,
+        dataInicio: dataInicio as string,
+        dataFim: dataFim as string
+      };
+      
+      const quitacoes = await storage.getQuitacoes(filters);
+      res.json(quitacoes);
+    } catch (error) {
+      logger.error("Erro ao buscar quitações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Aplicar rotas Asaas
   app.use('/api/asaas', asaasRoutes);
 
