@@ -91,8 +91,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Middlewares globais
-  app.use(globalErrorHandler);
-  app.use(rateLimiter);
+  app.use(rateLimiter());
 
   // Health check
   app.get('/health', healthCheck);
@@ -117,7 +116,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
-      const token = generateToken({ id: user.id, username: user.username, role: user.role });
+      const token = generateToken(user.id.toString());
       logger.info(`[AUTH] Login bem-sucedido - User: ${user.username} (${user.id})`);
       
       res.json({ 
@@ -142,8 +141,8 @@ export function registerRoutes(app: Express): Server {
       const { email, password } = req.body;
       
       // Buscar professor pelo email
-      const professors = await storage.getAllAcademicProfessors();
-      const professor = professors.find(p => p.email === email);
+      const professors = await storage.getAcademicProfessors();
+      const professor = professors.find((p: any) => p.email === email);
       
       if (!professor) {
         return res.status(401).json({ message: "Email ou senha inválidos" });
@@ -156,11 +155,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Gerar token
-      const token = generateToken({ 
-        id: professor.id, 
-        email: professor.email, 
-        role: 'professor' 
-      });
+      const token = generateToken(professor.id.toString());
       
       res.json({ 
         token,
@@ -184,19 +179,15 @@ export function registerRoutes(app: Express): Server {
       const { email, cpf } = req.body;
       
       // Buscar estudante pelo email e CPF
-      const students = await storage.getAllAcademicStudents();
-      const student = students.find(s => s.email === email && s.cpf === cpf);
+      const students = await storage.getAcademicStudents();
+      const student = students.find((s: any) => s.email === email && s.cpf === cpf);
       
       if (!student) {
         return res.status(401).json({ message: "Email ou CPF inválidos" });
       }
 
       // Gerar token
-      const token = generateToken({ 
-        id: student.id, 
-        email: student.email, 
-        role: 'student' 
-      });
+      const token = generateToken(student.id.toString());
       
       res.json({ 
         token,
@@ -224,7 +215,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Token de registro é obrigatório" });
       }
 
-      const regToken = await storage.getRegistrationTokenByToken(registrationToken);
+      const regToken = await storage.getRegistrationToken(registrationToken);
       if (!regToken || new Date() > regToken.expiresAt || regToken.used) {
         return res.status(400).json({ message: "Token inválido ou expirado" });
       }
@@ -240,13 +231,10 @@ export function registerRoutes(app: Express): Server {
         email,
         password: hashedPassword,
         name,
-        role: 'user',
-        isActive: true
+        role: 'user'
       });
 
-      await storage.updateRegistrationToken(regToken.id, { used: true, usedAt: new Date() });
-
-      const token = generateToken({ id: user.id, username: user.username, role: user.role });
+      const token = generateToken(user.id.toString());
       
       res.status(201).json({ 
         token,
