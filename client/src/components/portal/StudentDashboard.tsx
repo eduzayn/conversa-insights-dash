@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -214,38 +215,38 @@ export function StudentDashboard({ studentData }: StudentDashboardProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button className="w-full justify-start bg-blue-600 hover:bg-blue-700" asChild>
-              <a href="/portal/avaliacoes">
+              <Link to="/portal/avaliacoes">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Ver Avaliações Pendentes
-              </a>
+              </Link>
             </Button>
             
             <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/portal/documentos">
+              <Link to="/portal/documentos">
                 <FileText className="h-4 w-4 mr-2" />
                 Enviar Documentos
-              </a>
+              </Link>
             </Button>
             
             <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/portal/pagamentos">
+              <Link to="/portal/pagamentos">
                 <Clock className="h-4 w-4 mr-2" />
                 Verificar Financeiro
-              </a>
+              </Link>
             </Button>
             
             <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/portal/carteirinha">
+              <Link to="/portal/carteirinha">
                 <Award className="h-4 w-4 mr-2" />
                 Gerar Carteirinha
-              </a>
+              </Link>
             </Button>
             
             <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/portal/suporte">
+              <Link to="/portal/suporte">
                 <AlertCircle className="h-4 w-4 mr-2" />
                 Solicitar Suporte
-              </a>
+              </Link>
             </Button>
           </CardContent>
         </Card>
