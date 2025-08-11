@@ -174,7 +174,8 @@ Preferred communication style: Simple, everyday language.
 
 - August 11, 2025. REORGANIZAÇÃO COMPLETA DAS PÁGINAS POR DOMÍNIO FUNCIONAL
   * Criada pasta /auth centralizando todas as páginas de autenticação (5 arquivos)
-  * Pasta /admin reorganizada de 22 arquivos soltos para 6 subpastas funcionais:
+  * Pasta /admin reorganizada de 22 arquivos soltos para 7 subpastas funcionais:
+    - /core (dashboard, páginas base) - 2 arquivos
     - /academic (certificações, matrículas) - 4 arquivos
     - /operations (atendimentos, CRM, chat, presença) - 6 arquivos  
     - /reports (envios, negociações) - 3 arquivos
@@ -183,5 +184,5 @@ Preferred communication style: Simple, everyday language.
     - /financial (cobrança) - 1 arquivo já organizado
   * Removidos 3 arquivos duplicados (*Fixed.tsx) do portal professor
   * App.tsx completamente reorganizado com imports agrupados por categoria
-  * Redução de 91% na complexidade da pasta admin (22→2 arquivos na raiz)
+  * Redução de 100% na complexidade da pasta admin (22→0 arquivos na raiz)
   * Estrutura de páginas agora escalável e intuitiva por área de negócio

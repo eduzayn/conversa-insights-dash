@@ -15,8 +15,8 @@ import AdminLogin from "./pages/auth/AdminLogin";
 import Register from "./pages/auth/Register";
 import LoginRouter from "./components/auth/LoginRouter";
 
-// Admin Dashboard
-import Dashboard from "./pages/admin/Dashboard";
+// Admin Core
+import Dashboard from "./pages/admin/core/Dashboard";
 
 // Admin Academic
 import Certificacoes from "./pages/admin/academic/Certificacoes";
@@ -54,7 +54,7 @@ import StudentLogin from "./pages/portal/StudentLogin";
 import PortalLayout from "./pages/portal/PortalLayout";
 import ProfessorLogin from "./pages/professor/ProfessorLogin";
 import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
-import NotFound from "./pages/admin/NotFound";
+import NotFound from "./pages/admin/core/NotFound";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

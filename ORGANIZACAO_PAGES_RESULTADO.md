@@ -20,9 +20,10 @@ client/src/pages/
 │   ├── Register.tsx              [MOVIDO DO ADMIN]
 │   └── StudentLogin.tsx          [COPIADO DO PORTAL]
 │
-├── admin/                         [REORGANIZADA]
-│   ├── Dashboard.tsx             [RENOMEADO: Index.tsx]
-│   ├── NotFound.tsx              [MANTIDO NA RAIZ]
+├── admin/                         [REORGANIZADA - 100% LIMPA]
+│   ├── core/                     [NOVA PASTA - 2 arquivos]
+│   │   ├── Dashboard.tsx         [RENOMEADO: Index.tsx]
+│   │   └── NotFound.tsx          [MOVIDO DA RAIZ]
 │   │
 │   ├── academic/                 [NOVA PASTA - 4 arquivos]
 │   │   ├── Certificacoes.tsx
@@ -85,10 +86,11 @@ client/src/pages/
 
 ### **Redução Drástica de Complexidade:**
 - **Admin Antes**: 22 arquivos soltos na raiz
-- **Admin Depois**: 2 arquivos + 6 pastas organizadas
-- **Redução**: 91% menos arquivos na pasta raiz admin
+- **Admin Depois**: 0 arquivos + 7 pastas organizadas
+- **Redução**: 100% dos arquivos agora organizados em pastas
 
 ### **Organização por Domínio:**
+- **Core** (2 páginas): Dashboard e páginas base
 - **Academic** (4 páginas): Certificações e matrículas
 - **Operations** (6 páginas): Operações diárias principais
 - **Reports** (3 páginas): Relatórios e envios externos
