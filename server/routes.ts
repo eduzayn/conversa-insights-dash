@@ -28,7 +28,8 @@ import {
   insertNegociacaoExpiradoSchema,
   insertQuitacaoSchema,
   insertEnvioUnicvSchema,
-  insertEnvioFamarSchema
+  insertEnvioFamarSchema,
+  insertCertificacaoFadycSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
@@ -152,6 +153,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(quitacoes);
     } catch (error) {
       logger.error("Erro ao buscar quitações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar certificações FADYC
+  app.get("/api/certificacoes-fadyc", async (req, res) => {
+    try {
+      const { categoria, status, search } = req.query;
+      const filters = {
+        categoria: categoria as string,
+        status: status as string,
+        search: search as string
+      };
+      
+      const certificacoes = await storage.getCertificacoesFadyc(filters);
+      res.json(certificacoes);
+    } catch (error) {
+      logger.error("Erro ao buscar certificações FADYC:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar certificação FADYC
+  app.post("/api/certificacoes-fadyc", validateRequest(insertCertificacaoFadycSchema), async (req, res) => {
+    try {
+      const certificacao = await storage.createCertificacaoFadyc(req.body);
+      res.status(201).json(certificacao);
+    } catch (error) {
+      logger.error("Erro ao criar certificação FADYC:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar certificação FADYC
+  app.put("/api/certificacoes-fadyc/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const certificacao = await storage.updateCertificacaoFadyc(id, req.body);
+      
+      if (!certificacao) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      res.json(certificacao);
+    } catch (error) {
+      logger.error("Erro ao atualizar certificação FADYC:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar certificação FADYC
+  app.delete("/api/certificacoes-fadyc/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteCertificacaoFadyc(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      res.json({ message: "Certificação deletada com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar certificação FADYC:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

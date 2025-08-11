@@ -15,7 +15,7 @@ import AdminLogin from "./pages/auth/AdminLogin";
 import Register from "./pages/auth/Register";
 import StudentLogin from "./pages/auth/StudentLogin";
 import ProfessorLogin from "./pages/auth/ProfessorLogin";
-import LoginRouter from "./components/auth/LoginRouter";
+// import LoginRouter from "./components/auth/LoginRouter";
 
 // Admin Core
 import Dashboard from "./pages/admin/core/Dashboard";
@@ -38,6 +38,7 @@ import Produtividade from "./pages/admin/operations/Produtividade";
 import EnviosFamar from "./pages/admin/reports/EnviosFamar";
 import EnviosUnicv from "./pages/admin/reports/EnviosUnicv";
 import Negociacoes from "./pages/admin/reports/Negociacoes";
+import CertificacoesFadyc from "./pages/admin/reports/CertificacoesFadyc";
 
 // Admin Settings
 import GerenciamentoRoteamento from "./pages/admin/settings/GerenciamentoRoteamento";
@@ -66,7 +67,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LoginHub />} />
             <Route path="/login" element={<LoginHub />} />
-            <Route path="/login-router" element={<LoginRouter />} />
+            {/* <Route path="/login-router" element={<LoginRouter />} /> */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={<Dashboard />} />
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/negociacoes" element={<Negociacoes />} />
             <Route path="/envios-unicv" element={<EnviosUnicv />} />
             <Route path="/envios-famar" element={<EnviosFamar />} />
+            <Route path="/certificacoes-fadyc" element={<CertificacoesFadyc />} />
 
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />

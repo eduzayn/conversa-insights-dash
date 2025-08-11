@@ -34,6 +34,7 @@ import {
   quitacoes,
   enviosUnicv,
   enviosFamar,
+  certificacoesFadyc,
   simplifiedEnrollments,
   type User, 
   type InsertUser,
@@ -121,8 +122,9 @@ import {
   type EnvioUnicv,
   type InsertEnvioUnicv,
   type EnvioFamar,
-
-  type InsertEnvioFamar
+  type InsertEnvioFamar,
+  type CertificacaoFadyc,
+  type InsertCertificacaoFadyc
 } from "@shared/schema";
 import { db } from "../config/db";
 import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql, gte, lte, isNull } from "drizzle-orm";
@@ -347,6 +349,13 @@ export interface IStorage {
   updateQuitacao(id: number, quitacao: Partial<Quitacao>): Promise<Quitacao | undefined>;
   deleteQuitacao(id: number): Promise<boolean>;
   getQuitacaoById(id: number): Promise<Quitacao | undefined>;
+
+  // Certificações FADYC
+  getCertificacoesFadyc(filters?: { categoria?: string; status?: string; search?: string }): Promise<CertificacaoFadyc[]>;
+  createCertificacaoFadyc(certificacao: InsertCertificacaoFadyc): Promise<CertificacaoFadyc>;
+  updateCertificacaoFadyc(id: number, certificacao: Partial<CertificacaoFadyc>): Promise<CertificacaoFadyc | undefined>;
+  deleteCertificacaoFadyc(id: number): Promise<boolean>;
+  getCertificacaoFadycById(id: number): Promise<CertificacaoFadyc | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2750,6 +2759,87 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quitacoes.id, id));
     
     return quitacao || undefined;
+  }
+
+  // ===== CERTIFICAÇÕES FADYC =====
+
+  async getCertificacoesFadyc(filters?: { categoria?: string; status?: string; search?: string }): Promise<CertificacaoFadyc[]> {
+    try {
+      let query = db.select().from(certificacoesFadyc);
+      const whereConditions = [];
+
+      if (filters?.categoria && filters.categoria !== 'all') {
+        whereConditions.push(eq(certificacoesFadyc.categoria, filters.categoria));
+      }
+
+      if (filters?.status && filters.status !== 'all') {
+        whereConditions.push(eq(certificacoesFadyc.statusProcesso, filters.status));
+      }
+
+      if (filters?.search) {
+        whereConditions.push(
+          or(
+            ilike(certificacoesFadyc.aluno, `%${filters.search}%`),
+            ilike(certificacoesFadyc.cpf, `%${filters.search}%`),
+            ilike(certificacoesFadyc.curso, `%${filters.search}%`)
+          )
+        );
+      }
+
+      if (whereConditions.length > 0) {
+        query = query.where(and(...whereConditions));
+      }
+
+      const result = await query.orderBy(desc(certificacoesFadyc.createdAt));
+      return result || [];
+    } catch (error) {
+      console.error('Erro ao buscar certificações FADYC:', error);
+      return [];
+    }
+  }
+
+  async createCertificacaoFadyc(certificacao: InsertCertificacaoFadyc): Promise<CertificacaoFadyc> {
+    try {
+      const [result] = await db.insert(certificacoesFadyc).values(certificacao).returning();
+      return result;
+    } catch (error) {
+      console.error('Erro ao criar certificação FADYC:', error);
+      throw error;
+    }
+  }
+
+  async updateCertificacaoFadyc(id: number, certificacao: Partial<CertificacaoFadyc>): Promise<CertificacaoFadyc | undefined> {
+    try {
+      const [result] = await db
+        .update(certificacoesFadyc)
+        .set({ ...certificacao, updatedAt: new Date() })
+        .where(eq(certificacoesFadyc.id, id))
+        .returning();
+      return result || undefined;
+    } catch (error) {
+      console.error('Erro ao atualizar certificação FADYC:', error);
+      return undefined;
+    }
+  }
+
+  async deleteCertificacaoFadyc(id: number): Promise<boolean> {
+    try {
+      await db.delete(certificacoesFadyc).where(eq(certificacoesFadyc.id, id));
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar certificação FADYC:', error);
+      return false;
+    }
+  }
+
+  async getCertificacaoFadycById(id: number): Promise<CertificacaoFadyc | undefined> {
+    try {
+      const [certificacao] = await db.select().from(certificacoesFadyc).where(eq(certificacoesFadyc.id, id));
+      return certificacao || undefined;
+    } catch (error) {
+      console.error('Erro ao buscar certificação FADYC por ID:', error);
+      return undefined;
+    }
   }
 }
 

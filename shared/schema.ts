@@ -401,6 +401,40 @@ export const insertEnvioFamarSchema = createInsertSchema(enviosFamar)
 export type EnvioFamar = typeof enviosFamar.$inferSelect;
 export type InsertEnvioFamar = z.infer<typeof insertEnvioFamarSchema>;
 
+// Tabela de certificações FADYC
+export const certificacoesFadyc = pgTable("certificacoes_fadyc", {
+  id: serial("id").primaryKey(),
+  aluno: text("aluno").notNull(),
+  cpf: text("cpf").notNull(),
+  curso: text("curso").notNull(),
+  categoria: text("categoria").notNull(), // 'pos_graduacao' ou 'musica'
+  statusProcesso: text("status_processo").notNull().default('pendente'), // 'pendente', 'em_andamento', 'concluido', 'cancelado'
+  dataInicio: date("data_inicio"),
+  dataPrevisaoEntrega: date("data_previsao_entrega"),
+  dataConclusao: date("data_conclusao"),
+  numeroProcesso: text("numero_processo"),
+  documentosRecebidos: text("documentos_recebidos").array(),
+  observacoes: text("observacoes"),
+  colaboradorResponsavel: text("colaborador_responsavel").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCertificacaoFadycSchema = createInsertSchema(certificacoesFadyc)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    categoria: z.enum(['pos_graduacao', 'musica']),
+    statusProcesso: z.enum(['pendente', 'em_andamento', 'concluido', 'cancelado']),
+    documentosRecebidos: z.array(z.string()).optional()
+  });
+
+export type InsertCertificacaoFadyc = z.infer<typeof insertCertificacaoFadycSchema>;
+export type CertificacaoFadyc = typeof certificacoesFadyc.$inferSelect;
+
 // Tabela para matrículas dos alunos
 export const studentEnrollments = pgTable("student_enrollments", {
   id: serial("id").primaryKey(),
