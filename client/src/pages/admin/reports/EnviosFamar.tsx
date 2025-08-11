@@ -323,10 +323,29 @@ const EnviosFamar: React.FC = () => {
     }
   };
 
+  // Garantir que envios seja sempre um array
+  const enviosArray = Array.isArray(envios) ? envios : [];
+
+  // Aplicar filtros de busca, status e categoria
+  const filteredEnvios = enviosArray.filter((envio: EnvioFamar) => {
+    // Filtro de busca por nome ou CPF
+    const searchMatch = !searchTerm || 
+      envio.aluno.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      envio.cpf.includes(searchTerm);
+
+    // Filtro de status
+    const statusMatch = statusFilter === 'all' || envio.statusEnvio === statusFilter;
+
+    // Filtro de categoria
+    const categoriaMatch = categoriaFilter === 'all' || envio.categoria === categoriaFilter;
+
+    return searchMatch && statusMatch && categoriaMatch;
+  });
+
   const stats = {
-    total: envios.length || 0,
-    enviados: envios.filter((envio: EnvioFamar) => envio.statusEnvio === 'enviado').length || 0,
-    naoEnviados: envios.filter((envio: EnvioFamar) => envio.statusEnvio === 'nao_enviado').length || 0,
+    total: filteredEnvios.length || 0,
+    enviados: filteredEnvios.filter((envio: EnvioFamar) => envio.statusEnvio === 'enviado').length || 0,
+    naoEnviados: filteredEnvios.filter((envio: EnvioFamar) => envio.statusEnvio === 'nao_enviado').length || 0,
   };
 
   return (
@@ -493,7 +512,7 @@ const EnviosFamar: React.FC = () => {
               <CardContent>
                 {loadingEnvios ? (
                   <div className="text-center py-8">Carregando envios...</div>
-                ) : envios.length === 0 ? (
+                ) : filteredEnvios.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     Nenhum envio encontrado
                   </div>
@@ -513,7 +532,7 @@ const EnviosFamar: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {(envios || []).filter(envio => envio && envio.id).map((envio: EnvioFamar) => (
+                        {filteredEnvios.filter(envio => envio && envio.id).map((envio: EnvioFamar) => (
                           <tr key={envio.id} className="border-b hover:bg-gray-50">
                             <td className="p-4">{envio.aluno}</td>
                             <td className="p-4">{envio.cpf}</td>
