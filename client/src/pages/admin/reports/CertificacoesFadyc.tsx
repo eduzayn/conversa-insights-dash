@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, User } from "lucide-react";
+import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, User, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCertificacaoFadycSchema } from "@shared/schema";
@@ -32,6 +33,7 @@ export default function CertificacoesFadyc() {
   const [selectedCertificacao, setSelectedCertificacao] = useState<any>(null);
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Buscar certificações
   const { data: certificacoes = [], isLoading } = useQuery({
@@ -183,7 +185,18 @@ export default function CertificacoesFadyc() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Certificações FADYC</h1>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/admin')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao Dashboard
+          </Button>
+          <h1 className="text-3xl font-bold tracking-tight">Certificações FADYC</h1>
+        </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Nova Certificação
