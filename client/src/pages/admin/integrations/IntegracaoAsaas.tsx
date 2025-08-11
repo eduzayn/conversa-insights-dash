@@ -58,8 +58,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiRequest } from '@/lib/queryClient';
-import { Header } from '@/components/Header';
-import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
 
 // Interfaces para tipagem do TypeScript
 interface AsaasPayment {

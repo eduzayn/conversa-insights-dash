@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Plus, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { Sidebar } from '@/components/Sidebar';
+import { Sidebar } from '@/components/layout/Sidebar';
 import type { Certification } from '@shared/schema';
 
 // Importar hooks e componentes modulares

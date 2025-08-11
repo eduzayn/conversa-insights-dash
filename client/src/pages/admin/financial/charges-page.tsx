@@ -64,8 +64,8 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { Header } from '@/components/Header';
-import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
 
 // Interfaces para tipagem do TypeScript
 interface AsaasPayment {

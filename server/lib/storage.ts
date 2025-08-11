@@ -1008,7 +1008,7 @@ export class DatabaseStorage implements IStorage {
       .from(certifications);
     
     if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions));
+      countQuery = countQuery.where(and(...conditions)) as any;
     }
     
     const [countResult] = await countQuery;
@@ -1021,7 +1021,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(certifications.createdAt));
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
     // Aplicar paginação
@@ -1029,7 +1029,7 @@ export class DatabaseStorage implements IStorage {
     const limit = filters?.limit || 50;
     const offset = (page - 1) * limit;
     
-    query = query.limit(limit).offset(offset);
+    query = query.limit(limit).offset(offset) as any;
     
     const data = await query;
     const totalPages = Math.ceil(total / limit);
@@ -1611,7 +1611,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
     return await query;
@@ -2471,10 +2471,10 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(certifications, eq(enviosUnicv.certificationId, certifications.id));
     
     if (conditions.length > 0) {
-      return await query.where(and(...conditions)).orderBy(desc(enviosUnicv.createdAt));
+      return await query.where(and(...conditions)).orderBy(desc(enviosUnicv.createdAt)) as any;
     }
     
-    return await query.orderBy(desc(enviosUnicv.createdAt));
+    return await query.orderBy(desc(enviosUnicv.createdAt)) as any;
   }
 
   async createEnvioUnicv(envio: InsertEnvioUnicv): Promise<EnvioUnicv> {
@@ -2673,18 +2673,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
-    return await query.orderBy(desc(quitacoes.createdAt));
+    return await query.orderBy(desc(quitacoes.createdAt)) as any;
   }
 
   async createQuitacao(quitacao: InsertQuitacao): Promise<Quitacao> {
     const [newQuitacao] = await db
       .insert(quitacoes)
-      .values({
-        ...quitacao
-      })
+      .values([{
+        ...quitacao,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }])
       .returning();
     return newQuitacao;
   }

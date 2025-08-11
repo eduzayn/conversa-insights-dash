@@ -81,11 +81,11 @@ const professorLoginSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
-export function registerRoutes(app: Express): Server {
+export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
   const io = new SocketServer(server, {
     cors: {
-      origin: process.env.NODE_ENV === "development" ? "http://localhost:5000" : false,
+      origin: process.env.NODE_ENV === "development" ? "http://localhost:80" : false,
       methods: ["GET", "POST"]
     }
   });
@@ -646,6 +646,14 @@ export function registerRoutes(app: Express): Server {
     });
   });
 
+  // ===== SETUP DO FRONTEND =====
+  
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
   // ===== HANDLERS DE ERRO =====
   
   // Handler para rotas não encontradas
@@ -653,12 +661,6 @@ export function registerRoutes(app: Express): Server {
 
   // Handler global de erros
   app.use(globalErrorHandler);
-
-  if (process.env.NODE_ENV === "development") {
-    setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
 
   return server;
 }
