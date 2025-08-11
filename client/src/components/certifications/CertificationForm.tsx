@@ -32,7 +32,6 @@ interface CertificationFormData {
   observacao: string;
   inicioCertificacao: string;
   dataPrevista: string;
-  dataEntrega: string;
   diploma: string;
   status: string;
   categoria: string;
@@ -279,15 +278,7 @@ export const CertificationForm = ({
             onChange={(e) => updateFormData({ dataPrevista: e.target.value })}
           />
         </div>
-        <div>
-          <Label htmlFor="dataEntrega">Data Entrega Certificação</Label>
-          <Input
-            id="dataEntrega"
-            type="date"
-            value={formData.dataEntrega}
-            onChange={(e) => updateFormData({ dataEntrega: e.target.value })}
-          />
-        </div>
+
 
         {/* Status acadêmicos */}
         <div>

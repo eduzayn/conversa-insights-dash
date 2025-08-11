@@ -964,7 +964,7 @@ export class DatabaseStorage implements IStorage {
         const tipoData = filters.tipoData || 'dataPrevista';
         
         // Mapear nomes do frontend para os campos do banco
-        const camposValidos = ['dataPrevista', 'inicioCertificacao', 'dataEntrega'];
+        const camposValidos = ['dataPrevista', 'inicioCertificacao'];
         
         if (camposValidos.includes(tipoData)) {
           let campoData;
@@ -972,9 +972,6 @@ export class DatabaseStorage implements IStorage {
           switch(tipoData) {
             case 'inicioCertificacao':
               campoData = certifications.inicioCertificacao;
-              break;
-            case 'dataEntrega':
-              campoData = certifications.dataEntrega;
               break;
             case 'dataPrevista':
             default:

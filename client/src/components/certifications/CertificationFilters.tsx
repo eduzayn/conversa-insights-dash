@@ -88,7 +88,6 @@ export const CertificationFilters = ({
               <SelectContent>
                 <SelectItem value="data_prevista">Data Prevista de Entrega</SelectItem>
                 <SelectItem value="inicio_certificacao">Data Início Certificação</SelectItem>
-                <SelectItem value="data_entrega">Data de Entrega</SelectItem>
               </SelectContent>
             </Select>
           </div>
