@@ -69,7 +69,7 @@ const menuSections = [
     icon: Settings,
     iconColor: 'text-gray-600',
     items: [
-      { label: 'BotConversa', path: '/integracao-botconversa' },
+
       { label: 'Gerenciar Tokens', path: '/gerenciar-tokens' },
     ]
   }
