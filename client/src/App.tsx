@@ -13,6 +13,8 @@ import ErrorBoundary from "@/components/utils/ErrorBoundary";
 import LoginHub from "./pages/auth/LoginHub";
 import AdminLogin from "./pages/auth/AdminLogin";
 import Register from "./pages/auth/Register";
+import StudentLogin from "./pages/auth/StudentLogin";
+import ProfessorLogin from "./pages/auth/ProfessorLogin";
 import LoginRouter from "./components/auth/LoginRouter";
 
 // Admin Core
@@ -48,11 +50,8 @@ import IntegracaoAsaas from "./pages/admin/integrations/IntegracaoAsaas";
 // Admin Financial
 import ChargesPage from "./pages/admin/financial/charges-page";
 
-// Portal Student
-import StudentLogin from "./pages/portal/StudentLogin";
-
+// Portal Components
 import PortalLayout from "./pages/portal/PortalLayout";
-import ProfessorLogin from "./pages/professor/ProfessorLogin";
 import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
 import NotFound from "./pages/admin/core/NotFound";
 

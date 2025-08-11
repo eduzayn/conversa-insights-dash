@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { ConversationList } from "@/components/atendimento-aluno/ConversationList";
-import { ChatArea } from "@/components/atendimento-aluno/ChatArea";
+import { ChatArea } from "@/components/atendimento-aluno/AtendimentoChatArea";
 import { AtendimentoFilters } from "@/components/atendimento-aluno/AtendimentoFilters";
 import { useAtendimentoAluno } from "@/hooks/useAtendimentoAluno";
 import { Conversation } from "@/types/atendimento-aluno";

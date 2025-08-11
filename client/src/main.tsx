@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import './utils/productionLogger'
+import './utils/clientLogger'
 
 // Limpeza silenciosa de DOM sem logs visuais
 const cleanupDOM = () => {

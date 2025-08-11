@@ -7,7 +7,7 @@ import { TeamChart } from "@/components/charts/TeamChart";
 import { Users, MessageSquare, FileText, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-export const Dashboard = () => {
+export const AdminDashboard = () => {
   // Buscar métricas reais do sistema
   const { data: metrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ["/api/dashboard/metrics"],
@@ -38,8 +38,8 @@ export const Dashboard = () => {
     );
   }
 
-  // Se houver erro, mostrar os dados com valores padrão
-  const safeMetrics = metrics || {
+  // Definir dados padrão seguros para evitar erros de TypeScript
+  const defaultMetrics = {
     totalAttendances: 0,
     activeAgents: 0,
     pendingCertifications: 0,
@@ -52,37 +52,39 @@ export const Dashboard = () => {
     }
   };
 
+  const safeMetrics = metrics || defaultMetrics;
+
   return (
     <div className="space-y-6">
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Total de Atendimentos"
-          value={safeMetrics.totalAttendances.toLocaleString()}
+          value={String(safeMetrics.totalAttendances || 0)}
           icon={MessageSquare}
-          trend={safeMetrics.trends.totalTrend}
-          trendUp={safeMetrics.trends.totalTrend.includes('+')}
+          trend={safeMetrics.trends?.totalTrend || "+0%"}
+          trendUp={(safeMetrics.trends?.totalTrend || "+0%").includes('+')}
         />
         <MetricCard
           title="Atendentes Ativos"
-          value={safeMetrics.activeAgents.toString()}
+          value={String(safeMetrics.activeAgents || 0)}
           icon={Users}
-          trend={safeMetrics.trends.agentsTrend}
-          trendUp={safeMetrics.trends.agentsTrend.includes('+')}
+          trend={safeMetrics.trends?.agentsTrend || "+0"}
+          trendUp={(safeMetrics.trends?.agentsTrend || "+0").includes('+')}
         />
         <MetricCard
           title="Certificações Pendentes"
-          value={safeMetrics.pendingCertifications.toString()}
+          value={String(safeMetrics.pendingCertifications || 0)}
           icon={FileText}
-          trend={safeMetrics.trends.certificationsTrend}
-          trendUp={!safeMetrics.trends.certificationsTrend.includes('-')}
+          trend={safeMetrics.trends?.certificationsTrend || "0"}
+          trendUp={!(safeMetrics.trends?.certificationsTrend || "0").includes('-')}
         />
         <MetricCard
           title="Taxa de Conclusão"
-          value={safeMetrics.completionRate}
+          value={String(safeMetrics.completionRate || "0%")}
           icon={TrendingUp}
-          trend={safeMetrics.trends.rateTrend}
-          trendUp={safeMetrics.trends.rateTrend.includes('+')}
+          trend={safeMetrics.trends?.rateTrend || "+0%"}
+          trendUp={(safeMetrics.trends?.rateTrend || "+0%").includes('+')}
         />
       </div>
 
