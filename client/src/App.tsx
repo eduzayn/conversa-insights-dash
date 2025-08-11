@@ -9,32 +9,47 @@ import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
 
-import Index from "./pages/admin/Index";
-import Login from "./pages/admin/Login";
-import Atendimentos from "./pages/admin/Atendimentos";
-import AtendimentoAluno from "./pages/admin/AtendimentoAluno";
-import Produtividade from "./pages/admin/Produtividade";
-import Presenca from "./pages/admin/Presenca";
-import ChatInterno from "./pages/admin/ChatInterno";
-import Metas from "./pages/admin/Metas";
-import Crm from "./pages/admin/Crm";
-import Certificacoes from "./pages/admin/Certificacoes";
-import CertificadosPos from "./pages/admin/CertificadosPos";
-
-import GerenciamentoRoteamento from "./pages/admin/GerenciamentoRoteamento";
-import ChargesPage from "./pages/admin/financial/charges-page";
-import IntegracaoAsaas from "./pages/admin/IntegracaoAsaas";
-import GerenciarTokens from "./pages/admin/GerenciarTokens";
-import Negociacoes from "./pages/admin/Negociacoes";
-import EnviosUnicv from "./pages/admin/EnviosUnicv";
-import EnviosFamar from "./pages/admin/EnviosFamar";
-import Register from "./pages/admin/Register";
-
-import MatriculaSimplificada from "./pages/admin/MatriculaSimplificada";
-import MatrizesCurriculares from "./pages/admin/MatrizesCurriculares";
-import StudentLogin from "./pages/portal/StudentLogin";
+// Auth Pages
+import LoginHub from "./pages/auth/LoginHub";
+import AdminLogin from "./pages/auth/AdminLogin";
+import Register from "./pages/auth/Register";
 import LoginRouter from "./components/auth/LoginRouter";
-import LoginHub from "./pages/LoginHub";
+
+// Admin Dashboard
+import Dashboard from "./pages/admin/Dashboard";
+
+// Admin Academic
+import Certificacoes from "./pages/admin/academic/Certificacoes";
+import CertificadosPos from "./pages/admin/academic/CertificadosPos";
+import MatriculaSimplificada from "./pages/admin/academic/MatriculaSimplificada";
+import MatrizesCurriculares from "./pages/admin/academic/MatrizesCurriculares";
+
+// Admin Operations
+import Atendimentos from "./pages/admin/operations/Atendimentos";
+import AtendimentoAluno from "./pages/admin/operations/AtendimentoAluno";
+import ChatInterno from "./pages/admin/operations/ChatInterno";
+import Crm from "./pages/admin/operations/Crm";
+import Presenca from "./pages/admin/operations/Presenca";
+import Produtividade from "./pages/admin/operations/Produtividade";
+
+// Admin Reports
+import EnviosFamar from "./pages/admin/reports/EnviosFamar";
+import EnviosUnicv from "./pages/admin/reports/EnviosUnicv";
+import Negociacoes from "./pages/admin/reports/Negociacoes";
+
+// Admin Settings
+import GerenciamentoRoteamento from "./pages/admin/settings/GerenciamentoRoteamento";
+import GerenciarTokens from "./pages/admin/settings/GerenciarTokens";
+import Metas from "./pages/admin/settings/Metas";
+
+// Admin Integrations
+import IntegracaoAsaas from "./pages/admin/integrations/IntegracaoAsaas";
+
+// Admin Financial
+import ChargesPage from "./pages/admin/financial/charges-page";
+
+// Portal Student
+import StudentLogin from "./pages/portal/StudentLogin";
 
 import PortalLayout from "./pages/portal/PortalLayout";
 import ProfessorLogin from "./pages/professor/ProfessorLogin";
@@ -53,9 +68,9 @@ const App = () => (
             <Route path="/" element={<LoginHub />} />
             <Route path="/login" element={<LoginHub />} />
             <Route path="/login-antigo" element={<LoginRouter />} />
-            <Route path="/admin/login" element={<Login />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/admin" element={<Index />} />
+            <Route path="/admin" element={<Dashboard />} />
             <Route path="/atendimentos" element={<Atendimentos />} />
             <Route path="/atendimento-aluno" element={<AtendimentoAluno />} />
             <Route path="/produtividade" element={<Produtividade />} />
