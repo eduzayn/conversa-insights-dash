@@ -1176,7 +1176,7 @@ const Negociacoes: React.FC = () => {
               <div className="grid gap-4">
                 {loadingNegociacoes ? (
                   <LoadingCard message="Carregando negociações..." />
-                ) : negociacoes.length === 0 ? (
+                ) : (Array.isArray(negociacoes) ? negociacoes : []).length === 0 ? (
                   <EmptyStateCard 
                     icon={FileText}
                     title="Nenhuma negociação encontrada"
@@ -1187,7 +1187,7 @@ const Negociacoes: React.FC = () => {
                     }}
                   />
                 ) : (
-                  negociacoes.map((negociacao: Negociacao, index: number) => (
+                  (Array.isArray(negociacoes) ? negociacoes : []).map((negociacao: Negociacao, index: number) => (
                     <Card key={negociacao.id || `negociacao-${index}`} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
@@ -1370,7 +1370,7 @@ const Negociacoes: React.FC = () => {
               <div className="grid gap-4">
                 {loadingExpirados ? (
                   <LoadingCard message="Carregando expirados..." />
-                ) : expirados.length === 0 ? (
+                ) : (Array.isArray(expirados) ? expirados : []).length === 0 ? (
                   <EmptyStateCard 
                     icon={AlertTriangle}
                     title="Nenhum curso expirado encontrado"
@@ -1381,7 +1381,7 @@ const Negociacoes: React.FC = () => {
                     }}
                   />
                 ) : (
-                  expirados.map((expirado: Expirado, index: number) => (
+                  (Array.isArray(expirados) ? expirados : []).map((expirado: Expirado, index: number) => (
                     <Card key={expirado.id || `expirado-${index}`} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
@@ -1546,7 +1546,7 @@ const Negociacoes: React.FC = () => {
 
               {loadingQuitacoes ? (
                 <LoadingCard message="Carregando quitações..." />
-              ) : quitacoes.length === 0 ? (
+              ) : (Array.isArray(quitacoes) ? quitacoes : []).length === 0 ? (
                 <EmptyStateCard 
                   icon={CheckCircle2}
                   title="Nenhuma quitação encontrada"
@@ -1554,7 +1554,7 @@ const Negociacoes: React.FC = () => {
                 />
               ) : (
                 <div className="grid gap-4">
-                  {quitacoes.map((quitacao: Quitacao) => (
+                  {(Array.isArray(quitacoes) ? quitacoes : []).map((quitacao: Quitacao) => (
                     <Card key={quitacao.id} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
