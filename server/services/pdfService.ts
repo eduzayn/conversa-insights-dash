@@ -80,9 +80,9 @@ export class PDFService {
         nomeAluno: student.nome,
         cpfAluno: student.cpf,
         nomeCurso: course.nome,
-        areaCurso: course.area || 'Educação',
+        areaCurso: course.areaConhecimento || 'Educação',
         cargaHoraria: String(course.cargaHoraria),
-        dataInicio: course.dataInicio || new Date().toLocaleDateString('pt-BR'),
+        dataInicio: new Date().toLocaleDateString('pt-BR'),
         dataConclusao: new Date().toLocaleDateString('pt-BR'),
         dataEmissao: certificate.dataEmissao || new Date().toLocaleDateString('pt-BR'),
         numeroRegistro: certificate.numeroRegistro || `CERT-${Date.now()}`,
@@ -360,7 +360,7 @@ export class PDFService {
         }
       });
 
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
     } finally {
       await browser.close();
     }

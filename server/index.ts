@@ -49,8 +49,8 @@ async function startServer() {
     const server = await registerRoutes(app);
     console.log("Rotas registradas com sucesso");
     
-    const port = process.env.PORT || 80;
-    server.listen(port, () => {
+    const port = Number(process.env.PORT) || 3001;
+    server.listen(port, "0.0.0.0", () => {
       logger.production();
       console.log(`Environment: ${process.env.NODE_ENV}`);
       log(`serving on port ${port}`);

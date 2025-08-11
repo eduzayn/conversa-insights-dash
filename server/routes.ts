@@ -142,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar professor pelo email
       const professors = await storage.getAcademicProfessors();
-      const professor = professors.find((p: any) => p.email === email);
+      const professor = professors.find((p) => p.email === email);
       
       if (!professor) {
         return res.status(401).json({ message: "Email ou senha inválidos" });
@@ -180,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar estudante pelo email e CPF
       const students = await storage.getAcademicStudents();
-      const student = students.find((s: any) => s.email === email && s.cpf === cpf);
+      const student = students.find((s) => s.email === email && s.cpf === cpf);
       
       if (!student) {
         return res.status(401).json({ message: "Email ou CPF inválidos" });
@@ -648,11 +648,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== SETUP DO FRONTEND =====
   
-  if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  // Sempre usar Vite no desenvolvimento do Replit
+  await setupVite(app, server);
 
   // ===== HANDLERS DE ERRO =====
   

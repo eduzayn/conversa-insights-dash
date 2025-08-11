@@ -2534,10 +2534,10 @@ export class DatabaseStorage implements IStorage {
     const query = db.select({
       id: enviosFamar.id,
       certificationId: enviosFamar.certificationId,
-      aluno: certifications.aluno,
-      cpf: certifications.cpf,
-      curso: certifications.curso,
-      categoria: certifications.categoria,
+      aluno: sql<string>`COALESCE(${certifications.aluno}, '')`.as('aluno'),
+      cpf: sql<string>`COALESCE(${certifications.cpf}, '')`.as('cpf'),
+      curso: sql<string>`COALESCE(${certifications.curso}, '')`.as('curso'),
+      categoria: sql<string>`COALESCE(${certifications.categoria}, '')`.as('categoria'),
       statusEnvio: enviosFamar.statusEnvio,
       numeroOficio: enviosFamar.numeroOficio,
       dataEnvio: enviosFamar.dataEnvio,
@@ -2680,13 +2680,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createQuitacao(quitacao: InsertQuitacao): Promise<Quitacao> {
+    const quitacaoData = {
+      ...quitacao,
+      valorQuitado: typeof quitacao.valorQuitado === 'number' ? quitacao.valorQuitado.toString() : quitacao.valorQuitado,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
     const [newQuitacao] = await db
       .insert(quitacoes)
-      .values([{
-        ...quitacao,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }])
+      .values([quitacaoData])
       .returning();
     return newQuitacao;
   }
@@ -2715,6 +2718,8 @@ export class DatabaseStorage implements IStorage {
           const value = data[key as keyof Quitacao];
           if (typeof value === 'string') {
             updateData[key] = value.replace(',', '.');
+          } else if (typeof value === 'number') {
+            updateData[key] = value.toString();
           } else {
             updateData[key] = value;
           }
