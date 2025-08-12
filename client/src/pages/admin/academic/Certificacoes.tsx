@@ -17,7 +17,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import type { Certification } from '@shared/schema';
 
@@ -358,11 +357,11 @@ export default function Certificacoes() {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-gray-50">
-        <Sidebar />
-        <main ref={scrollParentRef} className="flex-1 overflow-auto">
-          <div className="w-full p-6 space-y-8">
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <main ref={scrollParentRef} className="flex-1 p-6 overflow-auto">
+          <div className="w-full space-y-8">
             {/* Header */}
             <div className="flex justify-between items-center">
               <div>
@@ -677,6 +676,6 @@ export default function Certificacoes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </SidebarProvider>
+    </div>
   );
 }
