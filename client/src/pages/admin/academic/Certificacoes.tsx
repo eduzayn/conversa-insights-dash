@@ -512,7 +512,7 @@ export default function Certificacoes() {
                   </div>
                 </div>
 
-                {/* Lista de certificações virtualizada */}
+                {/* Lista de certificações (virtualizada) */}
                 <div className={certifications.length > 0 ? "min-h-[500px] w-full" : "min-h-[400px] w-full"}>
                   {isInitialLoading ? (
                     <div className="flex justify-center p-8">
@@ -537,50 +537,46 @@ export default function Certificacoes() {
                     </div>
                   ) : (
                     <div
-                      className="w-full"
                       style={{
-                        height: '500px',
+                        height: rowVirtualizer.getTotalSize(),
+                        position: 'relative',
+                        width: '100%',
                       }}
                     >
-                      <div
-                        style={{
-                          height: `${rowVirtualizer.getTotalSize()}px`,
-                          width: '100%',
-                          position: 'relative',
-                        }}
-                      >
-                        {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-                          const certification = certifications[virtualItem.index];
-                          
-                          // Verificar se esta certificação está em algum grupo de duplicatas
-                          const isDuplicate = Object.values(duplicates).some(group => 
-                            group.some(cert => cert.id === certification.id)
-                          );
+                      {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                        const certification = certifications[virtualRow.index];
 
-                          return (
-                            <div
-                              key={virtualItem.key}
-                              style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: `${virtualItem.size}px`,
-                                transform: `translateY(${virtualItem.start}px)`,
-                                paddingBottom: '16px', // Espaçamento entre cards (space-y-4)
-                              }}
-                            >
-                              <CertificationCard
-                                certification={certification}
-                                isDuplicate={isDuplicate}
-                                onEdit={setSelectedCertification}
-                                onDelete={handleDeleteCertification}
-                                onDuplicate={handleDuplicateCertification}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
+                        // Verificar duplicata (mantém sua lógica)
+                        const isDuplicate = Object.values(duplicates).some(group =>
+                          group.some(cert => cert.id === certification.id)
+                        );
+
+                        return (
+                          <div
+                            key={certification.id}
+                            ref={(el) => {
+                              // mede altura real pra suportar cards com altura variável
+                              if (el) rowVirtualizer.measureElement(el);
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              transform: `translateY(${virtualRow.start}px)`,
+                            }}
+                            className="mb-4"
+                          >
+                            <CertificationCard
+                              certification={certification}
+                              isDuplicate={isDuplicate}
+                              onEdit={setSelectedCertification}
+                              onDelete={handleDeleteCertification}
+                              onDuplicate={handleDuplicateCertification}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
