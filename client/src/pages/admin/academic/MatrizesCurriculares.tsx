@@ -91,8 +91,17 @@ const MatrizesCurriculares = () => {
   const { data: disciplinas = [], isLoading } = useQuery({
     queryKey: ['/api/academic/disciplines'],
     queryFn: async () => {
-      const response = await apiRequest('/api/academic/disciplines');
-      return response as Disciplina[];
+      try {
+        const response = await apiRequest('/api/academic/disciplines');
+        if (Array.isArray(response)) {
+          return response as Disciplina[];
+        }
+        console.warn('Resposta da API não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar disciplinas:', error);
+        return [];
+      }
     }
   });
 
@@ -100,8 +109,17 @@ const MatrizesCurriculares = () => {
   const { data: courses = [] } = useQuery({
     queryKey: ['/api/academic/courses'],
     queryFn: async () => {
-      const response = await apiRequest('/api/academic/courses');
-      return response as Curso[];
+      try {
+        const response = await apiRequest('/api/academic/courses');
+        if (Array.isArray(response)) {
+          return response as Curso[];
+        }
+        console.warn('Resposta da API de cursos não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar cursos:', error);
+        return [];
+      }
     }
   });
 
@@ -109,8 +127,17 @@ const MatrizesCurriculares = () => {
   const { data: professors = [] } = useQuery({
     queryKey: ['/api/academic/professors'],
     queryFn: async () => {
-      const response = await apiRequest('/api/academic/professors');
-      return response;
+      try {
+        const response = await apiRequest('/api/academic/professors');
+        if (Array.isArray(response)) {
+          return response;
+        }
+        console.warn('Resposta da API de professores não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar professores:', error);
+        return [];
+      }
     }
   });
 
@@ -216,7 +243,7 @@ const MatrizesCurriculares = () => {
 
   const updateCourseMutation = useMutation({
     mutationFn: async ({ id, selectedDisciplines, ...data }: Partial<Curso> & { id: number; selectedDisciplines?: number[] }) => {
-      const { selectedDisciplines: _, ...courseData } = data;
+      const courseData = data;
       
       // Atualizar o curso primeiro
       const course = await apiRequest(`/api/academic/courses/${id}`, {
@@ -337,6 +364,7 @@ const MatrizesCurriculares = () => {
 
   // Filtrar disciplinas
   const filteredDisciplinas = React.useMemo(() => {
+    if (!Array.isArray(disciplinas)) return [];
     return disciplinas.filter(disciplina => {
       const matchesSearch = !searchTerm || 
         disciplina.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -351,6 +379,7 @@ const MatrizesCurriculares = () => {
 
   // Filtrar cursos
   const filteredCourses = React.useMemo(() => {
+    if (!Array.isArray(courses)) return [];
     return courses.filter(course => {
       const matchesSearch = !courseSearchTerm || 
         course.nome.toLowerCase().includes(courseSearchTerm.toLowerCase()) ||
@@ -366,6 +395,7 @@ const MatrizesCurriculares = () => {
 
   // Filtrar professores
   const filteredProfessors = React.useMemo(() => {
+    if (!Array.isArray(professors)) return [];
     return professors.filter((professor: any) => {
       const matchesSearch = !professorSearchTerm || 
         professor.nome.toLowerCase().includes(professorSearchTerm.toLowerCase()) ||
@@ -381,7 +411,7 @@ const MatrizesCurriculares = () => {
   // Mostrar disciplinas em lista simples (não agrupadas por curso)
   const disciplinasComProfessor = React.useMemo(() => {
     return filteredDisciplinas.map(disciplina => {
-      const professor = professors.find(p => p.id === disciplina.professorId);
+      const professor = Array.isArray(professors) ? professors.find((p: any) => p.id === disciplina.professorId) : null;
       return {
         ...disciplina,
         professor: professor || null
