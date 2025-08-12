@@ -1,4 +1,7 @@
 /**
+ * IMPORTANTE: As abas de categoria são renderizadas EXCLUSIVAMENTE por CertificationTabs.
+ * Não adicionar outro <TabsList>/<TabsTrigger> aqui ou em filhos.
+ * 
  * Página principal de Certificações - REFATORADA
  * 
  * Arquivo refatorado em componentes modulares para melhor manutenção
@@ -12,7 +15,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Plus, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -27,6 +29,7 @@ import { CertificationForm } from '@/components/certifications/CertificationForm
 import { NewCourseDialog } from '@/components/certifications/NewCourseDialog';
 import { DuplicateAlert } from '@/components/certifications/DuplicateAlert';
 import { CertificationPagination } from '@/components/certifications/CertificationPagination';
+import CertificationTabs from '@/components/certifications/CertificationTabs';
 import { TABS_CONFIG, CategoriaKey, Status, FinanceiroStatus, DocumentacaoStatus, RequisitosStatus } from '@/constants/certifications';
 
 // Schema Zod para validação e transformação de dados
@@ -438,21 +441,8 @@ export default function Certificacoes() {
               </div>
             </div>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as CategoriaKey)} className="w-full">
-              <TabsList aria-label="Categorias de certificação" className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start w-full">
-                {TABS_CONFIG.map(tab => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className={`${tab.minW} px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm`}
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value={activeTab} className="space-y-4 relative w-full">
+            {/* Tabs - renderizadas exclusivamente pelo CertificationTabs */}
+            <CertificationTabs value={activeTab} onValueChange={(value) => setActiveTab(value as CategoriaKey)}>
                 {/* Indicador de loading no canto superior direito */}
                 {isFetching && !isInitialLoading && (
                   <div className="absolute top-4 right-4 z-10">
@@ -595,8 +585,7 @@ export default function Certificacoes() {
                     onPageSizeChange={handlePageSizeChange}
                   />
                 )}
-              </TabsContent>
-            </Tabs>
+            </CertificationTabs>
           </div>
         </main>
       </div>

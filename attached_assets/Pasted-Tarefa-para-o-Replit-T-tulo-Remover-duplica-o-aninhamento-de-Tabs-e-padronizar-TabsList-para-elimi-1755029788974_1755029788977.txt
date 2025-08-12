@@ -1,0 +1,173 @@
+Tarefa para o Replit
+Título: Remover duplicação/aninhamento de Tabs e padronizar TabsList para eliminar o espaço lateral direito em todas as abas
+
+Sintoma atual (regressão):
+Após correções anteriores, voltou a aparecer sobra de espaço na lateral direita do TabsList em todas as abas de Análises Certificações. Suspeita: duplicação do bloco de Tabs ou aninhamento indevido (render duplo), causando cálculo incorreto de largura.
+
+Passos para reproduzir
+Acessar: Acadêmico → Análises Certificações.
+
+Observar a barra de abas (qualquer aba).
+
+Notar sobra de espaço à direita do TabsList.
+
+O que verificar (checklist objetivo)
+Duplicação/aninhamento de <TabsList> e <TabsTrigger>:
+
+Rodar:
+
+bash
+Copiar
+Editar
+rg -n "<TabsList|<TabsTrigger|value=\"eja\"|value=\"graduacao\"" src -S
+Esperado: um único bloco de <TabsList> e um único conjunto de <TabsTrigger> no arquivo de Certificações.
+
+Se houver mais de um, remover os extras (inclusive se algum vier de componente filho).
+
+Pais com max-w-* ou mx-auto restringindo largura:
+
+Inspecionar ancestrais de TabsList (especialmente wrappers com Card, div do header, etc.).
+
+Remover classes como max-w-*/mx-auto no container das abas.
+
+Garantir no wrapper das abas: w-full.
+
+Padronização de classes:
+
+TabsList deve ter:
+className="w-full flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start"
+
+Todos os TabsTrigger devem ter: flex-1 + min-w-[...] (consistentes).
+
+Gatilhos ocultos em componentes filhos:
+
+Confirmar que nenhum dos seguintes componentes renderiza TabsList/TabsTrigger:
+
+CertificationFilters, CertificationCard, CertificationPagination, DuplicateAlert, CertificationForm, NewCourseDialog.
+
+Se algum renderizar, remover; Tabs devem existir só no arquivo principal.
+
+Critérios de aceite
+Nenhuma sobra de espaço à direita do TabsList em qualquer aba.
+
+Apenas um TabsList e um conjunto de TabsTrigger no arquivo.
+
+Visual idêntico ao atual (cores, tipografia, estados), apenas alinhamento/ocupação corrigidos.
+
+Nenhum componente filho renderiza Tabs.
+
+Patch pro Replit (2 passos)
+1) Extrair as abas para um componente único (evita voltar a duplicar)
+Crie src/components/certifications/CertificationTabs.tsx com o conteúdo abaixo:
+
+tsx
+Copiar
+Editar
+// src/components/certifications/CertificationTabs.tsx
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ReactNode } from 'react';
+
+type Props = {
+  value: string;
+  onValueChange: (v: string) => void;
+  children: ReactNode; // conteúdo do TabsContent fica por conta do pai
+};
+
+const TABS = [
+  { value: 'pos',                 label: 'Pós-graduação',        minW: 'min-w-[120px]' },
+  { value: 'segunda',             label: 'Segunda licenciatura', minW: 'min-w-[140px]' },
+  { value: 'formacao_pedagogica', label: 'Form. Pedagógica',     minW: 'min-w-[130px]' },
+  { value: 'formacao_livre',      label: 'Form. Livre',          minW: 'min-w-[110px]' },
+  { value: 'diplomacao',          label: 'Diplom. Competência',  minW: 'min-w-[140px]' },
+  { value: 'eja',                 label: 'EJA',                  minW: 'min-w-[110px]' },
+  { value: 'graduacao',           label: 'Graduação',            minW: 'min-w-[120px]' },
+  { value: 'capacitacao',         label: 'Capacitação',          minW: 'min-w-[120px]' },
+  { value: 'sequencial',          label: 'Sequencial',           minW: 'min-w-[120px]' },
+] as const;
+
+export default function CertificationTabs({ value, onValueChange, children }: Props) {
+  return (
+    <Tabs value={value} onValueChange={onValueChange} className="w-full">
+      <TabsList
+        aria-label="Categorias de certificação"
+        className="w-full flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start"
+      >
+        {TABS.map(tab => (
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
+            className={`flex-1 ${tab.minW} px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm`}
+          >
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
+      {/* O pai injeta um único TabsContent com "value" controlado externamente */}
+      <TabsContent value={value} className="space-y-4 relative w-full">
+        {children}
+      </TabsContent>
+    </Tabs>
+  );
+}
+2) Usar esse componente no arquivo da página
+No arquivo da página (o que você me enviou), remova qualquer <Tabs>...<TabsList>... que exista e substitua pelo componente:
+
+tsx
+Copiar
+Editar
+import CertificationTabs from '@/components/certifications/CertificationTabs';
+
+// ...
+
+<CertificationTabs value={activeTab} onValueChange={setActiveTab}>
+  {/* Tudo que antes ficava dentro de <TabsContent value={activeTab}> ... */}
+  {/* Ex.: indicador de loading, DuplicateAlert, filtros, contador, lista, paginação... */}
+  {isFetching && !isInitialLoading && (
+    <div className="absolute top-4 right-4 z-10">
+      <div className="flex items-center gap-2 bg-white rounded-lg shadow-md border px-3 py-2">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        <span className="text-xs text-gray-600">Atualizando...</span>
+      </div>
+    </div>
+  )}
+
+  <DuplicateAlert duplicates={duplicates} />
+
+  <CertificationFilters
+    searchTerm={searchTerm}
+    filterStatus={filterStatus}
+    filterTipoData={filterTipoData}
+    filterPeriodo={filterPeriodo}
+    dataInicio={dataInicio}
+    dataFim={dataFim}
+    onSearchChange={setSearchInput ?? setSearchTerm} // use sua versão
+    onStatusChange={setFilterStatus}
+    onTipoDataChange={setFilterTipoData}
+    onPeriodoChange={setFilterPeriodo}
+    onDataInicioChange={setDataInicio}
+    onDataFimChange={setDataFim}
+  />
+
+  {/* contador + page size */}
+  {/* ... seu bloco existente ... */}
+
+  {/* lista (virtualizada ou não, como já está) */}
+  {/* ... seu bloco existente ... */}
+
+  {/* paginação */}
+  {/* ... seu bloco existente ... */}
+</CertificationTabs>
+Observação: este componente garante um único TabsList + TabsTrigger e força w-full, eliminando overflow por restrição de largura. Se algum ancestral tiver max-w-*/mx-auto envolvendo apenas as abas, remova para não “apertar” o TabsList.
+
+Extra – Guardrail contra regressão
+Adicione um comentário no topo do arquivo da página:
+
+ts
+Copiar
+Editar
+/**
+ * IMPORTANTE: As abas de categoria são renderizadas EXCLUSIVAMENTE por CertificationTabs.
+ * Não adicionar outro <TabsList>/<TabsTrigger> aqui ou em filhos.
+ */
+Opcional: criar um teste visual no Storybook para CertificationTabs com largura full e checagem de overflow (se vocês usam SB).
