@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
-import ErrorBoundary from "@/components/utils/ErrorBoundary";
+import AppErrorBoundary from "@/components/utils/AppErrorBoundary";
 
 // Auth Pages
 import LoginHub from "./pages/auth/LoginHub";
@@ -56,14 +57,33 @@ import PortalLayout from "./pages/portal/PortalLayout";
 import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
 import NotFound from "./pages/admin/core/NotFound";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary>
-        <Toaster />
-        <Sonner position="top-right" />
-        <BrowserRouter>
-          <AuthProvider>
+const App = () => {
+  // Proteção adicional contra erros de renderização
+  React.useEffect(() => {
+    // Limpar elementos problemáticos do DOM
+    const cleanupProblematicElements = () => {
+      try {
+        document.querySelectorAll('iframe[src*="workspace_iframe"]').forEach(el => el.remove());
+        document.querySelectorAll('[data-testid*="workspace"]').forEach(el => el.remove());
+      } catch (error) {
+        // Silenciar erro
+      }
+    };
+    
+    cleanupProblematicElements();
+    const interval = setInterval(cleanupProblematicElements, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AppErrorBoundary>
+          <Toaster />
+          <Sonner position="top-right" />
+          <BrowserRouter>
+            <AuthProvider>
           <Routes>
             <Route path="/" element={<LoginHub />} />
             <Route path="/login" element={<LoginHub />} />
@@ -105,12 +125,13 @@ const App = () => (
             <Route path="/professor/*" element={<ProfessorPortalLayout />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <SupportChatButton />
-        </AuthProvider>
-      </BrowserRouter>
-      </ErrorBoundary>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+            <SupportChatButton />
+            </AuthProvider>
+          </BrowserRouter>
+        </AppErrorBoundary>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

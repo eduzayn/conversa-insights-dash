@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import './utils/clientLogger'
+import { suppressWorkspaceErrors, cleanupProblematicIframes, preventIframeSandboxErrors } from './utils/domUtils'
 
 // Sistema otimizado de limpeza DOM
 const cleanupDOM = () => {
@@ -33,31 +34,51 @@ const cleanupDOM = () => {
   }
 };
 
-// Sistema de proteção DOM otimizado
+// Sistema de proteção DOM mais robusto
 const setupDOMProtection = () => {
-  // Interceptar erros DOM específicos sem afetar performance
+  // Interceptar todos os erros relacionados a iframe e DOM
   window.addEventListener('error', (event) => {
     const message = event.message?.toLowerCase() || '';
+    const filename = event.filename?.toLowerCase() || '';
+    
+    // Lista expandida de erros para suprimir
     const suppressedErrors = [
-      'removechild', 'appendchild', 'notfounderror', 
       'workspace_iframe', 'allowfullscreen', 'navigation-override',
-      'legacy-image-formats', 'oversized-images'
+      'unoptimized-images', 'unsized-media', 'legacy-image-formats',
+      'oversized-images', 'allowpaymentrequest', 'sandbox',
+      'chrome-error', 'x-frame-options', 'sameorigin'
     ];
     
-    if (suppressedErrors.some(err => message.includes(err))) {
+    if (suppressedErrors.some(err => message.includes(err)) || 
+        filename.includes('workspace_iframe') ||
+        filename.includes('chrome-error')) {
       event.preventDefault();
       event.stopPropagation();
       return false;
     }
   }, true);
   
-  // Suprimir warnings CSS específicos do console
+  // Suprimir warnings e erros do console que quebram a aplicação
+  const originalError = console.error;
   const originalWarn = console.warn;
+  
+  console.error = function(...args) {
+    const message = args.join(' ').toLowerCase();
+    const suppressedErrors = [
+      'workspace_iframe', 'sandbox', 'allowfullscreen',
+      'chrome-error', 'x-frame-options', 'unoptimized-images'
+    ];
+    
+    if (!suppressedErrors.some(err => message.includes(err))) {
+      originalError.apply(console, args);
+    }
+  };
+  
   console.warn = function(...args) {
     const message = args.join(' ').toLowerCase();
     const suppressedWarnings = [
-      'unrecognize workspace_iframe', 'allowfullscreen', 
-      'navigation-override', 'legacy-image-formats'
+      'workspace_iframe', 'allowfullscreen', 'navigation-override',
+      'legacy-image-formats', 'unoptimized-images', 'unsized-media'
     ];
     
     if (!suppressedWarnings.some(warn => message.includes(warn))) {
@@ -87,10 +108,15 @@ const setupPWA = () => {
   }
 };
 
-// Inicializar sistemas
+// Inicializar sistemas de proteção
 cleanupDOM();
 setupDOMProtection();
 setupPWA();
+
+// Proteções específicas para workspace_iframe
+suppressWorkspaceErrors();
+preventIframeSandboxErrors();
+cleanupProblematicIframes();
 
 // Monitor silencioso
 setInterval(() => {
