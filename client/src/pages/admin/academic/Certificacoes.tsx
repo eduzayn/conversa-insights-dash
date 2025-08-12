@@ -425,60 +425,25 @@ export default function Certificacoes() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start">
-                <TabsTrigger 
-                  value="pos" 
-                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Pós-graduação
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="segunda" 
-                  className="flex-1 min-w-[140px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Segunda licenciatura
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="formacao_pedagogica" 
-                  className="flex-1 min-w-[130px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Form. Pedagógica
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="formacao_livre" 
-                  className="flex-1 min-w-[110px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Form. Livre
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="diplomacao" 
-                  className="flex-1 min-w-[140px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Diplom. Competência
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="eja" 
-                  className="flex-1 min-w-[110px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  EJA
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="graduacao" 
-                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Graduação
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="capacitacao" 
-                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Capacitação
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="sequencial" 
-                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                >
-                  Sequencial
-                </TabsTrigger>
+                {[
+                  { value: 'pos',                 label: 'Pós-graduação',        minW: 'min-w-[120px]' },
+                  { value: 'segunda',             label: 'Segunda licenciatura', minW: 'min-w-[140px]' },
+                  { value: 'formacao_pedagogica', label: 'Form. Pedagógica',     minW: 'min-w-[130px]' },
+                  { value: 'formacao_livre',      label: 'Form. Livre',          minW: 'min-w-[110px]' },
+                  { value: 'diplomacao',          label: 'Diplom. Competência',  minW: 'min-w-[140px]' },
+                  { value: 'eja',                 label: 'EJA',                  minW: 'min-w-[110px]' },
+                  { value: 'graduacao',           label: 'Graduação',            minW: 'min-w-[120px]' },
+                  { value: 'capacitacao',         label: 'Capacitação',          minW: 'min-w-[120px]' },
+                  { value: 'sequencial',          label: 'Sequencial',           minW: 'min-w-[120px]' },
+                ].map(tab => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className={`flex-1 ${tab.minW} px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm`}
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4 relative w-full">

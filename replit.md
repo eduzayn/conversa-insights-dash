@@ -41,6 +41,19 @@ Preferred communication style: Simple, everyday language.
   - Removed duplicate legacy routes to maintain single source of truth
   - System now has consistent API naming throughout the application
 
+- **Certification Form Data Migration (Aug 2025)**: Complete data migration and field standardization
+  - Issue: Field `data_entrega` causing database conflicts and form validation errors
+  - Solution: Migrated all existing `data_entrega` values to `data_prevista` field with 6-month default calculation
+  - Updated 828 certification records with proper predicted delivery dates
+  - Fixed TypeScript validation error for `cargaHoraria` field conversion from string to number
+  - System now processes certification creation/updates without validation conflicts
+
+- **UI Consistency Enhancement (Aug 2025)**: Refactored certification tabs for maintainable responsive design
+  - Issue: EJA and Graduação tabs had inconsistent spacing due to mixed CSS classes
+  - Solution: Implemented array-based tab generation with consistent `flex-1` and `min-w` classes
+  - All 9 certification category tabs now use standardized responsive behavior
+  - Future tab additions automatically inherit consistent styling and spacing
+
 ## System Architecture
 
 ### Frontend
