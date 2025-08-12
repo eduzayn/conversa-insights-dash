@@ -96,6 +96,12 @@ Preferred communication style: Simple, everyday language.
   - Empty state now displays "Nenhuma certificação encontrada" instead of misleading numbers
   - Enhanced user experience with contextual messages including search terms and filters
 
+- **Accessibility Enhancement (Aug 2025)**: Improved screen reader support
+  - Issue: TabsList component lacking proper accessibility labels
+  - Solution: Added `aria-label="Categorias de certificação"` to TabsList component
+  - Enhanced navigation experience for users with screen readers
+  - System now provides clear context about the purpose of the tab navigation
+
 ## System Architecture
 
 ### Frontend

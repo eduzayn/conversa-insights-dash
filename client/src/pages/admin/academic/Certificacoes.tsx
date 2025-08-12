@@ -284,7 +284,18 @@ export default function Certificacoes() {
       });
       
       // Converter de volta para formato do formulário (string para cargaHoraria)
-      const formData = { ...duplicatedData, cargaHoraria: '' };
+      const formData = { 
+        ...duplicatedData, 
+        cargaHoraria: '',
+        cpf: duplicatedData.cpf || '',
+        modalidade: duplicatedData.modalidade || '',
+        curso: duplicatedData.curso || '',
+        tutoria: duplicatedData.tutoria || '',
+        observacao: duplicatedData.observacao || '',
+        inicioCertificacao: duplicatedData.inicioCertificacao || '',
+        dataPrevista: duplicatedData.dataPrevista || '',
+        diploma: duplicatedData.diploma || ''
+      };
       setNewCertification(formData);
       setIsCreateDialogOpen(true);
     } catch (error) {
@@ -408,7 +419,7 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as CategoriaKey)} className="w-full">
-              <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start">
+              <TabsList aria-label="Categorias de certificação" className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start">
                 {TABS_CONFIG.map(tab => (
                   <TabsTrigger
                     key={tab.value}
