@@ -91,6 +91,7 @@ const App = () => (
             <Route path="/envios-unicv" element={<EnviosUnicv />} />
             <Route path="/envios-famar" element={<EnviosFamar />} />
             <Route path="/certificacoes-fadyc" element={<CertificacoesFadyc />} />
+            <Route path="/admin/reports/certificacoes-fadyc" element={<CertificacoesFadyc />} />
 
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />
