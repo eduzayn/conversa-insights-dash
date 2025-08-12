@@ -409,7 +409,8 @@ export default function Certificacoes() {
                       onCancel={() => setIsCreateDialogOpen(false)}
                       onFormChange={(data) => setNewCertification({
                         ...data,
-                        cargaHoraria: typeof data.cargaHoraria === 'number' ? data.cargaHoraria.toString() : data.cargaHoraria
+                        cargaHoraria: typeof data.cargaHoraria === 'number' ? data.cargaHoraria.toString() : data.cargaHoraria,
+                        dataEntrega: data.dataEntrega || ''
                       })}
                       onNewCourseClick={() => setIsNewCourseDialogOpen(true)}
                       isSubmitting={createMutation.isPending}
@@ -632,7 +633,7 @@ export default function Certificacoes() {
                 observacao: selectedCertification.observacao || '',
                 inicioCertificacao: selectedCertification.inicioCertificacao || '',
                 dataPrevista: selectedCertification.dataPrevista || '',
-                dataEntrega: selectedCertification.dataEntrega || '',
+                dataEntrega: selectedCertification.dataEntrega || selectedCertification.dataPrevista || '',
                 diploma: selectedCertification.diploma || '',
                 status: selectedCertification.status || 'pendente',
                 categoria: selectedCertification.categoria || '',
