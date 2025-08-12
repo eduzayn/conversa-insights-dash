@@ -86,8 +86,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
   const io = new SocketServer(server, {
     cors: {
-      origin: process.env.NODE_ENV === "development" ? "http://localhost:80" : false,
-      methods: ["GET", "POST"]
+      origin: process.env.NODE_ENV === "development" ? "http://localhost:80" : true,
+      methods: ["GET", "POST"],
+      credentials: true
     }
   });
 

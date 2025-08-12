@@ -50,9 +50,12 @@ async function startServer() {
     console.log("Rotas registradas com sucesso");
     
     const port = Number(process.env.PORT) || 5000;
-    server.listen(port, "0.0.0.0", () => {
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
+    
+    server.listen(port, host, () => {
       logger.production();
       console.log(`Environment: ${process.env.NODE_ENV}`);
+      console.log(`Server running on ${host}:${port}`);
       log(`serving on port ${port}`);
     });
     

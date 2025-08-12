@@ -141,16 +141,32 @@ export const rateLimiter = (maxRequests: number = 10000, windowMs: number = 15 *
   };
 };
 
-// Health check endpoint para monitoramento
+// Health check endpoint robusto para Autoscale
 export const healthCheck = (req: Request, res: Response) => {
-  const healthStatus = {
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    version: process.version,
-    environment: process.env.NODE_ENV || 'development'
-  };
-  
-  res.status(200).json(healthStatus);
+  try {
+    const healthData = {
+      status: 'ok',
+      service: 'ERP-Edunexia',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      memory: process.memoryUsage(),
+      version: process.version,
+      env: process.env.NODE_ENV,
+      port: process.env.PORT || 5000,
+      checks: {
+        database: 'ok', // TODO: adicionar check real do banco
+        memory: process.memoryUsage().heapUsed < 500 * 1024 * 1024 ? 'ok' : 'warning'
+      }
+    };
+    
+    console.log(`[HEALTH] Health check requested from ${req.ip}`);
+    res.status(200).json(healthData);
+  } catch (error) {
+    console.error('[HEALTH] Health check failed:', error);
+    res.status(503).json({
+      status: 'error',
+      message: 'Service unavailable',
+      timestamp: new Date().toISOString()
+    });
+  }
 };
