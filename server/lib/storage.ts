@@ -201,7 +201,7 @@ export interface IStorage {
   getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; search?: string; page?: number; limit?: number; dataInicio?: string; dataFim?: string; tipoData?: string }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }>;
   createCertification(certification: InsertCertification): Promise<Certification>;
   updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
-  deleteCertification(id: number): Promise<void>;
+  deleteCertification(id: number): Promise<boolean>;
   getCertificationById(id: number): Promise<Certification | undefined>;
 
 
@@ -1072,8 +1072,16 @@ export class DatabaseStorage implements IStorage {
     return updatedCertification || undefined;
   }
 
-  async deleteCertification(id: number): Promise<void> {
+  async deleteCertification(id: number): Promise<boolean> {
+    // Primeiro verificar se a certificação existe
+    const existing = await this.getCertificationById(id);
+    if (!existing) {
+      return false;
+    }
+    
+    // Se existe, deletar
     await db.delete(certifications).where(eq(certifications.id, id));
+    return true;
   }
 
   async getCertificationById(id: number): Promise<Certification | undefined> {
@@ -2790,7 +2798,6 @@ export class DatabaseStorage implements IStorage {
 
   async getCertificacoesFadyc(filters?: { categoria?: string; status?: string; search?: string }): Promise<CertificacaoFadyc[]> {
     try {
-      let query = db.select().from(certificacoesFadyc);
       const whereConditions = [];
 
       if (filters?.categoria && filters.categoria !== 'all') {
@@ -2811,11 +2818,16 @@ export class DatabaseStorage implements IStorage {
         );
       }
 
-      if (whereConditions.length > 0) {
-        query = query.where(and(...whereConditions));
-      }
-
-      const result = await query.orderBy(desc(certificacoesFadyc.createdAt));
+      const result = whereConditions.length > 0
+        ? await db
+            .select()
+            .from(certificacoesFadyc)
+            .where(and(...whereConditions))
+            .orderBy(desc(certificacoesFadyc.createdAt))
+        : await db
+            .select()
+            .from(certificacoesFadyc)
+            .orderBy(desc(certificacoesFadyc.createdAt));
       return result || [];
     } catch (error) {
       console.error('Erro ao buscar certificações FADYC:', error);
