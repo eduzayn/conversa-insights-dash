@@ -81,9 +81,29 @@ export const CertificationPagination = ({
             "Carregando..."
           ) : (
             <>
-              Exibindo <strong>{(currentPage - 1) * pageSize + 1}</strong> a <strong>{Math.min(currentPage * pageSize, totalCertifications)}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
-              {searchTerm && ` para "${searchTerm}"`}
-              {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
+              {(() => {
+                // Contador robusto que evita "Exibindo 1 a 0 de 0" quando não há dados
+                const start = totalCertifications ? (currentPage - 1) * pageSize + 1 : 0;
+                const end = totalCertifications ? Math.min(currentPage * pageSize, totalCertifications) : 0;
+                
+                if (totalCertifications === 0) {
+                  return (
+                    <>
+                      Nenhuma certificação encontrada
+                      {searchTerm && ` para "${searchTerm}"`}
+                      {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
+                    </>
+                  );
+                }
+                
+                return (
+                  <>
+                    Exibindo <strong>{start}</strong> a <strong>{end}</strong> de <strong>{totalCertifications}</strong> certificação{totalCertifications !== 1 ? 'ões' : ''} 
+                    {searchTerm && ` para "${searchTerm}"`}
+                    {filterStatus && filterStatus !== 'todos' && ` com status "${STATUS_LABELS[filterStatus as keyof typeof STATUS_LABELS]}"`}
+                  </>
+                );
+              })()}
             </>
           )}
         </div>

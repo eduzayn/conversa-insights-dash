@@ -89,6 +89,13 @@ Preferred communication style: Simple, everyday language.
   - Implemented `isPreviousData` indicator for discrete loading feedback
   - System now provides smooth navigation without data "flashing" during transitions
 
+- **Robust Pagination Counter (Aug 2025)**: Improved pagination display logic
+  - Issue: Pagination showing confusing "Exibindo 1 a 0 de 0" when no data available
+  - Solution: Implemented robust counter calculation that handles empty states gracefully
+  - Added smart `start` and `end` calculation: only shows ranges when data exists
+  - Empty state now displays "Nenhuma certificação encontrada" instead of misleading numbers
+  - Enhanced user experience with contextual messages including search terms and filters
+
 ## System Architecture
 
 ### Frontend
