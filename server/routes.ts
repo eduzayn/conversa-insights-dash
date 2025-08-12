@@ -160,6 +160,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    // Desabilitar X-Frame-Options para permitir embedding em iframes
+    frameguard: false,
     contentSecurityPolicy: process.env.NODE_ENV === 'development' ? false : {
       directives: {
         defaultSrc: ["'self'"],
@@ -170,7 +172,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
+        frameSrc: ["'self'", "*"],
+        // Permitir que a aplicação seja embarcada em iframes de qualquer origem
+        frameAncestors: ["'self'", "*"],
       },
     }
   }));

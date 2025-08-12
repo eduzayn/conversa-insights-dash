@@ -8,18 +8,13 @@ import { logger } from "./utils/logger";
 
 const app = express();
 
-// Middlewares para compatibilidade global e acessibilidade
+// Middleware para suporte a OPTIONS (preflight) apenas
 app.use((req, res, next) => {
-  // Headers de segurança e acessibilidade global
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('X-Content-Type-Options', 'nosniff');
-  // Removido X-Frame-Options para permitir embed em iframes
-  res.header('X-XSS-Protection', '1; mode=block');
-  
   // Suporte a requests OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.sendStatus(200);
   } else {
     next();
