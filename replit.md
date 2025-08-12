@@ -67,6 +67,13 @@ Preferred communication style: Simple, everyday language.
   - Added separate `searchInput` state for immediate UI feedback while `searchTerm` drives API calls
   - Users can now type smoothly without performance degradation from constant refetching
 
+- **Type Safety Enhancement (Aug 2025)**: Centralized constants and improved TypeScript typing
+  - Issue: String literals scattered throughout code causing potential bugs and poor autocomplete
+  - Solution: Created `@/constants/certifications.ts` with centralized type-safe constants
+  - Added `Status`, `CategoriaKey`, `TABS_CONFIG` and other typed constants
+  - Eliminated magic strings and improved IDE autocomplete/error detection
+  - System now has compile-time validation for certification-related values
+
 ## System Architecture
 
 ### Frontend

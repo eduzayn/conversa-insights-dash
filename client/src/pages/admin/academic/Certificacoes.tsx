@@ -25,13 +25,14 @@ import { CertificationForm } from '@/components/certifications/CertificationForm
 import { NewCourseDialog } from '@/components/certifications/NewCourseDialog';
 import { DuplicateAlert } from '@/components/certifications/DuplicateAlert';
 import { CertificationPagination } from '@/components/certifications/CertificationPagination';
+import { TABS_CONFIG, CategoriaKey, Status } from '@/constants/certifications';
 
 export default function Certificacoes() {
   // Estados para filtros e paginação
-  const [activeTab, setActiveTab] = useState('pos');
+  const [activeTab, setActiveTab] = useState<CategoriaKey>('pos');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [filterStatus, setFilterStatus] = useState('todos');
+  const [filterStatus, setFilterStatus] = useState<Status | 'todos'>('todos');
   const [filterTipoData, setFilterTipoData] = useState('data_prevista');
   const [filterPeriodo, setFilterPeriodo] = useState('todos');
   const [dataInicio, setDataInicio] = useState('');
@@ -363,19 +364,9 @@ export default function Certificacoes() {
             </div>
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as CategoriaKey)} className="w-full">
               <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start">
-                {[
-                  { value: 'pos',                 label: 'Pós-graduação',        minW: 'min-w-[120px]' },
-                  { value: 'segunda',             label: 'Segunda licenciatura', minW: 'min-w-[140px]' },
-                  { value: 'formacao_pedagogica', label: 'Form. Pedagógica',     minW: 'min-w-[130px]' },
-                  { value: 'formacao_livre',      label: 'Form. Livre',          minW: 'min-w-[110px]' },
-                  { value: 'diplomacao',          label: 'Diplom. Competência',  minW: 'min-w-[140px]' },
-                  { value: 'eja',                 label: 'EJA',                  minW: 'min-w-[110px]' },
-                  { value: 'graduacao',           label: 'Graduação',            minW: 'min-w-[120px]' },
-                  { value: 'capacitacao',         label: 'Capacitação',          minW: 'min-w-[120px]' },
-                  { value: 'sequencial',          label: 'Sequencial',           minW: 'min-w-[120px]' },
-                ].map(tab => (
+                {TABS_CONFIG.map(tab => (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
@@ -409,7 +400,7 @@ export default function Certificacoes() {
                   dataInicio={dataInicio}
                   dataFim={dataFim}
                   onSearchChange={setSearchInput}
-                  onStatusChange={setFilterStatus}
+                  onStatusChange={(value) => setFilterStatus(value as Status | 'todos')}
                   onTipoDataChange={setFilterTipoData}
                   onPeriodoChange={setFilterPeriodo}
                   onDataInicioChange={setDataInicio}
