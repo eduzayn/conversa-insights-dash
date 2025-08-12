@@ -96,7 +96,12 @@ export const useMetaNotificacoes = () => {
   useEffect(() => {
     if (!user) return;
 
-    const socket = io('http://localhost:5000');
+    // Tentar obter token para autenticação
+    const token = localStorage.getItem('token');
+    
+    const socket = io('http://localhost:5000', {
+      auth: token ? { token } : undefined
+    });
     
     socket.on('goal_achieved', (data: { userId: number | null; achievement: any }) => {
       console.log('Conquista recebida via WebSocket:', data);

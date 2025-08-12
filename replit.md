@@ -127,6 +127,13 @@ Preferred communication style: Simple, everyday language.
   - Server now throws clear error messages if required environment variables are missing or empty
   - Enhanced system stability and prevents silent failures in production environments
 
+- **Socket.io Authentication Enhancement (Aug 2025)**: Token-based authentication with backward compatibility
+  - Issue: Socket.io connections had no authentication, allowing unauthorized access to real-time features
+  - Solution: Implemented JWT-based authentication middleware for Socket.io connections with fallback compatibility
+  - Added token verification in Socket.io middleware with detailed logging for connections with/without tokens
+  - Updated frontend to send authentication token when available while maintaining functionality without token
+  - System now logs all WebSocket connections and validates tokens when provided, enhancing security without breaking existing functionality
+
 - **Query Parameter Validation with Zod (Aug 2025)**: Robust validation and improved ordering semantics
   - Issue: Endpoints vulnerable to type errors from invalid query parameters (e.g., page="abc") without proper validation
   - Solution: Created centralized Zod schemas in `server/schemas/query.ts` for all query parameter validation

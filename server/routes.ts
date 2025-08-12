@@ -4,7 +4,6 @@ import { Server as SocketServer } from "socket.io";
 import { setupVite, serveStatic } from "./config/vite";
 import path from "path";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { storage } from "./lib/storage";
 import { logger } from "./utils/logger";
 import { sql, eq, inArray } from "drizzle-orm";
@@ -36,6 +35,7 @@ import {
   insertCertificacaoFadycSchema
 } from "@shared/schema";
 import { z } from "zod";
+import jwt from "jsonwebtoken";
 import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
@@ -1254,9 +1254,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Middleware de autenticação para Socket.io
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace("Bearer ", "");
+    if (!token) {
+      // permitir por enquanto para não quebrar, mas logar
+      logger.warn("[WS] Conexão sem token", { id: socket.id });
+      return next();
+    }
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET!);
+      (socket as any).user = payload;
+      next();
+    } catch {
+      logger.warn("[WS] Token inválido", { id: socket.id });
+      next(new Error("Unauthorized"));
+    }
+  });
+
   // Socket.io para notificações em tempo real
   io.on('connection', (socket) => {
-    console.log('Novo usuário conectado:', socket.id);
+    logger.info("WS conectado", { id: socket.id, user: (socket as any).user?.sub });
     
     // Envio de mensagens entre usuários
     socket.on('send_message', (data) => {
@@ -1265,16 +1283,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Notificações de metas alcançadas
     socket.on('goal_achieved', (data) => {
-      // Notificar todos os usuários da team sobre meta alcançada
-      if (data.teamId) {
-        io.emit('team_goal_achieved', data);
-      } else {
-        io.emit('individual_goal_achieved', data);
-      }
+      io.emit(data.teamId ? 'team_goal_achieved' : 'individual_goal_achieved', data);
     });
 
     socket.on('disconnect', () => {
-      console.log('Usuário desconectado:', socket.id);
+      logger.info("WS desconectado", { id: socket.id });
     });
   });
 
