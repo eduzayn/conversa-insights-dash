@@ -15,6 +15,34 @@
     font-size: max(16px, 1rem);
     min-height: 44px;
   }
+  
+  /* Correção para abas de certificação em produção */
+  .certification-tabs-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+  
+  .certification-tabs-list {
+    width: 100% !important;
+    min-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    scrollbar-width: thin;
+  }
+  
+  .certification-tabs-list::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .certification-tabs-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  
+  .certification-tabs-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 

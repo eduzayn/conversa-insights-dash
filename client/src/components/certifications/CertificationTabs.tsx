@@ -26,12 +26,13 @@ const TABS = [
 
 export default function CertificationTabs({ value, onValueChange, children }: Props) {
   return (
-    <Tabs value={value} onValueChange={onValueChange} className="w-full">
-      <TabsList
-        aria-label="Categorias de certificação"
-        className="w-full flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start"
-      >
-        {TABS.map(tab => (
+    <div className="certification-tabs-container">
+      <Tabs value={value} onValueChange={onValueChange} className="w-full max-w-full overflow-hidden">
+        <TabsList
+          aria-label="Categorias de certificação"
+          className="certification-tabs-list w-full flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start"
+        >
+          {TABS.map(tab => (
           <TabsTrigger
             key={tab.value}
             value={tab.value}
@@ -42,10 +43,11 @@ export default function CertificationTabs({ value, onValueChange, children }: Pr
         ))}
       </TabsList>
 
-      {/* O pai injeta um único TabsContent com "value" controlado externamente */}
-      <TabsContent value={value} className="space-y-4 relative w-full">
-        {children}
-      </TabsContent>
-    </Tabs>
+        {/* O pai injeta um único TabsContent com "value" controlado externamente */}
+        <TabsContent value={value} className="space-y-4 relative w-full">
+          {children}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
