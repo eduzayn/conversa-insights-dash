@@ -63,7 +63,7 @@ const refreshToken = async (url: string): Promise<string | null> => {
 };
 
 // Fetcher robusto com retry automático e renovação de token
-const robustQueryFn = async ({ queryKey }: { queryKey: readonly string[] }) => {
+const robustQueryFn = async ({ queryKey }: any) => {
   const url = queryKey[0];
   let lastError: any;
   
@@ -151,7 +151,7 @@ const robustQueryFn = async ({ queryKey }: { queryKey: readonly string[] }) => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: robustQueryFn,
+      queryFn: robustQueryFn as any,
       retry: false, // Usamos nosso próprio sistema de retry
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,

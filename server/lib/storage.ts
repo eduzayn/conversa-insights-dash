@@ -1862,6 +1862,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async addCourseDisciplines(courseId: number, disciplineIds: number[]): Promise<void> {
+    // Alias para addDisciplinesToCourse para compatibilidade com interface
+    return this.addDisciplinesToCourse(courseId, disciplineIds);
+  }
+
   async removeCourseDisciplines(courseId: number, disciplineIds?: number[]): Promise<void> {
     if (disciplineIds && disciplineIds.length > 0) {
       // Remove disciplinas específicas
@@ -2877,14 +2882,17 @@ export class DatabaseStorage implements IStorage {
   // Métodos para cursos FADYC
   async getCursosFadyc(categoria?: string): Promise<CursoFadyc[]> {
     try {
-      let query = db.select().from(cursosFadyc).where(eq(cursosFadyc.isActive, true));
-      
       if (categoria) {
-        query = query.where(and(eq(cursosFadyc.isActive, true), eq(cursosFadyc.categoria, categoria)));
+        const result = await db.select().from(cursosFadyc)
+          .where(and(eq(cursosFadyc.isActive, true), eq(cursosFadyc.categoria, categoria)))
+          .orderBy(cursosFadyc.nome);
+        return result || [];
+      } else {
+        const result = await db.select().from(cursosFadyc)
+          .where(eq(cursosFadyc.isActive, true))
+          .orderBy(cursosFadyc.nome);
+        return result || [];
       }
-      
-      const result = await query.orderBy(cursosFadyc.nome);
-      return result || [];
     } catch (error) {
       console.error('Erro ao buscar cursos FADYC:', error);
       return [];
