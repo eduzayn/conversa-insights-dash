@@ -132,6 +132,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Criar negociação
+  app.post("/api/negociacoes", validateRequest(insertNegociacaoSchema), async (req, res) => {
+    try {
+      const negociacao = await storage.createNegociacao(req.body);
+      res.status(201).json(negociacao);
+    } catch (error) {
+      logger.error("Erro ao criar negociação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Buscar negociações expiradas
   app.get("/api/negociacoes-expirados", async (req, res) => {
     try {
