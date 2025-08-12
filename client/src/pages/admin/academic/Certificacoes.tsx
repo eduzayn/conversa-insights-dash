@@ -440,12 +440,12 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as CategoriaKey)} className="w-full">
-              <TabsList aria-label="Categorias de certificação" className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start">
+              <TabsList aria-label="Categorias de certificação" className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start w-full">
                 {TABS_CONFIG.map(tab => (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className={`flex-1 ${tab.minW} px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm`}
+                    className={`${tab.minW} px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm`}
                   >
                     {tab.label}
                   </TabsTrigger>
