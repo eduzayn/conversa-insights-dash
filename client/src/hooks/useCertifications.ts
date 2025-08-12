@@ -132,7 +132,7 @@ export const useCertifications = (
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000)
   });
 
-  // Mutation para criar certificação
+  // Mutation para criar certificação com optimistic update
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       return await apiRequest('/api/certificacoes', {
@@ -140,17 +140,61 @@ export const useCertifications = (
         body: JSON.stringify(data)
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
-      toast.success('Certificação criada com sucesso!');
+    onMutate: async (newCertification) => {
+      // Cancelar queries em andamento
+      const queryKey = ['/api/certificacoes', { 
+        categoria: getCategoriaFromTab(activeTab),
+        status: filterStatus,
+        tipoData: filterTipoData,
+        periodo: filterPeriodo,
+        dataInicio,
+        dataFim,
+        search: searchTerm,
+        page: currentPage,
+        limit: pageSize
+      }];
+      await queryClient.cancelQueries({ queryKey });
+      
+      // Capturar estado anterior
+      const previousData = queryClient.getQueryData(queryKey);
+      
+      // Atualizar otimisticamente com novo item
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        const optimisticCert = {
+          ...newCertification,
+          id: Date.now(), // ID temporário
+          createdAt: new Date().toISOString()
+        };
+        
+        return {
+          ...oldData,
+          data: [optimisticCert, ...(oldData.data || [])],
+          total: (parseInt(oldData.total) || 0) + 1
+        };
+      });
+      
+      return { previousData, queryKey };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Reverter em caso de erro
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
+      }
       toast.error('Erro ao criar certificação');
       console.error('Erro:', error);
+    },
+    onSuccess: () => {
+      toast.success('Certificação criada com sucesso!');
+    },
+    onSettled: () => {
+      // Atualizar dados reais do servidor
+      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
     }
   });
 
-  // Mutation para atualizar certificação
+  // Mutation para atualizar certificação com optimistic update
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       return await apiRequest(`/api/certificacoes/${data.id}`, {
@@ -158,30 +202,109 @@ export const useCertifications = (
         body: JSON.stringify(data)
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
-      toast.success('Certificação atualizada com sucesso!');
+    onMutate: async (updatedCertification) => {
+      // Cancelar queries em andamento
+      const queryKey = ['/api/certificacoes', { 
+        categoria: getCategoriaFromTab(activeTab),
+        status: filterStatus,
+        tipoData: filterTipoData,
+        periodo: filterPeriodo,
+        dataInicio,
+        dataFim,
+        search: searchTerm,
+        page: currentPage,
+        limit: pageSize
+      }];
+      await queryClient.cancelQueries({ queryKey });
+      
+      // Capturar estado anterior
+      const previousData = queryClient.getQueryData(queryKey);
+      
+      // Atualizar otimisticamente
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData?.data) return oldData;
+        
+        return {
+          ...oldData,
+          data: oldData.data.map((cert: any) => 
+            cert.id === updatedCertification.id 
+              ? { ...cert, ...updatedCertification }
+              : cert
+          )
+        };
+      });
+      
+      return { previousData, queryKey };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Reverter em caso de erro
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
+      }
       toast.error('Erro ao atualizar certificação');
       console.error('Erro:', error);
+    },
+    onSuccess: () => {
+      toast.success('Certificação atualizada com sucesso!');
+    },
+    onSettled: () => {
+      // Atualizar dados reais do servidor
+      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
     }
   });
 
-  // Mutation para excluir certificação
+  // Mutation para excluir certificação com optimistic update
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       return await apiRequest(`/api/certificacoes/${id}`, {
         method: 'DELETE'
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
-      toast.success('Certificação excluída com sucesso!');
+    onMutate: async (deletedId) => {
+      // Cancelar queries em andamento
+      const queryKey = ['/api/certificacoes', { 
+        categoria: getCategoriaFromTab(activeTab),
+        status: filterStatus,
+        tipoData: filterTipoData,
+        periodo: filterPeriodo,
+        dataInicio,
+        dataFim,
+        search: searchTerm,
+        page: currentPage,
+        limit: pageSize
+      }];
+      await queryClient.cancelQueries({ queryKey });
+      
+      // Capturar estado anterior
+      const previousData = queryClient.getQueryData(queryKey);
+      
+      // Remover otimisticamente
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData?.data) return oldData;
+        
+        return {
+          ...oldData,
+          data: oldData.data.filter((cert: any) => cert.id !== deletedId),
+          total: Math.max(0, (parseInt(oldData.total) || 0) - 1)
+        };
+      });
+      
+      return { previousData, queryKey };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Reverter em caso de erro
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
+      }
       toast.error('Erro ao excluir certificação');
       console.error('Erro:', error);
+    },
+    onSuccess: () => {
+      toast.success('Certificação excluída com sucesso!');
+    },
+    onSettled: () => {
+      // Atualizar dados reais do servidor
+      queryClient.invalidateQueries({ queryKey: ['/api/certificacoes'] });
     }
   });
 

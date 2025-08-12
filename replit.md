@@ -102,6 +102,14 @@ Preferred communication style: Simple, everyday language.
   - Enhanced navigation experience for users with screen readers
   - System now provides clear context about the purpose of the tab navigation
 
+- **Optimistic Updates Implementation (Aug 2025)**: Instant UI feedback for mutations
+  - Issue: Users experienced delays waiting for server responses on create/update/delete operations
+  - Solution: Implemented optimistic updates across all certification mutations (create, update, delete)
+  - Added `onMutate` handlers that immediately update UI with expected results
+  - Includes rollback mechanism (`onError`) that reverts changes if server request fails
+  - Users now see instant feedback while server processes requests in background
+  - Enhanced perceived performance without changing visual appearance
+
 ## System Architecture
 
 ### Frontend
