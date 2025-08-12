@@ -113,9 +113,11 @@ Preferred communication style: Simple, everyday language.
 - **List Virtualization Implementation (Aug 2025)**: Performance optimization for large datasets
   - Issue: Rendering 942+ certification cards simultaneously caused performance degradation
   - Solution: Implemented @tanstack/react-virtual for efficient list rendering
-  - Only renders visible items plus 5 overscan items for smooth scrolling
+  - Only renders visible items plus 12 overscan items for smooth scrolling
   - Maintained exact visual appearance and spacing (space-y-4 equivalent)
-  - Fixed height container (500px) with absolute positioning for optimal performance
+  - Dynamic height measurement using ResizeObserver for accurate sizing
+  - Scroll parent configured on main element maintaining original scroll behavior
+  - Estimated item size optimized to 140px with automatic measurement fallback
   - Dramatically improved scroll performance and memory usage for large datasets
 
 ## System Architecture

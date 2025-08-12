@@ -182,12 +182,18 @@ export default function Certificacoes() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // Configuração do virtualizador
-  const virtualizer = useVirtualizer({
-    count: certifications?.length || 0,
+  // Virtualização dos cards de certificação
+  const rowVirtualizer = useVirtualizer({
+    count: certifications.length,
     getScrollElement: () => scrollParentRef.current,
-    estimateSize: () => 200, // Altura estimada de cada card
-    overscan: 5, // Renderizar 5 itens extras para melhor performance
+    // altura estimada de cada card; ajuste se seus cards forem maiores/menores
+    estimateSize: () => 140,
+    overscan: 12,
+    // permite alturas dinâmicas (mede o elemento real quando renderiza)
+    measureElement:
+      typeof window !== 'undefined' && 'ResizeObserver' in window
+        ? (el: Element) => (el as HTMLElement).getBoundingClientRect().height
+        : undefined,
   });
 
   // Atualizar categoria quando muda a aba
@@ -538,12 +544,12 @@ export default function Certificacoes() {
                     >
                       <div
                         style={{
-                          height: `${virtualizer.getTotalSize()}px`,
+                          height: `${rowVirtualizer.getTotalSize()}px`,
                           width: '100%',
                           position: 'relative',
                         }}
                       >
-                        {virtualizer.getVirtualItems().map((virtualItem) => {
+                        {rowVirtualizer.getVirtualItems().map((virtualItem) => {
                           const certification = certifications[virtualItem.index];
                           
                           // Verificar se esta certificação está em algum grupo de duplicatas
