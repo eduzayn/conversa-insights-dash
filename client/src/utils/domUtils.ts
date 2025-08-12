@@ -43,10 +43,7 @@ export const preventIframeSandboxErrors = () => {
   // Interceptar tentativas de criação de iframes problemáticos
   const originalCreateElement = document.createElement;
   
-  document.createElement = function<K extends keyof HTMLElementTagNameMap>(
-    tagName: K, 
-    options?: ElementCreationOptions
-  ): HTMLElementTagNameMap[K] {
+  (document as any).createElement = function(tagName: string, options?: any): HTMLElement {
     const element = originalCreateElement.call(this, tagName, options);
     
     if (tagName.toLowerCase() === 'iframe') {

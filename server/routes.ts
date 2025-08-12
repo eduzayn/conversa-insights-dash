@@ -1034,6 +1034,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // ===== SERVIR ARQUIVOS ATTACHED_ASSETS =====
+  
+  // Rota específica para servir imagens e arquivos da pasta attached_assets
+  app.use('/attached_assets', express.static(path.resolve('attached_assets'), {
+    setHeaders: (res, filepath) => {
+      // Configurar headers para assets
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      
+      // Detectar tipo de arquivo por extensão
+      if (filepath.endsWith('.png') || filepath.endsWith('.jpg') || filepath.endsWith('.jpeg')) {
+        res.setHeader('Content-Type', filepath.endsWith('.png') ? 'image/png' : 'image/jpeg');
+      } else if (filepath.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+      } else if (filepath.endsWith('.xlsx') || filepath.endsWith('.xls')) {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      }
+    }
+  }));
+
   // ===== SETUP DO FRONTEND =====
   
   // Configuração específica para desenvolvimento vs produção
