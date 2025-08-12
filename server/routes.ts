@@ -87,10 +87,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
   const io = new SocketServer(server, {
     cors: {
-      origin: process.env.NODE_ENV === "development" ? "http://localhost:80" : true,
-      methods: ["GET", "POST"],
-      credentials: true
-    }
+      origin: true, // Permite qualquer origem
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]
+    },
+    transports: ['websocket', 'polling'], // Suporte a múltiplos transports
+    allowEIO3: true, // Compatibilidade com versões antigas
+    upgradeTimeout: 30000,
+    pingTimeout: 60000,
+    pingInterval: 25000
   });
 
   // Middlewares globais
