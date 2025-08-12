@@ -142,10 +142,10 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByCpf(cpf: string): Promise<User | undefined>;
   createUser(user: InsertUser & { multiCompanyAccess?: any }): Promise<User>;
-  updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  updateUser(id: number, user: Partial<User>): Promise<User>;
   
   // Registration Tokens
-  getRegistrationToken(token: string): Promise<RegistrationToken | undefined>;
+  getRegistrationToken(token: string): Promise<RegistrationToken>;
   getAllRegistrationTokens(): Promise<RegistrationToken[]>;
   createRegistrationToken(token: InsertRegistrationToken): Promise<RegistrationToken>;
   markTokenAsUsed(token: string, userId: number): Promise<void>;
@@ -164,18 +164,18 @@ export interface IStorage {
   
   // Messages
   createMessage(message: InsertMessage): Promise<Message>;
-  updateMessage(id: number, content: string): Promise<Message | undefined>;
+  updateMessage(id: number, content: string): Promise<Message>;
   deleteMessage(id: number): Promise<void>;
   
   // Leads
   getLeads(filters?: { assignedTo?: number; teamId?: number; status?: string }): Promise<Lead[]>;
   createLead(lead: InsertLead): Promise<Lead>;
-  updateLead(id: number, lead: Partial<Lead>): Promise<Lead | undefined>;
+  updateLead(id: number, lead: Partial<Lead>): Promise<Lead>;
   
   // Conversations
   getConversations(filters?: { attendantId?: number; status?: string }): Promise<Conversation[]>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
-  updateConversation(id: number, conversation: Partial<Conversation>): Promise<Conversation | undefined>;
+  updateConversation(id: number, conversation: Partial<Conversation>): Promise<Conversation>;
   
   // Attendance Messages
   getConversationMessages(conversationId: number, limit?: number, offset?: number): Promise<AttendanceMessage[]>;
@@ -189,7 +189,7 @@ export interface IStorage {
   // Goals
   getGoals(filters?: { type?: string; teamId?: number; userId?: number }): Promise<Goal[]>;
   createGoal(goal: InsertGoal): Promise<Goal>;
-  updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined>;
+  updateGoal(id: number, goal: Partial<Goal>): Promise<Goal>;
   
   // User Activity
   getUserActivity(userId: number, date?: string): Promise<UserActivity[]>;
@@ -199,9 +199,9 @@ export interface IStorage {
   // Certifications
   getCertifications(filters?: { modalidade?: string; curso?: string; status?: string; categoria?: string; search?: string; page?: number; limit?: number; dataInicio?: string; dataFim?: string; tipoData?: string }): Promise<{ data: Certification[], total: number, page: number, limit: number, totalPages: number }>;
   createCertification(certification: InsertCertification): Promise<Certification>;
-  updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined>;
+  updateCertification(id: number, certification: Partial<Certification>): Promise<Certification>;
   deleteCertification(id: number): Promise<boolean>;
-  getCertificationById(id: number): Promise<Certification | undefined>;
+  getCertificationById(id: number): Promise<Certification>;
 
 
   
@@ -367,28 +367,40 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserById(id: number): Promise<User | undefined> {
+  async getUserById(id: number): Promise<User> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    if (!user) {
+      throw new Error(`Usuário com ID ${id} não encontrado`);
+    }
+    return user;
   }
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(users.name);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByUsername(username: string): Promise<User> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    if (!user) {
+      throw new Error(`Usuário com username '${username}' não encontrado`);
+    }
+    return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<User> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+    if (!user) {
+      throw new Error(`Usuário com email '${email}' não encontrado`);
+    }
+    return user;
   }
 
-  async getUserByCpf(cpf: string): Promise<User | undefined> {
+  async getUserByCpf(cpf: string): Promise<User> {
     const [user] = await db.select().from(users).where(eq(users.cpf, cpf));
-    return user || undefined;
+    if (!user) {
+      throw new Error(`Usuário com CPF '${cpf}' não encontrado`);
+    }
+    return user;
   }
 
   async createUser(insertUser: InsertUser & { multiCompanyAccess?: any }): Promise<User> {
@@ -403,22 +415,28 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: number, user: Partial<User>): Promise<User | undefined> {
+  async updateUser(id: number, user: Partial<User>): Promise<User> {
     const [updatedUser] = await db
       .update(users)
       .set({ ...user, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
-    return updatedUser || undefined;
+    if (!updatedUser) {
+      throw new Error(`Falha ao atualizar usuário com ID ${id} - usuário não encontrado`);
+    }
+    return updatedUser;
   }
 
   // Registration Tokens
-  async getRegistrationToken(token: string): Promise<RegistrationToken | undefined> {
+  async getRegistrationToken(token: string): Promise<RegistrationToken> {
     const [regToken] = await db
       .select()
       .from(registrationTokens)
       .where(eq(registrationTokens.token, token));
-    return regToken || undefined;
+    if (!regToken) {
+      throw new Error(`Token de registro '${token}' não encontrado ou expirado`);
+    }
+    return regToken;
   }
 
   async createRegistrationToken(token: InsertRegistrationToken): Promise<RegistrationToken> {
@@ -570,7 +588,7 @@ export class DatabaseStorage implements IStorage {
     return newMessage;
   }
 
-  async updateMessage(id: number, content: string): Promise<Message | undefined> {
+  async updateMessage(id: number, content: string): Promise<Message> {
     const [updatedMessage] = await db
       .update(messages)
       .set({ 
@@ -580,7 +598,10 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(messages.id, id))
       .returning();
-    return updatedMessage || undefined;
+    if (!updatedMessage) {
+      throw new Error(`Falha ao atualizar mensagem com ID ${id} - mensagem não encontrada`);
+    }
+    return updatedMessage;
   }
 
   async deleteMessage(id: number): Promise<void> {
@@ -620,13 +641,16 @@ export class DatabaseStorage implements IStorage {
     return newLead;
   }
 
-  async updateLead(id: number, lead: Partial<Lead>): Promise<Lead | undefined> {
+  async updateLead(id: number, lead: Partial<Lead>): Promise<Lead> {
     const [updatedLead] = await db
       .update(leads)
       .set({ ...lead, updatedAt: new Date() })
       .where(eq(leads.id, id))
       .returning();
-    return updatedLead || undefined;
+    if (!updatedLead) {
+      throw new Error(`Falha ao atualizar lead com ID ${id} - lead não encontrado`);
+    }
+    return updatedLead;
   }
 
   // Conversations
@@ -665,13 +689,16 @@ export class DatabaseStorage implements IStorage {
     return newConversation;
   }
 
-  async updateConversation(id: number, conversation: Partial<Conversation>): Promise<Conversation | undefined> {
+  async updateConversation(id: number, conversation: Partial<Conversation>): Promise<Conversation> {
     const [updatedConversation] = await db
       .update(conversations)
       .set({ ...conversation, updatedAt: new Date() })
       .where(eq(conversations.id, id))
       .returning();
-    return updatedConversation || undefined;
+    if (!updatedConversation) {
+      throw new Error(`Falha ao atualizar conversa com ID ${id} - conversa não encontrada`);
+    }
+    return updatedConversation;
   }
 
   // Attendance Messages
@@ -758,13 +785,16 @@ export class DatabaseStorage implements IStorage {
     return newGoal;
   }
 
-  async updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined> {
+  async updateGoal(id: number, goal: Partial<Goal>): Promise<Goal> {
     const [updatedGoal] = await db
       .update(goals)
       .set(goal)
       .where(eq(goals.id, id))
       .returning();
-    return updatedGoal || undefined;
+    if (!updatedGoal) {
+      throw new Error(`Falha ao atualizar meta com ID ${id} - meta não encontrada`);
+    }
+    return updatedGoal;
   }
 
   // Goal Progress
@@ -1059,7 +1089,7 @@ export class DatabaseStorage implements IStorage {
     return newCertification;
   }
 
-  async updateCertification(id: number, certification: Partial<Certification>): Promise<Certification | undefined> {
+  async updateCertification(id: number, certification: Partial<Certification>): Promise<Certification> {
     const [updatedCertification] = await db
       .update(certifications)
       .set({
@@ -1068,27 +1098,30 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(certifications.id, id))
       .returning();
-    return updatedCertification || undefined;
+    if (!updatedCertification) {
+      throw new Error(`Falha ao atualizar certificação com ID ${id} - certificação não encontrada`);
+    }
+    return updatedCertification;
   }
 
   async deleteCertification(id: number): Promise<boolean> {
-    // Primeiro verificar se a certificação existe
-    const existing = await this.getCertificationById(id);
-    if (!existing) {
-      return false;
-    }
+    // Primeiro verificar se a certificação existe (já lança erro se não existe)
+    await this.getCertificationById(id);
     
-    // Se existe, deletar
+    // Se chegou aqui, existe - pode deletar
     await db.delete(certifications).where(eq(certifications.id, id));
     return true;
   }
 
-  async getCertificationById(id: number): Promise<Certification | undefined> {
+  async getCertificationById(id: number): Promise<Certification> {
     const [certification] = await db
       .select()
       .from(certifications)
       .where(eq(certifications.id, id));
-    return certification || undefined;
+    if (!certification) {
+      throw new Error(`Certificação com ID ${id} não encontrada`);
+    }
+    return certification;
   }
 
   // Pre-registered Courses
@@ -1135,13 +1168,16 @@ export class DatabaseStorage implements IStorage {
     return newCourse;
   }
 
-  async updatePreRegisteredCourse(id: number, course: Partial<PreRegisteredCourse>): Promise<PreRegisteredCourse | undefined> {
+  async updatePreRegisteredCourse(id: number, course: Partial<PreRegisteredCourse>): Promise<PreRegisteredCourse> {
     const [updatedCourse] = await db
       .update(preRegisteredCourses)
       .set({ ...course, updatedAt: new Date() })
       .where(eq(preRegisteredCourses.id, id))
       .returning();
-    return updatedCourse || undefined;
+    if (!updatedCourse) {
+      throw new Error(`Falha ao atualizar curso pré-registrado com ID ${id} - curso não encontrado`);
+    }
+    return updatedCourse;
   }
 
   async deletePreRegisteredCourse(id: number): Promise<void> {
@@ -1172,13 +1208,16 @@ export class DatabaseStorage implements IStorage {
     return newEnrollment;
   }
 
-  async updateStudentEnrollment(id: number, enrollment: Partial<StudentEnrollment>): Promise<StudentEnrollment | undefined> {
+  async updateStudentEnrollment(id: number, enrollment: Partial<StudentEnrollment>): Promise<StudentEnrollment> {
     const [updatedEnrollment] = await db
       .update(studentEnrollments)
       .set({ ...enrollment, updatedAt: new Date() })
       .where(eq(studentEnrollments.id, id))
       .returning();
-    return updatedEnrollment || undefined;
+    if (!updatedEnrollment) {
+      throw new Error(`Falha ao atualizar matrícula com ID ${id} - matrícula não encontrada`);
+    }
+    return updatedEnrollment;
   }
 
   // Portal do Aluno - Student Evaluations
@@ -1202,13 +1241,16 @@ export class DatabaseStorage implements IStorage {
     return newEvaluation;
   }
 
-  async updateStudentEvaluation(id: number, evaluation: Partial<StudentEvaluation>): Promise<StudentEvaluation | undefined> {
+  async updateStudentEvaluation(id: number, evaluation: Partial<StudentEvaluation>): Promise<StudentEvaluation> {
     const [updatedEvaluation] = await db
       .update(studentEvaluations)
       .set({ ...evaluation, updatedAt: new Date() })
       .where(eq(studentEvaluations.id, id))
       .returning();
-    return updatedEvaluation || undefined;
+    if (!updatedEvaluation) {
+      throw new Error(`Falha ao atualizar avaliação com ID ${id} - avaliação não encontrada`);
+    }
+    return updatedEvaluation;
   }
 
   // Portal do Aluno - Student Documents
@@ -1232,13 +1274,16 @@ export class DatabaseStorage implements IStorage {
     return newDocument;
   }
 
-  async updateStudentDocument(id: number, document: Partial<StudentDocument>): Promise<StudentDocument | undefined> {
+  async updateStudentDocument(id: number, document: Partial<StudentDocument>): Promise<StudentDocument> {
     const [updatedDocument] = await db
       .update(studentDocuments)
       .set({ ...document, updatedAt: new Date() })
       .where(eq(studentDocuments.id, id))
       .returning();
-    return updatedDocument || undefined;
+    if (!updatedDocument) {
+      throw new Error(`Falha ao atualizar documento com ID ${id} - documento não encontrado`);
+    }
+    return updatedDocument;
   }
 
   // Portal do Aluno - Student Payments
@@ -1262,13 +1307,16 @@ export class DatabaseStorage implements IStorage {
     return newPayment;
   }
 
-  async updateStudentPayment(id: number, payment: Partial<StudentPayment>): Promise<StudentPayment | undefined> {
+  async updateStudentPayment(id: number, payment: Partial<StudentPayment>): Promise<StudentPayment> {
     const [updatedPayment] = await db
       .update(studentPayments)
       .set({ ...payment, updatedAt: new Date() })
       .where(eq(studentPayments.id, id))
       .returning();
-    return updatedPayment || undefined;
+    if (!updatedPayment) {
+      throw new Error(`Falha ao atualizar pagamento com ID ${id} - pagamento não encontrado`);
+    }
+    return updatedPayment;
   }
 
   // Portal do Aluno - Student Certificates
@@ -2829,7 +2877,7 @@ export class DatabaseStorage implements IStorage {
             .orderBy(desc(certificacoesFadyc.createdAt));
       return result || [];
     } catch (error) {
-      console.error('Erro ao buscar certificações FADYC:', error);
+      logger.error('Erro ao buscar certificações FADYC:', error);
       return [];
     }
   }
@@ -2839,12 +2887,12 @@ export class DatabaseStorage implements IStorage {
       const [result] = await db.insert(certificacoesFadyc).values(certificacao).returning();
       return result;
     } catch (error) {
-      console.error('Erro ao criar certificação FADYC:', error);
+      logger.error('Erro ao criar certificação FADYC:', error);
       throw error;
     }
   }
 
-  async updateCertificacaoFadyc(id: number, certificacao: Partial<CertificacaoFadyc>): Promise<CertificacaoFadyc | undefined> {
+  async updateCertificacaoFadyc(id: number, certificacao: Partial<CertificacaoFadyc>): Promise<CertificacaoFadyc> {
     try {
       // Processar campos de data para evitar strings vazias
       const cleanedData = { ...certificacao };
@@ -2863,9 +2911,12 @@ export class DatabaseStorage implements IStorage {
         .set({ ...cleanedData, updatedAt: new Date() })
         .where(eq(certificacoesFadyc.id, id))
         .returning();
-      return result || undefined;
+      if (!result) {
+        throw new Error(`Falha ao atualizar certificação FADYC com ID ${id} - certificação não encontrada`);
+      }
+      return result;
     } catch (error) {
-      console.error('Erro ao atualizar certificação FADYC:', error);
+      logger.error('Erro ao atualizar certificação FADYC:', error);
       throw error;
     }
   }
@@ -2880,13 +2931,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getCertificacaoFadycById(id: number): Promise<CertificacaoFadyc | undefined> {
+  async getCertificacaoFadycById(id: number): Promise<CertificacaoFadyc> {
     try {
-      const result = await db.select().from(certificacoesFadyc).where(eq(certificacoesFadyc.id, id));
-      return result[0] || undefined;
+      const [result] = await db.select().from(certificacoesFadyc).where(eq(certificacoesFadyc.id, id));
+      if (!result) {
+        throw new Error(`Certificação FADYC com ID ${id} não encontrada`);
+      }
+      return result;
     } catch (error) {
-      console.error('Erro ao buscar certificação FADYC por ID:', error);
-      return undefined;
+      logger.error('Erro ao buscar certificação FADYC por ID:', error);
+      throw error;
     }
   }
 

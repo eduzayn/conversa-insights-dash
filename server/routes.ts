@@ -239,22 +239,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = validateIdParam(req);
       const result = await storage.updateCertificacaoFadyc(id, req.body);
-      
-      if (!result) {
-        return res.status(404).json({ message: "Item não encontrado" });
-      }
-      
       res.json(result);
     } catch (error) {
-      return handleValidationError(error, res, "Erro na operação:");
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "ID inválido", 
-          errors: error.errors 
-        });
-      }
-      logger.error("Erro ao atualizar negociação:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      return handleValidationError(error, res, "Erro ao atualizar negociação:");
     }
   });
 
@@ -263,22 +250,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = validateIdParam(req);
       const result = await storage.updateCertificacaoFadyc(id, req.body);
-      
-      if (!result) {
-        return res.status(404).json({ message: "Item não encontrado" });
-      }
-      
       res.json(result);
     } catch (error) {
-      return handleValidationError(error, res, "Erro na operação:");
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "ID inválido", 
-          errors: error.errors 
-        });
-      }
-      logger.error("Erro ao deletar negociação:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      return handleValidationError(error, res, "Erro ao deletar negociação:");
     }
   });
 
@@ -355,16 +329,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = validateIdParam(req);
       const result = await storage.updateCertificacaoFadyc(id, req.body);
-      
-      if (!result) {
-        return res.status(404).json({ message: "Item não encontrado" });
-      }
-      
       res.json(result);
     } catch (error) {
-      return handleValidationError(error, res, "Erro na operação:");
-      logger.error("Erro ao atualizar certificação FADYC:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      return handleValidationError(error, res, "Erro ao atualizar certificação FADYC:");
     }
   });
 
@@ -373,16 +340,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = validateIdParam(req);
       const result = await storage.updateCertificacaoFadyc(id, req.body);
-      
-      if (!result) {
-        return res.status(404).json({ message: "Item não encontrado" });
-      }
-      
       res.json(result);
     } catch (error) {
-      return handleValidationError(error, res, "Erro na operação:");
-      logger.error("Erro ao deletar certificação FADYC:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      return handleValidationError(error, res, "Erro ao deletar certificação FADYC:");
     }
   });
 
