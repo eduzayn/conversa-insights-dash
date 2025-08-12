@@ -424,7 +424,7 @@ export default function Certificacoes() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg">
+              <TabsList className="flex flex-wrap gap-1 p-1 h-auto min-h-[48px] bg-gray-100 rounded-lg justify-start">
                 <TabsTrigger 
                   value="pos" 
                   className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
@@ -457,25 +457,25 @@ export default function Certificacoes() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="eja" 
-                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="flex-1 min-w-[110px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   EJA
                 </TabsTrigger>
                 <TabsTrigger 
                   value="graduacao" 
-                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   Graduação
                 </TabsTrigger>
                 <TabsTrigger 
                   value="capacitacao" 
-                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   Capacitação
                 </TabsTrigger>
                 <TabsTrigger 
                   value="sequencial" 
-                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="flex-1 min-w-[120px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   Sequencial
                 </TabsTrigger>
