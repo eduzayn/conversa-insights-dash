@@ -143,6 +143,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Atualizar negociação
+  app.put("/api/negociacoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const negociacao = await storage.updateNegociacao(id, req.body);
+      
+      if (!negociacao) {
+        return res.status(404).json({ message: "Negociação não encontrada" });
+      }
+      
+      res.json(negociacao);
+    } catch (error) {
+      logger.error("Erro ao atualizar negociação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar negociação
+  app.delete("/api/negociacoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteNegociacao(id);
+      res.status(204).send();
+    } catch (error) {
+      logger.error("Erro ao deletar negociação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Buscar negociações expiradas
   app.get("/api/negociacoes-expirados", async (req, res) => {
     try {
