@@ -673,6 +673,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: 'user'
       });
 
+      // Marcar token de registro como usado
+      await storage.markTokenAsUsed(registrationToken, user.id);
+
       const token = generateToken(user.id.toString(), user.role);
       
       res.status(201).json({ 

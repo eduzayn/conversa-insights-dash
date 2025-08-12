@@ -148,7 +148,6 @@ export interface IStorage {
   getRegistrationToken(token: string): Promise<RegistrationToken | undefined>;
   getAllRegistrationTokens(): Promise<RegistrationToken[]>;
   createRegistrationToken(token: InsertRegistrationToken): Promise<RegistrationToken>;
-  markTokenAsUsed(token: string, usedBy: number): Promise<void>;
   markTokenAsUsed(token: string, userId: number): Promise<void>;
   
   // Teams

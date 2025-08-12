@@ -127,6 +127,13 @@ Preferred communication style: Simple, everyday language.
   - Server now throws clear error messages if required environment variables are missing or empty
   - Enhanced system stability and prevents silent failures in production environments
 
+- **Registration Token Security Enhancement (Aug 2025)**: Prevention of token reuse after user registration
+  - Issue: Registration tokens were not being marked as used after successful user creation, allowing potential reuse
+  - Solution: Implemented `markTokenAsUsed` call in `/api/auth/register` endpoint after successful user creation
+  - Added automatic token invalidation with `isUsed: true`, `usedBy: userId`, and `usedAt: timestamp`
+  - Cleaned up duplicate method signatures in IStorage interface for better type safety
+  - System now prevents registration token reuse, enhancing security against unauthorized account creation
+
 - **Security Middlewares and CORS Whitelist (Aug 2025)**: Enhanced security with configurable origin control
   - Issue: CORS was allowing all origins (origin: true) which poses security risks in production
   - Solution: Implemented security middlewares and CORS whitelist system
