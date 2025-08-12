@@ -220,6 +220,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar cursos pré-cadastrados
+  app.get("/api/pre-registered-courses", async (req, res) => {
+    try {
+      const { modalidade, categoria, ativo } = req.query;
+      const filters = {
+        modalidade: modalidade as string,
+        categoria: categoria as string,
+        ativo: ativo ? ativo === 'true' : undefined
+      };
+      
+      const courses = await storage.getPreRegisteredCourses(filters);
+      res.json(courses);
+    } catch (error) {
+      logger.error("Erro ao buscar cursos pré-cadastrados:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar curso pré-cadastrado
+  app.post("/api/pre-registered-courses", async (req, res) => {
+    try {
+      const course = await storage.createPreRegisteredCourse(req.body);
+      res.status(201).json(course);
+    } catch (error) {
+      logger.error("Erro ao criar curso pré-cadastrado:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
 
 
   // ===== ROTAS ACADÊMICAS =====

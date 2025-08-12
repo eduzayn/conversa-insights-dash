@@ -16,12 +16,18 @@ export const useCursosFadyc = (categoria?: string) => {
   const { data: cursos = [], isLoading, error } = useQuery({
     queryKey: ['pre-registered-courses', categoria],
     queryFn: async (): Promise<any[]> => {
-      const params = categoria ? `?categoria=${categoria}` : '';
-      const response = await fetch(`/api/pre-registered-courses${params}`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar cursos');
+      try {
+        const params = categoria ? `?categoria=${categoria}` : '';
+        const response = await apiRequest(`/api/pre-registered-courses${params}`);
+        if (Array.isArray(response)) {
+          return response;
+        }
+        console.warn('Resposta da API de cursos não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar cursos pré-cadastrados:', error);
+        return [];
       }
-      return response.json();
     },
     enabled: !!categoria,
   });
@@ -29,13 +35,11 @@ export const useCursosFadyc = (categoria?: string) => {
   // Mutation para criar novo curso usando a tabela pre_registered_courses
   const createMutation = useMutation({
     mutationFn: async (curso: any) => {
-      const response = await fetch('/api/pre-registered-courses', {
+      return apiRequest('/api/pre-registered-courses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(curso),
+        headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Erro ao criar curso');
-      return response.json();
     },
     onSuccess: () => {
       toast.success('Curso criado com sucesso!');
