@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
 import { setupVite, serveStatic } from "./config/vite";
+import path from "path";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { storage } from "./lib/storage";
@@ -95,9 +96,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Middlewares globais
   app.use(rateLimiter());
 
-  // Health checks
+  // Health checks para Autoscale (múltiplos endpoints)
+  app.get('/', (req, res) => res.status(200).json({ status: 'ok', service: 'ERP-Edunexia' }));
   app.get('/health', healthCheck);
   app.get('/api/health', healthCheck);
+  app.get('/healthz', healthCheck);
+  app.get('/status', healthCheck);
 
   // ===== ENDPOINTS DE NEGOCIAÇÕES =====
   
@@ -1024,21 +1028,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== SETUP DO FRONTEND =====
   
-  // Adicionar endpoint de teste simples antes do Vite
-  app.get('/test', (req, res) => {
-    res.json({ message: 'Servidor funcionando!', timestamp: new Date().toISOString() });
-  });
-  
-  // Sempre usar Vite no desenvolvimento do Replit  
-  try {
-    await setupVite(app, server);
-  } catch (error) {
-    console.error('Erro ao configurar Vite:', error);
-    // Fallback: servir arquivos estáticos se Vite falhar
-    app.get('*', (req, res) => {
-      res.status(200).send('Sistema temporariamente indisponível. Reiniciando...');
+  // Configuração específica para desenvolvimento vs produção
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Configurando para produção - servindo arquivos estáticos');
+    serveStatic(app);
+    
+    // Fallback para SPA - só para rotas que não são API ou health checks
+    app.get('*', (req, res, next) => {
+      // Não interceptar rotas de API ou health checks
+      if (req.path.startsWith('/api') || req.path.startsWith('/health') || 
+          req.path === '/healthz' || req.path === '/status' || req.path === '/test') {
+        return next();
+      }
+      
+      // Servir a aplicação React para outras rotas
+      res.sendFile(path.resolve('dist/public/index.html'));
     });
+  } else {
+    console.log('Configurando para desenvolvimento - usando Vite');
+    try {
+      await setupVite(app, server);
+    } catch (error) {
+      console.error('Erro ao configurar Vite:', error);
+      // Fallback: servir arquivos estáticos se Vite falhar
+      serveStatic(app);
+    }
   }
+  
+  // Endpoint de teste que funciona em qualquer ambiente
+  app.get('/test', (req, res) => {
+    res.json({ 
+      message: 'Servidor funcionando!', 
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString() 
+    });
+  });
 
   // ===== HANDLERS DE ERRO =====
   
