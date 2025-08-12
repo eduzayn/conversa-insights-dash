@@ -116,18 +116,24 @@
     
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Service Worker para cache offline -->
+    <!-- PWA installation handler -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => console.log('SW registered'))
-            .catch((registrationError) => console.log('SW registration failed'));
-        });
-      }
+      // Remove conflitos PWA do HTML
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        deferredPrompt = e;
+        // Não chamar preventDefault aqui resolve o erro
+      });
     </script>
     
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <!-- Replit development banner (loads only in dev mode) -->
+    <script>
+      if (window.location.hostname.includes('repl')) {
+        const script = document.createElement('script');
+        script.src = 'https://replit.com/public/js/replit-dev-banner.js';
+        script.onerror = () => console.log('Replit banner script not available');
+        document.head.appendChild(script);
+      }
+    </script>
   </body>
 </html>

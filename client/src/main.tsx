@@ -3,64 +3,101 @@ import App from './App.tsx'
 import './index.css'
 import './utils/clientLogger'
 
-// Limpeza silenciosa de DOM sem logs visuais
+// Sistema otimizado de limpeza DOM
 const cleanupDOM = () => {
   try {
-    const essentialKeys = ['auth-token', 'user-session'];
+    // Preservar tokens essenciais
+    const essentialKeys = ['token', 'student_token', 'professor_token', 'user-session'];
     const backup: Record<string, string> = {};
     
     essentialKeys.forEach(key => {
       const value = localStorage.getItem(key);
-      if (value) backup[key] = value;
+      if (value && value !== 'undefined' && value !== 'null') {
+        backup[key] = value;
+      }
     });
     
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    document.querySelectorAll('[data-radix-portal], [data-sonner-toaster], [data-radix-toast-viewport]').forEach(el => {
-      try { el.remove(); } catch {}
+    // Limpar apenas elementos Radix UI problemáticos
+    document.querySelectorAll('[data-radix-portal]:empty, [data-sonner-toaster]:empty').forEach(el => {
+      try { 
+        if (!el.hasChildNodes()) el.remove(); 
+      } catch {}
     });
     
+    // Restaurar tokens válidos
     Object.entries(backup).forEach(([key, value]) => {
       localStorage.setItem(key, value);
     });
   } catch (error) {
-    // Silenciar erros
+    console.debug('DOM cleanup minor issue:', error);
   }
 };
 
-// Sistema de proteção DOM sem logs
+// Sistema de proteção DOM otimizado
 const setupDOMProtection = () => {
-  const originalRemoveChild = Node.prototype.removeChild;
-  Node.prototype.removeChild = function<T extends Node>(child: T): T {
-    try {
-      if (this.contains && !this.contains(child)) {
-        return child;
-      }
-      return originalRemoveChild.call(this, child) as T;
-    } catch (error) {
-      return child;
+  // Interceptar erros DOM específicos sem afetar performance
+  window.addEventListener('error', (event) => {
+    const message = event.message?.toLowerCase() || '';
+    const suppressedErrors = [
+      'removechild', 'appendchild', 'notfounderror', 
+      'workspace_iframe', 'allowfullscreen', 'navigation-override',
+      'legacy-image-formats', 'oversized-images'
+    ];
+    
+    if (suppressedErrors.some(err => message.includes(err))) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  }, true);
+  
+  // Suprimir warnings CSS específicos do console
+  const originalWarn = console.warn;
+  console.warn = function(...args) {
+    const message = args.join(' ').toLowerCase();
+    const suppressedWarnings = [
+      'unrecognize workspace_iframe', 'allowfullscreen', 
+      'navigation-override', 'legacy-image-formats'
+    ];
+    
+    if (!suppressedWarnings.some(warn => message.includes(warn))) {
+      originalWarn.apply(console, args);
     }
   };
-  
-  window.addEventListener('error', (event) => {
-    if (event.message.includes('removeChild') || 
-        event.message.includes('appendChild') || 
-        event.message.includes('NotFoundError')) {
-      event.preventDefault();
-    }
-  });
 };
 
+// Sistema PWA adequado para resolver beforeinstallprompt
+const setupPWA = () => {
+  let deferredPrompt: any = null;
+  
+  // Capturar evento beforeinstallprompt sem preventDefault automático
+  window.addEventListener('beforeinstallprompt', (e) => {
+    deferredPrompt = e;
+    // NÃO chamar e.preventDefault() aqui resolve o erro do console
+    console.log('PWA install prompt available');
+  });
+  
+  // Registrar service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered'))
+        .catch(err => console.log('SW registration failed:', err));
+    });
+  }
+};
+
+// Inicializar sistemas
 cleanupDOM();
 setupDOMProtection();
+setupPWA();
 
 // Monitor silencioso
 setInterval(() => {
-  const orphanedElements = document.querySelectorAll('[data-radix-portal], [data-sonner-toaster]');
-  if (orphanedElements.length > 5) {
+  const orphanedElements = document.querySelectorAll('[data-radix-portal]:empty, [data-sonner-toaster]:empty');
+  if (orphanedElements.length > 3) {
     orphanedElements.forEach(el => { try { el.remove(); } catch {} });
   }
-}, 15000);
+}, 30000);
 
 createRoot(document.getElementById("root")!).render(<App />);

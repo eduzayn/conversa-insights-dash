@@ -2871,8 +2871,8 @@ export class DatabaseStorage implements IStorage {
 
   async getCertificacaoFadycById(id: number): Promise<CertificacaoFadyc | undefined> {
     try {
-      const [certificacao] = await db.select().from(certificacoesFadyc).where(eq(certificacoesFadyc.id, id));
-      return certificacao || undefined;
+      const result = await db.select().from(certificacoesFadyc).where(eq(certificacoesFadyc.id, id));
+      return result[0] || undefined;
     } catch (error) {
       console.error('Erro ao buscar certificação FADYC por ID:', error);
       return undefined;
