@@ -67,6 +67,9 @@ export default function Certificacoes() {
   
   // Ref para o container de virtualização
   const parentRef = useRef<HTMLDivElement>(null);
+  
+  // Ref para o scroll parent (main element)
+  const scrollParentRef = useRef<HTMLDivElement | null>(null);
 
   // Estados para modais e formulários
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -182,7 +185,7 @@ export default function Certificacoes() {
   // Configuração do virtualizador
   const virtualizer = useVirtualizer({
     count: certifications?.length || 0,
-    getScrollElement: () => parentRef.current,
+    getScrollElement: () => scrollParentRef.current,
     estimateSize: () => 200, // Altura estimada de cada card
     overscan: 5, // Renderizar 5 itens extras para melhor performance
   });
@@ -349,7 +352,7 @@ export default function Certificacoes() {
     <SidebarProvider>
       <div className="flex h-screen bg-gray-50">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main ref={scrollParentRef} className="flex-1 overflow-auto">
           <div className="w-full p-6 space-y-8">
             {/* Header */}
             <div className="flex justify-between items-center">
@@ -528,8 +531,7 @@ export default function Certificacoes() {
                     </div>
                   ) : (
                     <div
-                      ref={parentRef}
-                      className="overflow-auto"
+                      className="w-full"
                       style={{
                         height: '500px',
                       }}
