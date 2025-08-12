@@ -74,6 +74,13 @@ Preferred communication style: Simple, everyday language.
   - Eliminated magic strings and improved IDE autocomplete/error detection
   - System now has compile-time validation for certification-related values
 
+- **Zod Validation Implementation (Aug 2025)**: Centralized data validation and transformation
+  - Issue: Manual data conversion scattered throughout code, potential for runtime errors
+  - Solution: Implemented comprehensive Zod schema for certification data validation
+  - Added automatic `cargaHoraria` string-to-number transformation with `z.preprocess`
+  - Centralized error handling with descriptive validation messages
+  - Enhanced type safety with compile-time validation and runtime data integrity checks
+
 ## System Architecture
 
 ### Frontend

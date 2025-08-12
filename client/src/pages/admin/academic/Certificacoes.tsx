@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { z } from 'zod';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -25,7 +26,30 @@ import { CertificationForm } from '@/components/certifications/CertificationForm
 import { NewCourseDialog } from '@/components/certifications/NewCourseDialog';
 import { DuplicateAlert } from '@/components/certifications/DuplicateAlert';
 import { CertificationPagination } from '@/components/certifications/CertificationPagination';
-import { TABS_CONFIG, CategoriaKey, Status } from '@/constants/certifications';
+import { TABS_CONFIG, CategoriaKey, Status, FinanceiroStatus, DocumentacaoStatus, RequisitosStatus } from '@/constants/certifications';
+
+// Schema Zod para validação e transformação de dados
+const CertSchema = z.object({
+  id: z.number().optional(),
+  aluno: z.string().min(1, 'Nome do aluno é obrigatório'),
+  cpf: z.string().optional(),
+  modalidade: z.string().optional(),
+  curso: z.string().optional(),
+  cargaHoraria: z.preprocess(v => Number(v ?? 0), z.number().int().nonnegative()),
+  financeiro: z.string().default('em_dia'),
+  documentacao: z.string().default('pendente'),
+  plataforma: z.string().default('pendente'),
+  tutoria: z.string().optional(),
+  observacao: z.string().optional(),
+  inicioCertificacao: z.string().optional(),
+  dataPrevista: z.string().optional(),
+  diploma: z.string().optional(),
+  status: z.string().default('pendente'),
+  categoria: z.string(),
+  tcc: z.string().default('nao_possui'),
+  praticasPedagogicas: z.string().default('nao_possui'),
+  estagio: z.string().default('nao_possui')
+});
 
 export default function Certificacoes() {
   // Estados para filtros e paginação
@@ -164,54 +188,61 @@ export default function Certificacoes() {
     setCurrentPage(1);
   }, [searchTerm, filterStatus, filterTipoData, filterPeriodo, dataInicio, dataFim]);
 
-  // Funções de manipulação de eventos
-  const handleCreateCertification = () => {
-    const certificationData = {
-      ...newCertification,
-      cargaHoraria: parseInt(newCertification.cargaHoraria) || 0
-    };
-    createMutation.mutate(certificationData, {
-      onSuccess: () => {
-        setIsCreateDialogOpen(false);
-        setNewCertification({
-          aluno: '',
-          cpf: '',
-          modalidade: '',
-          curso: '',
-          cargaHoraria: '',
-          financeiro: 'em_dia',
-          documentacao: 'pendente',
-          plataforma: 'pendente',
-          tutoria: '',
-          observacao: '',
-          inicioCertificacao: '',
-          dataPrevista: '',
-          diploma: '',
-          status: 'pendente',
-          categoria: getCategoriaFromTab(activeTab),
-          tcc: 'nao_possui',
-          praticasPedagogicas: 'nao_possui',
-          estagio: 'nao_possui'
-        });
+  // Funções de manipulação de eventos com validação Zod
+  const handleCreateCertification = (raw?: any) => {
+    try {
+      const parsed = CertSchema.parse(raw ?? newCertification);
+      createMutation.mutate(parsed, {
+        onSuccess: () => {
+          setIsCreateDialogOpen(false);
+          setNewCertification({
+            aluno: '',
+            cpf: '',
+            modalidade: '',
+            curso: '',
+            cargaHoraria: '',
+            financeiro: 'em_dia',
+            documentacao: 'pendente',
+            plataforma: 'pendente',
+            tutoria: '',
+            observacao: '',
+            inicioCertificacao: '',
+            dataPrevista: '',
+            diploma: '',
+            status: 'pendente',
+            categoria: getCategoriaFromTab(activeTab),
+            tcc: 'nao_possui',
+            praticasPedagogicas: 'nao_possui',
+            estagio: 'nao_possui'
+          });
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(`Erro de validação: ${error.errors.map(e => e.message).join(', ')}`);
+      } else {
+        toast.error('Erro ao criar certificação');
       }
-    });
+    }
   };
 
   const handleUpdateCertification = (data: any) => {
     if (!selectedCertification) return;
     
-    // Garantir que o ID está presente no objeto e converter cargaHoraria
-    const updateData = {
-      ...data,
-      id: selectedCertification.id,
-      cargaHoraria: parseInt(data.cargaHoraria) || 0
-    };
-    
-    updateMutation.mutate(updateData, {
-      onSuccess: () => {
-        setSelectedCertification(null);
+    try {
+      const parsed = CertSchema.parse({ ...data, id: selectedCertification.id });
+      updateMutation.mutate(parsed, {
+        onSuccess: () => {
+          setSelectedCertification(null);
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(`Erro de validação: ${error.errors.map(e => e.message).join(', ')}`);
+      } else {
+        toast.error('Erro ao atualizar certificação');
       }
-    });
+    }
   };
 
   const handleDeleteCertification = (id: number) => {
@@ -229,30 +260,35 @@ export default function Certificacoes() {
   };
 
   const handleDuplicateCertification = (certification: Certification) => {
-    const duplicatedData = {
-      aluno: certification.aluno,
-      cpf: certification.cpf || '',
-      modalidade: certification.modalidade || '',
-      curso: '',
-      cargaHoraria: '',
-      financeiro: certification.financeiro || 'em_dia',
-      documentacao: certification.documentacao || 'pendente',
-      plataforma: certification.plataforma || 'pendente',
-      tutoria: certification.tutoria || '',
-      observacao: `Duplicado de: ${certification.curso ?? 'Curso não informado'}`,
-      inicioCertificacao: '',
-      dataPrevista: '',
-      dataEntrega: '',
-      diploma: '',
-      status: 'pendente',
-      categoria: getCategoriaFromTab(activeTab),
-      tcc: certification.tcc || 'nao_possui',
-      praticasPedagogicas: certification.praticasPedagogicas || 'nao_possui',
-      estagio: certification.estagio || 'nao_possui'
-    };
-    
-    setNewCertification(duplicatedData);
-    setIsCreateDialogOpen(true);
+    try {
+      const duplicatedData = CertSchema.parse({
+        aluno: certification.aluno,
+        cpf: certification.cpf || '',
+        modalidade: certification.modalidade || '',
+        curso: '',
+        cargaHoraria: 0, // Usar número diretamente para duplicação
+        financeiro: certification.financeiro || 'em_dia',
+        documentacao: certification.documentacao || 'pendente',
+        plataforma: certification.plataforma || 'pendente',
+        tutoria: certification.tutoria || '',
+        observacao: `Duplicado de: ${certification.curso ?? 'Curso não informado'}`,
+        inicioCertificacao: '',
+        dataPrevista: '',
+        diploma: '',
+        status: 'pendente',
+        categoria: getCategoriaFromTab(activeTab),
+        tcc: certification.tcc || 'nao_possui',
+        praticasPedagogicas: certification.praticasPedagogicas || 'nao_possui',
+        estagio: certification.estagio || 'nao_possui'
+      });
+      
+      // Converter de volta para formato do formulário (string para cargaHoraria)
+      const formData = { ...duplicatedData, cargaHoraria: '' };
+      setNewCertification(formData);
+      setIsCreateDialogOpen(true);
+    } catch (error) {
+      toast.error('Erro ao duplicar certificação');
+    }
   };
 
   const handleCreateNewCourse = (courseData: { nome: string; cargaHoraria: string }) => {
