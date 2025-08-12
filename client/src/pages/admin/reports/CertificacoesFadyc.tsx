@@ -368,12 +368,6 @@ export default function CertificacoesFadyc() {
                                 <Copy className="w-4 h-4" />
                               </Button>
                               <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
-                                <Copy className="w-4 h-4" />
-                                </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
                                 <Edit className="w-4 h-4" />
                               </Button>
                               <Button variant="destructive" size="sm" onClick={() => handleDelete(cert.id)}>
@@ -474,6 +468,7 @@ export default function CertificacoesFadyc() {
                               <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
                                 <Copy className="w-4 h-4" />
                                 </Button>
+                            <div className="flex justify-end gap-2">
                               <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
                                 <Copy className="w-4 h-4" />
                               </Button>
@@ -484,9 +479,6 @@ export default function CertificacoesFadyc() {
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
                     )}
                   </TableBody>
                 </Table>
