@@ -1719,7 +1719,11 @@ const MatrizesCurriculares = () => {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => deleteProfessorMutation.mutate(professor.id)}
+                              onClick={() => {
+                                if (window.confirm(`Tem certeza que deseja remover o professor ${professor.nome}? Esta ação não pode ser desfeita.`)) {
+                                  deleteProfessorMutation.mutate(professor.id);
+                                }
+                              }}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

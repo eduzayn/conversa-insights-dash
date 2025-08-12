@@ -1764,6 +1764,23 @@ export class DatabaseStorage implements IStorage {
     return updatedProfessor || undefined;
   }
 
+  async deleteAcademicProfessor(id: number): Promise<void> {
+    // Verificar se o professor tem disciplinas associadas
+    const disciplinesCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(academicDisciplines)
+      .where(eq(academicDisciplines.professorId, id));
+    
+    const count = Number(disciplinesCount[0]?.count || 0);
+    
+    if (count > 0) {
+      throw new Error(`Não é possível remover este professor pois ele possui ${count} disciplina(s) associada(s). Remova ou transfira as disciplinas antes de deletar o professor.`);
+    }
+    
+    // Remover o professor
+    await db.delete(academicProfessors).where(eq(academicProfessors.id, id));
+  }
+
   // Sistema de Certificados Acadêmicos - Disciplinas
   async getAcademicDisciplines(): Promise<AcademicDiscipline[]> {
     return await db

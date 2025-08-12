@@ -7,6 +7,14 @@ This project is a comprehensive full-stack web application designed for educatio
 Preferred communication style: Simple, everyday language.
 
 ## Recent Issues Resolved
+- **Academic Management System (Aug 2025)**: Complete implementation of academic course and professor management
+  - Issue: Missing API routes for academic modules, token authentication problems, and lack of deletion functionality
+  - Solution: Added complete CRUD routes for courses/disciplines/professors in `server/routes.ts`
+  - Fixed authentication token handling in `client/src/lib/queryClient.ts` for proper header merging
+  - Implemented `deleteAcademicProfessor` method in storage with integrity checks
+  - Added confirmation dialogs for deletion operations to prevent accidental removals
+  - System now properly manages 942+ certifications with data integrity protection
+
 - **Rate Limiting Problem (Aug 2025)**: Resolved critical 429 "Too Many Requests" errors that were preventing server startup
   - Issue: Rate limiter was too restrictive (100 requests for non-authenticated users)
   - Solution: Disabled rate limiting in development environment in `server/middleware/errorHandler.ts`
