@@ -190,11 +190,12 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
       }
       
       const config: RequestInit = {
+        ...options,
         headers: {
           'Content-Type': 'application/json',
           ...(authToken && { Authorization: `Bearer ${authToken}` }),
+          ...(options.headers || {}),
         },
-        ...options,
       };
 
       const response = await fetch(url, config);
