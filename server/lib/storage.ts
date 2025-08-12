@@ -2830,15 +2830,27 @@ export class DatabaseStorage implements IStorage {
 
   async updateCertificacaoFadyc(id: number, certificacao: Partial<CertificacaoFadyc>): Promise<CertificacaoFadyc | undefined> {
     try {
+      // Processar campos de data para evitar strings vazias
+      const cleanedData = { ...certificacao };
+      
+      // Converter strings vazias em null para campos de data
+      const dateFields = ['dataInicio', 'dataPrevisaoEntrega', 'dataConclusao'];
+      dateFields.forEach(field => {
+        const value = cleanedData[field as keyof typeof cleanedData];
+        if (value === '' || value === null || value === undefined) {
+          delete cleanedData[field as keyof typeof cleanedData];
+        }
+      });
+
       const [result] = await db
         .update(certificacoesFadyc)
-        .set({ ...certificacao, updatedAt: new Date() })
+        .set({ ...cleanedData, updatedAt: new Date() })
         .where(eq(certificacoesFadyc.id, id))
         .returning();
       return result || undefined;
     } catch (error) {
       console.error('Erro ao atualizar certificação FADYC:', error);
-      return undefined;
+      throw error;
     }
   }
 

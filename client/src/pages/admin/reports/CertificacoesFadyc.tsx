@@ -142,10 +142,19 @@ export default function CertificacoesFadyc() {
   });
 
   const onSubmit = (data: any) => {
+    // Limpar campos de data vazios antes de enviar
+    const cleanedData = { ...data };
+    const dateFields = ['dataInicio', 'dataPrevisaoEntrega', 'dataConclusao'];
+    dateFields.forEach(field => {
+      if (cleanedData[field] === '' || cleanedData[field] === null || cleanedData[field] === undefined) {
+        delete cleanedData[field];
+      }
+    });
+
     if (selectedCertificacao) {
-      updateMutation.mutate({ id: selectedCertificacao.id, data });
+      updateMutation.mutate({ id: selectedCertificacao.id, data: cleanedData });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(cleanedData);
     }
   };
 
