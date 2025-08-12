@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, User, ArrowLeft } from "lucide-react";
+import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, User, ArrowLeft, Copy } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCertificacaoFadycSchema } from "@shared/schema";
@@ -177,6 +177,26 @@ export default function CertificacoesFadyc() {
     setIsEditDialogOpen(true);
   };
 
+  const handleDuplicate = (certificacao: any) => {
+    // Limpa campos específicos que não devem ser duplicados e reseta status
+    setSelectedCertificacao(null); // Importante: não é edição, é nova certificação
+    form.reset({
+      aluno: certificacao.aluno,
+      cpf: certificacao.cpf,
+      curso: "", // Campo vazio para o usuário escolher novo curso
+      categoria: certificacao.categoria,
+      statusProcesso: "pendente", // Sempre começa como pendente
+      dataInicio: "",
+      dataPrevisaoEntrega: "",
+      dataConclusao: "",
+      numeroProcesso: "", // Novo número de processo
+      documentosRecebidos: [],
+      observacoes: `Duplicado de certificação ID ${certificacao.id}`,
+      colaboradorResponsavel: certificacao.colaboradorResponsavel
+    });
+    setIsCreateDialogOpen(true);
+  };
+
   const handleDelete = (id: number) => {
     if (confirm("Tem certeza que deseja deletar esta certificação?")) {
       deleteMutation.mutate(id);
@@ -199,6 +219,45 @@ export default function CertificacoesFadyc() {
   };
 
   const safeCertificacoes = Array.isArray(certificacoes) ? certificacoes : [];
+
+  // Componente para renderizar a tabela de certificações
+  const renderTableRow = (cert: any) => (
+    <TableRow key={cert.id}>
+      <TableCell className="font-medium">{cert.aluno}</TableCell>
+      <TableCell>{formatCPF(cert.cpf)}</TableCell>
+      <TableCell>{cert.curso}</TableCell>
+      <TableCell>{getStatusBadge(cert.statusProcesso)}</TableCell>
+      <TableCell>
+        {cert.dataInicio ? new Date(cert.dataInicio).toLocaleDateString('pt-BR') : '-'}
+      </TableCell>
+      <TableCell>
+        {cert.dataPrevisaoEntrega ? new Date(cert.dataPrevisaoEntrega).toLocaleDateString('pt-BR') : '-'}
+      </TableCell>
+      <TableCell>{cert.colaboradorResponsavel}</TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+            <Copy className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
+            <Copy className="w-4 h-4" />
+                                </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
+                                <Edit className="w-4 h-4" />
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => handleDelete(cert.id)}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
     <div className="p-6">
@@ -305,6 +364,15 @@ export default function CertificacoesFadyc() {
                           <TableCell>{cert.colaboradorResponsavel}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+                              <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
+                                <Copy className="w-4 h-4" />
+                                </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+                                <Copy className="w-4 h-4" />
+                              </Button>
                               <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -400,6 +468,15 @@ export default function CertificacoesFadyc() {
                           <TableCell>{cert.colaboradorResponsavel}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+                              <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
+                                <Copy className="w-4 h-4" />
+                                </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDuplicate(cert)} title="Duplicar certificação">
+                                <Copy className="w-4 h-4" />
+                              </Button>
                               <Button variant="outline" size="sm" onClick={() => handleEdit(cert)}>
                                 <Edit className="w-4 h-4" />
                               </Button>
