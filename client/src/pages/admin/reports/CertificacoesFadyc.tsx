@@ -206,7 +206,7 @@ export default function CertificacoesFadyc() {
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">Certificações FADYC</h1>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-green-600 hover:bg-green-700 text-white">
           <Plus className="w-4 h-4 mr-2" />
           Nova Certificação
         </Button>
@@ -565,7 +565,7 @@ export default function CertificacoesFadyc() {
                 <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending}>
+                <Button type="submit" disabled={createMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
                   {createMutation.isPending ? "Criando..." : "Criar Certificação"}
                 </Button>
               </div>
@@ -744,7 +744,7 @@ export default function CertificacoesFadyc() {
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={updateMutation.isPending}>
+                <Button type="submit" disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white">
                   {updateMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </div>
