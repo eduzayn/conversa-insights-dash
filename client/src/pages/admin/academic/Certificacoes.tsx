@@ -5,7 +5,8 @@
  * Mantém exatamente a mesma funcionalidade e aparência do arquivo original
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { z } from 'zod';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,9 @@ export default function Certificacoes() {
   const [dataFim, setDataFim] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  
+  // Ref para o container de virtualização
+  const parentRef = useRef<HTMLDivElement>(null);
 
   // Estados para modais e formulários
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -174,6 +178,14 @@ export default function Certificacoes() {
     const t = setTimeout(() => setSearchTerm(searchInput), 300);
     return () => clearTimeout(t);
   }, [searchInput]);
+
+  // Configuração do virtualizador
+  const virtualizer = useVirtualizer({
+    count: certifications?.length || 0,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 200, // Altura estimada de cada card
+    overscan: 5, // Renderizar 5 itens extras para melhor performance
+  });
 
   // Atualizar categoria quando muda a aba
   useEffect(() => {
@@ -491,50 +503,76 @@ export default function Certificacoes() {
                   </div>
                 </div>
 
-                {/* Lista de certificações */}
+                {/* Lista de certificações virtualizada */}
                 <div className={certifications.length > 0 ? "min-h-[500px] w-full" : "min-h-[400px] w-full"}>
                   {isInitialLoading ? (
                     <div className="flex justify-center p-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
+                  ) : certifications.length === 0 ? (
+                    <div className="w-full flex justify-center items-center min-h-[250px] px-4">
+                      <Card className="w-full max-w-2xl mx-auto">
+                        <CardContent className="p-8 text-center">
+                          <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                          <div className="text-lg font-medium text-gray-900 mb-2">
+                            {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
+                          </div>
+                          <div className="text-gray-600 text-sm">
+                            {activeTab === 'eja' 
+                              ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
+                              : 'Crie uma nova certificação para começar'
+                            }
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   ) : (
-                    <div className="space-y-4">
-                      {certifications.map((certification: Certification) => {
-                        // Verificar se esta certificação está em algum grupo de duplicatas
-                        const isDuplicate = Object.values(duplicates).some(group => 
-                          group.some(cert => cert.id === certification.id)
-                        );
-                        
-                        return (
-                          <CertificationCard
-                            key={certification.id}
-                            certification={certification}
-                            isDuplicate={isDuplicate}
-                            onEdit={setSelectedCertification}
-                            onDelete={handleDeleteCertification}
-                            onDuplicate={handleDuplicateCertification}
-                          />
-                        );
-                      })}
-                      
-                      {certifications.length === 0 && (
-                        <div className="w-full flex justify-center items-center min-h-[250px] px-4">
-                          <Card className="w-full max-w-2xl mx-auto">
-                            <CardContent className="p-8 text-center">
-                              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                              <div className="text-lg font-medium text-gray-900 mb-2">
-                                {activeTab === 'eja' ? 'Categoria EJA não possui certificações' : 'Nenhuma certificação encontrada'}
-                              </div>
-                              <div className="text-gray-600 text-sm">
-                                {activeTab === 'eja' 
-                                  ? 'Esta categoria está vazia. Verifique se os dados foram importados corretamente ou crie uma nova certificação EJA.'
-                                  : 'Crie uma nova certificação para começar'
-                                }
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      )}
+                    <div
+                      ref={parentRef}
+                      className="overflow-auto"
+                      style={{
+                        height: '500px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: `${virtualizer.getTotalSize()}px`,
+                          width: '100%',
+                          position: 'relative',
+                        }}
+                      >
+                        {virtualizer.getVirtualItems().map((virtualItem) => {
+                          const certification = certifications[virtualItem.index];
+                          
+                          // Verificar se esta certificação está em algum grupo de duplicatas
+                          const isDuplicate = Object.values(duplicates).some(group => 
+                            group.some(cert => cert.id === certification.id)
+                          );
+
+                          return (
+                            <div
+                              key={virtualItem.key}
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: `${virtualItem.size}px`,
+                                transform: `translateY(${virtualItem.start}px)`,
+                                paddingBottom: '16px', // Espaçamento entre cards (space-y-4)
+                              }}
+                            >
+                              <CertificationCard
+                                certification={certification}
+                                isDuplicate={isDuplicate}
+                                onEdit={setSelectedCertification}
+                                onDelete={handleDeleteCertification}
+                                onDuplicate={handleDuplicateCertification}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>

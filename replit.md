@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
   - Users now see instant feedback while server processes requests in background
   - Enhanced perceived performance without changing visual appearance
 
+- **List Virtualization Implementation (Aug 2025)**: Performance optimization for large datasets
+  - Issue: Rendering 942+ certification cards simultaneously caused performance degradation
+  - Solution: Implemented @tanstack/react-virtual for efficient list rendering
+  - Only renders visible items plus 5 overscan items for smooth scrolling
+  - Maintained exact visual appearance and spacing (space-y-4 equivalent)
+  - Fixed height container (500px) with absolute positioning for optimal performance
+  - Dramatically improved scroll performance and memory usage for large datasets
+
 ## System Architecture
 
 ### Frontend
