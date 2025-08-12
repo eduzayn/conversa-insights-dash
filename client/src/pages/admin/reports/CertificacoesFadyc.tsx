@@ -40,14 +40,22 @@ export default function CertificacoesFadyc() {
   const { data: certificacoes = [], isLoading } = useQuery({
     queryKey: ['/api/certificacoes-fadyc', activeTab, searchTerm, statusFilter],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('categoria', activeTab);
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      
-      const response = await fetch(`/api/certificacoes-fadyc?${params}`);
-      if (!response.ok) throw new Error('Erro ao buscar certificações');
-      return response.json();
+      try {
+        const params = new URLSearchParams();
+        params.append('categoria', activeTab);
+        if (searchTerm) params.append('search', searchTerm);
+        if (statusFilter !== 'all') params.append('status', statusFilter);
+        
+        const response = await apiRequest(`/api/certificacoes-fadyc?${params}`);
+        if (Array.isArray(response)) {
+          return response;
+        }
+        console.warn('Resposta da API de certificações FADYC não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar certificações FADYC:', error);
+        return [];
+      }
     }
   });
 
