@@ -99,6 +99,7 @@ const App = () => {
             <Route path="/metas" element={<Metas />} />
             <Route path="/crm" element={<Crm />} />
             <Route path="/admin/certificacoes" element={<Certificacoes />} />
+            <Route path="/admin/academic/certifications" element={<Certificacoes />} />
             <Route path="/certificacoes" element={<Certificacoes />} />
             <Route path="/certificados-pos" element={<CertificadosPos />} />
 
