@@ -41,8 +41,21 @@ export async function setupVite(app: Express, server: Server) {
   });
 
   app.use(vite.middlewares);
+  
+  // SPA fallback - só para rotas que não são APIs, health checks ou recursos estáticos
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    
+    // NÃO interceptar rotas de API, health checks ou recursos com extensão
+    if (url.startsWith('/api') || 
+        url.startsWith('/health') || 
+        url === '/healthz' || 
+        url === '/status' || 
+        url === '/ping' ||
+        url === '/test' ||
+        url.includes('.')) { // arquivos .js, .css, .png, etc
+      return next();
+    }
 
     try {
       const clientTemplate = path.resolve(
