@@ -31,7 +31,16 @@ export const CourseSelectField = ({
   const [searchOpen, setSearchOpen] = useState(false);
   const [newCourseDialogOpen, setNewCourseDialogOpen] = useState(false);
 
-  const { cursos, isLoading, createCurso, isCreating } = useCursosFadyc(categoria);
+  // Cursos fixos para música
+  const cursosMusica = [
+    { id: 'musica-1', nome: 'Segunda Graduação em Música', cargaHoraria: null },
+    { id: 'musica-2', nome: 'Formação Pedagógica em Música', cargaHoraria: null }
+  ];
+
+  const { cursos: cursosPreCadastrados, isLoading, createCurso, isCreating } = useCursosFadyc(categoria === 'pos_graduacao' ? categoria : undefined);
+  
+  // Usa cursos fixos para música ou cursos do banco para pós-graduação
+  const cursos = categoria === 'musica' ? cursosMusica : cursosPreCadastrados;
 
   const handleCourseSelect = (courseName: string) => {
     onChange(courseName);
@@ -99,26 +108,30 @@ export const CourseSelectField = ({
               </Command>
             </PopoverContent>
           </Popover>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setNewCourseDialogOpen(true)}
-            title="Adicionar novo curso"
-            className="shrink-0"
-            disabled={disabled}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          {categoria === 'pos_graduacao' && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setNewCourseDialogOpen(true)}
+              title="Adicionar novo curso"
+              className="shrink-0"
+              disabled={disabled}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      <NewCourseDialog
-        isOpen={newCourseDialogOpen}
-        onOpenChange={setNewCourseDialogOpen}
-        onSubmit={handleNewCourse}
-        isSubmitting={isCreating}
-        categoria={categoria}
-      />
+      {categoria === 'pos_graduacao' && (
+        <NewCourseDialog
+          isOpen={newCourseDialogOpen}
+          onOpenChange={setNewCourseDialogOpen}
+          onSubmit={handleNewCourse}
+          isSubmitting={isCreating}
+          categoria={categoria}
+        />
+      )}
     </>
   );
 };
