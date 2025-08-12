@@ -786,6 +786,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== CURSOS PRÉ-CADASTRADOS =====
+  
+  // Endpoint para buscar cursos pré-cadastrados por categoria
+  app.get("/api/cursos-pre-cadastrados", authenticateToken, async (req: any, res) => {
+    try {
+      const { categoria } = req.query;
+      
+      if (!categoria) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Categoria é obrigatória" 
+        });
+      }
+      
+      // Buscar cursos pela categoria
+      const courses = await storage.getAcademicCourses({
+        categoria: categoria,
+        status: 'ativo'
+      });
+      
+      // Transformar os dados para o formato esperado pelo frontend
+      const cursosFormatados = courses.map(course => ({
+        id: course.id,
+        nome: course.nome,
+        categoria: course.categoria,
+        modalidade: course.modalidade,
+        cargaHoraria: course.cargaHoraria,
+        duracao: course.duracao,
+        preco: course.preco,
+        areaConhecimento: course.areaConhecimento
+      }));
+      
+      res.json({
+        success: true,
+        data: cursosFormatados,
+        total: cursosFormatados.length
+      });
+      
+    } catch (error) {
+      logger.error("Erro ao buscar cursos pré-cadastrados:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro interno do servidor" 
+      });
+    }
+  });
+
+  // Endpoint para criar novos cursos pré-cadastrados
+  app.post("/api/cursos-pre-cadastrados", authenticateToken, async (req: any, res) => {
+    try {
+      const { nome, categoria, modalidade, cargaHoraria, area } = req.body;
+      
+      if (!nome || !categoria) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Nome e categoria são obrigatórios" 
+        });
+      }
+      
+      // Criar novo curso
+      const novoCurso = await storage.createAcademicCourse({
+        nome,
+        categoria,
+        modalidade: modalidade || 'presencial',
+        cargaHoraria: parseInt(cargaHoraria) || 0,
+        areaConhecimento: area || 'Geral',
+        status: 'ativo',
+        duracao: '12 meses',
+        preco: 0
+      });
+      
+      res.json({
+        success: true,
+        data: novoCurso,
+        message: "Curso criado com sucesso"
+      });
+      
+    } catch (error) {
+      logger.error("Erro ao criar curso pré-cadastrado:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro interno do servidor" 
+      });
+    }
+  });
+
   // ===== CERTIFICAÇÕES =====
   
   // Endpoint para buscar certificações
