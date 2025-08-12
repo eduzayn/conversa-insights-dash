@@ -30,7 +30,7 @@ import { NewCourseDialog } from '@/components/certifications/NewCourseDialog';
 import { DuplicateAlert } from '@/components/certifications/DuplicateAlert';
 import { CertificationPagination } from '@/components/certifications/CertificationPagination';
 import CertificationTabs from '@/components/certifications/CertificationTabs';
-import { TABS_CONFIG, CategoriaKey, Status, FinanceiroStatus, DocumentacaoStatus, RequisitosStatus } from '@/constants/certifications';
+import { CategoriaKey, Status, FinanceiroStatus, DocumentacaoStatus, RequisitosStatus } from '@/constants/certifications';
 
 // Schema Zod para validação e transformação de dados
 const CertSchema = z.object({
