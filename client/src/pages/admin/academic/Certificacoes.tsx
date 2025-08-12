@@ -74,7 +74,7 @@ export default function Certificacoes() {
   const [courseSearchOpen, setCourseSearchOpen] = useState(false);
   const [editCourseSearchOpen, setEditCourseSearchOpen] = useState(false);
 
-  // Hook customizado para certificações
+  // Hook customizado para certificações com cache otimizado
   const {
     certificationsData,
     certifications,
@@ -83,6 +83,7 @@ export default function Certificacoes() {
     isLoading,
     isInitialLoading,
     isFetching,
+    isPreviousData,
     certificationsError,
     refetch,
     getCategoriaFromTab,
@@ -332,6 +333,12 @@ export default function Certificacoes() {
               <div>
                 <div className="flex items-center gap-4 mb-2">
                   <h1 className="text-2xl font-bold">Análises Certificações</h1>
+                  {isPreviousData && (
+                    <div className="flex items-center gap-1 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full animate-pulse">
+                      <div className="animate-spin rounded-full h-3 w-3 border border-blue-600 border-t-transparent"></div>
+                      <span>Atualizando</span>
+                    </div>
+                  )}
                   <p className="text-gray-600">Gerencie certificações e processos de documentação</p>
                 </div>
               </div>

@@ -82,7 +82,7 @@ export const useCertifications = (
     }
   };
 
-  // Query para buscar certificações
+  // Query para buscar certificações com cache otimizado
   const { data: certificationsData, isLoading, isFetching, error: certificationsError, refetch } = useQuery({
     queryKey: ['/api/certificacoes', { 
       categoria: getCategoriaFromTab(activeTab),
@@ -122,10 +122,10 @@ export const useCertifications = (
       const response = await apiRequest(`/api/certificacoes?${params}`);
       return response;
     },
-    staleTime: 30000, // Cache válido por 30 segundos
-    gcTime: 300000, // Mantem no cache por 5 minutos
-    refetchOnWindowFocus: false, // Evita refetch desnecessário
-    placeholderData: (previousData) => previousData, // Mantém dados anteriores durante carregamento
+    staleTime: 60_000,        // 1 min "fresco" - dados permanecem válidos por mais tempo
+    gcTime: 5 * 60_000,       // 5 min - mantém no cache por mais tempo
+    refetchOnWindowFocus: false, 
+    placeholderData: (previousData) => previousData, // Mantém dados anteriores durante fetch para evitar "piscadas"
     retry: (failureCount, error: any) => {
       return failureCount < 3;
     },
@@ -211,10 +211,11 @@ export const useCertifications = (
     totalCertifications: parseInt(certificationsData?.total) || 0,
     totalPages: certificationsData?.totalPages || 1,
     
-    // Loading states
+    // Loading states otimizados para melhor UX
     isLoading: isLoading || isFetching, // Inclui estado de fetching
-    isInitialLoading: isLoading, // Apenas loading inicial
-    isFetching, // Estado de busca em andamento
+    isInitialLoading: isLoading, // Apenas loading inicial (sem placeholderData)
+    isFetching, // Estado de busca em andamento (para indicadores discretos)
+    isPreviousData: !!certificationsData && isFetching, // Indica se está usando dados anteriores
     certificationsError,
     
     // Functions
@@ -229,7 +230,7 @@ export const useCertifications = (
   };
 };
 
-// Query para buscar cursos pré-cadastrados (para criação)
+// Query para buscar cursos pré-cadastrados (para criação) com cache otimizado
 export const usePreRegisteredCourses = (categoria: string) => {
   const { data: preRegisteredCoursesData = [] } = useQuery({
     queryKey: ['/api/pre-registered-courses', { categoria }],
@@ -237,13 +238,17 @@ export const usePreRegisteredCourses = (categoria: string) => {
       const params = new URLSearchParams({ categoria });
       const response = await apiRequest(`/api/pre-registered-courses?${params}`);
       return response;
-    }
+    },
+    staleTime: 60_000,        // 1 min "fresco" - cursos mudam raramente
+    gcTime: 10 * 60_000,      // 10 min - mantém cursos em cache por mais tempo
+    placeholderData: (prev) => prev, // Evita "piscadas" ao trocar categoria
+    refetchOnWindowFocus: false
   });
   
   return Array.isArray(preRegisteredCoursesData) ? preRegisteredCoursesData : [];
 };
 
-// Query para buscar cursos pré-cadastrados (para edição)
+// Query para buscar cursos pré-cadastrados (para edição) com cache otimizado
 export const useEditPreRegisteredCourses = (categoria?: string, enabled = false) => {
   const { data: editPreRegisteredCoursesData = [] } = useQuery({
     queryKey: ['/api/pre-registered-courses-edit', { categoria }],
@@ -252,7 +257,11 @@ export const useEditPreRegisteredCourses = (categoria?: string, enabled = false)
       const response = await apiRequest(`/api/pre-registered-courses?${params}`);
       return response;
     },
-    enabled
+    enabled,
+    staleTime: 60_000,        // 1 min "fresco"
+    gcTime: 10 * 60_000,      // 10 min - cache mais longo para edição
+    placeholderData: (prev) => prev, // Mantém dados durante transições
+    refetchOnWindowFocus: false
   });
   
   return Array.isArray(editPreRegisteredCoursesData) ? editPreRegisteredCoursesData : [];

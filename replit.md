@@ -81,6 +81,14 @@ Preferred communication style: Simple, everyday language.
   - Centralized error handling with descriptive validation messages
   - Enhanced type safety with compile-time validation and runtime data integrity checks
 
+- **React Query Cache Optimization (Aug 2025)**: Enhanced cache strategy for smooth UX
+  - Issue: Frequent API calls and "piscadas" during pagination/filtering affecting user experience
+  - Solution: Optimized React Query cache configuration across all certification queries
+  - Increased `staleTime` to 60s and `gcTime` to 5-10min for better cache retention
+  - Added `placeholderData: (prev) => prev` to prevent UI flickering during data fetches
+  - Implemented `isPreviousData` indicator for discrete loading feedback
+  - System now provides smooth navigation without data "flashing" during transitions
+
 ## System Architecture
 
 ### Frontend
