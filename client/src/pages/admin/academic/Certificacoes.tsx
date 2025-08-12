@@ -225,7 +225,11 @@ export default function Certificacoes() {
 
   // Funções de manipulação de eventos
   const handleCreateCertification = () => {
-    createMutation.mutate(newCertification, {
+    const certificationData = {
+      ...newCertification,
+      cargaHoraria: parseInt(newCertification.cargaHoraria) || 0
+    };
+    createMutation.mutate(certificationData, {
       onSuccess: () => {
         setIsCreateDialogOpen(false);
         setNewCertification({
@@ -255,10 +259,11 @@ export default function Certificacoes() {
   const handleUpdateCertification = (data: any) => {
     if (!selectedCertification) return;
     
-    // Garantir que o ID está presente no objeto
+    // Garantir que o ID está presente no objeto e converter cargaHoraria
     const updateData = {
       ...data,
-      id: selectedCertification.id
+      id: selectedCertification.id,
+      cargaHoraria: parseInt(data.cargaHoraria) || 0
     };
     
     updateMutation.mutate(updateData, {
