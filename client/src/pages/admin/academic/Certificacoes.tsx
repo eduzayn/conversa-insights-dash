@@ -457,25 +457,25 @@ export default function Certificacoes() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="eja" 
-                  className="flex-1 min-w-[60px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   EJA
                 </TabsTrigger>
                 <TabsTrigger 
                   value="graduacao" 
-                  className="flex-1 min-w-[90px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   Graduação
                 </TabsTrigger>
                 <TabsTrigger 
                   value="capacitacao" 
-                  className="flex-1 min-w-[100px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   Capacitação
                 </TabsTrigger>
                 <TabsTrigger 
                   value="sequencial" 
-                  className="flex-1 min-w-[90px] px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+                  className="px-3 py-2 text-xs lg:text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
                 >
                   Sequencial
                 </TabsTrigger>
