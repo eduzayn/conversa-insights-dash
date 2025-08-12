@@ -33,7 +33,7 @@ export const CourseSelectField = ({
 
   // Cursos fixos para música
   const cursosMusica = [
-    { id: 'musica-1', nome: 'Segunda Graduação em Música', cargaHoraria: null },
+    { id: 'musica-1', nome: 'Segunda Licenciatura em Música', cargaHoraria: null },
     { id: 'musica-2', nome: 'Formação Pedagógica em Música', cargaHoraria: null }
   ];
 
