@@ -56,6 +56,7 @@ import {
   rateLimiter, 
   healthCheck 
 } from "./middleware/errorHandler";
+import { rbac } from "./middleware/rbac";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
 
@@ -354,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ===== ROTAS ACADÊMICAS =====
   
   // Buscar cursos acadêmicos
-  app.get("/api/academic/courses", authenticateToken, async (req, res) => {
+  app.get("/api/academic/courses", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const courses = await storage.getAcademicCourses();
       res.json(courses);
@@ -365,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Criar curso acadêmico
-  app.post("/api/academic/courses", authenticateToken, async (req, res) => {
+  app.post("/api/academic/courses", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const course = await storage.createAcademicCourse(req.body);
       res.status(201).json(course);
@@ -376,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Atualizar curso acadêmico
-  app.put("/api/academic/courses/:id", authenticateToken, async (req, res) => {
+  app.put("/api/academic/courses/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const course = await storage.updateAcademicCourse(id, req.body);
@@ -393,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Deletar curso acadêmico
-  app.delete("/api/academic/courses/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/academic/courses/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteAcademicCourse(id);
@@ -405,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Buscar disciplinas acadêmicas
-  app.get("/api/academic/disciplines", authenticateToken, async (req, res) => {
+  app.get("/api/academic/disciplines", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const disciplines = await storage.getAcademicDisciplines();
       res.json(disciplines);
@@ -416,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Criar disciplina acadêmica
-  app.post("/api/academic/disciplines", authenticateToken, async (req, res) => {
+  app.post("/api/academic/disciplines", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const discipline = await storage.createAcademicDiscipline(req.body);
       res.status(201).json(discipline);
@@ -427,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Atualizar disciplina acadêmica
-  app.put("/api/academic/disciplines/:id", authenticateToken, async (req, res) => {
+  app.put("/api/academic/disciplines/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const discipline = await storage.updateAcademicDiscipline(id, req.body);
@@ -444,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Deletar disciplina acadêmica
-  app.delete("/api/academic/disciplines/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/academic/disciplines/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteAcademicDiscipline(id);
@@ -456,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Buscar professores acadêmicos
-  app.get("/api/academic/professors", authenticateToken, async (req, res) => {
+  app.get("/api/academic/professors", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const professors = await storage.getAcademicProfessors();
       res.json(professors);
@@ -467,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Criar professor acadêmico
-  app.post("/api/academic/professors", authenticateToken, async (req, res) => {
+  app.post("/api/academic/professors", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const professor = await storage.createAcademicProfessor(req.body);
       res.status(201).json(professor);
@@ -478,7 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Atualizar professor acadêmico
-  app.put("/api/academic/professors/:id", authenticateToken, async (req, res) => {
+  app.put("/api/academic/professors/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const professor = await storage.updateAcademicProfessor(id, req.body);
@@ -495,7 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Deletar professor acadêmico
-  app.delete("/api/academic/professors/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/academic/professors/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteAcademicProfessor(id);
@@ -519,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Adicionar disciplinas a um curso
-  app.post("/api/academic/courses/:id/disciplines", authenticateToken, async (req, res) => {
+  app.post("/api/academic/courses/:id/disciplines", authenticateToken, rbac("admin"), async (req, res) => {
     try {
       const courseId = parseInt(req.params.id);
       const { disciplineIds } = req.body;
@@ -690,11 +691,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Criar token de registro
-  app.post("/api/admin/registration-token", authenticateToken, async (req: any, res) => {
+  app.post("/api/admin/registration-token", authenticateToken, rbac("admin"), async (req: any, res) => {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
 
       const { expiresInDays = 7 } = req.body;
       const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

@@ -136,6 +136,14 @@ Preferred communication style: Simple, everyday language.
   - Applied to both Express routes and Socket.IO for consistent security policy
   - Added "trust proxy" configuration for accurate IP detection behind proxies
 
+- **Role-Based Access Control (RBAC) Implementation (Aug 2025)**: Simple but effective authorization system
+  - Issue: No role-based authorization, any authenticated user could access admin endpoints
+  - Solution: Created rbac middleware for flexible role-based access control
+  - Applied RBAC to all administrative routes: academic courses, disciplines, professors
+  - Admin-only endpoints: registration tokens, academic CRUD operations, course management
+  - JWT tokens now include role information for proper authorization validation
+  - Clean separation between authentication (who you are) and authorization (what you can do)
+
 ## System Architecture
 
 ### Frontend
