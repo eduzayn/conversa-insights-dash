@@ -761,6 +761,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para obter dados do usuário atual
+  app.get("/api/auth/me", authenticateToken, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      res.json({ 
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive
+        }
+      });
+    } catch (error) {
+      logger.error("[AUTH] Erro ao obter dados do usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Criar token de registro
   app.post("/api/admin/registration-token", authenticateToken, rbac("admin"), async (req: any, res) => {
     try {
