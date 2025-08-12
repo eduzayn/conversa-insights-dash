@@ -365,6 +365,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deletar professor acadêmico
+  app.delete("/api/academic/professors/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAcademicProfessor(id);
+      res.json({ message: "Professor removido com sucesso" });
+    } catch (error: any) {
+      logger.error("Erro ao deletar professor acadêmico:", error);
+      res.status(400).json({ message: error.message || "Erro interno do servidor" });
+    }
+  });
+
   // Buscar disciplinas de um curso
   app.get("/api/academic/courses/:id/disciplines", authenticateToken, async (req, res) => {
     try {

@@ -339,8 +339,9 @@ const MatrizesCurriculares = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/academic/professors'] });
       toast({ title: 'Sucesso', description: 'Professor removido com sucesso' });
     },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Erro ao remover professor', variant: 'destructive' });
+    onError: (error: any) => {
+      const errorMessage = error?.message || 'Erro ao remover professor';
+      toast({ title: 'Erro', description: errorMessage, variant: 'destructive' });
     }
   });
 
