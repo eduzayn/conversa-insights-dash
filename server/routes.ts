@@ -321,14 +321,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/certificacoes-fadyc", validateRequest(insertCertificacaoFadycSchema), async (req, res) => {
     try {
       logger.info("Criando certificação FADYC:", { 
-        cliente: req.body.clienteNome,
+        cliente: req.body.aluno,
         curso: req.body.curso,
-        modalidade: req.body.modalidade 
+        categoria: req.body.categoria 
       });
       
       const certificacao = await storage.createCertificacaoFadyc(req.body);
       
-      logger.info("Certificação FADYC criada:", { id: certificacao.id, cliente: certificacao.clienteNome });
+      logger.info("Certificação FADYC criada:", { id: certificacao.id, cliente: certificacao.aluno });
       res.status(201).json(certificacao);
     } catch (error: any) {
       logger.error("Erro ao criar certificação FADYC:", {

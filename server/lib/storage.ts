@@ -132,6 +132,7 @@ import {
 import { db } from "../config/db";
 import { eq, and, or, desc, asc, like, ilike, count, isNotNull, sql, gte, lte, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { logger } from "../utils/logger";
 
 export interface IStorage {
   // Users
