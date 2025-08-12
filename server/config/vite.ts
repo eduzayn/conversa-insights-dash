@@ -78,6 +78,7 @@ export async function setupVite(app: Express, server: Server) {
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
+      logger.error('Erro no SPA fallback:', e);
       next(e);
     }
   });
@@ -104,4 +105,29 @@ export function serveStatic(app: Express) {
     maxAge: '1d',
     etag: true 
   }));
+
+  // SPA fallback para produção - negar rotas /api/* corretamente
+  app.use("*", (req, res, next) => {
+    const url = req.originalUrl;
+    
+    // NÃO interceptar rotas de API, health checks ou recursos com extensão
+    if (url.startsWith('/api') || 
+        url.startsWith('/health') || 
+        url === '/healthz' || 
+        url === '/status' || 
+        url === '/ping' ||
+        url === '/test' ||
+        url.includes('.')) { // arquivos .js, .css, .png, etc
+      return next();
+    }
+
+    // Servir index.html para todas as outras rotas (SPA fallback)
+    try {
+      const indexPath = path.resolve(distPath, 'index.html');
+      res.sendFile(indexPath);
+    } catch (error) {
+      logger.error('Erro no SPA fallback de produção:', error);
+      res.status(500).send('Erro interno do servidor');
+    }
+  });
 }

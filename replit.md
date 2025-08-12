@@ -51,6 +51,7 @@ Preferred communication style: Simple, everyday language.
 - **User Feedback**: Implemented optimistic updates for instant UI feedback on mutations.
 - **Role-Based Access Control (RBAC)**: Simple authorization system with `rbac` middleware for administrative routes.
 - **Input Validation Security**: Protection against parseInt silent failures with comprehensive Zod schemas for numeric parameters.
+- **SPA Fallback Enhancement**: Proper handling of Single Page Application routing with correct API route exclusion and standardized error logging.
 
 ## External Dependencies
 - **BotConversa**: Chat platform integration.
