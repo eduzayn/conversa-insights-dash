@@ -262,35 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ROTAS LEGACY PARA COMPATIBILIDADE COM FRONTEND
-  // Rota para cursos pré-cadastrados (compatibilidade)
-  app.get("/api/cursos-pre-cadastrados", async (req, res) => {
-    try {
-      const { modalidade, categoria, ativo } = req.query;
-      const filters = {
-        modalidade: modalidade as string,
-        categoria: categoria as string,
-        ativo: ativo ? ativo === 'true' : undefined
-      };
-      
-      const courses = await storage.getPreRegisteredCourses(filters);
-      res.json({ success: true, data: courses });
-    } catch (error) {
-      logger.error("Erro ao buscar cursos pré-cadastrados:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
 
-  // Criar curso pré-cadastrado (compatibilidade)
-  app.post("/api/cursos-pre-cadastrados", async (req, res) => {
-    try {
-      const course = await storage.createPreRegisteredCourse(req.body);
-      res.status(201).json(course);
-    } catch (error) {
-      logger.error("Erro ao criar curso pré-cadastrado:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
 
 
 

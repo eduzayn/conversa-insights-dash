@@ -35,6 +35,12 @@ Preferred communication style: Simple, everyday language.
   - Solution: Disabled rate limiting in development environment in `server/middleware/errorHandler.ts`
   - Server now runs correctly on port 3001 without authentication blocking
 
+- **API Route Standardization (Aug 2025)**: Unified pre-registered courses API routes to prevent future conflicts
+  - Issue: Frontend using `/api/cursos-pre-cadastrados` while backend had `/api/pre-registered-courses`
+  - Solution: Standardized all routes to use `/api/pre-registered-courses` across frontend and backend
+  - Removed duplicate legacy routes to maintain single source of truth
+  - System now has consistent API naming throughout the application
+
 ## System Architecture
 
 ### Frontend

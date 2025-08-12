@@ -188,13 +188,13 @@ export const useCertifications = (
   // Mutation para criar curso
   const createCourseMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/cursos-pre-cadastrados', {
+      return await apiRequest('/api/pre-registered-courses', {
         method: 'POST',
         body: JSON.stringify(data)
       });
     },
     onSuccess: (newCourse) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cursos-pre-cadastrados'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/pre-registered-courses'] });
       toast.success('Curso criado com sucesso!');
       return newCourse;
     },
@@ -232,10 +232,10 @@ export const useCertifications = (
 // Query para buscar cursos pré-cadastrados (para criação)
 export const usePreRegisteredCourses = (categoria: string) => {
   const { data: preRegisteredCoursesData = [] } = useQuery({
-    queryKey: ['/api/cursos-pre-cadastrados', { categoria }],
+    queryKey: ['/api/pre-registered-courses', { categoria }],
     queryFn: async () => {
       const params = new URLSearchParams({ categoria });
-      const response = await apiRequest(`/api/cursos-pre-cadastrados?${params}`);
+      const response = await apiRequest(`/api/pre-registered-courses?${params}`);
       return response;
     }
   });
@@ -246,10 +246,10 @@ export const usePreRegisteredCourses = (categoria: string) => {
 // Query para buscar cursos pré-cadastrados (para edição)
 export const useEditPreRegisteredCourses = (categoria?: string, enabled = false) => {
   const { data: editPreRegisteredCoursesData = [] } = useQuery({
-    queryKey: ['/api/cursos-pre-cadastrados-edit', { categoria }],
+    queryKey: ['/api/pre-registered-courses-edit', { categoria }],
     queryFn: async () => {
       const params = new URLSearchParams({ categoria: categoria || '' });
-      const response = await apiRequest(`/api/cursos-pre-cadastrados?${params}`);
+      const response = await apiRequest(`/api/pre-registered-courses?${params}`);
       return response;
     },
     enabled
