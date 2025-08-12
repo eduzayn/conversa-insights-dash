@@ -1,0 +1,144 @@
+2025-08-12 14:20:53.68
+f666dd2f
+User
+lastBuffer: false,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+parsedStatements: {},
+2025-08-12 14:20:53.68
+f666dd2f
+User
+ssl: false,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+_ending: true,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+_emitMessage: false,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+_connecting: true
+2025-08-12 14:20:53.68
+f666dd2f
+User
+},
+2025-08-12 14:20:53.68
+f666dd2f
+User
+queryQueue: [],
+2025-08-12 14:20:53.68
+f666dd2f
+User
+binary: false,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+processID: -72361506,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+secretKey: 1728390040,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+ssl: false,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+_connectionTimeoutMillis: 0,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+config: {
+2025-08-12 14:20:53.68
+f666dd2f
+User
+connectionString: 'postgresql://neondb_owner:npg_O8WZytdXsMD7@ep-bitter-shape-adghznuu.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require',
+2025-08-12 14:20:53.68
+f666dd2f
+User
+max: 10,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+maxUses: Infinity,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+allowExitOnIdle: false,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+maxLifetimeSeconds: 0,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+idleTimeoutMillis: 10000
+2025-08-12 14:20:53.68
+f666dd2f
+User
+},
+2025-08-12 14:20:53.68
+f666dd2f
+User
+_connectionCallback: null,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+release: [Function (anonymous)],
+2025-08-12 14:20:53.68
+f666dd2f
+User
+activeQuery: null,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+readyForQuery: true,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+hasExecuted: true,
+2025-08-12 14:20:53.68
+f666dd2f
+User
+_poolUseCount: 2
+2025-08-12 14:20:53.68
+f666dd2f
+User
+}
+2025-08-12 14:20:53.68
+f666dd2f
+User
+}
+2025-08-12 14:20:56.88
+f666dd2f
+User
+npm notice
+2025-08-12 14:20:56.88
+f666dd2f
+User
+npm notice New major version of npm available! 10.8.2 -> 11.5.2
+2025-08-12 14:20:56.88
+f666dd2f
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+2025-08-12 14:20:56.88
+f666dd2f
+User
+npm notice To update run: npm install -g npm@11.5.2
+2025-08-12 14:20:56.88
+f666dd2f
+User
+npm notice
+2025-08-12 14:20:58.78
+f666dd2f
+System
+command finished with error [npm run start]: exit status 1
+2025-08-12 14:21:35.48
+f666dd2f
+User
+> rest-express@1.0.0 start

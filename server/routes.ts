@@ -320,10 +320,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar certificação FADYC
   app.post("/api/certificacoes-fadyc", validateRequest(insertCertificacaoFadycSchema), async (req, res) => {
     try {
+      logger.info("Criando certificação FADYC:", { 
+        cliente: req.body.clienteNome,
+        curso: req.body.curso,
+        modalidade: req.body.modalidade 
+      });
+      
       const certificacao = await storage.createCertificacaoFadyc(req.body);
+      
+      logger.info("Certificação FADYC criada:", { id: certificacao.id, cliente: certificacao.clienteNome });
       res.status(201).json(certificacao);
-    } catch (error) {
-      logger.error("Erro ao criar certificação FADYC:", error);
+    } catch (error: any) {
+      logger.error("Erro ao criar certificação FADYC:", {
+        error: error.message,
+        stack: error.stack,
+        body: req.body
+      });
+      
+      if (error.message?.includes('duplicate key') || error.code === '23505') {
+        return res.status(409).json({ message: "Certificação FADYC já existe" });
+      }
+      
+      if (error.message?.includes('connection') || error.code === 'ECONNREFUSED') {
+        return res.status(503).json({ message: "Erro de conexão com banco de dados. Tente novamente." });
+      }
+      
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -1090,11 +1111,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para criar certificação
   app.post("/api/certificacoes", authenticateToken, validateRequest(insertCertificationSchema), async (req: any, res) => {
     try {
+      // Log dos dados recebidos para debugging em produção
+      logger.info("Criando certificação:", { 
+        aluno: req.body.aluno, 
+        status: req.body.status, 
+        categoria: req.body.categoria,
+        userId: req.user?.id 
+      });
+      
       const certification = await storage.createCertification(req.body);
+      
+      logger.info("Certificação criada com sucesso:", { id: certification.id, aluno: certification.aluno });
       res.status(201).json(certification);
-    } catch (error) {
-      logger.error("Erro ao criar certificação:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+    } catch (error: any) {
+      const errorDetails = {
+        error: error.message,
+        code: error.code,
+        detail: error.detail,
+        body: req.body,
+        userId: req.user?.id,
+        timestamp: new Date().toISOString()
+      };
+      
+      logger.error("Erro ao criar certificação:", errorDetails);
+      
+      // Tratar diferentes tipos de erro com mensagens específicas
+      if (error.message?.includes('duplicada') || error.message?.includes('duplicate key') || error.code === '23505') {
+        return res.status(409).json({ 
+          message: "Certificação já existe para este aluno",
+          details: "Verifique se já não existe uma certificação para este aluno com os mesmos dados"
+        });
+      }
+      
+      if (error.message?.includes('Campo obrigatório') || error.code === '23502') {
+        return res.status(400).json({ 
+          message: "Dados obrigatórios faltando",
+          details: error.message
+        });
+      }
+      
+      if (error.message?.includes('conexão') || error.message?.includes('connection') || error.code === 'ECONNREFUSED') {
+        return res.status(503).json({ 
+          message: "Erro de conexão com banco de dados. Tente novamente em alguns momentos.",
+          details: "O sistema está temporariamente indisponível"
+        });
+      }
+      
+      if (error.message?.includes('timeout') || error.code === 'ETIMEDOUT') {
+        return res.status(408).json({ 
+          message: "Operação demorou muito para completar. Tente novamente.",
+          details: "Timeout na operação"
+        });
+      }
+      
+      // Erro genérico com ID único para rastreamento
+      const errorId = `cert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      logger.error(`Erro não categorizado [${errorId}]:`, errorDetails);
+      
+      res.status(500).json({ 
+        message: "Erro interno do servidor",
+        errorId,
+        details: "Entre em contato com o suporte informando o código do erro"
+      });
     }
   });
 

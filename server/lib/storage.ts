@@ -1082,11 +1082,49 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCertification(certification: InsertCertification): Promise<Certification> {
-    const [newCertification] = await db
-      .insert(certifications)
-      .values(certification)
-      .returning();
-    return newCertification;
+    try {
+      const [newCertification] = await db
+        .insert(certifications)
+        .values({
+          ...certification,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      if (!newCertification) {
+        throw new Error("Falha ao criar certificação - nenhum registro retornado");
+      }
+      
+      return newCertification;
+    } catch (error: any) {
+      // Log detalhado do erro para debugging
+      console.error("Erro ao criar certificação no storage:", {
+        error: error.message,
+        code: error.code,
+        detail: error.detail,
+        certification: {
+          aluno: certification.aluno,
+          status: certification.status,
+          categoria: certification.categoria
+        }
+      });
+      
+      // Re-lançar o erro com contexto adicional
+      if (error.code === '23505') {
+        throw new Error(`Certificação duplicada para o aluno ${certification.aluno}`);
+      }
+      
+      if (error.code === '23502') {
+        throw new Error(`Campo obrigatório faltando na certificação: ${error.detail || error.message}`);
+      }
+      
+      if (error.message?.includes('connection')) {
+        throw new Error("Erro de conexão com banco de dados");
+      }
+      
+      throw error;
+    }
   }
 
   async updateCertification(id: number, certification: Partial<Certification>): Promise<Certification> {
