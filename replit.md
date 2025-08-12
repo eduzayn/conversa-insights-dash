@@ -61,6 +61,12 @@ Preferred communication style: Simple, everyday language.
   - Removed unused Levenshtein similarity calculation (40+ lines of code eliminated)
   - System performance dramatically improved for large certification datasets
 
+- **Search UX Improvement (Aug 2025)**: Added debounce to search filters for better user experience
+  - Issue: Each keystroke in search field triggered immediate API calls causing unnecessary requests
+  - Solution: Implemented 300ms debounce on search input to prevent excessive API calls
+  - Added separate `searchInput` state for immediate UI feedback while `searchTerm` drives API calls
+  - Users can now type smoothly without performance degradation from constant refetching
+
 ## System Architecture
 
 ### Frontend

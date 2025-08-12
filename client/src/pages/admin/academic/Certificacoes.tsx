@@ -30,6 +30,7 @@ export default function Certificacoes() {
   // Estados para filtros e paginação
   const [activeTab, setActiveTab] = useState('pos');
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');
   const [filterTipoData, setFilterTipoData] = useState('data_prevista');
   const [filterPeriodo, setFilterPeriodo] = useState('todos');
@@ -141,6 +142,12 @@ export default function Certificacoes() {
     }
     return result;
   }, [certifications]);
+
+  // Debounce para searchTerm - evita refetch a cada tecla digitada
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTerm(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   // Atualizar categoria quando muda a aba
   useEffect(() => {
@@ -395,13 +402,13 @@ export default function Certificacoes() {
 
                 {/* Filtros */}
                 <CertificationFilters
-                  searchTerm={searchTerm}
+                  searchTerm={searchInput}
                   filterStatus={filterStatus}
                   filterTipoData={filterTipoData}
                   filterPeriodo={filterPeriodo}
                   dataInicio={dataInicio}
                   dataFim={dataFim}
-                  onSearchChange={setSearchTerm}
+                  onSearchChange={setSearchInput}
                   onStatusChange={setFilterStatus}
                   onTipoDataChange={setFilterTipoData}
                   onPeriodoChange={setFilterPeriodo}
