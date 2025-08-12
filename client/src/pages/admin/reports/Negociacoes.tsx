@@ -148,12 +148,22 @@ const Negociacoes: React.FC = () => {
   const { data: negociacoes = [], isLoading: loadingNegociacoes } = useQuery({
     queryKey: ['/api/negociacoes', { search: searchTerm, status: statusFilter, dataInicio, dataFim }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (dataInicio) params.append('dataInicio', dataInicio);
-      if (dataFim) params.append('dataFim', dataFim);
-      return apiRequest(`/api/negociacoes?${params}`);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+        if (dataInicio) params.append('dataInicio', dataInicio);
+        if (dataFim) params.append('dataFim', dataFim);
+        const response = await apiRequest(`/api/negociacoes?${params}`);
+        if (Array.isArray(response)) {
+          return response as Negociacao[];
+        }
+        console.warn('Resposta da API de negociações não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar negociações:', error);
+        return [];
+      }
     }
   });
 
@@ -161,12 +171,22 @@ const Negociacoes: React.FC = () => {
   const { data: expirados = [], isLoading: loadingExpirados } = useQuery({
     queryKey: ['/api/negociacoes-expirados', { search: searchTerm, status: statusFilter, dataInicio, dataFim }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (dataInicio) params.append('dataInicio', dataInicio);
-      if (dataFim) params.append('dataFim', dataFim);
-      return apiRequest(`/api/negociacoes-expirados?${params}`);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+        if (dataInicio) params.append('dataInicio', dataInicio);
+        if (dataFim) params.append('dataFim', dataFim);
+        const response = await apiRequest(`/api/negociacoes-expirados?${params}`);
+        if (Array.isArray(response)) {
+          return response as Expirado[];
+        }
+        console.warn('Resposta da API de expirados não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar expirados:', error);
+        return [];
+      }
     }
   });
 
@@ -174,12 +194,22 @@ const Negociacoes: React.FC = () => {
   const { data: quitacoes = [], isLoading: loadingQuitacoes } = useQuery({
     queryKey: ['/api/quitacoes', { search: searchTerm, status: statusFilter, dataInicio, dataFim }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (dataInicio) params.append('dataInicio', dataInicio);
-      if (dataFim) params.append('dataFim', dataFim);
-      return apiRequest(`/api/quitacoes?${params}`);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+        if (dataInicio) params.append('dataInicio', dataInicio);
+        if (dataFim) params.append('dataFim', dataFim);
+        const response = await apiRequest(`/api/quitacoes?${params}`);
+        if (Array.isArray(response)) {
+          return response as Quitacao[];
+        }
+        console.warn('Resposta da API de quitações não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar quitações:', error);
+        return [];
+      }
     }
   });
 

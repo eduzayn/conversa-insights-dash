@@ -272,8 +272,17 @@ const CertificadosPos = () => {
   const { data: certificates = [], isLoading: loadingCertificates } = useQuery({
     queryKey: ['/api/academic/certificates'],
     queryFn: async () => {
-      const response = await apiRequest('/api/academic/certificates');
-      return response as AcademicCertificate[];
+      try {
+        const response = await apiRequest('/api/academic/certificates');
+        if (Array.isArray(response)) {
+          return response as AcademicCertificate[];
+        }
+        console.warn('Resposta da API de certificados não é um array:', response);
+        return [];
+      } catch (error) {
+        console.error('Erro ao buscar certificados:', error);
+        return [];
+      }
     }
   });
 
@@ -438,18 +447,20 @@ const CertificadosPos = () => {
 
   // Calcular estatísticas
   const stats: CertificateStats = React.useMemo(() => {
-    const total = certificates.length;
-    const solicitados = certificates.filter(c => c.status === 'solicitado').length;
-    const autorizados = certificates.filter(c => c.status === 'autorizado').length;
-    const emitidos = certificates.filter(c => c.status === 'emitido').length;
-    const revogados = certificates.filter(c => c.status === 'revogado').length;
+    const safeCertificates = Array.isArray(certificates) ? certificates : [];
+    const total = safeCertificates.length;
+    const solicitados = safeCertificates.filter(c => c.status === 'solicitado').length;
+    const autorizados = safeCertificates.filter(c => c.status === 'autorizado').length;
+    const emitidos = safeCertificates.filter(c => c.status === 'emitido').length;
+    const revogados = safeCertificates.filter(c => c.status === 'revogado').length;
 
     return { total, solicitados, autorizados, emitidos, revogados };
   }, [certificates]);
 
   // Filtrar certificados
   const filteredCertificates = React.useMemo(() => {
-    return certificates.filter(certificate => {
+    const safeCertificates = Array.isArray(certificates) ? certificates : [];
+    return safeCertificates.filter(certificate => {
       const matchesSearch = !searchTerm || 
         certificate.student?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
         certificate.student?.cpf.includes(searchTerm) ||

@@ -6,12 +6,45 @@ import { ProductivityChart } from "@/components/charts/ProductivityChart";
 import { TeamChart } from "@/components/charts/TeamChart";
 import { Users, MessageSquare, FileText, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export const AdminDashboard = () => {
   // Buscar métricas reais do sistema
   const { data: metrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ["/api/dashboard/metrics"],
     refetchInterval: 30000, // Atualizar a cada 30 segundos
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('/api/dashboard/metrics');
+        // Garantir que a resposta tenha a estrutura esperada
+        return response || {
+          totalAttendances: 0,
+          activeAgents: 0,
+          pendingCertifications: 0,
+          completionRate: "0%",
+          trends: {
+            totalTrend: "+0%",
+            agentsTrend: "+0",
+            certificationsTrend: "0",
+            rateTrend: "+0%"
+          }
+        };
+      } catch (error) {
+        console.error('Erro ao buscar métricas:', error);
+        return {
+          totalAttendances: 0,
+          activeAgents: 0,
+          pendingCertifications: 0,
+          completionRate: "0%",
+          trends: {
+            totalTrend: "+0%",
+            agentsTrend: "+0",
+            certificationsTrend: "0",
+            rateTrend: "+0%"
+          }
+        };
+      }
+    }
   });
 
 

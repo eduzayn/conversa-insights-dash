@@ -63,7 +63,7 @@ const refreshToken = async (url: string): Promise<string | null> => {
 };
 
 // Fetcher robusto com retry automático e renovação de token
-const robustQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
+const robustQueryFn = async ({ queryKey }: { queryKey: readonly string[] }) => {
   const url = queryKey[0];
   let lastError: any;
   
@@ -114,7 +114,7 @@ const robustQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
         message: `Erro HTTP ${response.status}` 
       }));
       
-      const error = new Error(errorData.message || `Erro HTTP ${response.status}`);
+      const error = new Error(errorData.message || `Erro HTTP ${response.status}`) as any;
       error.status = response.status;
       error.code = errorData.code;
       
@@ -237,7 +237,7 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
         message: `Erro HTTP ${response.status}` 
       }));
       
-      const error = new Error(errorData.message || `Erro HTTP ${response.status}`);
+      const error = new Error(errorData.message || `Erro HTTP ${response.status}`) as any;
       error.status = response.status;
       error.code = errorData.code;
       
