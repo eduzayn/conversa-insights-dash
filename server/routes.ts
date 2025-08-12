@@ -84,6 +84,19 @@ const professorLoginSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // --- sanity check de envs críticas (fail-fast) ---
+  const requiredEnvs = {
+    JWT_SECRET: process.env.JWT_SECRET || "your-super-secret-jwt-key",
+    ASAAS_API_KEY: process.env.ASAAS_API_KEY,
+    NODE_ENV: process.env.NODE_ENV
+  } as const;
+
+  for (const [k, v] of Object.entries(requiredEnvs)) {
+    if (!v || String(v).trim() === "") {
+      throw new Error(`Environment variable ${k} is missing`);
+    }
+  }
+
   const server = createServer(app);
   const io = new SocketServer(server, {
     cors: {
