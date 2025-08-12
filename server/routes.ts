@@ -102,12 +102,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Middlewares globais
   app.use(rateLimiter());
 
-  // Health checks para Autoscale (múltiplos endpoints)
-  app.get('/', (req, res) => res.status(200).json({ status: 'ok', service: 'ERP-Edunexia' }));
+  // Health checks específicos para Autoscale
   app.get('/health', healthCheck);
   app.get('/api/health', healthCheck);
   app.get('/healthz', healthCheck);
   app.get('/status', healthCheck);
+  
+  // Health check simples para monitoramento básico (não intercepta a raiz)
+  app.get('/ping', (req, res) => res.status(200).json({ status: 'ok', service: 'ERP-Edunexia' }));
 
   // ===== ENDPOINTS DE NEGOCIAÇÕES =====
   
@@ -1039,16 +1041,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('Configurando para produção - servindo arquivos estáticos');
     serveStatic(app);
     
-    // Fallback para SPA - só para rotas que não são API ou health checks
+    // Fallback para SPA - SEMPRE servir index.html para rotas não-API
     app.get('*', (req, res, next) => {
-      // Não interceptar rotas de API ou health checks
-      if (req.path.startsWith('/api') || req.path.startsWith('/health') || 
-          req.path === '/healthz' || req.path === '/status' || req.path === '/test') {
+      // Verificar se é uma rota de API ou recurso estático
+      if (req.path.startsWith('/api') || 
+          req.path.startsWith('/health') || 
+          req.path === '/healthz' || 
+          req.path === '/status' || 
+          req.path === '/ping' ||
+          req.path === '/test' ||
+          req.path.includes('.')) { // arquivos com extensão (.js, .css, .ico, etc)
         return next();
       }
       
-      // Servir a aplicação React para outras rotas
-      res.sendFile(path.resolve('dist/public/index.html'));
+      // Para todas as outras rotas, servir a aplicação React
+      try {
+        res.sendFile(path.resolve('dist/public/index.html'));
+      } catch (error) {
+        console.error('Erro ao servir index.html:', error);
+        res.status(500).send('Erro interno do servidor');
+      }
     });
   } else {
     console.log('Configurando para desenvolvimento - usando Vite');
@@ -1057,7 +1069,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erro ao configurar Vite:', error);
       // Fallback: servir arquivos estáticos se Vite falhar
+      console.log('Usando fallback para arquivos estáticos');
       serveStatic(app);
+      
+      // Fallback para desenvolvimento também
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || 
+            req.path.startsWith('/health') || 
+            req.path === '/healthz' || 
+            req.path === '/status' || 
+            req.path === '/ping' ||
+            req.path === '/test' ||
+            req.path.includes('.')) {
+          return next();
+        }
+        
+        try {
+          res.sendFile(path.resolve('client/index.html'));
+        } catch (error) {
+          console.error('Erro ao servir index.html em desenvolvimento:', error);
+          res.status(500).send('Erro interno do servidor');
+        }
+      });
     }
   }
   
