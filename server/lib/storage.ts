@@ -1827,7 +1827,7 @@ export class DatabaseStorage implements IStorage {
     return result.map(row => row.academic_disciplines);
   }
 
-  async addCourseDisciplines(courseId: number, disciplineIds: number[]): Promise<void> {
+  async addDisciplinesToCourse(courseId: number, disciplineIds: number[]): Promise<void> {
     // Primeiro, remove todas as disciplinas existentes do curso
     await db.delete(courseDisciplines).where(eq(courseDisciplines.courseId, courseId));
     

@@ -222,6 +222,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // ===== ROTAS ACADÊMICAS =====
+  
+  // Buscar cursos acadêmicos
+  app.get("/api/academic/courses", authenticateToken, async (req, res) => {
+    try {
+      const courses = await storage.getAcademicCourses();
+      res.json(courses);
+    } catch (error) {
+      logger.error("Erro ao buscar cursos acadêmicos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar curso acadêmico
+  app.post("/api/academic/courses", authenticateToken, async (req, res) => {
+    try {
+      const course = await storage.createAcademicCourse(req.body);
+      res.status(201).json(course);
+    } catch (error) {
+      logger.error("Erro ao criar curso acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar curso acadêmico
+  app.put("/api/academic/courses/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const course = await storage.updateAcademicCourse(id, req.body);
+      
+      if (!course) {
+        return res.status(404).json({ message: "Curso não encontrado" });
+      }
+      
+      res.json(course);
+    } catch (error) {
+      logger.error("Erro ao atualizar curso acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar curso acadêmico
+  app.delete("/api/academic/courses/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAcademicCourse(id);
+      res.json({ message: "Curso deletado com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar curso acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar disciplinas acadêmicas
+  app.get("/api/academic/disciplines", authenticateToken, async (req, res) => {
+    try {
+      const disciplines = await storage.getAcademicDisciplines();
+      res.json(disciplines);
+    } catch (error) {
+      logger.error("Erro ao buscar disciplinas acadêmicas:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar disciplina acadêmica
+  app.post("/api/academic/disciplines", authenticateToken, async (req, res) => {
+    try {
+      const discipline = await storage.createAcademicDiscipline(req.body);
+      res.status(201).json(discipline);
+    } catch (error) {
+      logger.error("Erro ao criar disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar disciplina acadêmica
+  app.put("/api/academic/disciplines/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const discipline = await storage.updateAcademicDiscipline(id, req.body);
+      
+      if (!discipline) {
+        return res.status(404).json({ message: "Disciplina não encontrada" });
+      }
+      
+      res.json(discipline);
+    } catch (error) {
+      logger.error("Erro ao atualizar disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Deletar disciplina acadêmica
+  app.delete("/api/academic/disciplines/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAcademicDiscipline(id);
+      res.json({ message: "Disciplina deletada com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar disciplina acadêmica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar professores acadêmicos
+  app.get("/api/academic/professors", authenticateToken, async (req, res) => {
+    try {
+      const professors = await storage.getAcademicProfessors();
+      res.json(professors);
+    } catch (error) {
+      logger.error("Erro ao buscar professores acadêmicos:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Criar professor acadêmico
+  app.post("/api/academic/professors", authenticateToken, async (req, res) => {
+    try {
+      const professor = await storage.createAcademicProfessor(req.body);
+      res.status(201).json(professor);
+    } catch (error) {
+      logger.error("Erro ao criar professor acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Atualizar professor acadêmico
+  app.put("/api/academic/professors/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const professor = await storage.updateAcademicProfessor(id, req.body);
+      
+      if (!professor) {
+        return res.status(404).json({ message: "Professor não encontrado" });
+      }
+      
+      res.json(professor);
+    } catch (error) {
+      logger.error("Erro ao atualizar professor acadêmico:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar disciplinas de um curso
+  app.get("/api/academic/courses/:id/disciplines", authenticateToken, async (req, res) => {
+    try {
+      const courseId = parseInt(req.params.id);
+      const disciplines = await storage.getCourseDisciplines(courseId);
+      res.json(disciplines);
+    } catch (error) {
+      logger.error("Erro ao buscar disciplinas do curso:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Adicionar disciplinas a um curso
+  app.post("/api/academic/courses/:id/disciplines", authenticateToken, async (req, res) => {
+    try {
+      const courseId = parseInt(req.params.id);
+      const { disciplineIds } = req.body;
+      
+      await storage.addDisciplinesToCourse(courseId, disciplineIds);
+      res.json({ message: "Disciplinas adicionadas ao curso com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao adicionar disciplinas ao curso:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Aplicar rotas Asaas
   app.use('/api/asaas', asaasRoutes);
 
