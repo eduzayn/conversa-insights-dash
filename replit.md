@@ -127,6 +127,13 @@ Preferred communication style: Simple, everyday language.
   - Server now throws clear error messages if required environment variables are missing or empty
   - Enhanced system stability and prevents silent failures in production environments
 
+- **Query Parameter Validation with Zod (Aug 2025)**: Robust validation and improved ordering semantics
+  - Issue: Endpoints vulnerable to type errors from invalid query parameters (e.g., page="abc") without proper validation
+  - Solution: Created centralized Zod schemas in `server/schemas/query.ts` for all query parameter validation
+  - Applied validation to key endpoints: `/api/certificacoes`, `/api/negociacoes`, `/api/quitacoes`, `/api/atendimentos`, `/api/certificacoes-fadyc`, `/api/pre-registered-courses`
+  - Enhanced `/api/atendimentos` with semantic date-based ordering using `localeCompare` for better temporal precision
+  - System now provides clear error messages for invalid parameters while maintaining full compatibility with valid requests
+
 - **Registration Token Security Enhancement (Aug 2025)**: Prevention of token reuse after user registration
   - Issue: Registration tokens were not being marked as used after successful user creation, allowing potential reuse
   - Solution: Implemented `markTokenAsUsed` call in `/api/auth/register` endpoint after successful user creation

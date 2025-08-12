@@ -40,6 +40,15 @@ import { UnifiedAsaasService } from "./services/unified-asaas-service";
 import asaasRoutes from "./routes/asaas-routes";
 import { v4 as uuidv4 } from 'uuid';
 import { PDFService } from './services/pdfService';
+import { 
+  certificacoesQuery, 
+  atendimentosQuery, 
+  negociacoesQuery, 
+  quitacoesQuery,
+  preRegisteredCoursesQuery,
+  certificacoesFadycQuery,
+  enviosQuery
+} from './schemas/query';
 
 // Importar middlewares robustos
 import { 
@@ -127,7 +136,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: process.env.NODE_ENV === 'development' ? false : {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "ws:", "wss:"],
+        fontSrc: ["'self'", "https:", "data:"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    }
   }));
   app.use(compression());
 
@@ -162,15 +184,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar negociações
   app.get("/api/negociacoes", async (req, res) => {
     try {
-      const { search, status, dataInicio, dataFim } = req.query;
-      const filters = {
-        search: search as string,
-        status: status as string,
-        dataInicio: dataInicio as string,
-        dataFim: dataFim as string
-      };
+      const parse = negociacoesQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
-      const negociacoes = await storage.getNegociacoes(filters);
+      const negociacoes = await storage.getNegociacoes(parse.data);
       res.json(negociacoes);
     } catch (error) {
       logger.error("Erro ao buscar negociações:", error);
@@ -221,15 +243,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar negociações expiradas
   app.get("/api/negociacoes-expirados", async (req, res) => {
     try {
-      const { search, status, dataInicio, dataFim } = req.query;
-      const filters = {
-        search: search as string,
-        status: status as string,
-        dataInicio: dataInicio as string,
-        dataFim: dataFim as string
-      };
+      const parse = negociacoesQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
-      const expirados = await storage.getNegociacoesExpirados(filters);
+      const expirados = await storage.getNegociacoesExpirados(parse.data);
       res.json(expirados);
     } catch (error) {
       logger.error("Erro ao buscar negociações expiradas:", error);
@@ -240,15 +262,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar quitações
   app.get("/api/quitacoes", async (req, res) => {
     try {
-      const { search, status, dataInicio, dataFim } = req.query;
-      const filters = {
-        search: search as string,
-        status: status as string,
-        dataInicio: dataInicio as string,
-        dataFim: dataFim as string
-      };
+      const parse = quitacoesQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
-      const quitacoes = await storage.getQuitacoes(filters);
+      const quitacoes = await storage.getQuitacoes(parse.data);
       res.json(quitacoes);
     } catch (error) {
       logger.error("Erro ao buscar quitações:", error);
@@ -259,14 +281,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar certificações FADYC
   app.get("/api/certificacoes-fadyc", async (req, res) => {
     try {
-      const { categoria, status, search } = req.query;
-      const filters = {
-        categoria: categoria as string,
-        status: status as string,
-        search: search as string
-      };
+      const parse = certificacoesFadycQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
-      const certificacoes = await storage.getCertificacoesFadyc(filters);
+      const certificacoes = await storage.getCertificacoesFadyc(parse.data);
       res.json(certificacoes);
     } catch (error) {
       logger.error("Erro ao buscar certificações FADYC:", error);
@@ -322,14 +345,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar cursos pré-cadastrados
   app.get("/api/pre-registered-courses", async (req, res) => {
     try {
-      const { modalidade, categoria, ativo } = req.query;
-      const filters = {
-        modalidade: modalidade as string,
-        categoria: categoria as string,
-        ativo: ativo ? ativo === 'true' : undefined
-      };
+      const parse = preRegisteredCoursesQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
-      const courses = await storage.getPreRegisteredCourses(filters);
+      const courses = await storage.getPreRegisteredCourses(parse.data);
       res.json(courses);
     } catch (error) {
       logger.error("Erro ao buscar cursos pré-cadastrados:", error);
@@ -965,26 +989,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar certificações
   app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {
     try {
-      const { 
-        categoria, 
-        status, 
-        search, 
-        page = 1, 
-        limit = 50,
-        dataInicio,
-        dataFim,
-        tipoData
-      } = req.query;
+      const parse = certificacoesQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
+      const { page, limit, categoria, status, ...rest } = parse.data;
       const filters = {
         categoria: categoria !== 'todos' ? categoria : undefined,
-        status: status !== 'todos' ? status : undefined, 
-        search: search || undefined,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        dataInicio,
-        dataFim,
-        tipoData
+        status: status !== 'todos' ? status : undefined,
+        page,
+        limit,
+        ...rest
       };
       
       const result = await storage.getCertifications(filters);
@@ -1092,18 +1111,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar atendimentos do sistema
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
-      const { 
-        page = 1, 
-        limit = 20, 
-        status, 
-        atendente, 
-        equipe, 
-        dataInicio, 
-        dataFim 
-      } = req.query;
+      const parse = atendimentosQuery.safeParse(req.query);
+      if (!parse.success) {
+        return res.status(400).json({ 
+          message: "Parâmetros inválidos", 
+          issues: parse.error.issues 
+        });
+      }
       
-      const currentPage = parseInt(page);
-      const pageSize = parseInt(limit);
+      const { page, limit, status, attendantId, dataInicio, dataFim, search } = parse.data;
       
       // Buscar conversas do banco
       let conversations = await storage.getConversations();
@@ -1113,8 +1129,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({
           data: [],
           pagination: {
-            page: currentPage,
-            limit: pageSize,
+            page,
+            limit,
             total: 0,
             totalPages: 0,
             hasNext: false,
@@ -1168,17 +1184,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
-      // Filtro por atendente
-      if (atendente && atendente !== 'Todos') {
-        filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
-          atendimento.atendente === atendente
-        );
+      // Filtro por atendente (usando attendantId do schema)
+      if (attendantId) {
+        // Buscar nome do atendente pelo ID
+        const users = await storage.getAllUsers();
+        const attendantUser = users.find(u => u.id === attendantId);
+        if (attendantUser) {
+          filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
+            atendimento.atendente === attendantUser.name
+          );
+        }
       }
       
-      // Filtro por equipe
-      if (equipe && equipe !== 'Todos') {
+      // Filtro por busca (nome/telefone/email)
+      if (search) {
         filteredAtendimentos = filteredAtendimentos.filter(atendimento => 
-          atendimento.equipe === equipe
+          atendimento.lead.toLowerCase().includes(search.toLowerCase())
         );
       }
       
@@ -1201,26 +1222,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Ordenar por data de criação (mais recentes primeiro)
-      filteredAtendimentos.sort((a, b) => b.id - a.id);
+      // Ordenar por data de criação (mais recentes primeiro) - melhor ordenação semântica
+      filteredAtendimentos.sort((a, b) => {
+        const ad = a.data?.split("/").reverse().join("-") || "";
+        const bd = b.data?.split("/").reverse().join("-") || "";
+        return bd.localeCompare(ad); // mais recentes primeiro
+      });
       
       // Calcular paginação
       const total = filteredAtendimentos.length;
-      const totalPages = Math.ceil(total / pageSize);
-      const startIndex = (currentPage - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
+      const totalPages = Math.ceil(total / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
       const paginatedAtendimentos = filteredAtendimentos.slice(startIndex, endIndex);
       
       // Resposta com informações de paginação
       res.json({
         data: paginatedAtendimentos,
         pagination: {
-          page: currentPage,
-          limit: pageSize,
+          page,
+          limit,
           total,
           totalPages,
-          hasNext: currentPage < totalPages,
-          hasPrev: currentPage > 1
+          hasNext: page < totalPages,
+          hasPrev: page > 1
         }
       });
     } catch (error) {
