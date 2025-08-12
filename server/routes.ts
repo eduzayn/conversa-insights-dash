@@ -909,6 +909,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para criar certificação
+  app.post("/api/certificacoes", authenticateToken, validateRequest(insertCertificationSchema), async (req: any, res) => {
+    try {
+      const certification = await storage.createCertification(req.body);
+      res.status(201).json(certification);
+    } catch (error) {
+      logger.error("Erro ao criar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para atualizar certificação
+  app.put("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const certification = await storage.updateCertification(id, req.body);
+      
+      if (!certification) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      res.json(certification);
+    } catch (error) {
+      logger.error("Erro ao atualizar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para deletar certificação
+  app.delete("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteCertification(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Certificação não encontrada" });
+      }
+      
+      res.json({ message: "Certificação deletada com sucesso" });
+    } catch (error) {
+      logger.error("Erro ao deletar certificação:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // ===== ATENDIMENTOS =====
   
   // Endpoint para buscar dados de filtros de atendimento
