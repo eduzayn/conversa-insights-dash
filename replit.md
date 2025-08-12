@@ -54,6 +54,13 @@ Preferred communication style: Simple, everyday language.
   - All 9 certification category tabs now use standardized responsive behavior
   - Future tab additions automatically inherit consistent styling and spacing
 
+- **Performance Optimization (Aug 2025)**: Migrated duplicate detection from O(n²) to O(n) complexity
+  - Issue: Previous algorithm compared every certification with every other (quadratic complexity)
+  - Solution: Implemented efficient grouping by student name then by normalized course name
+  - Algorithm now processes 942+ certifications in linear time instead of quadratic
+  - Removed unused Levenshtein similarity calculation (40+ lines of code eliminated)
+  - System performance dramatically improved for large certification datasets
+
 ## System Architecture
 
 ### Frontend
