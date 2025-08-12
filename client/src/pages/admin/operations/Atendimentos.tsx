@@ -14,7 +14,7 @@ import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 const Atendimentos = () => {
   const { user, loading } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingAtendimento, setEditingAtendimento] = useState(null);
+  const [editingAtendimento, setEditingAtendimento] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string | null }>({
     isOpen: false,
     id: null
