@@ -734,6 +734,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Refresh token - renovar token JWT
+  app.post("/api/auth/refresh", authenticateToken, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: "Token inválido" });
+      }
+
+      // Gerar novo token com os mesmos dados do usuário
+      const newToken = generateToken(user.id.toString(), user.role);
+      
+      res.json({ 
+        token: newToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive
+        }
+      });
+    } catch (error) {
+      logger.error("[AUTH] Erro no refresh token:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Criar token de registro
   app.post("/api/admin/registration-token", authenticateToken, rbac("admin"), async (req: any, res) => {
     try {

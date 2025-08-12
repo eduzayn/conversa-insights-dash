@@ -140,7 +140,7 @@ export const optionalAuth = async (req: AuthenticatedRequest, res: Response, nex
 // Gerar token JWT com configurações seguras
 export function generateToken(userId: string, role?: string) {
   return jwt.sign(
-    { sub: userId, role },
+    { userId: userId, role },
     process.env.JWT_SECRET!,
     {
       algorithm: "HS256",
