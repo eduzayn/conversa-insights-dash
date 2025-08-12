@@ -1587,12 +1587,12 @@ export class DatabaseStorage implements IStorage {
 
   async markContentAsViewed(studentId: number, contentId: number): Promise<void> {
     // Mock: implementar lógica para marcar conteúdo como visualizado
-    console.log(`Conteúdo ${contentId} marcado como visualizado pelo aluno ${studentId}`);
+    logger.info(`Conteúdo ${contentId} marcado como visualizado pelo aluno ${studentId}`);
   }
 
   async createNotification(notification: any): Promise<void> {
     // Mock: criar notificação
-    console.log("Notificação criada:", notification);
+    logger.info("Notificação criada:", notification);
   }
 
   // Função auxiliar para buscar curso pré-cadastrado
@@ -2460,7 +2460,7 @@ export class DatabaseStorage implements IStorage {
       }
       
     } catch (error) {
-      console.error('Erro ao sincronizar negociações:', error);
+      logger.error('Erro ao sincronizar negociações:', error);
     }
     
     return { created, updated };

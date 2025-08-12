@@ -46,7 +46,7 @@ export const CreateTeamForm = ({ onSuccess, onCancel }: CreateTeamFormProps) => 
       });
       onSuccess();
     } catch (error) {
-      console.error('Erro ao criar equipe:', error);
+      // Erro ao criar equipe
     }
   };
 

@@ -13,11 +13,7 @@ export const VideoCallButton = ({ chat, currentUser, onStartCall }: VideoCallBut
   if (!currentUser) return null;
 
   const handleStartCall = () => {
-    console.log('Iniciando chamada de vídeo para:', {
-      chatId: chat.id,
-      chatName: chat.name,
-      participants: chat.participants.length
-    });
+    // Iniciando chamada de vídeo
     onStartCall();
   };
 

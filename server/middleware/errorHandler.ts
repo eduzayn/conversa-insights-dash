@@ -159,10 +159,10 @@ export const healthCheck = (req: Request, res: Response) => {
       }
     };
     
-    console.log(`[HEALTH] Health check requested from ${req.ip}`);
+    logger.info(`[HEALTH] Health check requested from ${req.ip}`);
     res.status(200).json(healthData);
   } catch (error) {
-    console.error('[HEALTH] Health check failed:', error);
+    logger.error('[HEALTH] Health check failed:', error);
     res.status(503).json({
       status: 'error',
       message: 'Service unavailable',

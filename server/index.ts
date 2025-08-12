@@ -62,19 +62,19 @@ app.use((req, res, next) => {
 // Função principal com tratamento de erros robusto
 async function startServer() {
   try {
-    console.log("Iniciando servidor...");
+    logger.info("Iniciando servidor...");
     
     // Registrar rotas (incluindo configuração do Vite)
     const server = await registerRoutes(app);
-    console.log("Rotas registradas com sucesso");
+    logger.info("Rotas registradas com sucesso");
     
     const port = Number(process.env.PORT) || 5000;
     const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
     
     server.listen(port, host, () => {
       logger.production();
-      console.log(`Environment: ${process.env.NODE_ENV}`);
-      console.log(`Server running on ${host}:${port}`);
+      logger.info(`Environment: ${process.env.NODE_ENV}`);
+      logger.info(`Server running on ${host}:${port}`);
       log(`serving on port ${port}`);
     });
     
@@ -97,7 +97,6 @@ async function startServer() {
     
   } catch (error) {
     logger.error('Erro crítico na inicialização do servidor:', error);
-    console.error('Erro crítico na inicialização do servidor:', error);
     process.exit(1);
   }
 }
@@ -105,13 +104,11 @@ async function startServer() {
 // Tratamento global de erros não capturados
 process.on('uncaughtException', (error) => {
   logger.error('Exceção não capturada:', error);
-  console.error('Exceção não capturada:', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Promise rejeitada não tratada:', { reason, promise });
-  console.error('Promise rejeitada não tratada:', reason);
   process.exit(1);
 });
 

@@ -96,6 +96,29 @@ const professorLoginSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
+// Schemas para proteção contra parseInt quebrando silenciosamente
+const idParamSchema = z.object({
+  id: z.coerce.number().int().positive()
+});
+
+// Helper para validar parâmetros de ID com proteção contra parseInt
+const validateIdParam = (req: any): number => {
+  const result = idParamSchema.parse(req.params);
+  return result.id;
+};
+
+// Helper para tratar erros de validação
+const handleValidationError = (error: any, res: any, defaultMessage: string) => {
+  if (error instanceof z.ZodError) {
+    return res.status(400).json({ 
+      message: "Parâmetros inválidos", 
+      errors: error.errors 
+    });
+  }
+  logger.error(defaultMessage, error);
+  return res.status(500).json({ message: "Erro interno do servidor" });
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // --- sanity check de envs críticas (fail-fast) ---
   const requiredEnvs = {
@@ -214,15 +237,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar negociação
   app.put("/api/negociacoes/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const negociacao = await storage.updateNegociacao(id, req.body);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!negociacao) {
-        return res.status(404).json({ message: "Negociação não encontrada" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(negociacao);
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "ID inválido", 
+          errors: error.errors 
+        });
+      }
       logger.error("Erro ao atualizar negociação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -231,10 +261,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deletar negociação
   app.delete("/api/negociacoes/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      await storage.deleteNegociacao(id);
-      res.status(204).send();
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
+      }
+      
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "ID inválido", 
+          errors: error.errors 
+        });
+      }
       logger.error("Erro ao deletar negociação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -311,15 +353,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar certificação FADYC
   app.put("/api/certificacoes-fadyc/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const certificacao = await storage.updateCertificacaoFadyc(id, req.body);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!certificacao) {
-        return res.status(404).json({ message: "Certificação não encontrada" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(certificacao);
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao atualizar certificação FADYC:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -328,15 +371,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deletar certificação FADYC
   app.delete("/api/certificacoes-fadyc/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteCertificacaoFadyc(id);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!success) {
-        return res.status(404).json({ message: "Certificação não encontrada" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json({ message: "Certificação deletada com sucesso" });
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao deletar certificação FADYC:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -403,15 +447,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar curso acadêmico
   app.put("/api/academic/courses/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const course = await storage.updateAcademicCourse(id, req.body);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!course) {
-        return res.status(404).json({ message: "Curso não encontrado" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(course);
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao atualizar curso acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -420,10 +465,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deletar curso acadêmico
   app.delete("/api/academic/courses/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      await storage.deleteAcademicCourse(id);
-      res.json({ message: "Curso deletado com sucesso" });
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
+      }
+      
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao deletar curso acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -454,15 +505,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar disciplina acadêmica
   app.put("/api/academic/disciplines/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const discipline = await storage.updateAcademicDiscipline(id, req.body);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!discipline) {
-        return res.status(404).json({ message: "Disciplina não encontrada" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(discipline);
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao atualizar disciplina acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -471,10 +523,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deletar disciplina acadêmica
   app.delete("/api/academic/disciplines/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      await storage.deleteAcademicDiscipline(id);
-      res.json({ message: "Disciplina deletada com sucesso" });
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
+      }
+      
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao deletar disciplina acadêmica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -505,15 +563,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar professor acadêmico
   app.put("/api/academic/professors/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const professor = await storage.updateAcademicProfessor(id, req.body);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!professor) {
-        return res.status(404).json({ message: "Professor não encontrado" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(professor);
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao atualizar professor acadêmico:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -522,22 +581,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deletar professor acadêmico
   app.delete("/api/academic/professors/:id", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      await storage.deleteAcademicProfessor(id);
-      res.json({ message: "Professor removido com sucesso" });
-    } catch (error: any) {
-      logger.error("Erro ao deletar professor acadêmico:", error);
-      res.status(400).json({ message: error.message || "Erro interno do servidor" });
-    }
-  });
-
-  // Buscar disciplinas de um curso
-  app.get("/api/academic/courses/:id/disciplines", authenticateToken, async (req, res) => {
-    try {
-      const courseId = parseInt(req.params.id);
-      const disciplines = await storage.getCourseDisciplines(courseId);
-      res.json(disciplines);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
+      }
+      
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao buscar disciplinas do curso:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -546,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Adicionar disciplinas a um curso
   app.post("/api/academic/courses/:id/disciplines", authenticateToken, rbac("admin"), async (req, res) => {
     try {
-      const courseId = parseInt(req.params.id);
+      const courseId = validateIdParam(req);
       const { disciplineIds } = req.body;
       
       await storage.addDisciplinesToCourse(courseId, disciplineIds);
@@ -962,7 +1015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nome,
         categoria,
         modalidade: modalidade || 'presencial',
-        cargaHoraria: parseInt(cargaHoraria) || 0,
+        cargaHoraria: Number.isFinite(+cargaHoraria) ? parseInt(cargaHoraria) : 0,
         areaConhecimento: area || 'Geral',
         status: 'ativo',
         duracao: '12 meses',
@@ -986,10 +1039,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== CERTIFICAÇÕES =====
   
+  // Schema específico para certificações com proteção contra parseInt
+  const certificacoesQuerySchema = z.object({
+    page: z.coerce.number().int().min(1).optional().default(1),
+    limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+    categoria: z.string().optional(),
+    status: z.string().optional(),
+    search: z.string().optional()
+  });
+  
   // Endpoint para buscar certificações
   app.get("/api/certificacoes", authenticateToken, async (req: any, res) => {
     try {
-      const parse = certificacoesQuery.safeParse(req.query);
+      const parse = certificacoesQuerySchema.safeParse(req.query);
       if (!parse.success) {
         return res.status(400).json({ 
           message: "Parâmetros inválidos", 
@@ -1028,15 +1090,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para atualizar certificação
   app.put("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const certification = await storage.updateCertification(id, req.body);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!certification) {
-        return res.status(404).json({ message: "Certificação não encontrada" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(certification);
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao atualizar certificação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -1045,15 +1108,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para deletar certificação
   app.delete("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteCertification(id);
+      const id = validateIdParam(req);
+      const result = await storage.updateCertificacaoFadyc(id, req.body);
       
-      if (!success) {
-        return res.status(404).json({ message: "Certificação não encontrada" });
+      if (!result) {
+        return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json({ message: "Certificação deletada com sucesso" });
+      res.json(result);
     } catch (error) {
+      return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao deletar certificação:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -1297,7 +1361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Configuração específica para desenvolvimento vs produção
   if (process.env.NODE_ENV === 'production') {
-    console.log('Configurando para produção - servindo arquivos estáticos');
+    logger.info('Configurando para produção - servindo arquivos estáticos');
     serveStatic(app);
     
     // Fallback para SPA - SEMPRE servir index.html para rotas não-API
@@ -1317,18 +1381,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         res.sendFile(path.resolve('dist/public/index.html'));
       } catch (error) {
-        console.error('Erro ao servir index.html:', error);
+        logger.error('Erro ao servir index.html:', error);
         res.status(500).send('Erro interno do servidor');
       }
     });
   } else {
-    console.log('Configurando para desenvolvimento - usando Vite');
+    logger.info('Configurando para desenvolvimento - usando Vite');
     try {
       await setupVite(app, server);
     } catch (error) {
-      console.error('Erro ao configurar Vite:', error);
+      logger.error('Erro ao configurar Vite:', error);
       // Fallback: servir arquivos estáticos se Vite falhar
-      console.log('Usando fallback para arquivos estáticos');
+      logger.info('Usando fallback para arquivos estáticos');
       serveStatic(app);
       
       // Fallback para desenvolvimento também
@@ -1346,7 +1410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           res.sendFile(path.resolve('client/index.html'));
         } catch (error) {
-          console.error('Erro ao servir index.html em desenvolvimento:', error);
+          logger.error('Erro ao servir index.html em desenvolvimento:', error);
           res.status(500).send('Erro interno do servidor');
         }
       });

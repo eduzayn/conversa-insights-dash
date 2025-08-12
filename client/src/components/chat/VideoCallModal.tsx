@@ -27,29 +27,29 @@ export const VideoCallModal = ({ open, onOpenChange, chat, currentUser }: VideoC
       const newChannelName = `${chatPrefix}-${chat.id}-${timestamp}`;
       setChannelName(newChannelName);
       
-      console.log('Canal de vídeo criado:', newChannelName);
+      // Canal de vídeo criado
     }
   }, [open, chat, currentUser]);
 
   const handleJoinCall = () => {
-    console.log('Entrando na chamada:', { channelName, userId: currentUser?.id });
+    // Entrando na chamada
     setIsCallActive(true);
   };
 
   const handleLeaveCall = () => {
-    console.log('Saindo da chamada');
+    // Saindo da chamada
     setIsCallActive(false);
     onOpenChange(false);
   };
 
   const toggleVideo = () => {
     setIsVideoEnabled(!isVideoEnabled);
-    console.log('Toggle vídeo:', !isVideoEnabled);
+    // Toggle vídeo
   };
 
   const toggleAudio = () => {
     setIsAudioEnabled(!isAudioEnabled);
-    console.log('Toggle áudio:', !isAudioEnabled);
+    // Toggle áudio
   };
 
   return (

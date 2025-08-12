@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { logger } from '../utils/logger';
 
 interface AsaasConfig {
   baseURL: string;
@@ -85,22 +86,22 @@ export class UnifiedAsaasService {
     // Interceptor para logs de debug
     this.api.interceptors.request.use(
       (config) => {
-        console.log(`[Asaas API Request] ${config.method?.toUpperCase()} ${config.url}`);
+        logger.info(`[Asaas API Request] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error) => {
-        console.error('[Asaas API Request Error]', error);
+        logger.error('[Asaas API Request Error]', error);
         return Promise.reject(error);
       }
     );
 
     this.api.interceptors.response.use(
       (response) => {
-        console.log(`[Asaas API Response] ${response.status} ${response.config.url}`);
+        logger.info(`[Asaas API Response] ${response.status} ${response.config.url}`);
         return response;
       },
       (error) => {
-        console.error('[Asaas API Response Error]', {
+        logger.error('[Asaas API Response Error]', {
           status: error.response?.status,
           data: error.response?.data,
           url: error.config?.url
@@ -230,15 +231,15 @@ export class UnifiedAsaasService {
   async getPayments(filters: PaymentFilters = {}): Promise<any> {
     try {
       // DEBUG: Log dos parâmetros enviados para a API do Asaas
-      console.log('[Asaas Service] Parâmetros enviados para API:', filters);
+      logger.info('[Asaas Service] Parâmetros enviados para API:', filters);
       
       const response = await this.api.get('/payments', { params: filters });
       
       // DEBUG: Log da resposta da API
       const payments = response.data.data || [];
-      console.log('[Asaas Service] Total de pagamentos retornados:', payments.length);
+      logger.info('[Asaas Service] Total de pagamentos retornados:', payments.length);
       if (payments.length > 0) {
-        console.log('[Asaas Service] Primeiro pagamento:', {
+        logger.info('[Asaas Service] Primeiro pagamento:', {
           id: payments[0].id,
           dateCreated: payments[0].dateCreated,
           dueDate: payments[0].dueDate,
@@ -248,7 +249,7 @@ export class UnifiedAsaasService {
       
       return response.data;
     } catch (error: any) {
-      console.error('[Asaas Service] Erro na requisição:', error.response?.data || error.message);
+      logger.error('[Asaas Service] Erro na requisição:', error.response?.data || error.message);
       throw new Error(error.response?.data?.errors?.[0]?.description || 'Erro ao listar cobranças');
     }
   }
@@ -391,7 +392,7 @@ export class UnifiedAsaasService {
 
         // Limite de segurança para evitar loops infinitos
         if (offset > 10000) {
-          console.warn('[Asaas] Limite de sincronização atingido (10.000 registros)');
+          logger.warn('[Asaas] Limite de sincronização atingido (10.000 registros)');
           break;
         }
       }
@@ -453,7 +454,7 @@ export class UnifiedAsaasService {
 
         // Limite de segurança
         if (offset > 1000) {
-          console.warn('[Asaas Stats] Limite de 1.000 registros atingido para estatísticas');
+          logger.warn('[Asaas Stats] Limite de 1.000 registros atingido para estatísticas');
           break;
         }
       }

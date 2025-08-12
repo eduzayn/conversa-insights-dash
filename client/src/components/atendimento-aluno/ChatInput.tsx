@@ -89,7 +89,7 @@ export const ChatInput = ({
       }, 1000);
 
     } catch (error) {
-      console.error('Erro ao iniciar gravação:', error);
+      // Erro ao iniciar gravação
       alert('Erro ao acessar o microfone. Verifique as permissões.');
     }
   };

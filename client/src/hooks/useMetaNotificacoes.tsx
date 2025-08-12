@@ -104,7 +104,7 @@ export const useMetaNotificacoes = () => {
     });
     
     socket.on('goal_achieved', (data: { userId: number | null; achievement: any }) => {
-      console.log('Conquista recebida via WebSocket:', data);
+      // Conquista recebida via WebSocket
       
       // Verificar se a conquista é para o usuário atual ou para sua equipe
       const isForCurrentUser = data.userId === user.id || data.userId === null;

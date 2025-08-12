@@ -36,12 +36,21 @@ const paymentFiltersSchema = z.object({
   dueDateLe: z.string().optional(),
   paymentDateGe: z.string().optional(),
   paymentDateLe: z.string().optional(),
-  offset: z.coerce.number().optional(),
-  limit: z.coerce.number().optional(),
-  page: z.coerce.number().optional(),
+  offset: z.coerce.number().min(0).optional(),
+  limit: z.coerce.number().min(1).max(1000).optional(),
+  page: z.coerce.number().min(1).optional(),
   search: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional()
+});
+
+// Schema para validação de filtros de clientes
+const customerFiltersSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  cpfCnpj: z.string().optional(),
+  offset: z.coerce.number().min(0).optional(),
+  limit: z.coerce.number().min(1).max(1000).optional()
 });
 
 // Schema para criação de clientes
@@ -107,7 +116,7 @@ const webhookConfigSchema = z.object({
 
 // Middleware para capturar erros
 const handleAsaasError = (error: any, res: any) => {
-  console.error('[Asaas Error]', error);
+  logger.error('[Asaas Error]', error);
   
   if (error.message.includes('ASAAS_API_KEY')) {
     return res.status(500).json({
@@ -150,15 +159,9 @@ router.get('/account', authenticateToken, async (req, res) => {
 router.get('/customers', authenticateToken, async (req, res) => {
   try {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
-    const { name, email, cpfCnpj, offset, limit } = req.query;
+    const validatedFilters = customerFiltersSchema.parse(req.query);
     
-    const customers = await asaas.getCustomers({
-      name: name as string,
-      email: email as string,
-      cpfCnpj: cpfCnpj as string,
-      offset: offset ? parseInt(offset as string) : undefined,
-      limit: limit ? parseInt(limit as string) : undefined
-    });
+    const customers = await asaas.getCustomers(validatedFilters);
     
     res.json(customers);
   } catch (error) {
@@ -251,7 +254,7 @@ router.get('/payments', authenticateToken, async (req, res) => {
     const asaas = createAsaasService(getAsaasApiKey(), isSandbox());
     
     // DEBUG: Log dos filtros recebidos
-    console.log('[Asaas Payments] Filtros recebidos:', {
+    logger.info('[Asaas Payments] Filtros recebidos:', {
       startDate: filters.startDate,
       endDate: filters.endDate,
       status: filters.status,
@@ -271,7 +274,7 @@ router.get('/payments', authenticateToken, async (req, res) => {
     const payments = paymentsResponse.data || [];
     
     // DEBUG: Log das datas dos primeiros pagamentos retornados
-    console.log('[Asaas Payments] Primeiros 3 pagamentos retornados:', 
+    logger.info('[Asaas Payments] Primeiros 3 pagamentos retornados:', 
       payments.slice(0, 3).map((p: any) => ({
         id: p.id,
         dateCreated: p.dateCreated,
@@ -290,7 +293,7 @@ router.get('/payments', authenticateToken, async (req, res) => {
           customersMap.set(payment.customer, customerData);
         } catch (error) {
           // Se não conseguir buscar o cliente, continua sem erro
-          console.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
+          logger.warn(`Erro ao buscar cliente ${payment.customer}:`, error);
           customersMap.set(payment.customer, null);
         }
       }

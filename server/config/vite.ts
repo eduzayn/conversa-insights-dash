@@ -8,6 +8,8 @@ import { nanoid } from "nanoid";
 
 const viteLogger = createLogger();
 
+import { logger } from "../utils/logger";
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -16,7 +18,7 @@ export function log(message: string, source = "express") {
     hour12: true,
   });
 
-  console.log(`${formattedTime} [${source}] ${message}`);
+  logger.info(`${formattedTime} [${source}] ${message}`);
 }
 
 export async function setupVite(app: Express, server: Server) {
@@ -85,18 +87,18 @@ export function serveStatic(app: Express) {
   const distPath = path.resolve(process.cwd(), 'dist', 'public');
 
   if (!fs.existsSync(distPath)) {
-    console.warn(`Build directory not found: ${distPath}. Tentando fallback...`);
+    logger.warn(`Build directory not found: ${distPath}. Tentando fallback...`);
     // Tentar servir do diretório client como fallback
     const clientDir = path.resolve(process.cwd(), 'client', 'public');
     if (fs.existsSync(clientDir)) {
-      console.log(`Usando diretório client public como fallback: ${clientDir}`);
+      logger.info(`Usando diretório client public como fallback: ${clientDir}`);
       app.use(express.static(clientDir, { index: false }));
       return;
     }
     throw new Error(`Nenhum diretório de arquivos estáticos encontrado. Execute 'npm run build' primeiro.`);
   }
 
-  console.log(`Servindo arquivos estáticos de: ${distPath}`);
+  logger.info(`Servindo arquivos estáticos de: ${distPath}`);
   app.use(express.static(distPath, { 
     index: false, 
     maxAge: '1d',
