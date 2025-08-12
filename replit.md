@@ -127,6 +127,15 @@ Preferred communication style: Simple, everyday language.
   - Server now throws clear error messages if required environment variables are missing or empty
   - Enhanced system stability and prevents silent failures in production environments
 
+- **Security Middlewares and CORS Whitelist (Aug 2025)**: Enhanced security with configurable origin control
+  - Issue: CORS was allowing all origins (origin: true) which poses security risks in production
+  - Solution: Implemented security middlewares and CORS whitelist system
+  - Added Helmet for security headers and compression for performance
+  - CORS now uses environment-configurable whitelist (CORS_ORIGINS)
+  - Flexible fallback: if no origins configured, allows all in development for easy testing
+  - Applied to both Express routes and Socket.IO for consistent security policy
+  - Added "trust proxy" configuration for accurate IP detection behind proxies
+
 ## System Architecture
 
 ### Frontend

@@ -138,17 +138,18 @@ export const optionalAuth = async (req: AuthenticatedRequest, res: Response, nex
 };
 
 // Gerar token JWT com configurações seguras
-export const generateToken = (userId: string | number): string => {
+export function generateToken(userId: string, role?: string) {
   return jwt.sign(
-    { userId },
-    JWT_SECRET,
+    { sub: userId, role },
+    process.env.JWT_SECRET!,
     {
-      expiresIn: '24h',
-      issuer: 'edunexia-crm',
-      audience: 'edunexia-users'
+      algorithm: "HS256",
+      expiresIn: "8h",
+      issuer: "edunexia-api",
+      audience: "edunexia-clients"
     }
   );
-};
+}
 
 // Validar se token é válido sem acessar banco de dados
 export const isValidToken = (token: string): boolean => {

@@ -9,7 +9,10 @@ import { storage } from "./lib/storage";
 import { logger } from "./utils/logger";
 import { sql, eq, inArray } from "drizzle-orm";
 import { db } from "./config/db";
-import { users, conversations, attendanceMessages, internalNotes } from "@shared/schema"; 
+import { users, conversations, attendanceMessages, internalNotes } from "@shared/schema";
+import helmet from "helmet";
+import compression from "compression";
+import cors from "cors"; 
 import { 
   insertUserSchema, 
   insertRegistrationTokenSchema, 
@@ -97,10 +100,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Configuração de segurança e CORS
+  const ORIGINS = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
   const server = createServer(app);
   const io = new SocketServer(server, {
     cors: {
-      origin: true, // Permite qualquer origem
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true); // permitir curl/postman
+        if (ORIGINS.length === 0) return cb(null, true); // fallback em dev
+        return ORIGINS.includes(origin) ? cb(null, true) : cb(new Error("Not allowed by CORS"));
+      },
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]
@@ -111,6 +124,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     pingTimeout: 60000,
     pingInterval: 25000
   });
+
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  }));
+  app.use(compression());
+
+  app.use(cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // permitir curl/postman
+      if (ORIGINS.length === 0) return cb(null, true); // fallback em dev
+      return ORIGINS.includes(origin) ? cb(null, true) : cb(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+    allowedHeaders: ["Origin","X-Requested-With","Content-Type","Accept","Authorization"]
+  }));
+
+  // se usa proxy (replit/vercel/ingress), ative para rate-limit/IP correto
+  app.set("trust proxy", 1);
 
   // Middlewares globais
   app.use(rateLimiter());
@@ -522,7 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
-      const token = generateToken(user.id.toString());
+      const token = generateToken(user.id.toString(), user.role);
       logger.info(`[AUTH] Login bem-sucedido - User: ${user.username} (${user.id})`);
       
       res.json({ 
@@ -561,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Gerar token
-      const token = generateToken(professor.id.toString());
+      const token = generateToken(professor.id.toString(), 'professor');
       
       res.json({ 
         token,
@@ -593,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Gerar token
-      const token = generateToken(student.id.toString());
+      const token = generateToken(student.id.toString(), 'student');
       
       res.json({ 
         token,
@@ -640,7 +672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: 'user'
       });
 
-      const token = generateToken(user.id.toString());
+      const token = generateToken(user.id.toString(), user.role);
       
       res.status(201).json({ 
         token,
