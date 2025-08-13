@@ -91,8 +91,8 @@ const App = () => {
           <Toaster />
           <Sonner position="top-right" />
           <BrowserRouter>
+            <ScrollToTop />
             <AuthProvider>
-              <ScrollToTop />
               <Suspense fallback={<div style={{ padding: 24 }}>Carregando…</div>}>
                 <Routes>
                   <Route path="/" element={<LoginHub />} />
