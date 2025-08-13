@@ -6,7 +6,7 @@ This project is a comprehensive full-stack web application for educational insti
 ## Recent Issues Resolved
 - **Missing Atendimentos Update Route (Aug 2025)**: Fixed missing PUT endpoint for updating attendance records. Users were getting 404 errors when trying to edit attendance data. Problem was that while `updateConversation` storage method existed, the corresponding `PUT /api/atendimentos/:id` route was missing. Solution: Added the missing route to server/routes.ts.
 - **Database Routing Issue (Aug 2025)**: Fixed critical certification editing functionality. The `/api/certificacoes/:id` endpoints were incorrectly calling `updateCertificacaoFadyc` (for `certificacoes_fadyc` table) instead of `updateCertification` (for `certifications` table). Solution: Updated routes.ts to use correct storage methods for the appropriate table.
-- **Sidebar Navigation UX (Aug 2025)**: Fixed user complaint about non-functional sidebar links. Issue was that all sections started collapsed, requiring two clicks to access any item. Solution: Made main sections ('Geral', 'Relacionamento', 'Acadêmico', 'Financeiro') expand by default with localStorage persistence.
+
 - **Layout Consistency (Aug 2025)**: Fixed production-specific layout issue where white space appeared on the right side of all tabs in the certifications page. The problem was caused by duplicate SidebarProvider usage within the page component, conflicting with the global SidebarProvider. Solution: Use consistent layout pattern across all admin pages without nested SidebarProvider instances.
 
 ## User Preferences
