@@ -192,8 +192,8 @@ export default function Certificacoes() {
   const rowVirtualizer = useVirtualizer({
     count: certifications.length,
     getScrollElement: () => scrollParentRef.current,
-    // altura estimada de cada card; ajuste se seus cards forem maiores/menores
-    estimateSize: () => 140,
+    // altura estimada de cada card; ajustado para acomodar observações sem cortes
+    estimateSize: () => 300,
     overscan: 12,
     // permite alturas dinâmicas (mede o elemento real quando renderiza)
     measureElement:
@@ -557,7 +557,7 @@ export default function Certificacoes() {
                               width: '100%',
                               transform: `translateY(${virtualRow.start}px)`,
                             }}
-                            className="mb-4"
+                            className="mb-8"
                           >
                             <CertificationCard
                               certification={certification}

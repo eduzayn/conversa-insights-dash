@@ -105,7 +105,7 @@ export const CertificationCard = ({
   };
 
   return (
-    <Card className={`hover:shadow-md transition-shadow min-h-[200px] ${isDuplicate ? 'border-orange-300 bg-orange-50' : ''}`}>
+    <Card className={`hover:shadow-md transition-shadow min-h-[260px] mb-4 ${isDuplicate ? 'border-orange-300 bg-orange-50' : ''}`}>
       <CardContent className="p-6 h-full">
         {/* Alerta de duplicata */}
         {isDuplicate && (
@@ -195,8 +195,8 @@ export const CertificationCard = ({
               
               {/* Observações */}
               {certification.observacao && (
-                <div className="text-sm text-gray-600 mt-2">
-                  <strong>Obs:</strong> {certification.observacao.length > 50 ? certification.observacao.substring(0, 50) + '...' : certification.observacao}
+                <div className="text-sm text-gray-600 mt-3 mb-2 p-2 bg-gray-50 rounded border-l-2 border-gray-200">
+                  <strong>Obs:</strong> {certification.observacao.length > 80 ? certification.observacao.substring(0, 80) + '...' : certification.observacao}
                 </div>
               )}
             </div>
