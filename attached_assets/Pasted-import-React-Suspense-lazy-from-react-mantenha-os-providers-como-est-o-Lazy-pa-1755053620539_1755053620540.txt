@@ -1,0 +1,38 @@
+import React, { Suspense, lazy } from "react";
+// ...mantenha os providers como estão
+
+// Lazy pages
+const LoginHub = lazy(() => import("./pages/auth/LoginHub"));
+const AdminLogin = lazy(() => import("./pages/auth/AdminLogin"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const StudentLogin = lazy(() => import("./pages/auth/StudentLogin"));
+const ProfessorLogin = lazy(() => import("./pages/auth/ProfessorLogin"));
+
+const Dashboard = lazy(() => import("./pages/admin/core/Dashboard"));
+const Certificacoes = lazy(() => import("./pages/admin/academic/Certificacoes"));
+const CertificadosPos = lazy(() => import("./pages/admin/academic/CertificadosPos"));
+const MatriculaSimplificada = lazy(() => import("./pages/admin/academic/MatriculaSimplificada"));
+const MatrizesCurriculares = lazy(() => import("./pages/admin/academic/MatrizesCurriculares"));
+
+const Atendimentos = lazy(() => import("./pages/admin/operations/Atendimentos"));
+const AtendimentoAluno = lazy(() => import("./pages/admin/operations/AtendimentoAluno"));
+const ChatInterno = lazy(() => import("./pages/admin/operations/ChatInterno"));
+const Crm = lazy(() => import("./pages/admin/operations/Crm"));
+const Presenca = lazy(() => import("./pages/admin/operations/Presenca"));
+const Produtividade = lazy(() => import("./pages/admin/operations/Produtividade"));
+
+const EnviosFamar = lazy(() => import("./pages/admin/reports/EnviosFamar"));
+const EnviosUnicv = lazy(() => import("./pages/admin/reports/EnviosUnicv"));
+const Negociacoes = lazy(() => import("./pages/admin/reports/Negociacoes"));
+const CertificacoesFadyc = lazy(() => import("./pages/admin/reports/CertificacoesFadyc"));
+
+const GerenciamentoRoteamento = lazy(() => import("./pages/admin/settings/GerenciamentoRoteamento"));
+const GerenciarTokens = lazy(() => import("./pages/admin/settings/GerenciarTokens"));
+const Metas = lazy(() => import("./pages/admin/settings/Metas"));
+
+const IntegracaoAsaas = lazy(() => import("./pages/admin/integrations/IntegracaoAsaas"));
+const ChargesPage = lazy(() => import("./pages/admin/financial/charges-page"));
+
+const PortalLayout = lazy(() => import("./pages/portal/PortalLayout"));
+const ProfessorPortalLayout = lazy(() => import("./pages/professor/ProfessorPortalLayout"));
+const NotFound = lazy(() => import("./pages/admin/core/NotFound"));

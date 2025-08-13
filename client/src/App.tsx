@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,52 +10,51 @@ import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
 import AppErrorBoundary from "@/components/utils/AppErrorBoundary";
 
-// Auth Pages
-import LoginHub from "./pages/auth/LoginHub";
-import AdminLogin from "./pages/auth/AdminLogin";
-import Register from "./pages/auth/Register";
-import StudentLogin from "./pages/auth/StudentLogin";
-import ProfessorLogin from "./pages/auth/ProfessorLogin";
-// import LoginRouter from "./components/auth/LoginRouter";
+// Lazy pages - Auth
+const LoginHub = lazy(() => import("./pages/auth/LoginHub"));
+const AdminLogin = lazy(() => import("./pages/auth/AdminLogin"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const StudentLogin = lazy(() => import("./pages/auth/StudentLogin"));
+const ProfessorLogin = lazy(() => import("./pages/auth/ProfessorLogin"));
 
-// Admin Core
-import Dashboard from "./pages/admin/core/Dashboard";
+// Lazy pages - Admin Core
+const Dashboard = lazy(() => import("./pages/admin/core/Dashboard"));
 
-// Admin Academic
-import Certificacoes from "./pages/admin/academic/Certificacoes";
-import CertificadosPos from "./pages/admin/academic/CertificadosPos";
-import MatriculaSimplificada from "./pages/admin/academic/MatriculaSimplificada";
-import MatrizesCurriculares from "./pages/admin/academic/MatrizesCurriculares";
+// Lazy pages - Admin Academic
+const Certificacoes = lazy(() => import("./pages/admin/academic/Certificacoes"));
+const CertificadosPos = lazy(() => import("./pages/admin/academic/CertificadosPos"));
+const MatriculaSimplificada = lazy(() => import("./pages/admin/academic/MatriculaSimplificada"));
+const MatrizesCurriculares = lazy(() => import("./pages/admin/academic/MatrizesCurriculares"));
 
-// Admin Operations
-import Atendimentos from "./pages/admin/operations/Atendimentos";
-import AtendimentoAluno from "./pages/admin/operations/AtendimentoAluno";
-import ChatInterno from "./pages/admin/operations/ChatInterno";
-import Crm from "./pages/admin/operations/Crm";
-import Presenca from "./pages/admin/operations/Presenca";
-import Produtividade from "./pages/admin/operations/Produtividade";
+// Lazy pages - Admin Operations
+const Atendimentos = lazy(() => import("./pages/admin/operations/Atendimentos"));
+const AtendimentoAluno = lazy(() => import("./pages/admin/operations/AtendimentoAluno"));
+const ChatInterno = lazy(() => import("./pages/admin/operations/ChatInterno"));
+const Crm = lazy(() => import("./pages/admin/operations/Crm"));
+const Presenca = lazy(() => import("./pages/admin/operations/Presenca"));
+const Produtividade = lazy(() => import("./pages/admin/operations/Produtividade"));
 
-// Admin Reports
-import EnviosFamar from "./pages/admin/reports/EnviosFamar";
-import EnviosUnicv from "./pages/admin/reports/EnviosUnicv";
-import Negociacoes from "./pages/admin/reports/Negociacoes";
-import CertificacoesFadyc from "./pages/admin/reports/CertificacoesFadyc";
+// Lazy pages - Admin Reports
+const EnviosFamar = lazy(() => import("./pages/admin/reports/EnviosFamar"));
+const EnviosUnicv = lazy(() => import("./pages/admin/reports/EnviosUnicv"));
+const Negociacoes = lazy(() => import("./pages/admin/reports/Negociacoes"));
+const CertificacoesFadyc = lazy(() => import("./pages/admin/reports/CertificacoesFadyc"));
 
-// Admin Settings
-import GerenciamentoRoteamento from "./pages/admin/settings/GerenciamentoRoteamento";
-import GerenciarTokens from "./pages/admin/settings/GerenciarTokens";
-import Metas from "./pages/admin/settings/Metas";
+// Lazy pages - Admin Settings
+const GerenciamentoRoteamento = lazy(() => import("./pages/admin/settings/GerenciamentoRoteamento"));
+const GerenciarTokens = lazy(() => import("./pages/admin/settings/GerenciarTokens"));
+const Metas = lazy(() => import("./pages/admin/settings/Metas"));
 
-// Admin Integrations
-import IntegracaoAsaas from "./pages/admin/integrations/IntegracaoAsaas";
+// Lazy pages - Admin Integrations
+const IntegracaoAsaas = lazy(() => import("./pages/admin/integrations/IntegracaoAsaas"));
 
-// Admin Financial
-import ChargesPage from "./pages/admin/financial/charges-page";
+// Lazy pages - Admin Financial
+const ChargesPage = lazy(() => import("./pages/admin/financial/charges-page"));
 
-// Portal Components
-import PortalLayout from "./pages/portal/PortalLayout";
-import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
-import NotFound from "./pages/admin/core/NotFound";
+// Lazy pages - Portal Components
+const PortalLayout = lazy(() => import("./pages/portal/PortalLayout"));
+const ProfessorPortalLayout = lazy(() => import("./pages/professor/ProfessorPortalLayout"));
+const NotFound = lazy(() => import("./pages/admin/core/NotFound"));
 
 const App = () => {
   // Proteção adicional contra erros de renderização - só em ambientes Replit
@@ -92,51 +91,53 @@ const App = () => {
           <Sonner position="top-right" />
           <BrowserRouter>
             <AuthProvider>
-          <Routes>
-            <Route path="/" element={<LoginHub />} />
-            <Route path="/login" element={<LoginHub />} />
-            {/* <Route path="/login-router" element={<LoginRouter />} /> */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/atendimentos" element={<Atendimentos />} />
-            <Route path="/atendimento-aluno" element={<AtendimentoAluno />} />
-            <Route path="/produtividade" element={<Produtividade />} />
-            <Route path="/presenca" element={<Presenca />} />
-            <Route path="/chat-interno" element={<ChatInterno />} />
-            <Route path="/metas" element={<Metas />} />
-            <Route path="/crm" element={<Crm />} />
-            <Route path="/admin/certificacoes" element={<Certificacoes />} />
-            <Route path="/admin/academic/certifications" element={<Certificacoes />} />
-            <Route path="/certificacoes" element={<Certificacoes />} />
-            <Route path="/certificados-pos" element={<CertificadosPos />} />
+              <Suspense fallback={<div style={{ padding: 24 }}>Carregando…</div>}>
+                <Routes>
+                  <Route path="/" element={<LoginHub />} />
+                  <Route path="/login" element={<LoginHub />} />
+                  {/* <Route path="/login-router" element={<LoginRouter />} /> */}
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/admin" element={<Dashboard />} />
+                  <Route path="/atendimentos" element={<Atendimentos />} />
+                  <Route path="/atendimento-aluno" element={<AtendimentoAluno />} />
+                  <Route path="/produtividade" element={<Produtividade />} />
+                  <Route path="/presenca" element={<Presenca />} />
+                  <Route path="/chat-interno" element={<ChatInterno />} />
+                  <Route path="/metas" element={<Metas />} />
+                  <Route path="/crm" element={<Crm />} />
+                  <Route path="/admin/certificacoes" element={<Certificacoes />} />
+                  <Route path="/admin/academic/certifications" element={<Certificacoes />} />
+                  <Route path="/certificacoes" element={<Certificacoes />} />
+                  <Route path="/certificados-pos" element={<CertificadosPos />} />
 
-            <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
-            <Route path="/charges" element={<ChargesPage />} />
-            <Route path="/cobrancas" element={<ChargesPage />} />
-            <Route path="/integracao-asaas" element={<IntegracaoAsaas />} />
-            <Route path="/gerenciar-tokens" element={<GerenciarTokens />} />
-            <Route path="/negociacoes" element={<Negociacoes />} />
-            <Route path="/envios-unicv" element={<EnviosUnicv />} />
-            <Route path="/envios-famar" element={<EnviosFamar />} />
-            <Route path="/certificacoes-fadyc" element={<CertificacoesFadyc />} />
-            <Route path="/admin/reports/certificacoes-fadyc" element={<CertificacoesFadyc />} />
+                  <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
+                  <Route path="/charges" element={<ChargesPage />} />
+                  <Route path="/cobrancas" element={<ChargesPage />} />
+                  <Route path="/integracao-asaas" element={<IntegracaoAsaas />} />
+                  <Route path="/gerenciar-tokens" element={<GerenciarTokens />} />
+                  <Route path="/negociacoes" element={<Negociacoes />} />
+                  <Route path="/envios-unicv" element={<EnviosUnicv />} />
+                  <Route path="/envios-famar" element={<EnviosFamar />} />
+                  <Route path="/certificacoes-fadyc" element={<CertificacoesFadyc />} />
+                  <Route path="/admin/reports/certificacoes-fadyc" element={<CertificacoesFadyc />} />
 
-            <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
-            <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />
-            <Route path="/certificados-academicos" element={<CertificadosPos />} />
-            <Route path="/gestao-cursos" element={<MatrizesCurriculares />} />
-            <Route path="/gestao-academica" element={<MatrizesCurriculares />} />
-            {/* Portal do Aluno */}
-            <Route path="/portal-aluno/login" element={<StudentLogin />} />
-            <Route path="/portal/*" element={<PortalLayout />} />
-            {/* Portal do Professor */}
-            <Route path="/professor-login" element={<ProfessorLogin />} />
-            <Route path="/professor/login" element={<ProfessorLogin />} />
-            <Route path="/professor/*" element={<ProfessorPortalLayout />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-            <SupportChatButton />
+                  <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
+                  <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />
+                  <Route path="/certificados-academicos" element={<CertificadosPos />} />
+                  <Route path="/gestao-cursos" element={<MatrizesCurriculares />} />
+                  <Route path="/gestao-academica" element={<MatrizesCurriculares />} />
+                  {/* Portal do Aluno */}
+                  <Route path="/portal-aluno/login" element={<StudentLogin />} />
+                  <Route path="/portal/*" element={<PortalLayout />} />
+                  {/* Portal do Professor */}
+                  <Route path="/professor-login" element={<ProfessorLogin />} />
+                  <Route path="/professor/login" element={<ProfessorLogin />} />
+                  <Route path="/professor/*" element={<ProfessorPortalLayout />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+              <SupportChatButton />
             </AuthProvider>
           </BrowserRouter>
         </AppErrorBoundary>
