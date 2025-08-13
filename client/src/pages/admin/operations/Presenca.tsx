@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Clock, Users, UserCheck, UserX, Crown, TrendingUp, Calendar, Award } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { useActivityMonitor } from "@/hooks/useActivityMonitor";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -209,7 +210,7 @@ const Presenca = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{presenceData.summary.totalEmployees}</div>
+                  <div className="text-2xl font-bold">{presenceData?.summary?.totalEmployees || 0}</div>
                   <p className="text-xs text-muted-foreground">Cadastrados no sistema</p>
                 </CardContent>
               </Card>
@@ -220,9 +221,9 @@ const Presenca = () => {
                   <UserCheck className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{presenceData.summary.presentToday}</div>
+                  <div className="text-2xl font-bold text-green-600">{presenceData?.summary?.presentToday || 0}</div>
                   <p className="text-xs text-muted-foreground">
-                    {Math.round((presenceData.summary.presentToday / presenceData.summary.totalEmployees) * 100)}% do total
+                    {presenceData?.summary?.totalEmployees ? Math.round((presenceData.summary.presentToday / presenceData.summary.totalEmployees) * 100) : 0}% do total
                   </p>
                 </CardContent>
               </Card>
@@ -233,7 +234,7 @@ const Presenca = () => {
                   <UserX className="h-4 w-4 text-red-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{presenceData.summary.absentToday}</div>
+                  <div className="text-2xl font-bold text-red-600">{presenceData?.summary?.absentToday || 0}</div>
                   <p className="text-xs text-muted-foreground">Não fizeram login</p>
                 </CardContent>
               </Card>
@@ -244,7 +245,7 @@ const Presenca = () => {
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{presenceData.summary.averageOnlineTime}</div>
+                  <div className="text-2xl font-bold">{presenceData?.summary?.averageOnlineTime || "0h 0m"}</div>
                   <p className="text-xs text-muted-foreground">Por funcionário hoje</p>
                 </CardContent>
               </Card>
@@ -255,7 +256,7 @@ const Presenca = () => {
                   <TrendingUp className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{presenceData.summary.attendanceRate}%</div>
+                  <div className="text-2xl font-bold text-blue-600">{presenceData?.summary?.attendanceRate || 0}%</div>
                   <p className="text-xs text-muted-foreground">Presença hoje</p>
                 </CardContent>
               </Card>
@@ -280,7 +281,7 @@ const Presenca = () => {
 
               <TabsContent value="dashboard" className="space-y-6">
                 {/* Funcionário Mais Ativo Hoje */}
-                {presenceData.dailyAttendance.length > 0 && (
+                {presenceData?.dailyAttendance && presenceData.dailyAttendance.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -341,7 +342,7 @@ const Presenca = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {presenceData.dailyAttendance.map((employee) => (
+                          {presenceData?.dailyAttendance?.map((employee) => (
                             <tr key={`${employee.userId}-${employee.email}`} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4 font-medium">{employee.name}</td>
                               <td className="py-3 px-4 text-gray-600 text-sm">{employee.email}</td>
@@ -473,7 +474,7 @@ const Presenca = () => {
                   </CardHeader>
                   <CardContent>
                     {(() => {
-                      const teamStats = presenceData.dailyAttendance.reduce((acc, employee) => {
+                      const teamStats = presenceData?.dailyAttendance?.reduce((acc, employee) => {
                         if (!acc[employee.team]) {
                           acc[employee.team] = {
                             total: 0,
@@ -542,15 +543,15 @@ const Presenca = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{presenceData.weeklyStats.attendanceRate}%</div>
+                    <div className="text-2xl font-bold text-green-600">{presenceData?.weeklyStats?.attendanceRate || 0}%</div>
                     <div className="text-sm text-green-700">Taxa de Presença</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{presenceData.weeklyStats.averageDailyTime}</div>
+                    <div className="text-2xl font-bold text-blue-600">{presenceData?.weeklyStats?.averageDailyTime || "0h 0m"}</div>
                     <div className="text-sm text-blue-700">Média Diária</div>
                   </div>
                   <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">{presenceData.weeklyStats.totalInactivityCount}</div>
+                    <div className="text-2xl font-bold text-yellow-600">{presenceData?.weeklyStats?.totalInactivityCount || 0}</div>
                     <div className="text-sm text-yellow-700">Inatividades Totais</div>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useAtendimentos } from "@/hooks/useAtendimentos";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { AtendimentosHeader } from "@/components/atendimentos/AtendimentosHeader";
@@ -106,37 +107,34 @@ const Atendimentos = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-            <AtendimentosHeader
-              isLoading={isLoading}
-              atendimentosCount={atendimentos.length}
-              error={error}
-              onExportCSV={exportToCSV}
-              onCreateAtendimento={handleCreateAtendimento}
-            />
+        <AtendimentosHeader
+          isLoading={isLoading}
+          atendimentosCount={atendimentos.length}
+          error={error}
+          onExportCSV={exportToCSV}
+          onCreateAtendimento={handleCreateAtendimento}
+        />
 
-            <AtendimentosFilters
-              filters={filters}
-              onUpdateFilters={updateFilters}
-              onClearFilters={clearFilters}
-            />
+        <AtendimentosFilters
+          filters={filters}
+          onUpdateFilters={updateFilters}
+          onClearFilters={clearFilters}
+        />
 
-            <AtendimentosTable
-              atendimentos={atendimentos}
-              isLoading={isLoading}
-              isUpdatingStatus={isUpdatingStatus}
-              onStatusChange={handleStatusChange}
-              onResultadoChange={handleResultadoChange}
-              onEditAtendimento={handleEditAtendimento}
-              onDeleteAtendimento={handleDeleteAtendimento}
-              onDuplicateAtendimento={handleDuplicateAtendimento}
-              filters={filters}
-              // Scroll infinito
-              fetchNextPage={fetchNextPage}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-            />
-          </div>
-        </main>
+        <AtendimentosTable
+          atendimentos={atendimentos}
+          isLoading={isLoading}
+          isUpdatingStatus={isUpdatingStatus}
+          onStatusChange={handleStatusChange}
+          onResultadoChange={handleResultadoChange}
+          onEditAtendimento={handleEditAtendimento}
+          onDeleteAtendimento={handleDeleteAtendimento}
+          onDuplicateAtendimento={handleDuplicateAtendimento}
+          filters={filters}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+        />
       </div>
 
       {/* Modal de Criar/Editar Atendimento */}
@@ -151,7 +149,7 @@ const Atendimentos = () => {
 
       {/* Diálogo de Confirmação de Exclusão */}
       <DeleteConfirmDialog
-        isOpen={deleteConfirm.isOpen}
+        open={deleteConfirm.isOpen}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
         title="Confirmar exclusão do atendimento"

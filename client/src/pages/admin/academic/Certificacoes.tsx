@@ -361,8 +361,9 @@ export default function Certificacoes() {
   };
 
   return (
-    <AdminLayout>
-      <div ref={scrollParentRef} className="overflow-auto">
+    <>
+      <AdminLayout>
+        <div ref={scrollParentRef} className="overflow-auto">
           <div className="w-full space-y-8">
             {/* Header */}
             <div className="flex justify-between items-center">
@@ -588,8 +589,8 @@ export default function Certificacoes() {
                 )}
             </CertificationTabs>
           </div>
-        </main>
-      </div>
+        </div>
+      </AdminLayout>
 
       {/* Dialog de Edição */}
       <Dialog open={!!selectedCertification} onOpenChange={() => setSelectedCertification(null)}>
@@ -678,7 +679,6 @@ export default function Certificacoes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </div>
-    </AdminLayout>
+    </>
   );
-}
+};

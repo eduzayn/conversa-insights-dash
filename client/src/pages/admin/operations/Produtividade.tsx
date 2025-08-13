@@ -6,11 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, TrendingUp, Activity, Award, Target } from "lucide-react";
 import { AttendanceVolumeChart } from "@/components/charts/AttendanceVolumeChart";
 import { TeamProductivityChart } from "@/components/charts/TeamProductivityChart";
+import { useAuth } from "@/hooks/useAuth";
 import { useActivityMonitor } from "@/hooks/useActivityMonitor";
 import { useFiltersData } from "@/hooks/useFiltersData";
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 
 const mockProductivityData = {
   individualData: [
@@ -88,33 +90,29 @@ const Produtividade = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Relatório de Produtividade</h1>
-                <p className="text-gray-600">Desempenho e eficiência dos atendentes</p>
-              </div>
-              <div className="flex gap-2">
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Relatório
-                </Button>
-              </div>
-            </div>
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Relatório de Produtividade</h1>
+            <p className="text-gray-600">Desempenho e eficiência dos atendentes</p>
+          </div>
+          <div className="flex gap-2">
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Relatório
+            </Button>
+          </div>
+        </div>
 
-            {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Filtros</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                     <SelectTrigger>
                       <SelectValue placeholder="Período" />
@@ -160,24 +158,24 @@ const Produtividade = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-              </CardContent>
-            </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Atendimentos</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {productivityLoading ? '...' : productivityData?.summary?.totalAtendimentos || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Dados reais do sistema</p>
-                </CardContent>
-              </Card>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Atendimentos</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {productivityLoading ? '...' : productivityData?.summary?.totalAtendimentos || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">Dados reais do sistema</p>
+            </CardContent>
+          </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -283,8 +281,8 @@ const Produtividade = () => {
                         </tr>
                       ) : (
                         productivityData.individualData
-                          .sort((a, b) => a.ranking - b.ranking)
-                          .map((agent) => (
+                          .sort((a: any, b: any) => a.ranking - b.ranking)
+                          .map((agent: any) => (
                           <tr key={agent.name} className="border-b hover:bg-gray-50">
                             <td className="py-3 px-4">
                               <span className={`flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold ${
@@ -348,7 +346,7 @@ const Produtividade = () => {
                           </td>
                         </tr>
                       ) : (
-                        productivityData.teamData.map((team) => (
+                        productivityData.teamData.map((team: any) => (
                           <tr key={team.team} className="border-b hover:bg-gray-50">
                             <td className="py-3 px-4 font-medium">{team.team}</td>
                             <td className="py-3 px-4 font-medium text-green-600">{team.totalAttendances}</td>
@@ -362,11 +360,9 @@ const Produtividade = () => {
                   </table>
                 </div>
               </CardContent>
-            </Card>
-          </div>
-        </main>
+        </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

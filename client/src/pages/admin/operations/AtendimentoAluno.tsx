@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { ConversationList } from "@/components/atendimento-aluno/ConversationList";
 import { ChatArea } from "@/components/atendimento-aluno/AtendimentoChatArea";
@@ -105,9 +106,8 @@ const AtendimentoAluno = () => {
               />
             </div>
           </div>
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

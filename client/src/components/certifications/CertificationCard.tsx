@@ -105,8 +105,8 @@ export const CertificationCard = ({
   };
 
   return (
-    <Card className={`hover:shadow-md transition-shadow ${isDuplicate ? 'border-orange-300 bg-orange-50' : ''}`}>
-      <CardContent className="p-6">
+    <Card className={`hover:shadow-md transition-shadow min-h-[200px] ${isDuplicate ? 'border-orange-300 bg-orange-50' : ''}`}>
+      <CardContent className="p-6 h-full">
         {/* Alerta de duplicata */}
         {isDuplicate && (
           <div className="mb-3 flex items-center gap-2 text-orange-700 text-sm font-medium">
@@ -116,9 +116,9 @@ export const CertificationCard = ({
         )}
         
         <div className="flex items-start justify-between">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-6 gap-6 flex-1">
             {/* Coluna 1: Informações básicas do aluno */}
-            <div className="col-span-2">
+            <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-2">
                 <div className="font-semibold text-lg">{certification.aluno}</div>
                 <Badge className={STATUS_COLORS[certification.status as keyof typeof STATUS_COLORS]}>
@@ -136,23 +136,27 @@ export const CertificationCard = ({
             </div>
             
             {/* Coluna 2: Status de documentação */}
-            <div>
-              <div className="text-sm font-medium text-gray-700">Documentação</div>
+            <div className="space-y-2">
+              <div className="text-sm font-medium text-gray-700 mb-1">Documentação</div>
               <Badge variant="outline" className={`text-xs ${DOCUMENTATION_STATUS_COLORS[certification.documentacao as keyof typeof DOCUMENTATION_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
                 {DOCUMENTATION_STATUS_LABELS[certification.documentacao as keyof typeof DOCUMENTATION_STATUS_LABELS] || certification.documentacao || 'Não informado'}
               </Badge>
             </div>
             
             {/* Coluna 3: Status de plataforma e financeiro */}
-            <div>
-              <div className="text-sm font-medium text-gray-700">Atividades Plataforma</div>
-              <Badge variant="outline" className={`text-xs ${PLATFORM_STATUS_COLORS[certification.plataforma as keyof typeof PLATFORM_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Atividades Plataforma</div>
+                <Badge variant="outline" className={`text-xs ${PLATFORM_STATUS_COLORS[certification.plataforma as keyof typeof PLATFORM_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
                 {PLATFORM_STATUS_LABELS[certification.plataforma as keyof typeof PLATFORM_STATUS_LABELS] || certification.plataforma || 'Não informado'}
               </Badge>
-              <div className="text-sm font-medium text-gray-700 mt-2">Financeiro</div>
-              <Badge variant="outline" className={`text-xs ${FINANCIAL_STATUS_COLORS[certification.financeiro as keyof typeof FINANCIAL_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
-                {FINANCIAL_STATUS_LABELS[certification.financeiro as keyof typeof FINANCIAL_STATUS_LABELS] || certification.financeiro || 'Não informado'}
-              </Badge>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Financeiro</div>
+                <Badge variant="outline" className={`text-xs ${FINANCIAL_STATUS_COLORS[certification.financeiro as keyof typeof FINANCIAL_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                  {FINANCIAL_STATUS_LABELS[certification.financeiro as keyof typeof FINANCIAL_STATUS_LABELS] || certification.financeiro || 'Não informado'}
+                </Badge>
+              </div>
             </div>
             
             {/* Coluna 4: Campos acadêmicos específicos */}
@@ -198,11 +202,15 @@ export const CertificationCard = ({
             </div>
             
             {/* Coluna 5: Datas */}
-            <div>
-              <div className="text-sm font-medium text-gray-700">Data Inicio Certificação</div>
-              <div className="text-sm">{formatDate(certification.inicioCertificacao)}</div>
-              <div className="text-sm font-medium text-gray-700 mt-2">Data Prevista de Entrega</div>
-              <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Data Inicio Certificação</div>
+                <div className="text-sm">{formatDate(certification.inicioCertificacao)}</div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Data Prevista de Entrega</div>
+                <div className="text-sm">{formatDate(certification.dataPrevista)}</div>
+              </div>
             </div>
           </div>
           

@@ -67,21 +67,21 @@ const Crm = () => {
   };
 
   const getAvailableData = () => {
-    const teamNames = [...new Set(funnels.map(f => f.team))];
-    const attendants = [...new Set(
+    const teamNames = Array.from(new Set(funnels.map(f => f.team)));
+    const attendants = Array.from(new Set(
       funnels.flatMap(f => 
         f.columns.flatMap(c => 
           c.leads.map(l => l.assignedToName).filter(Boolean)
         )
       )
-    )];
-    const courses = [...new Set(
+    ));
+    const courses = Array.from(new Set(
       funnels.flatMap(f => 
         f.columns.flatMap(c => 
           c.leads.map(l => l.course)
         )
       )
-    )];
+    ));
 
     return { teams: teamNames, attendants, courses };
   };
@@ -95,24 +95,17 @@ const Crm = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <Header />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
+      <AdminLayout>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Header />
-        <main className="flex-1 p-4 md:p-6">
+    <AdminLayout>
+      <div className="space-y-4 md:space-y-6">
           <div className="space-y-4 md:space-y-6">
             {/* Header do CRM */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -126,7 +119,7 @@ const Crm = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <Select value={activeCompany} onValueChange={setActiveCompany}>
+                <Select value={activeCompany} onValueChange={(value: "COMERCIAL" | "SUPORTE") => setActiveCompany(value)}>
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Selecione a companhia">
                       {activeCompany === 'COMERCIAL' && (
@@ -299,24 +292,23 @@ const Crm = () => {
               </TabsContent>
             </Tabs>
           </div>
-        </main>
+
+        <CreateLeadModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onCreateLead={createLead}
+        />
+
+        <CrmSettingsModal
+          open={isSettingsModalOpen}
+          onOpenChange={setIsSettingsModalOpen}
+          teams={teams}
+          onCreateTeam={createTeam}
+          onUpdateTeam={updateTeam}
+          onDeleteTeam={deleteTeam}
+        />
       </div>
-
-      <CreateLeadModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        onCreateLead={createLead}
-      />
-
-      <CrmSettingsModal
-        open={isSettingsModalOpen}
-        onOpenChange={setIsSettingsModalOpen}
-        teams={teams}
-        onCreateTeam={createTeam}
-        onUpdateTeam={updateTeam}
-        onDeleteTeam={deleteTeam}
-      />
-    </div>
+    </AdminLayout>
   );
 };
 
