@@ -1261,6 +1261,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para atualizar atendimento (conversa)
+  app.put("/api/atendimentos/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const id = validateIdParam(req);
+      const result = await storage.updateConversation(id, req.body);
+      
+      if (!result) {
+        return res.status(404).json({ message: "Atendimento não encontrado" });
+      }
+      
+      res.json(result);
+    } catch (error) {
+      logger.error("Erro ao atualizar atendimento:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Endpoint para buscar atendimentos do sistema
   app.get("/api/atendimentos", authenticateToken, async (req: any, res) => {
     try {
