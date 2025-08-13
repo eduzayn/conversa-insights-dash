@@ -1180,7 +1180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
     try {
       const id = validateIdParam(req);
-      const result = await storage.updateCertificacaoFadyc(id, req.body);
+      const result = await storage.updateCertification(id, req.body);
       
       if (!result) {
         return res.status(404).json({ message: "Item não encontrado" });
@@ -1198,13 +1198,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/certificacoes/:id", authenticateToken, async (req: any, res) => {
     try {
       const id = validateIdParam(req);
-      const result = await storage.updateCertificacaoFadyc(id, req.body);
+      const result = await storage.deleteCertification(id);
       
       if (!result) {
         return res.status(404).json({ message: "Item não encontrado" });
       }
       
-      res.json(result);
+      res.json({ success: true });
     } catch (error) {
       return handleValidationError(error, res, "Erro na operação:");
       logger.error("Erro ao deletar certificação:", error);
