@@ -1,10 +1,7 @@
 
-import { Navigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { useAtendimentos } from "@/hooks/useAtendimentos";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import { AtendimentosHeader } from "@/components/atendimentos/AtendimentosHeader";
 import { AtendimentosFilters } from "@/components/atendimentos/AtendimentosFilters";
 import { AtendimentosTable } from "@/components/atendimentos/AtendimentosTable";
@@ -41,17 +38,7 @@ const Atendimentos = () => {
     isFetchingNextPage
   } = useAtendimentos();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
 
   const handleStatusChange = (id: string, newStatus: string) => {
     updateStatus(id, newStatus as any);
@@ -117,12 +104,8 @@ const Atendimentos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">
-          <div className="space-y-6">
+    <AdminLayout>
+      <div className="space-y-6">
             <AtendimentosHeader
               isLoading={isLoading}
               atendimentosCount={atendimentos.length}
@@ -168,14 +151,13 @@ const Atendimentos = () => {
 
       {/* Diálogo de Confirmação de Exclusão */}
       <DeleteConfirmDialog
-        open={deleteConfirm.isOpen}
-        onOpenChange={cancelDelete}
+        isOpen={deleteConfirm.isOpen}
         onConfirm={confirmDelete}
+        onCancel={cancelDelete}
         title="Confirmar exclusão do atendimento"
         description="Tem certeza que deseja excluir este atendimento? Esta ação não pode ser desfeita."
-        entityName="atendimento"
       />
-    </div>
+    </AdminLayout>
   );
 };
 

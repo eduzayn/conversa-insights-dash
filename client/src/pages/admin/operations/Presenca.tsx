@@ -1,8 +1,5 @@
 
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -129,55 +126,29 @@ const Presenca = () => {
     document.body.removeChild(link);
   };
 
-  // Proteção de autenticação - movida para após todos os hooks
-  if (loading || isLoadingPresence) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
   if (presenceError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <AdminLayout>
         <div className="text-center">
           <p className="text-gray-600">Erro ao carregar dados de presença</p>
           <p className="text-gray-400 text-sm mt-2">{presenceError?.message || 'Erro desconhecido'}</p>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   if (!presenceData && !isLoadingPresence) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <AdminLayout>
         <div className="text-center">
           <p className="text-gray-600">Nenhum dado de presença disponível</p>
         </div>
-      </div>
-    );
-  }
-
-  // Se ainda está carregando, mostrar spinner
-  if (!presenceData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">
+    <AdminLayout>
           <div className="space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
@@ -586,9 +557,7 @@ const Presenca = () => {
               </CardContent>
             </Card>
           </div>
-        </main>
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

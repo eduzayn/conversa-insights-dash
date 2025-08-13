@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import { Sidebar } from '@/components/layout/Sidebar';
-import { Header } from '@/components/layout/Header';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 import { KanbanColumn } from '@/components/crm/KanbanColumn';
 import { CrmFilters } from '@/components/crm/CrmFilters';
 import { CrmListView } from '@/components/crm/CrmListView';
