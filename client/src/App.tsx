@@ -11,7 +11,7 @@ import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
 import AppErrorBoundary from "@/components/utils/AppErrorBoundary";
 import ScrollToTop from "@/components/utils/ScrollToTop";
-import PageTransition from "@/components/utils/PageTransition";
+
 import SmoothLoader from "@/components/utils/SmoothLoader";
 import NavigationProgress from "@/components/layout/NavigationProgress";
 
@@ -136,8 +136,7 @@ const App = () => {
             <ScrollToTop />
             <AuthProvider>
               <Suspense fallback={<SmoothLoader text="Carregando página..." />}>
-                <PageTransition>
-                  <Routes>
+                <Routes>
                     {/* Rotas únicas */}
                   <Route path="/" element={<LoginHub />} />
                   <Route path="/login" element={<LoginHub />} />
@@ -222,7 +221,6 @@ const App = () => {
                     {/* 404 */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </PageTransition>
               </Suspense>
               <SupportChatButton />
             </AuthProvider>
