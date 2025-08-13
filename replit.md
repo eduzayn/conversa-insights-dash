@@ -4,7 +4,10 @@
 This project is a comprehensive full-stack web application for educational institutions, providing an intelligent customer service dashboard. It integrates chat, attendance and productivity tracking, internal communication, CRM, and a gamification system. Its core purpose is to streamline student interaction management and optimize institutional operations, aiming to be a complete administrative solution for education.
 
 ## Recent Issues Resolved
+- **Critical Navigation Bug (Aug 2025)**: Fixed system-wide navigation issue where page URLs changed but content failed to load. The PageTransition component with Framer Motion AnimatePresence was blocking proper page rendering across all routes. Users could click links, see URL changes, but pages remained blank. Solution: Removed problematic PageTransition, implemented CSS-based transitions with fadeInUp animation, maintained NavigationProgress bar for smooth visual feedback.
+
 - **Missing Atendimentos Update Route (Aug 2025)**: Fixed missing PUT endpoint for updating attendance records. Users were getting 404 errors when trying to edit attendance data. Problem was that while `updateConversation` storage method existed, the corresponding `PUT /api/atendimentos/:id` route was missing. Solution: Added the missing route to server/routes.ts.
+
 - **Database Routing Issue (Aug 2025)**: Fixed critical certification editing functionality. The `/api/certificacoes/:id` endpoints were incorrectly calling `updateCertificacaoFadyc` (for `certificacoes_fadyc` table) instead of `updateCertification` (for `certifications` table). Solution: Updated routes.ts to use correct storage methods for the appropriate table.
 
 - **Layout Consistency (Aug 2025)**: Fixed production-specific layout issue where white space appeared on the right side of all tabs in the certifications page. The problem was caused by duplicate SidebarProvider usage within the page component, conflicting with the global SidebarProvider. Solution: Use consistent layout pattern across all admin pages without nested SidebarProvider instances.
