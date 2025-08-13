@@ -82,16 +82,8 @@ export const Sidebar = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const { logout } = useAuth();
 
-  // Inicializa submenus principais expandidos para melhor UX
+  // Carrega estado dos submenus do localStorage
   useEffect(() => {
-    // Expande seções principais por padrão para facilitar navegação
-    const defaultExpandedSections = ['Geral', 'Relacionamento', 'Acadêmico', 'Financeiro'];
-    setExpandedSections(defaultExpandedSections);
-    
-    // Persiste o estado no localStorage
-    localStorage.setItem('sidebar-expanded-sections', JSON.stringify(defaultExpandedSections));
-    
-    // Carrega estado salvo se existir
     const savedExpandedSections = localStorage.getItem('sidebar-expanded-sections');
     if (savedExpandedSections) {
       try {
@@ -101,7 +93,7 @@ export const Sidebar = () => {
         }
       } catch (error) {
         console.warn('Erro ao carregar estado dos submenus:', error);
-        setExpandedSections(defaultExpandedSections);
+        setExpandedSections([]);
       }
     }
   }, []);
