@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 import type { Certification } from '@shared/schema';
 
 // Importar hooks e componentes modulares
@@ -361,10 +361,8 @@ export default function Certificacoes() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <main ref={scrollParentRef} className="flex-1 p-6 overflow-auto">
+    <AdminLayout>
+      <div ref={scrollParentRef} className="overflow-auto">
           <div className="w-full space-y-8">
             {/* Header */}
             <div className="flex justify-between items-center">
@@ -680,6 +678,7 @@ export default function Certificacoes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
