@@ -82,20 +82,12 @@ export const Sidebar = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const { logout } = useAuth();
 
-  // Carrega estado dos submenus do localStorage
+  // Limpa estado anterior e inicializa submenus colapsados
   useEffect(() => {
-    const savedExpandedSections = localStorage.getItem('sidebar-expanded-sections');
-    if (savedExpandedSections) {
-      try {
-        const parsed = JSON.parse(savedExpandedSections);
-        if (Array.isArray(parsed)) {
-          setExpandedSections(parsed);
-        }
-      } catch (error) {
-        console.warn('Erro ao carregar estado dos submenus:', error);
-        setExpandedSections([]);
-      }
-    }
+    // Garante que todas as seções iniciem colapsadas
+    setExpandedSections([]);
+    // Limpa qualquer estado anterior salvo
+    localStorage.removeItem('sidebar-expanded-sections');
   }, []);
 
   const handleBotConversaAccess = () => {
