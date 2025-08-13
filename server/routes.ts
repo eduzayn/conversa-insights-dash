@@ -1532,6 +1532,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // ==========================================
+  // ROTAS ENVIOS FAMAR
+  // ==========================================
+
+  // GET /api/envios-famar - Listar envios FAMAR
+  app.get('/api/envios-famar', authenticateToken, asyncHandler(async (req, res) => {
+    const { search, status, categoria } = enviosQuery.parse(req.query);
+    const envios = await storage.getEnviosFamar({ search, status, categoria });
+    res.json(envios);
+  }));
+
+  // POST /api/envios-famar - Criar envio FAMAR
+  app.post('/api/envios-famar', authenticateToken, rbac(['admin']), asyncHandler(async (req, res) => {
+    const validatedData = insertEnvioFamarSchema.parse(req.body);
+    const newEnvio = await storage.createEnvioFamar(validatedData);
+    logger.info(`Novo envio FAMAR criado: ${newEnvio.id}`);
+    res.status(201).json(newEnvio);
+  }));
+
+  // GET /api/envios-famar/:id - Obter envio FAMAR por ID
+  app.get('/api/envios-famar/:id', authenticateToken, asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const envio = await storage.getEnvioFamarById(id);
+    if (!envio) {
+      return res.status(404).json({ message: 'Envio FAMAR não encontrado' });
+    }
+    res.json(envio);
+  }));
+
+  // PUT /api/envios-famar/:id - Atualizar envio FAMAR
+  app.put('/api/envios-famar/:id', authenticateToken, rbac(['admin']), asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const validatedData = insertEnvioFamarSchema.partial().parse(req.body);
+    const updatedEnvio = await storage.updateEnvioFamar(id, validatedData);
+    if (!updatedEnvio) {
+      return res.status(404).json({ message: 'Envio FAMAR não encontrado' });
+    }
+    logger.info(`Envio FAMAR atualizado: ${id}`);
+    res.json(updatedEnvio);
+  }));
+
+  // DELETE /api/envios-famar/:id - Excluir envio FAMAR
+  app.delete('/api/envios-famar/:id', authenticateToken, rbac(['admin']), asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const success = await storage.deleteEnvioFamar(id);
+    if (!success) {
+      return res.status(404).json({ message: 'Envio FAMAR não encontrado' });
+    }
+    logger.info(`Envio FAMAR excluído: ${id}`);
+    res.json({ success: true });
+  }));
+
+  // ==========================================
+  // ROTAS ENVIOS UNICV
+  // ==========================================
+
+  // GET /api/envios-unicv - Listar envios UNICV
+  app.get('/api/envios-unicv', authenticateToken, asyncHandler(async (req, res) => {
+    const { search, status, categoria } = enviosQuery.parse(req.query);
+    const envios = await storage.getEnviosUnicv({ search, status, categoria });
+    res.json(envios);
+  }));
+
+  // POST /api/envios-unicv - Criar envio UNICV
+  app.post('/api/envios-unicv', authenticateToken, rbac(['admin']), asyncHandler(async (req, res) => {
+    const validatedData = insertEnvioUnicvSchema.parse(req.body);
+    const newEnvio = await storage.createEnvioUnicv(validatedData);
+    logger.info(`Novo envio UNICV criado: ${newEnvio.id}`);
+    res.status(201).json(newEnvio);
+  }));
+
+  // GET /api/envios-unicv/:id - Obter envio UNICV por ID
+  app.get('/api/envios-unicv/:id', authenticateToken, asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const envio = await storage.getEnvioUnicvById(id);
+    if (!envio) {
+      return res.status(404).json({ message: 'Envio UNICV não encontrado' });
+    }
+    res.json(envio);
+  }));
+
+  // PUT /api/envios-unicv/:id - Atualizar envio UNICV
+  app.put('/api/envios-unicv/:id', authenticateToken, rbac(['admin']), asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const validatedData = insertEnvioUnicvSchema.partial().parse(req.body);
+    const updatedEnvio = await storage.updateEnvioUnicv(id, validatedData);
+    if (!updatedEnvio) {
+      return res.status(404).json({ message: 'Envio UNICV não encontrado' });
+    }
+    logger.info(`Envio UNICV atualizado: ${id}`);
+    res.json(updatedEnvio);
+  }));
+
+  // DELETE /api/envios-unicv/:id - Excluir envio UNICV
+  app.delete('/api/envios-unicv/:id', authenticateToken, rbac(['admin']), asyncHandler(async (req, res) => {
+    const id = z.coerce.number().parse(req.params.id);
+    const success = await storage.deleteEnvioUnicv(id);
+    if (!success) {
+      return res.status(404).json({ message: 'Envio UNICV não encontrado' });
+    }
+    logger.info(`Envio UNICV excluído: ${id}`);
+    res.json({ success: true });
+  }));
+
   // ===== HANDLERS DE ERRO =====
   
   // Handler para rotas não encontradas
