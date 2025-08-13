@@ -71,7 +71,9 @@ const menuSections = [
     iconColor: 'text-gray-600',
     items: [
 
+      { label: 'Integração Asaas', path: '/integracao-asaas' },
       { label: 'Gerenciar Tokens', path: '/gerenciar-tokens' },
+      { label: 'Gerenciamento Roteamento', path: '/gerenciamento-roteamento' },
     ]
   }
 ];

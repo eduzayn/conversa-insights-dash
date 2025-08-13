@@ -53,10 +53,39 @@ const IntegracaoAsaas = lazy(() => import("./pages/admin/integrations/Integracao
 // Lazy pages - Admin Financial
 const ChargesPage = lazy(() => import("./pages/admin/financial/charges-page"));
 
-// Lazy pages - Portal Components
-const PortalLayout = lazy(() => import("./pages/portal/PortalLayout"));
+// Lazy pages - Professor Portal
 const ProfessorPortalLayout = lazy(() => import("./pages/professor/ProfessorPortalLayout"));
+const ProfessorDashboard = lazy(() => import("./pages/professor/ProfessorDashboard"));
+const DisciplinasFixed = lazy(() => import("./pages/professor/DisciplinasFixed"));
+const ConteudosFixed = lazy(() => import("./pages/professor/ConteudosFixed"));
+const AvaliacoesFixed = lazy(() => import("./pages/professor/AvaliacoesFixed"));
+const Submissoes = lazy(() => import("./pages/professor/Submissoes"));
+const Relatorios = lazy(() => import("./pages/professor/Relatorios"));
+const PerfilProfessor = lazy(() => import("./pages/professor/PerfilProfessor"));
+
+// Lazy pages - Student Portal  
+const PortalLayout = lazy(() => import("./pages/portal/PortalLayout"));
+const MeusCursos = lazy(() => import("./pages/portal/MeusCursos"));
+const MinhasAvaliacoes = lazy(() => import("./pages/portal/MinhasAvaliacoes"));
+const Pagamentos = lazy(() => import("./pages/portal/Pagamentos"));
+const Documentos = lazy(() => import("./pages/portal/Documentos"));
+const Certificados = lazy(() => import("./pages/portal/Certificados"));
+const Carteirinha = lazy(() => import("./pages/portal/Carteirinha"));
+const SuporteChat = lazy(() => import("./pages/portal/SuporteChat"));
+const PerfilAluno = lazy(() => import("./pages/portal/PerfilAluno"));
+
+// Lazy pages - 404
 const NotFound = lazy(() => import("./pages/admin/core/NotFound"));
+
+// Rotas consolidadas para evitar duplicação
+const routeGroups = {
+  certificacoes: ["/admin/certificacoes", "/admin/academic/certifications", "/certificacoes"],
+  certificadosPos: ["/certificados-pos", "/certificados-academicos"],
+  matrizesCurriculares: ["/matrizes-curriculares", "/gestao-cursos", "/gestao-academica"],
+  charges: ["/charges", "/cobrancas"],
+  certificacoesFadyc: ["/certificacoes-fadyc", "/admin/reports/certificacoes-fadyc"],
+  professorLogin: ["/professor-login", "/professor/login"]
+};
 
 const App = () => {
   // Proteção adicional contra erros de renderização - só em ambientes Replit
@@ -104,12 +133,14 @@ const App = () => {
             <AuthProvider>
               <Suspense fallback={<div style={{ padding: 24 }}>Carregando…</div>}>
                 <Routes>
+                  {/* Rotas únicas */}
                   <Route path="/" element={<LoginHub />} />
                   <Route path="/login" element={<LoginHub />} />
-                  {/* <Route path="/login-router" element={<LoginRouter />} /> */}
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/admin" element={<Dashboard />} />
+                  
+                  {/* Operações */}
                   <Route path="/atendimentos" element={<Atendimentos />} />
                   <Route path="/atendimento-aluno" element={<AtendimentoAluno />} />
                   <Route path="/produtividade" element={<Produtividade />} />
@@ -117,34 +148,73 @@ const App = () => {
                   <Route path="/chat-interno" element={<ChatInterno />} />
                   <Route path="/metas" element={<Metas />} />
                   <Route path="/crm" element={<Crm />} />
-                  <Route path="/admin/certificacoes" element={<Certificacoes />} />
-                  <Route path="/admin/academic/certifications" element={<Certificacoes />} />
-                  <Route path="/certificacoes" element={<Certificacoes />} />
-                  <Route path="/certificados-pos" element={<CertificadosPos />} />
-
+                  
+                  {/* Rotas consolidadas - Certificações */}
+                  {routeGroups.certificacoes.map((path) => (
+                    <Route key={path} path={path} element={<Certificacoes />} />
+                  ))}
+                  
+                  {/* Rotas consolidadas - Certificados Pós */}
+                  {routeGroups.certificadosPos.map((path) => (
+                    <Route key={path} path={path} element={<CertificadosPos />} />
+                  ))}
+                  
+                  {/* Rotas consolidadas - Matrizes Curriculares */}
+                  {routeGroups.matrizesCurriculares.map((path) => (
+                    <Route key={path} path={path} element={<MatrizesCurriculares />} />
+                  ))}
+                  
+                  {/* Rotas consolidadas - Charges */}
+                  {routeGroups.charges.map((path) => (
+                    <Route key={path} path={path} element={<ChargesPage />} />
+                  ))}
+                  
+                  {/* Rotas consolidadas - Certificações FADYC */}
+                  {routeGroups.certificacoesFadyc.map((path) => (
+                    <Route key={path} path={path} element={<CertificacoesFadyc />} />
+                  ))}
+                  
+                  {/* Configurações e Integrações */}
                   <Route path="/gerenciamento-roteamento" element={<GerenciamentoRoteamento />} />
-                  <Route path="/charges" element={<ChargesPage />} />
-                  <Route path="/cobrancas" element={<ChargesPage />} />
                   <Route path="/integracao-asaas" element={<IntegracaoAsaas />} />
                   <Route path="/gerenciar-tokens" element={<GerenciarTokens />} />
+                  
+                  {/* Relatórios */}
                   <Route path="/negociacoes" element={<Negociacoes />} />
                   <Route path="/envios-unicv" element={<EnviosUnicv />} />
                   <Route path="/envios-famar" element={<EnviosFamar />} />
-                  <Route path="/certificacoes-fadyc" element={<CertificacoesFadyc />} />
-                  <Route path="/admin/reports/certificacoes-fadyc" element={<CertificacoesFadyc />} />
-
+                  
+                  {/* Financeiro */}
                   <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
-                  <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />
-                  <Route path="/certificados-academicos" element={<CertificadosPos />} />
-                  <Route path="/gestao-cursos" element={<MatrizesCurriculares />} />
-                  <Route path="/gestao-academica" element={<MatrizesCurriculares />} />
+                  
                   {/* Portal do Aluno */}
                   <Route path="/portal-aluno/login" element={<StudentLogin />} />
+                  <Route path="/portal" element={<PortalLayout />} />
+                  <Route path="/portal/cursos" element={<MeusCursos />} />
+                  <Route path="/portal/avaliacoes" element={<MinhasAvaliacoes />} />
+                  <Route path="/portal/pagamentos" element={<Pagamentos />} />
+                  <Route path="/portal/documentos" element={<Documentos />} />
+                  <Route path="/portal/certificados" element={<Certificados />} />
+                  <Route path="/portal/carteirinha" element={<Carteirinha />} />
+                  <Route path="/portal/suporte" element={<SuporteChat />} />
+                  <Route path="/portal/perfil" element={<PerfilAluno />} />
                   <Route path="/portal/*" element={<PortalLayout />} />
+                  
                   {/* Portal do Professor */}
-                  <Route path="/professor-login" element={<ProfessorLogin />} />
-                  <Route path="/professor/login" element={<ProfessorLogin />} />
+                  {routeGroups.professorLogin.map((path) => (
+                    <Route key={path} path={path} element={<ProfessorLogin />} />
+                  ))}
+                  <Route path="/professor" element={<ProfessorPortalLayout />} />
+                  <Route path="/professor/dashboard" element={<ProfessorDashboard />} />
+                  <Route path="/professor/disciplinas" element={<DisciplinasFixed />} />
+                  <Route path="/professor/conteudos" element={<ConteudosFixed />} />
+                  <Route path="/professor/avaliacoes" element={<AvaliacoesFixed />} />
+                  <Route path="/professor/submissoes" element={<Submissoes />} />
+                  <Route path="/professor/relatorios" element={<Relatorios />} />
+                  <Route path="/professor/perfil" element={<PerfilProfessor />} />
                   <Route path="/professor/*" element={<ProfessorPortalLayout />} />
+                  
+                  {/* 404 */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
