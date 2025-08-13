@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
@@ -89,7 +90,15 @@ const App = () => {
       <TooltipProvider>
         <AppErrorBoundary>
           <Toaster />
-          <Sonner position="top-right" />
+          <Sonner 
+            position="top-right" 
+            richColors 
+            className="toaster-sonner"
+            toastOptions={{
+              duration: 4000,
+              className: 'toaster-sonner'
+            }}
+          />
           <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
@@ -142,6 +151,9 @@ const App = () => {
               <SupportChatButton />
             </AuthProvider>
           </BrowserRouter>
+          {import.meta.env.DEV && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
         </AppErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>

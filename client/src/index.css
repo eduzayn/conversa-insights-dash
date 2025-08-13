@@ -4,6 +4,24 @@
 
 /* Melhorias de responsividade para modais em diferentes zoom levels */
 @layer utilities {
+  /* Z-index para toasters e modais */
+  .toaster-sonner {
+    z-index: 9999 !important;
+  }
+  
+  .toaster-radix {
+    z-index: 9998 !important;
+  }
+  
+  /* Evitar overlap de notificações */
+  [data-sonner-toaster] {
+    z-index: 9999 !important;
+  }
+  
+  [data-radix-toast-viewport] {
+    z-index: 9998 !important;
+  }
+
   .modal-responsive {
     width: min(90vw, 48rem);
     max-height: min(95vh, 45rem);
