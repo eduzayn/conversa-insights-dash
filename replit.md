@@ -3,6 +3,9 @@
 ## Overview
 This project is a comprehensive full-stack web application for educational institutions, providing an intelligent customer service dashboard. It integrates chat, attendance and productivity tracking, internal communication, CRM, and a gamification system. Its core purpose is to streamline student interaction management and optimize institutional operations, aiming to be a complete administrative solution for education.
 
+## Recent Issues Resolved
+- **Layout Consistency (Aug 2025)**: Fixed production-specific layout issue where white space appeared on the right side of all tabs in the certifications page. The problem was caused by duplicate SidebarProvider usage within the page component, conflicting with the global SidebarProvider. Solution: Use consistent layout pattern across all admin pages without nested SidebarProvider instances.
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -53,6 +56,7 @@ Preferred communication style: Simple, everyday language.
 - **Input Validation Security**: Protection against parseInt silent failures with comprehensive Zod schemas for numeric parameters.
 - **SPA Fallback Enhancement**: Proper handling of Single Page Application routing with correct API route exclusion and standardized error logging.
 - **Storage Method Consistency**: Elimination of null/undefined returns from storage methods with clear error throwing for improved error handling and reduced conditional checks in routes.
+- **Layout Consistency**: All admin pages use consistent layout structure without duplicate SidebarProvider instances to prevent production layout conflicts.
 
 ## External Dependencies
 - **BotConversa**: Chat platform integration.

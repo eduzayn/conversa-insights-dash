@@ -2,6 +2,10 @@
  * IMPORTANTE: As abas de categoria são renderizadas EXCLUSIVAMENTE por CertificationTabs.
  * Não adicionar outro <TabsList>/<TabsTrigger> aqui ou em filhos.
  * 
+ * LAYOUT CRÍTICO: Esta página usa layout padrão (min-h-screen bg-gray-50 flex) com Sidebar.
+ * NUNCA adicionar SidebarProvider aqui - já existe no App.tsx globalmente.
+ * Usar SidebarProvider duplicado causa espaço em branco lateral em produção.
+ * 
  * Página principal de Certificações - REFATORADA
  * 
  * Arquivo refatorado em componentes modulares para melhor manutenção
