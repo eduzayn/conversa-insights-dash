@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
 import AppErrorBoundary from "@/components/utils/AppErrorBoundary";
+import ScrollToTop from "@/components/utils/ScrollToTop";
 
 // Lazy pages - Auth
 const LoginHub = lazy(() => import("./pages/auth/LoginHub"));
@@ -91,6 +92,7 @@ const App = () => {
           <Sonner position="top-right" />
           <BrowserRouter>
             <AuthProvider>
+              <ScrollToTop />
               <Suspense fallback={<div style={{ padding: 24 }}>Carregando…</div>}>
                 <Routes>
                   <Route path="/" element={<LoginHub />} />
