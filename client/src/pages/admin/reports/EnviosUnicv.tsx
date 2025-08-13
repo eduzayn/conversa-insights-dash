@@ -1,1011 +1,528 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Send, FileText, Plus, Edit, Trash2, AlertTriangle, ArrowLeft, Search, Filter } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { VoiceTranscription } from "@/components/common/VoiceTranscription";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from '@/hooks/use-toast';
+import { Search, Plus, Edit, Trash2, Send, FileText } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface EnvioUnicv {
-  id?: number;
+  id: number;
   certificationId: number;
   aluno: string;
   cpf: string;
   curso: string;
   categoria: string;
-  statusEnvio: 'nao_enviado' | 'enviado' | 'concluido' | 'retornado_pendencia';
+  statusEnvio: 'enviado' | 'nao_enviado' | 'pendente';
   numeroOficio?: string;
   dataEnvio?: string;
-  dataCadastro?: string;
   observacoes?: string;
-  colaboradorResponsavel: string;
-  createdAt?: string;
-  updatedAt?: string;
+  colaboradorResponsavel?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface Certificacao {
-  id: number;
-  aluno: string;
-  cpf: string;
-  curso: string;
-  categoria: string;
+interface CreateEnvioUnicv {
+  certificationId: number;
+  statusEnvio: 'enviado' | 'nao_enviado' | 'pendente';
+  numeroOficio?: string;
+  dataEnvio?: string;
+  observacoes?: string;
+  colaboradorResponsavel?: string;
 }
 
-// Função para obter data atual no fuso horário de São Paulo
-const getCurrentDateSaoPaulo = () => {
-  return new Date().toLocaleDateString('pt-BR', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).split('/').reverse().join('-'); // Converte para formato YYYY-MM-DD
+const STATUS_COLORS = {
+  'enviado': 'bg-green-100 text-green-800',
+  'nao_enviado': 'bg-red-100 text-red-800',
+  'pendente': 'bg-yellow-100 text-yellow-800'
 };
 
-const EnviosUnicv: React.FC = () => {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedEnvio, setSelectedEnvio] = useState<EnvioUnicv | null>(null);
+const STATUS_LABELS = {
+  'enviado': 'Enviado',
+  'nao_enviado': 'Não Enviado',
+  'pendente': 'Pendente'
+};
+
+export default function EnviosUnicv() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoriaFilter, setCategoriaFilter] = useState('all');
-  const [comboboxOpen, setComboboxOpen] = useState(false);
-  const [comboboxValue, setComboboxValue] = useState('');
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [isNovoAlunoModalOpen, setIsNovoAlunoModalOpen] = useState(false);
-  const [novoAlunoData, setNovoAlunoData] = useState({
-    aluno: '',
-    cpf: '',
-    curso: '',
-    categoria: 'segunda_licenciatura' as string
-  });
-  const [observacoesText, setObservacoesText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [categoriaFilter, setCategoriaFilter] = useState('');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedEnvio, setSelectedEnvio] = useState<EnvioUnicv | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
-  // Buscar certificações para popular o select com paginação
-  const [certificacoesPage, setCertificacoesPage] = useState(1);
-  const [allCertificacoes, setAllCertificacoes] = useState<Certificacao[]>([]);
-  const [hasMoreCertificacoes, setHasMoreCertificacoes] = useState(true);
-
-  const { data: certificacoes, isLoading: loadingCertificacoes } = useQuery({
-    queryKey: ['/api/certificacoes', { page: certificacoesPage, limit: 100 }],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        page: certificacoesPage.toString(),
-        limit: '100'
-      });
-      return apiRequest(`/api/certificacoes?${params}`);
-    }
-  });
-
-  // Atualizar lista de certificações quando novos dados chegam
-  useEffect(() => {
-    if (certificacoes?.data && Array.isArray(certificacoes.data)) {
-      if (certificacoesPage === 1) {
-        setAllCertificacoes(certificacoes.data);
-      } else {
-        setAllCertificacoes(prev => [...prev, ...certificacoes.data]);
-      }
-      
-      // Verificar se há mais páginas
-      setHasMoreCertificacoes(
-        certificacoes.data.length === 100 && 
-        certificacoes.pagination && 
-        certificacoes.pagination.page < certificacoes.pagination.totalPages
-      );
-    } else if (certificacoes?.data && !Array.isArray(certificacoes.data)) {
-      // Se os dados não estão no formato esperado, usar como array vazio
-      setAllCertificacoes([]);
-      setHasMoreCertificacoes(false);
-    }
-  }, [certificacoes, certificacoesPage]);
-
-  // Função para carregar mais certificações
-  const loadMoreCertificacoes = () => {
-    if (hasMoreCertificacoes && !loadingCertificacoes) {
-      setCertificacoesPage(prev => prev + 1);
-    }
-  };
-
-  // Buscar colaboradores (usuários admin e agentes)
-  const { data: colaboradores = [], isLoading: loadingColaboradores } = useQuery({
-    queryKey: ['/api/users'],
-    queryFn: () => apiRequest('/api/users')
-  });
-
-  // Buscar envios UNICV
+  // Query para buscar envios
   const { data: envios = [], isLoading: loadingEnvios } = useQuery({
     queryKey: ['/api/envios-unicv', { search: searchTerm, status: statusFilter, categoria: categoriaFilter }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (categoriaFilter && categoriaFilter !== 'all') params.append('categoria', categoriaFilter);
-      return apiRequest(`/api/envios-unicv?${params}`);
+    queryFn: () => apiRequest('/api/envios-unicv', {
+      params: {
+        ...(searchTerm && { search: searchTerm }),
+        ...(statusFilter && { status: statusFilter }),
+        ...(categoriaFilter && { categoria: categoriaFilter })
+      }
+    })
+  });
+
+  // Query para buscar certificações (para o dropdown)
+  const { data: certificacoes = [] } = useQuery({
+    queryKey: ['/api/certificacoes'],
+    queryFn: () => apiRequest('/api/certificacoes')
+  });
+
+  // Mutation para criar envio
+  const createMutation = useMutation({
+    mutationFn: (data: CreateEnvioUnicv) => apiRequest('/api/envios-unicv', {
+      method: 'POST',
+      data
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'] });
+      setIsCreateDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: "Envio UNICV criado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.response?.data?.message || "Erro ao criar envio",
+        variant: "destructive"
+      });
     }
   });
 
-  // Mutation para criar/atualizar envio
-  const envioMutation = useMutation({
-    mutationFn: async (data: EnvioUnicv) => {
-      if (data.id) {
-        return apiRequest(`/api/envios-unicv/${data.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(data)
-        });
-      } else {
-        return apiRequest('/api/envios-unicv', {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
-      }
-    },
+  // Mutation para atualizar envio
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateEnvioUnicv> }) =>
+      apiRequest(`/api/envios-unicv/${id}`, {
+        method: 'PUT',
+        data
+      }),
     onSuccess: () => {
-      console.log('Invalidando cache após criação/edição...');
-      queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
-      });
-      setIsCreateModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'] });
+      setIsEditDialogOpen(false);
       setSelectedEnvio(null);
-      setObservacoesText(''); // Limpar observações após salvar
-      toast({ title: "Sucesso", description: "Envio UNICV salvo com sucesso!" });
+      toast({
+        title: "Sucesso",
+        description: "Envio UNICV atualizado com sucesso!",
+      });
     },
-    onError: () => {
-      toast({ title: "Erro", description: "Erro ao salvar envio UNICV", variant: "destructive" });
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.response?.data?.message || "Erro ao atualizar envio",
+        variant: "destructive"
+      });
     }
   });
 
-  // Mutation para deletar envio
+  // Mutation para excluir envio
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return apiRequest(`/api/envios-unicv/${id}`, {
-        method: 'DELETE'
-      });
-    },
+    mutationFn: (id: number) => apiRequest(`/api/envios-unicv/${id}`, {
+      method: 'DELETE'
+    }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+      queryClient.invalidateQueries({ queryKey: ['/api/envios-unicv'] });
+      toast({
+        title: "Sucesso",
+        description: "Envio UNICV excluído com sucesso!",
       });
-      toast({ title: "Sucesso", description: "Envio UNICV excluído com sucesso!" });
-      setDeleteId(null);
     },
     onError: (error: any) => {
-      let errorMessage = "Erro ao excluir envio UNICV";
-      
-      if (error?.message?.includes("não encontrado")) {
-        errorMessage = "Envio UNICV não encontrado. Pode ter sido excluído por outro usuário.";
-      }
-      
-      toast({ 
-        title: "Erro", 
-        description: errorMessage, 
-        variant: "destructive" 
-      });
-      setDeleteId(null);
-      
-      // Atualizar lista para refletir estado atual
-      queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/envios-unicv'
+      toast({
+        title: "Erro",
+        description: error.response?.data?.message || "Erro ao excluir envio",
+        variant: "destructive"
       });
     }
   });
 
-  // Mutation para criar nova certificação
-  const novaCertificacaoMutation = useMutation({
-    mutationFn: async (data: typeof novoAlunoData) => {
-      return apiRequest('/api/certificacoes', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
-    },
-    onSuccess: (newCertificacao) => {
-      // Atualizar lista de certificações forçando reload da primeira página
-      queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === '/api/certificacoes'
-      });
-      
-      // Resetar paginação para primeira página para garantir que veremos o novo item
-      setCertificacoesPage(1);
-      
-      // Adicionar o novo aluno à lista local imediatamente
-      setAllCertificacoes(prev => [newCertificacao, ...prev]);
-      
-      // Selecionar automaticamente a nova certificação
-      setComboboxValue(newCertificacao.id.toString());
-      
-      // Fechar modal e limpar dados
-      setIsNovoAlunoModalOpen(false);
-      setNovoAlunoData({
-        aluno: '',
-        cpf: '',
-        curso: '',
-        categoria: 'segunda_licenciatura'
-      });
-      
-      toast({ title: "Sucesso", description: "Novo aluno adicionado com sucesso!" });
-    },
-    onError: (error: any) => {
-      console.error('Erro ao criar certificação:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Erro ao adicionar novo aluno";
-      toast({ 
-        title: "Erro", 
-        description: errorMessage, 
-        variant: "destructive" 
-      });
-    }
+  // Filtrar envios
+  const filteredEnvios = envios.filter((envio: EnvioUnicv) => {
+    const matchesSearch = !searchTerm || 
+      envio.aluno?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      envio.cpf?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      envio.curso?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = !statusFilter || envio.statusEnvio === statusFilter;
+    const matchesCategoria = !categoriaFilter || envio.categoria === categoriaFilter;
+    
+    return matchesSearch && matchesStatus && matchesCategoria;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Estatísticas
+  const stats = {
+    total: filteredEnvios.length,
+    enviados: filteredEnvios.filter((e: EnvioUnicv) => e.statusEnvio === 'enviado').length,
+    naoEnviados: filteredEnvios.filter((e: EnvioUnicv) => e.statusEnvio === 'nao_enviado').length,
+    pendentes: filteredEnvios.filter((e: EnvioUnicv) => e.statusEnvio === 'pendente').length
+  };
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     
-    const certificationId = parseInt(formData.get('certificationId') as string);
-    const certificacao = allCertificacoes?.find((cert: Certificacao) => cert.id === certificationId);
-    
-    const data: EnvioUnicv = {
-      certificationId,
-      aluno: certificacao?.aluno || '',
-      cpf: certificacao?.cpf || '',
-      curso: certificacao?.curso || '',
-      categoria: certificacao?.categoria || '',
-      statusEnvio: formData.get('statusEnvio') as 'nao_enviado' | 'enviado',
+    const data = {
+      certificationId: parseInt(formData.get('certificationId') as string),
+      statusEnvio: formData.get('statusEnvio') as 'enviado' | 'nao_enviado' | 'pendente',
       numeroOficio: formData.get('numeroOficio') as string || undefined,
       dataEnvio: formData.get('dataEnvio') as string || undefined,
-      dataCadastro: formData.get('dataCadastro') as string || undefined,
       observacoes: formData.get('observacoes') as string || undefined,
-      colaboradorResponsavel: formData.get('colaboradorResponsavel') as string,
-      ...(selectedEnvio?.id && { id: selectedEnvio.id })
+      colaboradorResponsavel: formData.get('colaboradorResponsavel') as string || undefined
     };
 
-    envioMutation.mutate(data);
-  };
+    if (selectedEnvio) {
+      updateMutation.mutate({ id: selectedEnvio.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  }, [selectedEnvio, createMutation, updateMutation]);
 
-  const openEditModal = (envio: EnvioUnicv) => {
+  const handleEdit = (envio: EnvioUnicv) => {
     setSelectedEnvio(envio);
-    setComboboxValue(envio.certificationId.toString()); // Definir valor do combobox
-    setObservacoesText(envio.observacoes || ''); // Definir observações
-    setIsCreateModalOpen(true);
+    setIsEditDialogOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    setDeleteId(id);
-  };
-
-  const confirmDeleteEnvio = () => {
-    if (deleteId) {
-      deleteMutation.mutate(deleteId);
-      // Não fechar o modal aqui - será fechado no onSuccess ou onError
+    if (window.confirm('Tem certeza que deseja excluir este envio?')) {
+      deleteMutation.mutate(id);
     }
-  };
-
-  const getBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'enviado': return 'default';
-      case 'nao_enviado': return 'secondary';
-      case 'concluido': return 'default';
-      case 'retornado_pendencia': return 'destructive';
-      default: return 'secondary';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'enviado': return 'Enviado';
-      case 'nao_enviado': return 'Não Enviado';
-      case 'concluido': return 'Concluído';
-      case 'retornado_pendencia': return 'Retornado pendência';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'enviado': return 'bg-blue-500';
-      case 'nao_enviado': return 'bg-gray-500';
-      case 'concluido': return 'bg-green-500';
-      case 'retornado_pendencia': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const categorias = ['pos_graduacao', 'segunda_licenciatura', 'formacao_pedagogica', 'formacao_livre', 'eja', 'graduacao', 'diplomacao_competencia', 'capacitacao', 'sequencial'];
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
-    try {
-      // Adicionar horário do meio-dia para evitar problemas de timezone
-      const dateWithTime = dateString.includes('T') ? dateString : dateString + 'T12:00:00';
-      return format(new Date(dateWithTime), 'dd/MM/yyyy', { locale: ptBR });
-    } catch {
-      return dateString;
-    }
-  };
-
-  // Garantir que envios seja sempre um array
-  const enviosArray = Array.isArray(envios) ? envios : [];
-
-  // Aplicar filtros de busca, status e categoria
-  const filteredEnvios = enviosArray.filter((envio: EnvioUnicv) => {
-    // Filtro de busca por nome ou CPF
-    const searchMatch = !searchTerm || 
-      envio.aluno.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      envio.cpf.includes(searchTerm);
-
-    // Filtro de status
-    const statusMatch = statusFilter === 'all' || envio.statusEnvio === statusFilter;
-
-    // Filtro de categoria
-    const categoriaMatch = categoriaFilter === 'all' || envio.categoria === categoriaFilter;
-
-    return searchMatch && statusMatch && categoriaMatch;
-  });
-
-  const stats = {
-    total: filteredEnvios.length || 0,
-    enviados: filteredEnvios.filter((envio: EnvioUnicv) => envio.statusEnvio === 'enviado').length || 0,
-    naoEnviados: filteredEnvios.filter((envio: EnvioUnicv) => envio.statusEnvio === 'nao_enviado').length || 0,
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 p-6">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={() => window.history.back()}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Envios UNICV</h1>
+            <p className="text-gray-600">Gerenciamento de envios de dados dos alunos para a UNICV</p>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Envio UNICV
               </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
+
+        {/* Cards de estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Envios</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Enviados</CardTitle>
+              <Send className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.enviados}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{stats.pendentes}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Não Enviados</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.naoEnviados}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filtros */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Envios UNICV</h1>
-                <p className="text-gray-600 mt-2">
-                  Gerenciamento de envios de dados dos alunos para a UNICV
-                </p>
+                <Label htmlFor="search">Buscar</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    id="search"
+                    placeholder="Nome, CPF ou curso..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status do Envio</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="enviado">Enviado</SelectItem>
+                    <SelectItem value="nao_enviado">Não Enviado</SelectItem>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="categoria">Categoria</Label>
+                <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="tecnico">Técnico</SelectItem>
+                    <SelectItem value="graduacao">Graduação</SelectItem>
+                    <SelectItem value="pos_graduacao">Pós-graduação</SelectItem>
+                    <SelectItem value="eja">EJA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button variant="outline" onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('');
+                  setCategoriaFilter('');
+                }}>
+                  Limpar Filtros
+                </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Cards de Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total de Envios</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.total}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Enviados</CardTitle>
-                  <Send className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.enviados}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Não Enviados</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">{stats.naoEnviados}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Filtros e Busca */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="text-lg">Filtros</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label htmlFor="search">Buscar</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        id="search"
-                        placeholder="Nome, CPF ou curso..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="status">Status do Envio</Label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todos os status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem key="all-status" value="all">Todos os status</SelectItem>
-                        <SelectItem key="enviado" value="enviado">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            Enviado
+        {/* Tabela de Envios */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Envios UNICV</CardTitle>
+            <CardDescription>
+              Todos os envios de dados de alunos para a UNICV
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingEnvios ? (
+              <div className="text-center py-8">Carregando envios...</div>
+            ) : filteredEnvios.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Nenhum envio encontrado
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-medium">Aluno</th>
+                      <th className="text-left p-4 font-medium">CPF</th>
+                      <th className="text-left p-4 font-medium">Curso</th>
+                      <th className="text-left p-4 font-medium">Categoria</th>
+                      <th className="text-left p-4 font-medium">Status</th>
+                      <th className="text-left p-4 font-medium">Nº do Ofício</th>
+                      <th className="text-left p-4 font-medium">Data de Envio</th>
+                      <th className="text-left p-4 font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredEnvios.map((envio: EnvioUnicv) => (
+                      <tr key={envio.id} className="border-b hover:bg-gray-50">
+                        <td className="p-4">{envio.aluno}</td>
+                        <td className="p-4">{envio.cpf}</td>
+                        <td className="p-4 max-w-xs truncate" title={envio.curso}>
+                          {envio.curso}
+                        </td>
+                        <td className="p-4">
+                          <span className="capitalize">
+                            {envio.categoria?.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <Badge className={STATUS_COLORS[envio.statusEnvio]}>
+                            {STATUS_LABELS[envio.statusEnvio]}
+                          </Badge>
+                        </td>
+                        <td className="p-4">{envio.numeroOficio || '-'}</td>
+                        <td className="p-4">
+                          {envio.dataEnvio ? new Date(envio.dataEnvio).toLocaleDateString('pt-BR') : '-'}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(envio)}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(envio.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </SelectItem>
-                        <SelectItem key="nao_enviado" value="nao_enviado">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                            Não Enviado
-                          </div>
-                        </SelectItem>
-                        <SelectItem key="concluido" value="concluido">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            Concluído
-                          </div>
-                        </SelectItem>
-                        <SelectItem key="retornado_pendencia" value="retornado_pendencia">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                            Retornado pendência
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-                  <div>
-                    <Label htmlFor="categoria">Categoria</Label>
-                    <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todas as categorias" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem key="all-categoria" value="all">Todas as categorias</SelectItem>
-                        {categorias.filter(categoria => categoria).map(categoria => (
-                          <SelectItem key={categoria} value={categoria}>
-                            {categoria.replace('_', ' ')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          className="w-full bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => {
-                            setSelectedEnvio(null);
-                            setComboboxValue(''); // Limpar combobox ao criar novo
-                            setObservacoesText(''); // Limpar observações ao criar novo
-                          }}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Novo Envio UNICV
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
-                  </div>
+        {/* Dialog para criar/editar envio */}
+        <Dialog open={isCreateDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
+          if (!open) {
+            setIsCreateDialogOpen(false);
+            setIsEditDialogOpen(false);
+            setSelectedEnvio(null);
+          }
+        }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedEnvio ? 'Editar Envio UNICV' : 'Novo Envio UNICV'}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedEnvio 
+                  ? 'Edite as informações do envio UNICV'
+                  : 'Preencha as informações para criar um novo envio UNICV'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="certificationId">Certificação</Label>
+                  <Select name="certificationId" defaultValue={selectedEnvio?.certificationId?.toString()}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma certificação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {certificacoes.data?.map((cert: any) => (
+                        <SelectItem key={cert.id} value={cert.id.toString()}>
+                          {cert.aluno} - {cert.curso}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Tabela de Envios */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Lista de Envios UNICV</CardTitle>
-                <CardDescription>
-                  Todos os envios de dados de alunos para a UNICV
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loadingEnvios ? (
-                  <div className="text-center py-8">Carregando envios...</div>
-                ) : filteredEnvios.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    Nenhum envio encontrado
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-4 font-medium">Aluno</th>
-                          <th className="text-left p-4 font-medium">Data de Cadastro</th>
-                          <th className="text-left p-4 font-medium">CPF</th>
-                          <th className="text-left p-4 font-medium">Curso</th>
-                          <th className="text-left p-4 font-medium">Categoria</th>
-                          <th className="text-left p-4 font-medium">Status do Envio</th>
-                          <th className="text-left p-4 font-medium">Nº do Ofício</th>
-                          <th className="text-left p-4 font-medium">Data de Envio</th>
-                          <th className="text-left p-4 font-medium">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredEnvios.filter(envio => envio && envio.id).map((envio: EnvioUnicv) => (
-                          <tr key={envio.id} className="border-b hover:bg-gray-50">
-                            <td className="p-4">{envio.aluno}</td>
-                            <td className="p-4">{formatDate(envio.dataCadastro || '')}</td>
-                            <td className="p-4">{envio.cpf}</td>
-                            <td className="p-4 max-w-xs truncate" title={envio.curso}>
-                              {envio.curso}
-                            </td>
-                            <td className="p-4">
-                              <span className="capitalize">
-                                {envio.categoria.replace('_', ' ')}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium ${
-                                envio.statusEnvio === 'enviado' ? 'bg-blue-100 text-blue-800' :
-                                envio.statusEnvio === 'nao_enviado' ? 'bg-gray-100 text-gray-800' :
-                                envio.statusEnvio === 'concluido' ? 'bg-green-100 text-green-800' :
-                                envio.statusEnvio === 'retornado_pendencia' ? 'bg-red-100 text-red-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                <div className={`w-2 h-2 rounded-full ${getStatusColor(envio.statusEnvio)}`}></div>
-                                {getStatusLabel(envio.statusEnvio)}
-                              </div>
-                            </td>
-                            <td className="p-4">{envio.numeroOficio || '-'}</td>
-                            <td className="p-4">{formatDate(envio.dataEnvio || '')}</td>
-                            <td className="p-4">
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditModal(envio)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDelete(envio.id!)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                <div>
+                  <Label htmlFor="statusEnvio">Status do Envio</Label>
+                  <Select name="statusEnvio" defaultValue={selectedEnvio?.statusEnvio || 'pendente'}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="enviado">Enviado</SelectItem>
+                      <SelectItem value="nao_enviado">Não Enviado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Modal de Criação/Edição */}
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>
-                    {selectedEnvio ? 'Editar Envio UNICV' : 'Novo Envio UNICV'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {selectedEnvio 
-                      ? 'Edite as informações do envio UNICV'
-                      : 'Preencha as informações para criar um novo envio UNICV'
-                    }
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <Label htmlFor="certificationId">Aluno (Certificação)</Label>
-                      {selectedEnvio ? (
-                        // Modo EDIÇÃO: Mostrar dados do aluno atual (somente leitura)
-                        <div className="flex gap-2">
-                          <div className="flex-1 p-3 border border-gray-200 rounded-md bg-gray-50">
-                            <div className="flex flex-col">
-                              <span className="font-medium">{selectedEnvio.aluno}</span>
-                              <span className="text-sm text-muted-foreground">
-                                {selectedEnvio.cpf} • {selectedEnvio.curso}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-shrink-0 w-10 h-10 border border-gray-200 rounded-md bg-gray-50 flex items-center justify-center">
-                            <span className="text-gray-400 text-sm">✓</span>
-                          </div>
-                          {/* Campo hidden para o formulário no modo edição */}
-                          <input 
-                            type="hidden" 
-                            name="certificationId" 
-                            value={selectedEnvio.certificationId}
-                          />
-                        </div>
-                      ) : (
-                        // Modo CRIAÇÃO: Permitir seleção de aluno
-                        <div className="flex gap-2">
-                          <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={comboboxOpen}
-                                className="flex-1 justify-between"
-                              >
-                                {comboboxValue
-                                  ? (allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)
-                                    ? `${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.aluno} - ${(allCertificacoes || []).find((cert) => cert.id.toString() === comboboxValue)?.cpf}`
-                                    : "Selecione um aluno..."
-                                  : "Selecione um aluno..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                              <Command>
-                              <CommandInput 
-                                placeholder="Buscar aluno por nome, CPF ou curso..." 
-                                className="h-9"
-                              />
-                              <CommandList className="max-h-60">
-                                <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
-                                <CommandGroup>
-                                  {(allCertificacoes || []).filter(cert => cert && cert.id && cert.aluno && cert.cpf && cert.curso).map((cert: Certificacao) => (
-                                    <CommandItem
-                                      key={cert.id}
-                                      value={`${cert.aluno} ${cert.cpf} ${cert.curso}`}
-                                      onSelect={() => {
-                                        setComboboxValue(cert.id.toString());
-                                        setComboboxOpen(false);
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          comboboxValue === cert.id.toString() ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      <div className="flex flex-col">
-                                        <span className="font-medium">{cert.aluno}</span>
-                                        <span className="text-sm text-muted-foreground">
-                                          {cert.cpf} • {cert.curso}
-                                        </span>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                  
-                                  {/* Botão para carregar mais certificações */}
-                                  {hasMoreCertificacoes && (
-                                    <div className="p-2 border-t">
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={loadMoreCertificacoes}
-                                        disabled={loadingCertificacoes}
-                                        className="w-full text-blue-600 hover:text-blue-700"
-                                      >
-                                        {loadingCertificacoes ? 'Carregando...' : 'Carregar mais alunos...'}
-                                      </Button>
-                                    </div>
-                                  )}
-                                </CommandGroup>
-                                
-                                {/* Indicador de total carregado */}
-                                <div className="p-2 text-xs text-gray-500 text-center border-t">
-                                  {(allCertificacoes || []).length} alunos carregados
-                                  {!hasMoreCertificacoes && (allCertificacoes || []).length > 0 && ' (todos)'}
-                                </div>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                          </Popover>
+                <div>
+                  <Label htmlFor="numeroOficio">Número do Ofício</Label>
+                  <Input
+                    id="numeroOficio"
+                    name="numeroOficio"
+                    placeholder="Ex: OF-001/2024"
+                    defaultValue={selectedEnvio?.numeroOficio || ''}
+                  />
+                </div>
 
-                          {/* Botão para adicionar novo aluno */}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setIsNovoAlunoModalOpen(true)}
-                            className="flex-shrink-0"
-                            title="Adicionar novo aluno"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                          
-                          {/* Campo hidden para o formulário no modo criação */}
-                          <input 
-                            type="hidden" 
-                            name="certificationId" 
-                            value={comboboxValue}
-                            required
-                          />
-                        </div>
-                      )}
-                    </div>
+                <div>
+                  <Label htmlFor="dataEnvio">Data de Envio</Label>
+                  <Input
+                    id="dataEnvio"
+                    name="dataEnvio"
+                    type="date"
+                    defaultValue={selectedEnvio?.dataEnvio ? selectedEnvio.dataEnvio.split('T')[0] : ''}
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="statusEnvio">Status do Envio</Label>
-                      <Select 
-                        name="statusEnvio" 
-                        defaultValue={selectedEnvio?.statusEnvio || 'nao_enviado'}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem key="modal-nao_enviado" value="nao_enviado">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                              Não Enviado
-                            </div>
-                          </SelectItem>
-                          <SelectItem key="modal-enviado" value="enviado">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                              Enviado
-                            </div>
-                          </SelectItem>
-                          <SelectItem key="modal-concluido" value="concluido">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                              Concluído
-                            </div>
-                          </SelectItem>
-                          <SelectItem key="modal-retornado_pendencia" value="retornado_pendencia">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                              Retornado pendência
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <div>
+                  <Label htmlFor="colaboradorResponsavel">Colaborador Responsável</Label>
+                  <Input
+                    id="colaboradorResponsavel"
+                    name="colaboradorResponsavel"
+                    placeholder="Nome do responsável"
+                    defaultValue={selectedEnvio?.colaboradorResponsavel || ''}
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="colaboradorResponsavel">Colaborador Responsável</Label>
-                      <Select 
-                        name="colaboradorResponsavel" 
-                        defaultValue={selectedEnvio?.colaboradorResponsavel}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o responsável..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(colaboradores || []).filter(colab => colab && colab.id && colab.username).map((colab: any) => (
-                            <SelectItem key={colab.id} value={colab.username}>
-                              {colab.username}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <Input
+                    id="observacoes"
+                    name="observacoes"
+                    placeholder="Observações sobre o envio..."
+                    defaultValue={selectedEnvio?.observacoes || ''}
+                  />
+                </div>
+              </div>
 
-                    <div>
-                      <Label htmlFor="numeroOficio">Número do Ofício</Label>
-                      <Input
-                        name="numeroOficio"
-                        placeholder="Ex: 042/2025"
-                        defaultValue={selectedEnvio?.numeroOficio}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="dataEnvio">Data de Envio</Label>
-                      <Input
-                        name="dataEnvio"
-                        type="date"
-                        defaultValue={selectedEnvio?.dataEnvio || (() => {
-                          // Obter data local no formato YYYY-MM-DD (não UTC)
-                          const agora = new Date();
-                          return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-                        })()}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="dataCadastro">Data de Cadastro</Label>
-                      <Input
-                        name="dataCadastro"
-                        type="date"
-                        defaultValue={selectedEnvio?.dataCadastro || getCurrentDateSaoPaulo()}
-                        readOnly={!selectedEnvio} // Somente leitura para novos registros (preenchimento automático)
-                        className={!selectedEnvio ? "bg-gray-50" : ""}
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="observacoes">Observações</Label>
-                        <VoiceTranscription
-                          onTranscript={(transcript) => {
-                            setObservacoesText(prev => prev + (prev ? ' ' : '') + transcript);
-                          }}
-                        />
-                      </div>
-                      <Textarea
-                        name="observacoes"
-                        placeholder="Observações sobre o envio..."
-                        value={observacoesText}
-                        onChange={(e) => setObservacoesText(e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsCreateModalOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={envioMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {envioMutation.isPending ? 'Salvando...' : 'Salvar'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            {/* AlertDialog para confirmação de exclusão */}
-            <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-red-500" />
-                    Confirmar Exclusão
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza de que deseja excluir este envio UNICV? Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setDeleteId(null)}>
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={confirmDeleteEnvio}
-                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                    disabled={deleteMutation.isPending}
-                  >
-                    {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Modal para adicionar novo aluno */}
-            <Dialog open={isNovoAlunoModalOpen} onOpenChange={setIsNovoAlunoModalOpen}>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Adicionar Novo Aluno</DialogTitle>
-                  <DialogDescription>
-                    Cadastre um novo aluno no sistema para posterior envio UNICV
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  if (novoAlunoData.aluno && novoAlunoData.cpf && novoAlunoData.curso) {
-                    novaCertificacaoMutation.mutate(novoAlunoData);
-                  }
-                }} className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label htmlFor="novoAluno">Nome do Aluno *</Label>
-                      <Input
-                        id="novoAluno"
-                        placeholder="Digite o nome completo do aluno"
-                        value={novoAlunoData.aluno}
-                        onChange={(e) => setNovoAlunoData(prev => ({ ...prev, aluno: e.target.value }))}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="novoCpf">CPF *</Label>
-                      <Input
-                        id="novoCpf"
-                        placeholder="000.000.000-00"
-                        value={novoAlunoData.cpf}
-                        onChange={(e) => setNovoAlunoData(prev => ({ ...prev, cpf: e.target.value }))}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="novoCurso">Curso *</Label>
-                      <Input
-                        id="novoCurso"
-                        placeholder="Digite o nome do curso"
-                        value={novoAlunoData.curso}
-                        onChange={(e) => setNovoAlunoData(prev => ({ ...prev, curso: e.target.value }))}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="novaCategoria">Categoria *</Label>
-                      <Select 
-                        value={novoAlunoData.categoria}
-                        onValueChange={(value) => setNovoAlunoData(prev => ({ ...prev, categoria: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="segunda_licenciatura">Segunda Licenciatura</SelectItem>
-                          <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                          <SelectItem value="formacao_pedagogica">Formação Pedagógica</SelectItem>
-                          <SelectItem value="formacao_livre">Formação Livre</SelectItem>
-                          <SelectItem value="diplomacao_competencia">Diplomação por Competência</SelectItem>
-                          <SelectItem value="eja">EJA</SelectItem>
-                          <SelectItem value="graduacao">Graduação</SelectItem>
-                          <SelectItem value="capacitacao">Capacitação</SelectItem>
-                          <SelectItem value="sequencial">Sequencial</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => {
-                        setIsNovoAlunoModalOpen(false);
-                        setNovoAlunoData({
-                          aluno: '',
-                          cpf: '',
-                          curso: '',
-                          categoria: 'segunda_licenciatura'
-                        });
-                      }}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={novaCertificacaoMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {novaCertificacaoMutation.isPending ? 'Adicionando...' : 'Adicionar Aluno'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </main>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    setIsEditDialogOpen(false);
+                    setSelectedEnvio(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {createMutation.isPending || updateMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
+    </AdminLayout>
   );
-};
-
-export default EnviosUnicv;
+}
