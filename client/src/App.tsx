@@ -11,6 +11,9 @@ import { SupportChatButton } from "@/components/chat/SupportChatButton";
 import { queryClient } from "@/lib/queryClient";
 import AppErrorBoundary from "@/components/utils/AppErrorBoundary";
 import ScrollToTop from "@/components/utils/ScrollToTop";
+import PageTransition from "@/components/utils/PageTransition";
+import SmoothLoader from "@/components/utils/SmoothLoader";
+import NavigationProgress from "@/components/layout/NavigationProgress";
 
 // Lazy pages - Auth
 const LoginHub = lazy(() => import("./pages/auth/LoginHub"));
@@ -129,11 +132,13 @@ const App = () => {
             }}
           />
           <BrowserRouter>
+            <NavigationProgress />
             <ScrollToTop />
             <AuthProvider>
-              <Suspense fallback={<div style={{ padding: 24 }}>Carregando…</div>}>
-                <Routes>
-                  {/* Rotas únicas */}
+              <Suspense fallback={<SmoothLoader text="Carregando página..." />}>
+                <PageTransition>
+                  <Routes>
+                    {/* Rotas únicas */}
                   <Route path="/" element={<LoginHub />} />
                   <Route path="/login" element={<LoginHub />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
@@ -214,9 +219,10 @@ const App = () => {
                   <Route path="/professor/perfil" element={<PerfilProfessor />} />
                   <Route path="/professor/*" element={<ProfessorPortalLayout />} />
                   
-                  {/* 404 */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    {/* 404 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </PageTransition>
               </Suspense>
               <SupportChatButton />
             </AuthProvider>

@@ -22,6 +22,47 @@
     z-index: 9998 !important;
   }
 
+  /* Transições suaves para navegação */
+  .page-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Suavizar scrolls */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Transições para elementos interativos */
+  button, a, [role="button"], .sidebar-item {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Suavizar hover states */
+  button:hover, a:hover, [role="button"]:hover {
+    transform: translateY(-1px);
+  }
+  
+  /* Prevenção de layout shift */
+  img, video, iframe {
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  /* Evitar layout shift durante carregamento */
+  .content-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+  
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
   .modal-responsive {
     width: min(90vw, 48rem);
     max-height: min(95vh, 45rem);
