@@ -116,6 +116,8 @@ const App = () => {
 
             <Route path="/matricula-simplificada" element={<MatriculaSimplificada />} />
             <Route path="/matrizes-curriculares" element={<MatrizesCurriculares />} />
+            <Route path="/certificados-academicos" element={<CertificadosPos />} />
+            <Route path="/gestao-cursos" element={<MatrizesCurriculares />} />
             <Route path="/gestao-academica" element={<MatrizesCurriculares />} />
             {/* Portal do Aluno */}
             <Route path="/portal-aluno/login" element={<StudentLogin />} />
