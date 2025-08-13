@@ -58,22 +58,30 @@ import ProfessorPortalLayout from "./pages/professor/ProfessorPortalLayout";
 import NotFound from "./pages/admin/core/NotFound";
 
 const App = () => {
-  // Proteção adicional contra erros de renderização
+  // Proteção adicional contra erros de renderização - só em ambientes Replit
   React.useEffect(() => {
-    // Limpar elementos problemáticos do DOM
-    const cleanupProblematicElements = () => {
+    const isReplitPreview =
+      typeof window !== 'undefined' &&
+      (location.hostname.includes('replit.dev') || location.hostname.includes('replit.app'));
+
+    if (!isReplitPreview) return;
+
+    const removeGarbage = () => {
       try {
-        document.querySelectorAll('iframe[src*="workspace_iframe"]').forEach(el => el.remove());
-        document.querySelectorAll('[data-testid*="workspace"]').forEach(el => el.remove());
-      } catch (error) {
-        // Silenciar erro
-      }
+        document
+          .querySelectorAll('iframe[src*="workspace_iframe"], [data-testid*="workspace"]')
+          .forEach((el) => el.remove());
+      } catch {}
     };
-    
-    cleanupProblematicElements();
-    const interval = setInterval(cleanupProblematicElements, 5000);
-    
-    return () => clearInterval(interval);
+
+    // roda uma vez
+    removeGarbage();
+
+    // observa mudanças e remove assim que aparecer
+    const observer = new MutationObserver(() => removeGarbage());
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }, []);
   
   return (
